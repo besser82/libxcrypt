@@ -10,7 +10,7 @@ plugindir = $(libdir)/xcrypt
 
 AM_CFLAGS = @EXTRA_CFLAGS@ -D_REENTRANT=1 -D_GNU_SOURCE
 
-INCLUDES = -I $(top_srcdir)/src -I $(top_srcdir)/plugins
+AM_CPPFLAGS = -I $(top_srcdir)/src -I $(top_srcdir)/plugins
 
 CLEANFILES = *~
 

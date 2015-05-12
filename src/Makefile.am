@@ -10,7 +10,7 @@ plugindir = $(libdir)/xcrypt
 
 AM_CFLAGS = @EXTRA_CFLAGS@ -D_REENTRANT=1 -D_GNU_SOURCE \
 	-DPLUGINDIR=\"$(plugindir)\"
-INCLUDES = -include libc-symbols.h
+AM_CPPFLAGS = -include libc-symbols.h
 
 CLEANFILES = *~
 

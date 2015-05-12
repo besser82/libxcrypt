@@ -1,8 +1,9 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT(xcrypt, 3.0.4, http://www.suse.de/feedback, libxcrypt)
+AC_INIT([xcrypt],[3.0.4],[http://www.suse.de/feedback],[libxcrypt])
 AM_INIT_AUTOMAKE
+AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src/xcrypt.h])
-AM_CONFIG_HEADER([config.h])
+AC_CONFIG_HEADERS([config.h])
 AC_PREFIX_DEFAULT(/usr)
 
 test "${prefix}" = "NONE" && prefix="/usr"
@@ -24,7 +25,7 @@ AC_PROG_CC
 AM_PROG_CC_C_O
 AM_PROG_AS
 AC_PROG_MAKE_SET
-AC_PROG_LIBTOOL
+LT_INIT
 AC_SYS_LARGEFILE
 
 EXTRA_CFLAGS=""
@@ -48,8 +49,8 @@ AC_TYPE_SIZE_T
 AC_FUNC_ALLOCA
 AC_FUNC_FORK
 AC_FUNC_MEMCMP
-AC_TYPE_SIGNAL
 AC_CHECK_FUNCS([memchr memset strcspn strdup])
 
-AC_OUTPUT([Makefile src/Makefile plugins/Makefile plugins/blowfish/Makefile
+AC_CONFIG_FILES([Makefile src/Makefile plugins/Makefile plugins/blowfish/Makefile
 	plugins/md5/Makefile plugins/sha256/Makefile plugins/sha512/Makefile])
+AC_OUTPUT
