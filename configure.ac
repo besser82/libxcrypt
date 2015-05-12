@@ -1,5 +1,9 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT([xcrypt],[3.0.4],[http://www.suse.de/feedback],[libxcrypt])
+AC_INIT([xcrypt],
+        [3.0.4],
+        [https://github.com/besser82/libxcrypt/issues],
+        [libxcrypt],
+        [https://github.com/besser82/libxcrypt])
 AM_INIT_AUTOMAKE
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src/xcrypt.h])
