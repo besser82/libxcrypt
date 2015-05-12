@@ -1,3 +1,25 @@
+2015-05-12  Björn Esser <besser82@fedoraproject.org>
+
+	* release version 3.1.0
+
+	* update upstream-contact
+
+	* add './configure --enable-bootstrap' to skip some tests on initial build
+
+	* add bootstrap-script
+
+	* add LICENSE for bcrypt
+
+	* update crypt_blowfish to v1.3
+
+	* add '-Wextra' to CFLAGS
+
+	* fix '-Werror=strict-aliasing'
+
+	* fix '-Werror=unused-result'
+
+	* update Autotools
+
 2011-05-10  Thorsten Kukuk  <kukuk@suse.de>
 
 	* release version 3.0.4
