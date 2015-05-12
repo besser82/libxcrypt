@@ -34,7 +34,11 @@ AC_SYS_LARGEFILE
 
 EXTRA_CFLAGS=""
 if eval "test x$GCC = xyes"; then
-    EXTRA_CFLAGS="-W -Wall -Wextra -Wbad-function-cast -Wcast-align -Wcast-qual -Winline -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wshadow -Wstrict-prototypes -Wundef -Wpointer-arith -Werror"
+    EXTRA_CFLAGS="-W -Wall -Wextra -Wbad-function-cast -Wcast-align"
+    EXTRA_CFLAGS="$EXTRA_CFLAGS -Wcast-qual -Winline"
+    EXTRA_CFLAGS="$EXTRA_CFLAGS -Wmissing-declarations -Wmissing-prototypes"
+    EXTRA_CFLAGS="$EXTRA_CFLAGS -Wnested-externs -Wshadow -Wstrict-prototypes"
+    EXTRA_CFLAGS="$EXTRA_CFLAGS -Wundef -Wpointer-arith -Werror"
 fi
 AC_SUBST(EXTRA_CFLAGS)
 
@@ -68,8 +72,28 @@ AC_ARG_ENABLE(
      esac],
     [nobootstrap=true]
 )
-
 AM_CONDITIONAL([NOBOOTSTRAP], [test x$nobootstrap = xtrue])
+
+AC_ARG_ENABLE(
+    [Wno-cast-align],
+    AS_HELP_STRING(
+        [--enable-Wno-cast-align],
+        [do not warn about cast increases required alignment of target type]
+    ),
+    [case "${enableval}" in
+        yes) no_cast_align=true ;;
+         no) no_cast_align=false ;;
+          *) AC_MSG_ERROR([bad value ${enableval} for --enable-Wno-cast-align]) ;;
+     esac],
+     [no_cast_align=false]
+)
+
+if eval "test x$GCC = xyes"; then
+    if eval "test x$no_cast_align = xtrue"; then
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -Wno-cast-align"
+    fi
+fi
+AC_SUBST(EXTRA_CFLAGS)
 
 AC_CONFIG_FILES([Makefile src/Makefile plugins/Makefile plugins/blowfish/Makefile
 	plugins/md5/Makefile plugins/sha256/Makefile plugins/sha512/Makefile])
