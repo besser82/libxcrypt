@@ -30,7 +30,7 @@ AC_SYS_LARGEFILE
 
 EXTRA_CFLAGS=""
 if eval "test x$GCC = xyes"; then
-    EXTRA_CFLAGS="-W -Wall -Wbad-function-cast -Wcast-align -Wcast-qual -Winline -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wshadow -Wstrict-prototypes -Wundef -Wpointer-arith -Werror"
+    EXTRA_CFLAGS="-W -Wall -Wextra -Wbad-function-cast -Wcast-align -Wcast-qual -Winline -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wshadow -Wstrict-prototypes -Wundef -Wpointer-arith -Werror"
 fi
 AC_SUBST(EXTRA_CFLAGS)
 
