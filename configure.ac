@@ -1,6 +1,6 @@
 # Process this file with autoconf to produce a configure script.
 AC_INIT([xcrypt],
-        [3.1.0],
+        [3.1.1],
         [https://github.com/besser82/libxcrypt/issues],
         [libxcrypt],
         [https://github.com/besser82/libxcrypt])

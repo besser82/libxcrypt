@@ -7,6 +7,10 @@ Copyright (C) 2015 Björn Esser <besser82@fedoraproject.org>
 Please send bug reports, questions and suggestions to
 <besser82@fedoraproject.org>.
 
+Version 3.1.1
+* add '--enable-Wno-cast-align' to silence 'cast increases required alignment'
+* whitespace clean-up
+
 Version 3.1.0
 * update upstream-contact
 * add './configure --enable-bootstrap' to skip some tests on initial build
