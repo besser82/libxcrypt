@@ -51,6 +51,22 @@ AC_FUNC_FORK
 AC_FUNC_MEMCMP
 AC_CHECK_FUNCS([memchr memset strcspn strdup])
 
+# Configure options.
+AC_ARG_ENABLE(
+    [bootstrap],
+    AS_HELP_STRING(
+        [--enable-bootstrap], [skip some tests on initial build]
+    ),
+    [case "${enableval}" in
+        yes) nobootstrap=false ;;
+         no) nobootstrap=true ;;
+          *) AC_MSG_ERROR([bad value ${enableval} for --enable-bootstrap]) ;;
+     esac],
+    [nobootstrap=true]
+)
+
+AM_CONDITIONAL([NOBOOTSTRAP], [test x$nobootstrap = xtrue])
+
 AC_CONFIG_FILES([Makefile src/Makefile plugins/Makefile plugins/blowfish/Makefile
 	plugins/md5/Makefile plugins/sha256/Makefile plugins/sha512/Makefile])
 AC_OUTPUT
