@@ -1,3 +1,9 @@
+2015-05-13  Björn Esser <besser82@fedoraproject.org>
+
+	* configure.ac: add '--enable-Wno-cast-align' to silence 'cast
+			increases required alignment'
+
+
 2015-05-12  Björn Esser <besser82@fedoraproject.org>
 
 	* release version 3.1.0
@@ -5,7 +11,7 @@
 	* configure.ac: update upstream-contact
 
 	* configure.ac: add './configure --enable-bootstrap' to skip some
-	  tests on initial build
+			tests on initial build
 	* src/Makefile.am
 
 	* bootstrap.sh: add bootstrap-script
