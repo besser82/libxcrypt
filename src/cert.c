@@ -87,7 +87,7 @@ char *cp;
 	int i,j,t;
 
 	for(i=0;i<8;i++){
-	        scanf("%2x",&t);
+	        if(scanf("%2x",&t)) {};
 		if(feof(stdin))
 		  good_bye();
 		for(j=0; j<8 ; j++) {
