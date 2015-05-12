@@ -25,5 +25,13 @@ libxcrypt_2a_la_SOURCES = crypt_blowfish.c
 
 noinst_PROGRAMS = blowfish-test
 
-blowfish_test_CFLAGS = $(AM_CFLAGS) -DTEST_THREADS=10
-blowfish_test_LDADD = libxcrypt_2a.la -lpthread
+blowfish_test_CFLAGS = $(AM_CFLAGS) -DTEST -DTEST_THREADS=4 -DXCRYPT
+blowfish_test_LDADD = libxcrypt_2a.la -ldl -lpthread
+
+EXTRA_DIST = crypt_blowfish.h ow-crypt.h
+
+install-data-local:
+	@for i in x y; do \
+		cp .libs/libxcrypt_2a.so.1.0.0 $(DESTDIR)$(plugindir)/libxcrypt_2$$i.so.1.0.0; \
+		$(LN_S) libxcrypt_2$$i.so.1.0.0 $(DESTDIR)$(plugindir)/libxcrypt_2$$i.so.1; \
+	done
