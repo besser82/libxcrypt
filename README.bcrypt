@@ -1,0 +1,48 @@
+This is an implementation of a password hashing algorithm, provided
+via the crypt(3) and a reentrant interface.  It is compatible with
+OpenBSD bcrypt.c (version 2a) by Niels Provos and David Mazieres.
+
+I've placed this code in the public domain.  Please, see the comment
+in crypt_blowfish.c for more information.
+
+You can use the provided routines in your own packages, or link them
+into a C library.  I've provided hooks for linking into GNU libc 2.1,
+but it shouldn't be too hard to get this into another library.  Note
+that simply adding this code into your libc is probably not enough to
+make your system use the new password hashing algorithm.  Changes to
+passwd(1), PAM modules, or whatever else your system uses will likely
+be needed as well.  These are not (yet?) a part of this package.
+
+Instructions on using the routines in one of the two common ways are
+given below.  It is recommended that you test the routines on your
+system before you start.  Type "make check" or "make check_threads"
+(if you have the POSIX threads library), then "make clean".
+
+
+1. Using the routines in your programs.
+
+The available interfaces are in ow-crypt.h, and this is the file you
+should include.  You won't need crypt.h.  When linking, add all of the
+C files and x86.S (you can compile and link it even on a non-x86, it
+will produce no code in this case).
+
+
+2. Building the routines into GNU C library, version 2.1.
+
+Extract the library sources and the crypt add-on as usual.  Apply the
+patch provided in this package.  Enter crypt/sysdeps/unix, and rename
+crypt.h to gnu-crypt.h within that directory.  Copy C sources, header
+and assembly (x86.S) files from this package in there as well (be sure
+you don't overwrite the Makefile).  Configure, build, and install the
+library as usual.
+
+Programs that want to use the provided interfaces will need to include
+crypt.h (but not ow-crypt.h directly).  By default, prototypes for the
+new routines aren't defined (but the extra functionality of crypt(3)
+is indeed available).  You need to define _OW_SOURCE to obtain the new
+routines as well.
+
+-- 
+Solar Designer <solar@openwall.com>
+
+$Id: README.bcrypt,v 1.1 2003/10/16 06:49:21 kukuk Exp $

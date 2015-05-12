@@ -1,0 +1,15 @@
+This is the README for libxcrypt
+--------------------------------
+
+This library is a replacement for libcrypt which comes with the
+GNU C Library. It should be binary compatible with libcrypt.so.1
+in that way, as that programs linked against libcrypt.so.1 should
+also work with this library, but programs linked against libxcrypt
+don't need to work with libcrypt. You can replace libcrypt with a
+symlink to libxcrypt.
+
+The advantage of libxcrypt against libcrypt is, that it supports
+bigcrypt and blowfish password encryption and exports md5_crypt and
+the other md5 functions.
+
+  Thorsten Kukuk, 21. October 2002

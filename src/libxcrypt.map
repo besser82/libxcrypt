@@ -1,0 +1,11 @@
+GLIBC_2.0 {
+  global:
+    crypt; crypt_r; encrypt; encrypt_r; fcrypt; setkey; setkey_r;
+  local:
+    *;
+};
+XCRYPT_2.0 {
+  global:
+    bigcrypt;
+    xcrypt; xcrypt_r; xcrypt_gensalt; xcrypt_gensalt_r;
+}GLIBC_2.0;
