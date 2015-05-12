@@ -42,7 +42,7 @@ new routines aren't defined (but the extra functionality of crypt(3)
 is indeed available).  You need to define _OW_SOURCE to obtain the new
 routines as well.
 
--- 
+--
 Solar Designer <solar@openwall.com>
 
 $Id: README.bcrypt,v 1.1 2003/10/16 06:49:21 kukuk Exp $

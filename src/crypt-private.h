@@ -37,11 +37,11 @@ extern void _ufc_doit_r (ufc_long itr, struct crypt_data * __restrict __data,
 extern void __init_des_r (struct crypt_data * __restrict __data);
 extern void __init_des (void);
 
-extern void _ufc_setup_salt_r (__const char *s, 
+extern void _ufc_setup_salt_r (__const char *s,
 			       struct crypt_data * __restrict __data);
-extern void _ufc_mk_keytab_r (__const char *key, 
+extern void _ufc_mk_keytab_r (__const char *key,
 			      struct crypt_data * __restrict __data);
-extern void _ufc_dofinalperm_r (ufc_long *res, 
+extern void _ufc_dofinalperm_r (ufc_long *res,
 				struct crypt_data * __restrict __data);
 extern void _ufc_output_conversion_r (ufc_long v1, ufc_long v2,
 				      __const char *salt,
