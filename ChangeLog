@@ -2,23 +2,39 @@
 
 	* release version 3.1.0
 
-	* update upstream-contact
+	* configure.ac: update upstream-contact
 
-	* add './configure --enable-bootstrap' to skip some tests on initial build
+	* configure.ac: add './configure --enable-bootstrap' to skip some
+	  tests on initial build
+	* src/Makefile.am
 
-	* add bootstrap-script
+	* bootstrap.sh: add bootstrap-script
 
-	* add LICENSE for bcrypt
+	* LICENSE.bcrypt: add LICENSE for bcrypt
+	* Makefile.am
 
-	* update crypt_blowfish to v1.3
+	* plugins/blowfish/Makefile.am: update crypt_blowfish to v1.3
+	* plugins/blowfish/blowfish-test.c
+	* plugins/blowfish/crypt_blowfish.c
+	* plugins/blowfish/crypt_blowfish.h
+	* plugins/blowfish/ow-crypt.h
 
-	* add '-Wextra' to CFLAGS
+	* configure.ac: add '-Wextra' to CFLAGS
 
-	* fix '-Werror=strict-aliasing'
+	* plugins/md5/md5.c: fix '-Werror=strict-aliasing'
+	* plugins/sha256/sha256.c
+	* plugins/sha512/sha512.c
 
-	* fix '-Werror=unused-result'
+	* src/cert.c: fix '-Werror=unused-result'
 
-	* update Autotools
+	* configure.in --> configure.ac: update Autotools
+	* Makefile.am
+	* m4/
+	* plugins/blowfish/Makefile.am
+	* plugins/md5/Makefile.am
+	* plugins/sha256/Makefile.am
+	* plugins/sha512/Makefile.am
+	* src/Makefile.am
 
 2011-05-10  Thorsten Kukuk  <kukuk@suse.de>
 
