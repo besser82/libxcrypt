@@ -202,6 +202,9 @@ __sha256_finish_ctx (ctx, resbuf)
      struct sha256_ctx *ctx;
      void *resbuf;
 {
+  /* helper variable */
+  uint32_t *helper;
+
   /* Take yet unprocessed bytes into account.  */
   uint32_t bytes = ctx->buflen;
   size_t pad;
@@ -215,9 +218,10 @@ __sha256_finish_ctx (ctx, resbuf)
   memcpy (&ctx->buffer[bytes], fillbuf, pad);
 
   /* Put the 64-bit file length in *bits* at the end of the buffer.  */
-  *(uint32_t *) &ctx->buffer[bytes + pad + 4] = SWAP (ctx->total[0] << 3);
-  *(uint32_t *) &ctx->buffer[bytes + pad] = SWAP ((ctx->total[1] << 3) |
-						  (ctx->total[0] >> 29));
+  helper  = (uint32_t *) &ctx->buffer[bytes + pad + 4];
+  *helper = SWAP (ctx->total[0] << 3);
+  helper  = (uint32_t *) &ctx->buffer[bytes + pad];
+  *helper = SWAP ((ctx->total[1] << 3) | (ctx->total[0] >> 29));
 
   /* Process last bytes.  */
   sha256_process_block (ctx->buffer, bytes + pad + 8, ctx);

@@ -233,6 +233,9 @@ __sha512_finish_ctx (ctx, resbuf)
      struct sha512_ctx *ctx;
      void *resbuf;
 {
+  /* helper variable */
+  uint64_t *helper;
+
   /* Take yet unprocessed bytes into account.  */
   uint64_t bytes = ctx->buflen;
   size_t pad;
@@ -246,9 +249,10 @@ __sha512_finish_ctx (ctx, resbuf)
   memcpy (&ctx->buffer[bytes], fillbuf, pad);
 
   /* Put the 128-bit file length in *bits* at the end of the buffer.  */
-  *(uint64_t *) &ctx->buffer[bytes + pad + 8] = SWAP (ctx->total[0] << 3);
-  *(uint64_t *) &ctx->buffer[bytes + pad] = SWAP ((ctx->total[1] << 3) |
-						  (ctx->total[0] >> 61));
+  helper  = (uint64_t *) &ctx->buffer[bytes + pad + 8];
+  *helper = SWAP (ctx->total[0] << 3);
+  helper  = (uint64_t *) &ctx->buffer[bytes + pad];
+  *helper = SWAP ((ctx->total[1] << 3) | (ctx->total[0] >> 61));
 
   /* Process last bytes.  */
   sha512_process_block (ctx->buffer, bytes + pad + 16, ctx);
