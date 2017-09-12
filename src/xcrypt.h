@@ -76,7 +76,7 @@ extern char *xcrypt_gensalt (__const char *prefix, unsigned long count,
 
 extern char *xcrypt_gensalt_r (__const char *prefix, unsigned long count,
 			       __const char *input, int size, char *output,
-			       int output_size) __THROW __nonnull ((1,3,5));
+			       int output_size) __THROW __nonnull ((1,5));
 #define crypt_gensalt_r xcrypt_gensalt_r
 
 extern char *bigcrypt (__const char *key, __const char *salt)
