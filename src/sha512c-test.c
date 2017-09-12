@@ -50,11 +50,11 @@ main (void)
       char *cp = crypt_r (tests[i].input, tests[i].salt, &output);
 
       if (strcmp (cp, tests[i].expected) != 0)
-	{
-	  printf ("test %u: expected \"%s\", got \"%s\"\n",
-		  (unsigned int)i, tests[i].expected, cp);
-	  result = 1;
-	}
+        {
+          printf ("test %u: expected \"%s\", got \"%s\"\n",
+                  (unsigned int) i, tests[i].expected, cp);
+          result = 1;
+        }
     }
 
   return result;

@@ -22,8 +22,8 @@
 #include "xcrypt-private.h"
 #include "crypt-obsolete.h"
 
-#define CRYPT_OUTPUT_SIZE		(7 + 22 + 31 + 1)
-#define CRYPT_GENSALT_OUTPUT_SIZE	(7 + 22 + 1)
+#define CRYPT_OUTPUT_SIZE               (7 + 22 + 31 + 1)
+#define CRYPT_GENSALT_OUTPUT_SIZE       (7 + 22 + 1)
 
 char *
 _xcrypt_crypt_traditional_rn (const char *key, const char *salt,
@@ -35,9 +35,9 @@ _xcrypt_crypt_traditional_rn (const char *key, const char *salt,
       return NULL;
     }
   if (strlen (salt) > 13)
-    return __bigcrypt_r (key, salt, (struct crypt_data *)data);
+    return __bigcrypt_r (key, salt, (struct crypt_data *) data);
   else
-    return __des_crypt_r (key, salt, (struct crypt_data *)data);
+    return __des_crypt_r (key, salt, (struct crypt_data *) data);
 }
 
 char *
@@ -51,7 +51,8 @@ _xcrypt_crypt_extended_rn (const char *key __attribute__ ((unused)),
   return NULL;
 }
 
-struct hashfn {
+struct hashfn
+{
   const char *prefix;
   char *(*crypt) (const char *key, const char *salt, char *data, size_t size);
   char *(*gensalt) (unsigned long count,
@@ -86,7 +87,7 @@ static const struct hashfn traditional_hash = {
 };
 
 static int
-is_des_salt_char(char c)
+is_des_salt_char (char c)
 {
   return ((c >= 'a' && c <= 'z') ||
           (c >= 'A' && c <= 'Z') ||
@@ -95,7 +96,7 @@ is_des_salt_char(char c)
 }
 
 static const struct hashfn *
-_xcrypt_get_hash(const char *salt)
+_xcrypt_get_hash (const char *salt)
 {
   if (salt[0] == '$')
     {
@@ -206,8 +207,7 @@ crypt_gensalt_rn (__const char *prefix, unsigned long count,
 
 char *
 crypt_gensalt_r (__const char *prefix, unsigned long count,
-                  __const char *input, int size, char *output,
-                  int output_size)
+                 __const char *input, int size, char *output, int output_size)
 {
   return crypt_gensalt_rn (prefix, count, input, size, output, output_size);
 }

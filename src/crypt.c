@@ -18,7 +18,7 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 02111-1307, USA.
  *
- * @(#)crypt.c	2.25 12/20/96
+ * @(#)crypt.c  2.25 12/20/96
  *
  * Semiportable C version
  *
@@ -37,39 +37,51 @@
 #define SBA(sb, v) (*(long32*)((char*)(sb)+(v)))
 
 void
-_ufc_doit_r(itr, __data, res)
+_ufc_doit_r (itr, __data, res)
      ufc_long itr, *res;
-     struct crypt_data * __restrict __data;
+     struct crypt_data *__restrict __data;
 {
   int i;
   long32 s, *k;
-  long32 *sb01 = (long32*)__data->sb0;
-  long32 *sb23 = (long32*)__data->sb2;
+  long32 *sb01 = (long32 *) __data->sb0;
+  long32 *sb23 = (long32 *) __data->sb2;
   long32 l1, l2, r1, r2;
 
-  l1 = (long32)res[0]; l2 = (long32)res[1];
-  r1 = (long32)res[2]; r2 = (long32)res[3];
+  l1 = (long32) res[0];
+  l2 = (long32) res[1];
+  r1 = (long32) res[2];
+  r2 = (long32) res[3];
 
-  while(itr--) {
-    k = (long32*)__data->keysched;
-    for(i=8; i--; ) {
-      s = *k++ ^ r1;
-      l1 ^= SBA(sb01, s & 0xffff); l2 ^= SBA(sb01, (s & 0xffff)+4);
-      l1 ^= SBA(sb01, s >>= 16  ); l2 ^= SBA(sb01, (s         )+4);
-      s = *k++ ^ r2;
-      l1 ^= SBA(sb23, s & 0xffff); l2 ^= SBA(sb23, (s & 0xffff)+4);
-      l1 ^= SBA(sb23, s >>= 16  ); l2 ^= SBA(sb23, (s         )+4);
+  while (itr--)
+    {
+      k = (long32 *) __data->keysched;
+      for (i = 8; i--;)
+        {
+          s = *k++ ^ r1;
+          l1 ^= SBA (sb01, s & 0xffff); l2 ^= SBA (sb01, (s & 0xffff) + 4);
+          l1 ^= SBA (sb01, s >>= 16  ); l2 ^= SBA (sb01, (s         ) + 4);
+          s = *k++ ^ r2;
+          l1 ^= SBA (sb23, s & 0xffff); l2 ^= SBA (sb23, (s & 0xffff) + 4);
+          l1 ^= SBA (sb23, s >>= 16  ); l2 ^= SBA (sb23, (s         ) + 4);
 
-      s = *k++ ^ l1;
-      r1 ^= SBA(sb01, s & 0xffff); r2 ^= SBA(sb01, (s & 0xffff)+4);
-      r1 ^= SBA(sb01, s >>= 16  ); r2 ^= SBA(sb01, (s         )+4);
-      s = *k++ ^ l2;
-      r1 ^= SBA(sb23, s & 0xffff); r2 ^= SBA(sb23, (s & 0xffff)+4);
-      r1 ^= SBA(sb23, s >>= 16  ); r2 ^= SBA(sb23, (s         )+4);
+          s = *k++ ^ l1;
+          r1 ^= SBA (sb01, s & 0xffff); r2 ^= SBA (sb01, (s & 0xffff) + 4);
+          r1 ^= SBA (sb01, s >>= 16  ); r2 ^= SBA (sb01, (s         ) + 4);
+          s = *k++ ^ l2;
+          r1 ^= SBA (sb23, s & 0xffff); r2 ^= SBA (sb23, (s & 0xffff) + 4);
+          r1 ^= SBA (sb23, s >>= 16  ); r2 ^= SBA (sb23, (s         ) + 4);
+        }
+      s = l1;
+      l1 = r1;
+      r1 = s;
+      s = l2;
+      l2 = r2;
+      r2 = s;
     }
-    s=l1; l1=r1; r1=s; s=l2; l2=r2; r2=s;
-  }
-  res[0] = l1; res[1] = l2; res[2] = r1; res[3] = r2;
+  res[0] = l1;
+  res[1] = l2;
+  res[2] = r1;
+  res[3] = r2;
 }
 
 #endif
@@ -83,38 +95,44 @@ _ufc_doit_r(itr, __data, res)
 #define SBA(sb, v) (*(long64*)((char*)(sb)+(v)))
 
 void
-_ufc_doit_r(itr, __data, res)
+_ufc_doit_r (itr, __data, res)
      ufc_long itr, *res;
-     struct crypt_data * __restrict __data;
+     struct crypt_data *__restrict __data;
 {
   int i;
   long64 l, r, s, *k;
-  register long64 *sb01 = (long64*)__data->sb0;
-  register long64 *sb23 = (long64*)__data->sb2;
+  register long64 *sb01 = (long64 *) __data->sb0;
+  register long64 *sb23 = (long64 *) __data->sb2;
 
-  l = (((long64)res[0]) << 32) | ((long64)res[1]);
-  r = (((long64)res[2]) << 32) | ((long64)res[3]);
+  l = (((long64) res[0]) << 32) | ((long64) res[1]);
+  r = (((long64) res[2]) << 32) | ((long64) res[3]);
 
-  while(itr--) {
-    k = (long64*)__data->keysched;
-    for(i=8; i--; ) {
-      s = *k++ ^ r;
-      l ^= SBA(sb23, (s       ) & 0xffff);
-      l ^= SBA(sb23, (s >>= 16) & 0xffff);
-      l ^= SBA(sb01, (s >>= 16) & 0xffff);
-      l ^= SBA(sb01, (s >>= 16)         );
+  while (itr--)
+    {
+      k = (long64 *) __data->keysched;
+      for (i = 8; i--;)
+        {
+          s = *k++ ^ r;
+          l ^= SBA (sb23, (s       ) & 0xffff);
+          l ^= SBA (sb23, (s >>= 16) & 0xffff);
+          l ^= SBA (sb01, (s >>= 16) & 0xffff);
+          l ^= SBA (sb01, (s >>= 16)         );
 
-      s = *k++ ^ l;
-      r ^= SBA(sb23, (s       ) & 0xffff);
-      r ^= SBA(sb23, (s >>= 16) & 0xffff);
-      r ^= SBA(sb01, (s >>= 16) & 0xffff);
-      r ^= SBA(sb01, (s >>= 16)         );
+          s = *k++ ^ l;
+          r ^= SBA (sb23, (s       ) & 0xffff);
+          r ^= SBA (sb23, (s >>= 16) & 0xffff);
+          r ^= SBA (sb01, (s >>= 16) & 0xffff);
+          r ^= SBA (sb01, (s >>= 16)         );
+        }
+      s = l;
+      l = r;
+      r = s;
     }
-    s=l; l=r; r=s;
-  }
 
-  res[0] = l >> 32; res[1] = l & 0xffffffff;
-  res[2] = r >> 32; res[3] = r & 0xffffffff;
+  res[0] = l >> 32;
+  res[1] = l & 0xffffffff;
+  res[2] = r >> 32;
+  res[3] = r & 0xffffffff;
 }
 
 #endif

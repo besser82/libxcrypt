@@ -20,7 +20,7 @@
  *
  * crypt entry points
  *
- * @(#)crypt-entry.c	1.2 12/20/96
+ * @(#)crypt-entry.c  1.2 12/20/96
  *
  */
 
@@ -61,7 +61,7 @@ char *
 __des_crypt_r (key, salt, data)
      const char *key;
      const char *salt;
-     struct crypt_data * __restrict data;
+     struct crypt_data *__restrict data;
 {
   ufc_long res[4];
   char ktab[9];
@@ -82,8 +82,8 @@ __des_crypt_r (key, salt, data)
   /*
    * Go for the 25 DES encryptions
    */
-  _ufc_clearmem ((char*) res, (int) sizeof (res));
-  _ufc_doit_r (xx,  data, &res[0]);
+  _ufc_clearmem ((char *) res, (int) sizeof (res));
+  _ufc_doit_r (xx, data, &res[0]);
 
   /*
    * Do final permutations

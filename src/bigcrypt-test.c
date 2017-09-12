@@ -5,7 +5,7 @@
 #include "crypt-obsolete.h"
 
 int
-main(void)
+main (void)
 {
   char *newpassword = bigcrypt ("1234567890123", "GA");
 

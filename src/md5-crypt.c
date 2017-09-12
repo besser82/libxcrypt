@@ -39,7 +39,7 @@ static const char md5_salt_prefix[] = "$1$";
 
 /* Table with characters for base64 transformation.  */
 static const char b64t[64] =
-"./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 
 /* This entry point is equivalent to the `crypt' function in Unix
@@ -73,9 +73,9 @@ _xcrypt_crypt_md5_rn (const char *key, const char *salt,
     {
       char *tmp = (char *) alloca (key_len + __alignof__ (md5_uint32));
       key = copied_key =
-	memcpy (tmp + __alignof__ (md5_uint32)
-		- (tmp - (char *) 0) % __alignof__ (md5_uint32),
-		key, key_len);
+        memcpy (tmp + __alignof__ (md5_uint32)
+                - (tmp - (char *) 0) % __alignof__ (md5_uint32),
+                key, key_len);
       assert ((key - (char *) 0) % __alignof__ (md5_uint32) == 0);
     }
 
@@ -83,9 +83,9 @@ _xcrypt_crypt_md5_rn (const char *key, const char *salt,
     {
       char *tmp = (char *) alloca (salt_len + __alignof__ (md5_uint32));
       salt = copied_salt =
-	memcpy (tmp + __alignof__ (md5_uint32)
-		- (tmp - (char *) 0) % __alignof__ (md5_uint32),
-		salt, salt_len);
+        memcpy (tmp + __alignof__ (md5_uint32)
+                - (tmp - (char *) 0) % __alignof__ (md5_uint32),
+                salt, salt_len);
       assert ((salt - (char *) 0) % __alignof__ (md5_uint32) == 0);
     }
 
@@ -136,7 +136,7 @@ _xcrypt_crypt_md5_rn (const char *key, const char *salt,
      what was intended but we have to follow this to be compatible.  */
   for (cnt = key_len; cnt > 0; cnt >>= 1)
     __md5_process_bytes ((cnt & 1) != 0 ? (const char *) alt_result : key, 1,
-			 &ctx);
+                         &ctx);
 
   /* Create intermediate result.  */
   __md5_finish_ctx (&ctx, alt_result);
@@ -151,23 +151,23 @@ _xcrypt_crypt_md5_rn (const char *key, const char *salt,
 
       /* Add key or last result.  */
       if ((cnt & 1) != 0)
-	__md5_process_bytes (key, key_len, &ctx);
+        __md5_process_bytes (key, key_len, &ctx);
       else
-	__md5_process_bytes (alt_result, 16, &ctx);
+        __md5_process_bytes (alt_result, 16, &ctx);
 
       /* Add salt for numbers not divisible by 3.  */
       if (cnt % 3 != 0)
-	__md5_process_bytes (salt, salt_len, &ctx);
+        __md5_process_bytes (salt, salt_len, &ctx);
 
       /* Add key for numbers not divisible by 7.  */
       if (cnt % 7 != 0)
-	__md5_process_bytes (key, key_len, &ctx);
+        __md5_process_bytes (key, key_len, &ctx);
 
       /* Add key or last result.  */
       if ((cnt & 1) != 0)
-	__md5_process_bytes (alt_result, 16, &ctx);
+        __md5_process_bytes (alt_result, 16, &ctx);
       else
-	__md5_process_bytes (key, key_len, &ctx);
+        __md5_process_bytes (key, key_len, &ctx);
 
       /* Create intermediate result.  */
       __md5_finish_ctx (&ctx, alt_result);
@@ -187,16 +187,16 @@ _xcrypt_crypt_md5_rn (const char *key, const char *salt,
       --buflen;
     }
 
-#define b64_from_24bit(B2, B1, B0, N)					      \
-  do {									      \
-    unsigned int w = ((B2) << 16) | ((B1) << 8) | (B0);			      \
-    int n = (N);							      \
-    while (n-- > 0 && buflen > 0)					      \
-      {									      \
-	*cp++ = b64t[w & 0x3f];						      \
-	--buflen;							      \
-	w >>= 6;							      \
-      }									      \
+#define b64_from_24bit(B2, B1, B0, N)                                         \
+  do {                                                                        \
+    unsigned int w = ((B2) << 16) | ((B1) << 8) | (B0);                       \
+    int n = (N);                                                              \
+    while (n-- > 0 && buflen > 0)                                             \
+      {                                                                       \
+        *cp++ = b64t[w & 0x3f];                                               \
+        --buflen;                                                             \
+        w >>= 6;                                                              \
+      }                                                                       \
   } while (0)
 
 
@@ -212,7 +212,7 @@ _xcrypt_crypt_md5_rn (const char *key, const char *salt,
       buffer = NULL;
     }
   else
-    *cp = '\0';		/* Terminate the string.  */
+    *cp = '\0';                 /* Terminate the string.  */
 
   /* Clear the buffer for the intermediate result so that people
      attaching to processes or reading core dumps cannot get any

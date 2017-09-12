@@ -54,23 +54,23 @@ main (void)
     {
       __sha256_init_ctx (&ctx);
       __sha256_process_bytes (tests[cnt].input, strlen (tests[cnt].input),
-			      &ctx);
+                              &ctx);
       __sha256_finish_ctx (&ctx, sum);
       if (memcmp (tests[cnt].result, sum, 32) != 0)
-	{
-	  printf ("test %d run %d failed\n", cnt, 1);
-	  result = 1;
-	}
+        {
+          printf ("test %d run %d failed\n", cnt, 1);
+          result = 1;
+        }
 
       __sha256_init_ctx (&ctx);
       for (i = 0; tests[cnt].input[i] != '\0'; ++i)
-	__sha256_process_bytes (&tests[cnt].input[i], 1, &ctx);
+        __sha256_process_bytes (&tests[cnt].input[i], 1, &ctx);
       __sha256_finish_ctx (&ctx, sum);
       if (memcmp (tests[cnt].result, sum, 32) != 0)
-	{
-	  printf ("test %d run %d failed\n", cnt, 2);
-	  result = 1;
-	}
+        {
+          printf ("test %d run %d failed\n", cnt, 2);
+          result = 1;
+        }
     }
 
   /* Test vector from FIPS 180-2: appendix B.3.  */

@@ -23,21 +23,22 @@
 #endif
 
 #ifndef __SKIP_GNU
-extern char *crypt(__const char *key, __const char *setting);
-extern char *crypt_r(__const char *key, __const char *setting, void *data);
+extern char *crypt (__const char *key, __const char *setting);
+extern char *crypt_r (__const char *key, __const char *setting, void *data);
 #endif
 
 #ifndef __SKIP_OW
-extern char *crypt_rn(__const char *key, __const char *setting,
-	void *data, int size);
-extern char *crypt_ra(__const char *key, __const char *setting,
-	void **data, int *size);
-extern char *crypt_gensalt(__const char *prefix, unsigned long count,
-	__const char *input, int size);
-extern char *crypt_gensalt_rn(__const char *prefix, unsigned long count,
-	__const char *input, int size, char *output, int output_size);
-extern char *crypt_gensalt_ra(__const char *prefix, unsigned long count,
-	__const char *input, int size);
+extern char *crypt_rn (__const char *key, __const char *setting,
+                       void *data, int size);
+extern char *crypt_ra (__const char *key, __const char *setting,
+                       void **data, int *size);
+extern char *crypt_gensalt (__const char *prefix, unsigned long count,
+                            __const char *input, int size);
+extern char *crypt_gensalt_rn (__const char *prefix, unsigned long count,
+                               __const char *input, int size, char *output,
+                               int output_size);
+extern char *crypt_gensalt_ra (__const char *prefix, unsigned long count,
+                               __const char *input, int size);
 #endif
 
 #endif

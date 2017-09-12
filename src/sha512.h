@@ -38,21 +38,23 @@ struct sha512_ctx
 
 /* Initialize structure containing state of computation.
    (FIPS 180-2: 5.3.3)  */
-extern void __sha512_init_ctx (struct sha512_ctx *ctx) __THROW;
+extern void
+__sha512_init_ctx (struct sha512_ctx *ctx)
+  __THROW;
 
 /* Starting with the result of former calls of this function (or the
    initialization function update the context for the next LEN bytes
    starting at BUFFER.
    It is NOT required that LEN is a multiple of 128.  */
-extern void __sha512_process_bytes (const void *buffer, size_t len,
-				    struct sha512_ctx *ctx) __THROW;
+     extern void __sha512_process_bytes (const void *buffer, size_t len,
+                                         struct sha512_ctx *ctx) __THROW;
 
 /* Process the remaining bytes in the buffer and put result from CTX
    in first 64 bytes following RESBUF.
 
    IMPORTANT: On some systems it is required that RESBUF is correctly
    aligned for a 64 bits value.  */
-extern void *__sha512_finish_ctx (struct sha512_ctx *ctx, void *resbuf)
+     extern void *__sha512_finish_ctx (struct sha512_ctx *ctx, void *resbuf)
   __THROW;
 
 #endif /* sha512.h */

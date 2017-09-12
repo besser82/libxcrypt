@@ -1,7 +1,7 @@
 /* Functions to compute MD5 message digest of files or memory blocks.
    according to the definition of MD5 in RFC 1321 from April 1992.
    Copyright (C) 1995,1996,1997,1999,2000,2001,2005
-	Free Software Foundation, Inc.
+        Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -22,7 +22,7 @@
 /* Written by Ulrich Drepper <drepper@gnu.ai.mit.edu>, 1995.  */
 
 #ifdef HAVE_CONFIG_H
-# include <config.h>
+#include <config.h>
 #endif
 
 #include <sys/types.h>
@@ -34,30 +34,30 @@
 
 #include <endian.h>
 #if __BYTE_ORDER == __BIG_ENDIAN
-# define WORDS_BIGENDIAN 1
+#define WORDS_BIGENDIAN 1
 #endif
 
 /* We need to keep the namespace clean so define the MD5 function
    protected using leading __ .  */
-# define md5_init_ctx __md5_init_ctx
-# define md5_process_block __md5_process_block
-# define md5_process_bytes __md5_process_bytes
-# define md5_finish_ctx __md5_finish_ctx
-# define md5_read_ctx __md5_read_ctx
-# define md5_stream __md5_stream
-# define md5_buffer __md5_buffer
+#define md5_init_ctx __md5_init_ctx
+#define md5_process_block __md5_process_block
+#define md5_process_bytes __md5_process_bytes
+#define md5_finish_ctx __md5_finish_ctx
+#define md5_read_ctx __md5_read_ctx
+#define md5_stream __md5_stream
+#define md5_buffer __md5_buffer
 
 #ifdef WORDS_BIGENDIAN
-# define SWAP(n)							\
+#define SWAP(n)                                                 \
     (((n) << 24) | (((n) & 0xff00) << 8) | (((n) >> 8) & 0xff00) | ((n) >> 24))
 #else
-# define SWAP(n) (n)
+#define SWAP(n) (n)
 #endif
 
 
 /* This array contains the bytes used to pad the buffer to the next
    64-byte boundary.  (RFC 1321, 3.1: Step 1)  */
-static const unsigned char fillbuf[64] = { 0x80, 0 /* , 0, 0, ...  */ };
+static const unsigned char fillbuf[64] = { 0x80, 0 /* , 0, 0, ...  */  };
 
 
 /* Initialize structure containing state of computation.
@@ -119,9 +119,9 @@ md5_finish_ctx (ctx, resbuf)
   memcpy (&ctx->buffer[bytes], fillbuf, pad);
 
   /* Put the 64-bit file length in *bits* at the end of the buffer.  */
-  helper  = (md5_uint32 *) &ctx->buffer[bytes + pad];
+  helper = (md5_uint32 *) & ctx->buffer[bytes + pad];
   *helper = SWAP (ctx->total[0] << 3);
-  helper  = (md5_uint32 *) &ctx->buffer[bytes + pad + 4];
+  helper = (md5_uint32 *) & ctx->buffer[bytes + pad + 4];
   *helper = SWAP ((ctx->total[1] << 3) | (ctx->total[0] >> 29));
 
   /* Process last bytes.  */
@@ -151,28 +151,28 @@ md5_stream (stream, resblock)
   while (1)
     {
       /* We read the file in blocks of BLOCKSIZE bytes.  One call of the
-	 computation function processes the whole buffer so that with the
-	 next round of the loop another block can be read.  */
+         computation function processes the whole buffer so that with the
+         next round of the loop another block can be read.  */
       size_t n;
       sum = 0;
 
       /* Read block.  Take care for partial reads.  */
       do
-	{
-	  n = fread (buffer + sum, 1, BLOCKSIZE - sum, stream);
+        {
+          n = fread (buffer + sum, 1, BLOCKSIZE - sum, stream);
 
-	  sum += n;
-	}
+          sum += n;
+        }
       while (sum < BLOCKSIZE && n != 0);
       if (n == 0 && ferror (stream))
         return 1;
 
       /* If end of file is reached, end the loop.  */
       if (n == 0)
-	break;
+        break;
 
       /* Process buffer with BLOCKSIZE bytes.  Note that
-			BLOCKSIZE % 64 == 0
+         BLOCKSIZE % 64 == 0
        */
       md5_process_block (buffer, BLOCKSIZE, &ctx);
     }
@@ -226,14 +226,14 @@ md5_process_bytes (buffer, len, ctx)
       ctx->buflen += add;
 
       if (ctx->buflen > 64)
-	{
-	  md5_process_block (ctx->buffer, ctx->buflen & ~63, ctx);
+        {
+          md5_process_block (ctx->buffer, ctx->buflen & ~63, ctx);
 
-	  ctx->buflen &= 63;
-	  /* The regions in the following copy operation cannot overlap.  */
-	  memcpy (ctx->buffer, &ctx->buffer[(left_over + add) & ~63],
-		  ctx->buflen);
-	}
+          ctx->buflen &= 63;
+          /* The regions in the following copy operation cannot overlap.  */
+          memcpy (ctx->buffer, &ctx->buffer[(left_over + add) & ~63],
+                  ctx->buflen);
+        }
 
       buffer = (const char *) buffer + add;
       len -= add;
@@ -245,25 +245,25 @@ md5_process_bytes (buffer, len, ctx)
 #if 1
 /* To check alignment gcc has an appropriate operator.  Other
    compilers don't.  */
-# if __GNUC__ >= 2
-#  define UNALIGNED_P(p) (((md5_uintptr) p) % __alignof__ (md5_uint32) != 0)
-# else
-#  define UNALIGNED_P(p) (((md5_uintptr) p) % sizeof (md5_uint32) != 0)
-# endif
+#if __GNUC__ >= 2
+#define UNALIGNED_P(p) (((md5_uintptr) p) % __alignof__ (md5_uint32) != 0)
+#else
+#define UNALIGNED_P(p) (((md5_uintptr) p) % sizeof (md5_uint32) != 0)
+#endif
       if (UNALIGNED_P (buffer))
-	while (len > 64)
-	  {
-	    md5_process_block (memcpy (ctx->buffer, buffer, 64), 64, ctx);
-	    buffer = (const char *) buffer + 64;
-	    len -= 64;
-	  }
+        while (len > 64)
+          {
+            md5_process_block (memcpy (ctx->buffer, buffer, 64), 64, ctx);
+            buffer = (const char *) buffer + 64;
+            len -= 64;
+          }
       else
 #endif
-	{
-	  md5_process_block (buffer, len & ~63, ctx);
-	  buffer = (const char *) buffer + (len & ~63);
-	  len &= 63;
-	}
+        {
+          md5_process_block (buffer, len & ~63, ctx);
+          buffer = (const char *) buffer + (len & ~63);
+          len &= 63;
+        }
     }
 
   /* Move remaining bytes in internal buffer.  */
@@ -274,11 +274,11 @@ md5_process_bytes (buffer, len, ctx)
       memcpy (&ctx->buffer[left_over], buffer, len);
       left_over += len;
       if (left_over >= 64)
-	{
-	  md5_process_block (ctx->buffer, 64, ctx);
-	  left_over -= 64;
-	  memcpy (ctx->buffer, &ctx->buffer[64], left_over);
-	}
+        {
+          md5_process_block (ctx->buffer, 64, ctx);
+          left_over -= 64;
+          memcpy (ctx->buffer, &ctx->buffer[64], left_over);
+        }
       ctx->buflen = left_over;
     }
 }
@@ -329,30 +329,30 @@ md5_process_block (buffer, len, ctx)
       md5_uint32 D_save = D;
 
       /* First round: using the given function, the context and a constant
-	 the next context is computed.  Because the algorithms processing
-	 unit is a 32-bit word and it is determined to work on words in
-	 little endian byte order we perhaps have to change the byte order
-	 before the computation.  To reduce the work for the next steps
-	 we store the swapped words in the array CORRECT_WORDS.  */
+         the next context is computed.  Because the algorithms processing
+         unit is a 32-bit word and it is determined to work on words in
+         little endian byte order we perhaps have to change the byte order
+         before the computation.  To reduce the work for the next steps
+         we store the swapped words in the array CORRECT_WORDS.  */
 
-#define OP(a, b, c, d, s, T)						\
-      do								\
-        {								\
-	  a += FF (b, c, d) + (*cwp++ = SWAP (*words)) + T;		\
-	  ++words;							\
-	  CYCLIC (a, s);						\
-	  a += b;							\
-        }								\
+#define OP(a, b, c, d, s, T)                                            \
+      do                                                                \
+        {                                                               \
+          a += FF (b, c, d) + (*cwp++ = SWAP (*words)) + T;             \
+          ++words;                                                      \
+          CYCLIC (a, s);                                                \
+          a += b;                                                       \
+        }                                                               \
       while (0)
 
       /* It is unfortunate that C does not provide an operator for
-	 cyclic rotation.  Hope the C compiler is smart enough.  */
+         cyclic rotation.  Hope the C compiler is smart enough.  */
 #define CYCLIC(w, s) (w = (w << s) | (w >> (32 - s)))
 
       /* Before we start, one word to the strange constants.
-	 They are defined in RFC 1321 as
+         They are defined in RFC 1321 as
 
-	 T[i] = (int) (4294967296.0 * fabs (sin (i))), i=1..64
+         T[i] = (int) (4294967296.0 * fabs (sin (i))), i=1..64
        */
 
       /* Round 1.  */
@@ -374,16 +374,16 @@ md5_process_block (buffer, len, ctx)
       OP (B, C, D, A, 22, 0x49b40821);
 
       /* For the second to fourth round we have the possibly swapped words
-	 in CORRECT_WORDS.  Redefine the macro to take an additional first
-	 argument specifying the function to use.  */
+         in CORRECT_WORDS.  Redefine the macro to take an additional first
+         argument specifying the function to use.  */
 #undef OP
-#define OP(f, a, b, c, d, k, s, T)					\
-      do 								\
-	{								\
-	  a += f (b, c, d) + correct_words[k] + T;			\
-	  CYCLIC (a, s);						\
-	  a += b;							\
-	}								\
+#define OP(f, a, b, c, d, k, s, T)                                      \
+      do                                                                \
+        {                                                               \
+          a += f (b, c, d) + correct_words[k] + T;                      \
+          CYCLIC (a, s);                                                \
+          a += b;                                                       \
+        }                                                               \
       while (0)
 
       /* Round 2.  */

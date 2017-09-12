@@ -39,49 +39,49 @@ extern "C" {
 
 /* Encrypt at most 8 characters from KEY using salt to perturb DES.  */
 extern char *crypt (const char *__key, const char *__salt)
-  __THROW __nonnull ((1,2));
+  __THROW __nonnull ((1, 2));
 
 /* Reentrant versions of the functions above.  The additional argument
    points to a structure where the results are placed in.  */
 struct crypt_data
-  {
-    char keysched[16 * 8];
-    char sb0[32768];
-    char sb1[32768];
-    char sb2[32768];
-    char sb3[32768];
-    /* end-of-aligment-critical-data */
-    char crypt_3_buf[14];
-    char current_salt[2];
-    long int current_saltbits;
-    int  direction, initialized;
+{
+  char keysched[16 * 8];
+  char sb0[32768];
+  char sb1[32768];
+  char sb2[32768];
+  char sb3[32768];
+  /* end-of-aligment-critical-data */
+  char crypt_3_buf[14];
+  char current_salt[2];
+  long int current_saltbits;
+  int direction, initialized;
 };
 
 extern char *crypt_r (const char *__key, const char *__salt,
-		       struct crypt_data * __restrict __data)
-  __THROW __nonnull ((1,2,3));
+                      struct crypt_data *__restrict __data)
+  __THROW __nonnull ((1, 2, 3));
 
 extern char *crypt_rn (const char *__key, const char *__salt,
                        void *__data, int __size)
-  __THROW __nonnull ((1,2,3));
+  __THROW __nonnull ((1, 2, 3));
 
 extern char *crypt_ra (const char *__key, const char *__salt,
                        void **__data, int *__size)
-  __THROW __nonnull ((1,2,3,4));
+  __THROW __nonnull ((1, 2, 3, 4));
 
 extern char *crypt_gensalt (const char *__prefix, unsigned long __count,
-			     const char *__input, int __size)
-  __THROW __nonnull ((1,3));
+                            const char *__input, int __size)
+  __THROW __nonnull ((1, 3));
 
 extern char *crypt_gensalt_r (const char *__prefix, unsigned long __count,
                               const char *__input, int __size,
                               char *__output, int __output_size)
-  __THROW __nonnull ((1,5));
+  __THROW __nonnull ((1, 5));
 
 extern char *crypt_gensalt_rn (const char *__prefix, unsigned long __count,
                                const char *__input, int __size,
                                char *__output, int __output_size)
-  __THROW __nonnull ((1,5));
+  __THROW __nonnull ((1, 5));
 
 extern char *crypt_gensalt_ra (const char *__prefix, unsigned long __count,
                                const char *__input, int __size)
@@ -92,4 +92,4 @@ extern char *crypt_gensalt_ra (const char *__prefix, unsigned long __count,
 } /* extern "C" */
 #endif
 
-#endif	/* crypt.h */
+#endif /* crypt.h */

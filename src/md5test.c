@@ -44,7 +44,7 @@ main (void)
 
       __md5_init_ctx (&ctx);
       for (i = 0; tests[cnt].input[i] != '\0'; ++i)
-	__md5_process_bytes (&tests[cnt].input[i], 1, &ctx);
+        __md5_process_bytes (&tests[cnt].input[i], 1, &ctx);
       __md5_finish_ctx (&ctx, sum);
       result |= memcmp (tests[cnt].result, sum, 16);
     }

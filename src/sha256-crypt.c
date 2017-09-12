@@ -48,7 +48,7 @@ static const char sha256_rounds_prefix[] = "rounds=";
 
 /* Table with characters for base64 transformation.  */
 static const char b64t[64] =
-"./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 char *
 _xcrypt_crypt_sha256_rn (const char *key, const char *salt,
@@ -75,7 +75,8 @@ _xcrypt_crypt_sha256_rn (const char *key, const char *salt,
 
   /* Find beginning of salt string.  The prefix should normally always
      be present.  Just in case it is not.  */
-  if (strncmp (sha256_salt_prefix, salt, sizeof (sha256_salt_prefix) - 1) == 0)
+  if (strncmp (sha256_salt_prefix, salt, sizeof (sha256_salt_prefix) - 1) ==
+      0)
     /* Skip salt prefix.  */
     salt += sizeof (sha256_salt_prefix) - 1;
 
@@ -86,11 +87,11 @@ _xcrypt_crypt_sha256_rn (const char *key, const char *salt,
       char *endp;
       unsigned long int srounds = strtoul (num, &endp, 10);
       if (*endp == '$')
-	{
-	  salt = endp + 1;
-	  rounds = MAX (ROUNDS_MIN, MIN (srounds, ROUNDS_MAX));
-	  rounds_custom = true;
-	}
+        {
+          salt = endp + 1;
+          rounds = MAX (ROUNDS_MIN, MIN (srounds, ROUNDS_MAX));
+          rounds_custom = true;
+        }
     }
 
   salt_len = MIN (strcspn (salt, "$"), SALT_LEN_MAX);
@@ -100,9 +101,8 @@ _xcrypt_crypt_sha256_rn (const char *key, const char *salt,
     {
       char *tmp = (char *) alloca (key_len + __alignof__ (uint32_t));
       key = copied_key =
-	memcpy (tmp + __alignof__ (uint32_t)
-		- (tmp - (char *) 0) % __alignof__ (uint32_t),
-		key, key_len);
+        memcpy (tmp + __alignof__ (uint32_t)
+                - (tmp - (char *) 0) % __alignof__ (uint32_t), key, key_len);
       assert ((key - (char *) 0) % __alignof__ (uint32_t) == 0);
     }
 
@@ -110,9 +110,9 @@ _xcrypt_crypt_sha256_rn (const char *key, const char *salt,
     {
       char *tmp = (char *) alloca (salt_len + __alignof__ (uint32_t));
       salt = copied_salt =
-	memcpy (tmp + __alignof__ (uint32_t)
-		- (tmp - (char *) 0) % __alignof__ (uint32_t),
-		salt, salt_len);
+        memcpy (tmp + __alignof__ (uint32_t)
+                - (tmp - (char *) 0) % __alignof__ (uint32_t),
+                salt, salt_len);
       assert ((salt - (char *) 0) % __alignof__ (uint32_t) == 0);
     }
 
@@ -181,7 +181,7 @@ _xcrypt_crypt_sha256_rn (const char *key, const char *salt,
   __sha256_init_ctx (&alt_ctx);
 
   /* For every character in the password add the entire password.  */
-  for (cnt = 0; cnt < (size_t)16 + (size_t)alt_result[0]; ++cnt)
+  for (cnt = 0; cnt < (size_t) 16 + (size_t) alt_result[0]; ++cnt)
     __sha256_process_bytes (salt, salt_len, &alt_ctx);
 
   /* Finish the digest.  */
@@ -202,23 +202,23 @@ _xcrypt_crypt_sha256_rn (const char *key, const char *salt,
 
       /* Add key or last result.  */
       if ((cnt & 1) != 0)
-	__sha256_process_bytes (p_bytes, key_len, &ctx);
+        __sha256_process_bytes (p_bytes, key_len, &ctx);
       else
-	__sha256_process_bytes (alt_result, 32, &ctx);
+        __sha256_process_bytes (alt_result, 32, &ctx);
 
       /* Add salt for numbers not divisible by 3.  */
       if (cnt % 3 != 0)
-	__sha256_process_bytes (s_bytes, salt_len, &ctx);
+        __sha256_process_bytes (s_bytes, salt_len, &ctx);
 
       /* Add key for numbers not divisible by 7.  */
       if (cnt % 7 != 0)
-	__sha256_process_bytes (p_bytes, key_len, &ctx);
+        __sha256_process_bytes (p_bytes, key_len, &ctx);
 
       /* Add key or last result.  */
       if ((cnt & 1) != 0)
-	__sha256_process_bytes (alt_result, 32, &ctx);
+        __sha256_process_bytes (alt_result, 32, &ctx);
       else
-	__sha256_process_bytes (p_bytes, key_len, &ctx);
+        __sha256_process_bytes (p_bytes, key_len, &ctx);
 
       /* Create intermediate result.  */
       __sha256_finish_ctx (&ctx, alt_result);
@@ -232,7 +232,7 @@ _xcrypt_crypt_sha256_rn (const char *key, const char *salt,
   if (rounds_custom)
     {
       int n = snprintf (cp, MAX (0, buflen), "%s%zu$",
-			sha256_rounds_prefix, rounds);
+                        sha256_rounds_prefix, rounds);
       cp += n;
       buflen -= n;
     }
@@ -246,16 +246,16 @@ _xcrypt_crypt_sha256_rn (const char *key, const char *salt,
       --buflen;
     }
 
-#define b64_from_24bit(B2, B1, B0, N)					      \
-  do {									      \
-    unsigned int w = ((B2) << 16) | ((B1) << 8) | (B0);			      \
-    int n = (N);							      \
-    while (n-- > 0 && buflen > 0)					      \
-      {									      \
-	*cp++ = b64t[w & 0x3f];						      \
-	--buflen;							      \
-	w >>= 6;							      \
-      }									      \
+#define b64_from_24bit(B2, B1, B0, N)                                         \
+  do {                                                                        \
+    unsigned int w = ((B2) << 16) | ((B1) << 8) | (B0);                       \
+    int n = (N);                                                              \
+    while (n-- > 0 && buflen > 0)                                             \
+      {                                                                       \
+        *cp++ = b64t[w & 0x3f];                                               \
+        --buflen;                                                             \
+        w >>= 6;                                                              \
+      }                                                                       \
   } while (0)
 
   b64_from_24bit (alt_result[0], alt_result[10], alt_result[20], 4);
@@ -275,7 +275,7 @@ _xcrypt_crypt_sha256_rn (const char *key, const char *salt,
       buffer = NULL;
     }
   else
-    *cp = '\0';		/* Terminate the string.  */
+    *cp = '\0';                 /* Terminate the string.  */
 
   /* Clear the buffer for the intermediate result so that people
      attaching to processes or reading core dumps cannot get any

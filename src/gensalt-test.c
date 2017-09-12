@@ -51,9 +51,9 @@ main (void)
           unsigned int slen = strlen (salt);
           if (slen != tcase->expected_len)
             {
-              fprintf (stderr, "ERROR: %s/%u -> %s (expected len=%u got %u)\n",
-                       tcase->prefix, ent, salt,
-                       tcase->expected_len, slen);
+              fprintf (stderr,
+                       "ERROR: %s/%u -> %s (expected len=%u got %u)\n",
+                       tcase->prefix, ent, salt, tcase->expected_len, slen);
               status = 1;
             }
           else if (strncmp (salt, tcase->prefix, strlen (tcase->prefix)))

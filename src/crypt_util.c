@@ -56,9 +56,9 @@ void _ufc_clearmem (char *start, int cnt);
 void _ufc_copymem (char *from, char *to, int cnt);
 #endif
 #ifdef _UFC_32_
-STATIC void shuffle_sb (long32 *k, ufc_long saltbits);
+STATIC void shuffle_sb (long32 * k, ufc_long saltbits);
 #else
-STATIC void shuffle_sb (long64 *k, ufc_long saltbits);
+STATIC void shuffle_sb (long64 * k, ufc_long saltbits);
 #endif
 #endif
 
@@ -116,54 +116,54 @@ static const int perm32[32] = {
 /*
  * The sboxes
  */
-static const int sbox[8][4][16]= {
-        { { 14,  4, 13,  1,  2, 15, 11,  8,  3, 10,  6, 12,  5,  9,  0,  7 },
-          {  0, 15,  7,  4, 14,  2, 13,  1, 10,  6, 12, 11,  9,  5,  3,  8 },
-          {  4,  1, 14,  8, 13,  6,  2, 11, 15, 12,  9,  7,  3, 10,  5,  0 },
-          { 15, 12,  8,  2,  4,  9,  1,  7,  5, 11,  3, 14, 10,  0,  6, 13 }
-        },
+static const int sbox[8][4][16] = {
+  { { 14,  4, 13,  1,  2, 15, 11,  8,  3, 10,  6, 12,  5,  9,  0,  7 },
+    {  0, 15,  7,  4, 14,  2, 13,  1, 10,  6, 12, 11,  9,  5,  3,  8 },
+    {  4,  1, 14,  8, 13,  6,  2, 11, 15, 12,  9,  7,  3, 10,  5,  0 },
+    { 15, 12,  8,  2,  4,  9,  1,  7,  5, 11,  3, 14, 10,  0,  6, 13 }
+  },
 
-        { { 15,  1,  8, 14,  6, 11,  3,  4,  9,  7,  2, 13, 12,  0,  5, 10 },
-          {  3, 13,  4,  7, 15,  2,  8, 14, 12,  0,  1, 10,  6,  9, 11,  5 },
-          {  0, 14,  7, 11, 10,  4, 13,  1,  5,  8, 12,  6,  9,  3,  2, 15 },
-          { 13,  8, 10,  1,  3, 15,  4,  2, 11,  6,  7, 12,  0,  5, 14,  9 }
-        },
+  { { 15,  1,  8, 14,  6, 11,  3,  4,  9,  7,  2, 13, 12,  0,  5, 10 },
+    {  3, 13,  4,  7, 15,  2,  8, 14, 12,  0,  1, 10,  6,  9, 11,  5 },
+    {  0, 14,  7, 11, 10,  4, 13,  1,  5,  8, 12,  6,  9,  3,  2, 15 },
+    { 13,  8, 10,  1,  3, 15,  4,  2, 11,  6,  7, 12,  0,  5, 14,  9 }
+  },
 
-        { { 10,  0,  9, 14,  6,  3, 15,  5,  1, 13, 12,  7, 11,  4,  2,  8 },
-          { 13,  7,  0,  9,  3,  4,  6, 10,  2,  8,  5, 14, 12, 11, 15,  1 },
-          { 13,  6,  4,  9,  8, 15,  3,  0, 11,  1,  2, 12,  5, 10, 14,  7 },
-          {  1, 10, 13,  0,  6,  9,  8,  7,  4, 15, 14,  3, 11,  5,  2, 12 }
-        },
+  { { 10,  0,  9, 14,  6,  3, 15,  5,  1, 13, 12,  7, 11,  4,  2,  8 },
+    { 13,  7,  0,  9,  3,  4,  6, 10,  2,  8,  5, 14, 12, 11, 15,  1 },
+    { 13,  6,  4,  9,  8, 15,  3,  0, 11,  1,  2, 12,  5, 10, 14,  7 },
+    {  1, 10, 13,  0,  6,  9,  8,  7,  4, 15, 14,  3, 11,  5,  2, 12 }
+  },
 
-        { {  7, 13, 14,  3,  0,  6,  9, 10,  1,  2,  8,  5, 11, 12,  4, 15 },
-          { 13,  8, 11,  5,  6, 15,  0,  3,  4,  7,  2, 12,  1, 10, 14,  9 },
-          { 10,  6,  9,  0, 12, 11,  7, 13, 15,  1,  3, 14,  5,  2,  8,  4 },
-          {  3, 15,  0,  6, 10,  1, 13,  8,  9,  4,  5, 11, 12,  7,  2, 14 }
-        },
+  { {  7, 13, 14,  3,  0,  6,  9, 10,  1,  2,  8,  5, 11, 12,  4, 15 },
+    { 13,  8, 11,  5,  6, 15,  0,  3,  4,  7,  2, 12,  1, 10, 14,  9 },
+    { 10,  6,  9,  0, 12, 11,  7, 13, 15,  1,  3, 14,  5,  2,  8,  4 },
+    {  3, 15,  0,  6, 10,  1, 13,  8,  9,  4,  5, 11, 12,  7,  2, 14 }
+  },
 
-        { {  2, 12,  4,  1,  7, 10, 11,  6,  8,  5,  3, 15, 13,  0, 14,  9 },
-          { 14, 11,  2, 12,  4,  7, 13,  1,  5,  0, 15, 10,  3,  9,  8,  6 },
-          {  4,  2,  1, 11, 10, 13,  7,  8, 15,  9, 12,  5,  6,  3,  0, 14 },
-          { 11,  8, 12,  7,  1, 14,  2, 13,  6, 15,  0,  9, 10,  4,  5,  3 }
-        },
+  { {  2, 12,  4,  1,  7, 10, 11,  6,  8,  5,  3, 15, 13,  0, 14,  9 },
+    { 14, 11,  2, 12,  4,  7, 13,  1,  5,  0, 15, 10,  3,  9,  8,  6 },
+    {  4,  2,  1, 11, 10, 13,  7,  8, 15,  9, 12,  5,  6,  3,  0, 14 },
+    { 11,  8, 12,  7,  1, 14,  2, 13,  6, 15,  0,  9, 10,  4,  5,  3 }
+  },
 
-        { { 12,  1, 10, 15,  9,  2,  6,  8,  0, 13,  3,  4, 14,  7,  5, 11 },
-          { 10, 15,  4,  2,  7, 12,  9,  5,  6,  1, 13, 14,  0, 11,  3,  8 },
-          {  9, 14, 15,  5,  2,  8, 12,  3,  7,  0,  4, 10,  1, 13, 11,  6 },
-          {  4,  3,  2, 12,  9,  5, 15, 10, 11, 14,  1,  7,  6,  0,  8, 13 }
-        },
+  { { 12,  1, 10, 15,  9,  2,  6,  8,  0, 13,  3,  4, 14,  7,  5, 11 },
+    { 10, 15,  4,  2,  7, 12,  9,  5,  6,  1, 13, 14,  0, 11,  3,  8 },
+    {  9, 14, 15,  5,  2,  8, 12,  3,  7,  0,  4, 10,  1, 13, 11,  6 },
+    {  4,  3,  2, 12,  9,  5, 15, 10, 11, 14,  1,  7,  6,  0,  8, 13 }
+  },
 
-        { {  4, 11,  2, 14, 15,  0,  8, 13,  3, 12,  9,  7,  5, 10,  6,  1 },
-          { 13,  0, 11,  7,  4,  9,  1, 10, 14,  3,  5, 12,  2, 15,  8,  6 },
-          {  1,  4, 11, 13, 12,  3,  7, 14, 10, 15,  6,  8,  0,  5,  9,  2 },
-          {  6, 11, 13,  8,  1,  4, 10,  7,  9,  5,  0, 15, 14,  2,  3, 12 }
-        },
+  { {  4, 11,  2, 14, 15,  0,  8, 13,  3, 12,  9,  7,  5, 10,  6,  1 },
+    { 13,  0, 11,  7,  4,  9,  1, 10, 14,  3,  5, 12,  2, 15,  8,  6 },
+    {  1,  4, 11, 13, 12,  3,  7, 14, 10, 15,  6,  8,  0,  5,  9,  2 },
+    {  6, 11, 13,  8,  1,  4, 10,  7,  9,  5,  0, 15, 14,  2,  3, 12 }
+  },
 
-        { { 13,  2,  8,  4,  6, 15, 11,  1, 10,  9,  3, 14,  5,  0, 12,  7 },
-          {  1, 15, 13,  8, 10,  3,  7,  4, 12,  5,  6, 11,  0, 14,  9,  2 },
-          {  7, 11,  4,  1,  9, 12, 14,  2,  0,  6, 10, 13, 15,  3,  5,  8 },
-          {  2,  1, 14,  7,  4, 10,  8, 13, 15, 12,  9,  0,  3,  5,  6, 11 }
-        }
+  { { 13,  2,  8,  4,  6, 15, 11,  1, 10,  9,  3, 14,  5,  0, 12,  7 },
+    {  1, 15, 13,  8, 10,  3,  7,  4, 12,  5,  6, 11,  0, 14,  9,  2 },
+    {  7, 11,  4,  1,  9, 12, 14,  2,  0,  6, 10, 13, 15,  3,  5,  8 },
+    {  2,  1, 14,  7,  4, 10,  8, 13, 15, 12,  9,  0,  3,  5,  6, 11 }
+  }
 };
 
 /*
@@ -198,7 +198,7 @@ static const ufc_long BITMASK[24] = {
   0x00000100, 0x00000080, 0x00000040, 0x00000020, 0x00000010, 0x00000008
 };
 
-static const unsigned char bytemask[8]  = {
+static const unsigned char bytemask[8] = {
   0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01
 };
 
@@ -267,34 +267,37 @@ struct crypt_data _ufc_foobar;
 #ifdef DEBUG
 
 void
-_ufc_prbits(a, n)
+_ufc_prbits (a, n)
      ufc_long *a;
      int n;
 {
   ufc_long i, j, t, tmp;
   n /= 8;
-  for(i = 0; i < n; i++) {
-    tmp=0;
-    for(j = 0; j < 8; j++) {
-      t=8*i+j;
-      tmp|=(a[t/24] & BITMASK[t % 24])?bytemask[j]:0;
+  for (i = 0; i < n; i++)
+    {
+      tmp = 0;
+      for (j = 0; j < 8; j++)
+        {
+          t = 8 * i + j;
+          tmp |= (a[t / 24] & BITMASK[t % 24]) ? bytemask[j] : 0;
+        }
+      (void) printf ("%02x ", tmp);
     }
-    (void)printf("%02x ",tmp);
-  }
-  printf(" ");
+  printf (" ");
 }
 
 static void
-_ufc_set_bits(v, b)
+_ufc_set_bits (v, b)
      ufc_long v;
      ufc_long *b;
 {
   ufc_long i;
   *b = 0;
-  for(i = 0; i < 24; i++) {
-    if(v & longmask[8 + i])
-      *b |= BITMASK[i];
-  }
+  for (i = 0; i < 24; i++)
+    {
+      if (v & longmask[8 + i])
+        *b |= BITMASK[i];
+    }
 }
 
 #endif
@@ -307,20 +310,20 @@ _ufc_set_bits(v, b)
  */
 
 void
-_ufc_clearmem(start, cnt)
+_ufc_clearmem (start, cnt)
      char *start;
      int cnt;
 {
-  while(cnt--)
+  while (cnt--)
     *start++ = '\0';
 }
 
 void
-_ufc_copymem(from, to, cnt)
+_ufc_copymem (from, to, cnt)
      char *from, *to;
      int cnt;
 {
-  while(cnt--)
+  while (cnt--)
     *to++ = *from++;
 }
 #else
@@ -347,36 +350,40 @@ init_des_small_tables (void)
    * to affect pc1 permutation
    * when generating keys
    */
-  _ufc_clearmem((char*)do_pc1, (int)sizeof(do_pc1));
-  for(bit = 0; bit < 56; bit++) {
-    ufc_long mask1, mask2;
+  _ufc_clearmem ((char *) do_pc1, (int) sizeof (do_pc1));
+  for (bit = 0; bit < 56; bit++)
+    {
+      ufc_long mask1, mask2;
 
-    comes_from_bit  = pc1[bit] - 1;
-    mask1 = bytemask[comes_from_bit % 8 + 1];
-    mask2 = longmask[bit % 28 + 4];
-    for(j = 0; j < 128; j++) {
-      if(j & mask1)
-        do_pc1[comes_from_bit / 8][bit / 28][j] |= mask2;
+      comes_from_bit = pc1[bit] - 1;
+      mask1 = bytemask[comes_from_bit % 8 + 1];
+      mask2 = longmask[bit % 28 + 4];
+      for (j = 0; j < 128; j++)
+        {
+          if (j & mask1)
+            do_pc1[comes_from_bit / 8][bit / 28][j] |= mask2;
+        }
     }
-  }
 
   /*
    * Create the do_pc2 table used
    * to affect pc2 permutation when
    * generating keys
    */
-  _ufc_clearmem((char*)do_pc2, (int)sizeof(do_pc2));
-  for(bit = 0; bit < 48; bit++) {
-    ufc_long mask1, mask2;
+  _ufc_clearmem ((char *) do_pc2, (int) sizeof (do_pc2));
+  for (bit = 0; bit < 48; bit++)
+    {
+      ufc_long mask1, mask2;
 
-    comes_from_bit  = pc2[bit] - 1;
-    mask1 = bytemask[comes_from_bit % 7 + 1];
-    mask2 = BITMASK[bit % 24];
-    for(j = 0; j < 128; j++) {
-      if(j & mask1)
-        do_pc2[comes_from_bit / 7][j] |= mask2;
+      comes_from_bit = pc2[bit] - 1;
+      mask1 = bytemask[comes_from_bit % 7 + 1];
+      mask2 = BITMASK[bit % 24];
+      for (j = 0; j < 128; j++)
+        {
+          if (j & mask1)
+            do_pc2[comes_from_bit / 7][j] |= mask2;
+        }
     }
-  }
 
   /*
    * Now generate the table used to do combined
@@ -390,61 +397,66 @@ init_des_small_tables (void)
    *
    */
 
-  _ufc_clearmem((char*)eperm32tab, (int)sizeof(eperm32tab));
-  for(bit = 0; bit < 48; bit++) {
-    ufc_long mask,comes_from;
-    comes_from = perm32[esel[bit]-1]-1;
-    mask       = bytemask[comes_from % 8];
-    for(j = 256; j--;) {
-      if(j & mask)
-        eperm32tab[comes_from / 8][j][bit / 24] |= BITMASK[bit % 24];
+  _ufc_clearmem ((char *) eperm32tab, (int) sizeof (eperm32tab));
+  for (bit = 0; bit < 48; bit++)
+    {
+      ufc_long mask, comes_from;
+      comes_from = perm32[esel[bit] - 1] - 1;
+      mask = bytemask[comes_from % 8];
+      for (j = 256; j--;)
+        {
+          if (j & mask)
+            eperm32tab[comes_from / 8][j][bit / 24] |= BITMASK[bit % 24];
+        }
     }
-  }
 
   /*
    * Create an inverse matrix for esel telling
    * where to plug out bits if undoing it
    */
-  for(bit=48; bit--;) {
-    e_inverse[esel[bit] - 1     ] = bit;
-    e_inverse[esel[bit] - 1 + 32] = bit + 48;
-  }
+  for (bit = 48; bit--;)
+    {
+      e_inverse[esel[bit] - 1] = bit;
+      e_inverse[esel[bit] - 1 + 32] = bit + 48;
+    }
 
   /*
    * create efp: the matrix used to
    * undo the E expansion and effect final permutation
    */
-  _ufc_clearmem((char*)efp, (int)sizeof efp);
-  for(bit = 0; bit < 64; bit++) {
-    int o_bit, o_long;
-    ufc_long word_value, mask1, mask2;
-    int comes_from_f_bit, comes_from_e_bit;
-    int comes_from_word, bit_within_word;
+  _ufc_clearmem ((char *) efp, (int) sizeof efp);
+  for (bit = 0; bit < 64; bit++)
+    {
+      int o_bit, o_long;
+      ufc_long word_value, mask1, mask2;
+      int comes_from_f_bit, comes_from_e_bit;
+      int comes_from_word, bit_within_word;
 
-    /* See where bit i belongs in the two 32 bit long's */
-    o_long = bit / 32; /* 0..1  */
-    o_bit  = bit % 32; /* 0..31 */
+      /* See where bit i belongs in the two 32 bit long's */
+      o_long = bit / 32;        /* 0..1  */
+      o_bit = bit % 32;         /* 0..31 */
 
-    /*
-     * And find a bit in the e permutated value setting this bit.
-     *
-     * Note: the e selection may have selected the same bit several
-     * times. By the initialization of e_inverse, we only look
-     * for one specific instance.
-     */
-    comes_from_f_bit = final_perm[bit] - 1;         /* 0..63 */
-    comes_from_e_bit = e_inverse[comes_from_f_bit]; /* 0..95 */
-    comes_from_word  = comes_from_e_bit / 6;        /* 0..15 */
-    bit_within_word  = comes_from_e_bit % 6;        /* 0..5  */
+      /*
+       * And find a bit in the e permutated value setting this bit.
+       *
+       * Note: the e selection may have selected the same bit several
+       * times. By the initialization of e_inverse, we only look
+       * for one specific instance.
+       */
+      comes_from_f_bit = final_perm[bit] - 1;   /* 0..63 */
+      comes_from_e_bit = e_inverse[comes_from_f_bit];   /* 0..95 */
+      comes_from_word = comes_from_e_bit / 6;   /* 0..15 */
+      bit_within_word = comes_from_e_bit % 6;   /* 0..5  */
 
-    mask1 = longmask[bit_within_word + 26];
-    mask2 = longmask[o_bit];
+      mask1 = longmask[bit_within_word + 26];
+      mask2 = longmask[o_bit];
 
-    for(word_value = 64; word_value--;) {
-      if(word_value & mask1)
-        efp[comes_from_word][word_value][o_long] |= mask2;
+      for (word_value = 64; word_value--;)
+        {
+          if (word_value & mask1)
+            efp[comes_from_word][word_value][o_long] |= mask2;
+        }
     }
-  }
 }
 
 /*
@@ -453,23 +465,27 @@ init_des_small_tables (void)
  */
 
 void
-__init_des_r(__data)
-     struct crypt_data * __restrict __data;
+__init_des_r (__data)
+     struct crypt_data *__restrict __data;
 {
   int sg;
 
 #ifdef _UFC_32_
   long32 *sb[4];
-  sb[0] = (long32*)__data->sb0; sb[1] = (long32*)__data->sb1;
-  sb[2] = (long32*)__data->sb2; sb[3] = (long32*)__data->sb3;
+  sb[0] = (long32 *) __data->sb0;
+  sb[1] = (long32 *) __data->sb1;
+  sb[2] = (long32 *) __data->sb2;
+  sb[3] = (long32 *) __data->sb3;
 #endif
 #ifdef _UFC_64_
   long64 *sb[4];
-  sb[0] = (long64*)__data->sb0; sb[1] = (long64*)__data->sb1;
-  sb[2] = (long64*)__data->sb2; sb[3] = (long64*)__data->sb3;
+  sb[0] = (long64 *) __data->sb0;
+  sb[1] = (long64 *) __data->sb1;
+  sb[2] = (long64 *) __data->sb2;
+  sb[3] = (long64 *) __data->sb3;
 #endif
 
-  pthread_once(&init_des_small_tables_once, init_des_small_tables);
+  pthread_once (&init_des_small_tables_once, init_des_small_tables);
 
 
   /*
@@ -485,53 +501,56 @@ __init_des_r(__data)
    *
    */
 
-  _ufc_clearmem((char*)__data->sb0, (int)sizeof(__data->sb0));
-  _ufc_clearmem((char*)__data->sb1, (int)sizeof(__data->sb1));
-  _ufc_clearmem((char*)__data->sb2, (int)sizeof(__data->sb2));
-  _ufc_clearmem((char*)__data->sb3, (int)sizeof(__data->sb3));
+  _ufc_clearmem ((char *) __data->sb0, (int) sizeof (__data->sb0));
+  _ufc_clearmem ((char *) __data->sb1, (int) sizeof (__data->sb1));
+  _ufc_clearmem ((char *) __data->sb2, (int) sizeof (__data->sb2));
+  _ufc_clearmem ((char *) __data->sb3, (int) sizeof (__data->sb3));
 
-  for(sg = 0; sg < 4; sg++) {
-    int j1, j2;
-    int s1, s2;
+  for (sg = 0; sg < 4; sg++)
+    {
+      int j1, j2;
+      int s1, s2;
 
-    for(j1 = 0; j1 < 64; j1++) {
-      s1 = s_lookup(2 * sg, j1);
-      for(j2 = 0; j2 < 64; j2++) {
-	ufc_long to_permute, inx;
+      for (j1 = 0; j1 < 64; j1++)
+        {
+          s1 = s_lookup (2 * sg, j1);
+          for (j2 = 0; j2 < 64; j2++)
+            {
+              ufc_long to_permute, inx;
 
-	s2         = s_lookup(2 * sg + 1, j2);
-	to_permute = (((ufc_long)s1 << 4)  |
-		      (ufc_long)s2) << (24 - 8 * (ufc_long)sg);
+              s2 = s_lookup (2 * sg + 1, j2);
+              to_permute = (((ufc_long) s1 << 4) |
+                            (ufc_long) s2) << (24 - 8 * (ufc_long) sg);
 
 #ifdef _UFC_32_
-	inx = ((j1 << 6)  | j2) << 1;
-	sb[sg][inx  ]  = eperm32tab[0][(to_permute >> 24) & 0xff][0];
-	sb[sg][inx+1]  = eperm32tab[0][(to_permute >> 24) & 0xff][1];
-	sb[sg][inx  ] |= eperm32tab[1][(to_permute >> 16) & 0xff][0];
-	sb[sg][inx+1] |= eperm32tab[1][(to_permute >> 16) & 0xff][1];
-	sb[sg][inx  ] |= eperm32tab[2][(to_permute >>  8) & 0xff][0];
-	sb[sg][inx+1] |= eperm32tab[2][(to_permute >>  8) & 0xff][1];
-	sb[sg][inx  ] |= eperm32tab[3][(to_permute)       & 0xff][0];
-	sb[sg][inx+1] |= eperm32tab[3][(to_permute)       & 0xff][1];
+              inx = ((j1 << 6) | j2) << 1;
+              sb[sg][inx] = eperm32tab[0][(to_permute >> 24) & 0xff][0];
+              sb[sg][inx + 1] = eperm32tab[0][(to_permute >> 24) & 0xff][1];
+              sb[sg][inx] |= eperm32tab[1][(to_permute >> 16) & 0xff][0];
+              sb[sg][inx + 1] |= eperm32tab[1][(to_permute >> 16) & 0xff][1];
+              sb[sg][inx] |= eperm32tab[2][(to_permute >> 8) & 0xff][0];
+              sb[sg][inx + 1] |= eperm32tab[2][(to_permute >> 8) & 0xff][1];
+              sb[sg][inx] |= eperm32tab[3][(to_permute) & 0xff][0];
+              sb[sg][inx + 1] |= eperm32tab[3][(to_permute) & 0xff][1];
 #endif
 #ifdef _UFC_64_
-	inx = ((j1 << 6)  | j2);
-	sb[sg][inx]  =
-	  ((long64)eperm32tab[0][(to_permute >> 24) & 0xff][0] << 32) |
-	   (long64)eperm32tab[0][(to_permute >> 24) & 0xff][1];
-	sb[sg][inx] |=
-	  ((long64)eperm32tab[1][(to_permute >> 16) & 0xff][0] << 32) |
-	   (long64)eperm32tab[1][(to_permute >> 16) & 0xff][1];
-	sb[sg][inx] |=
-	  ((long64)eperm32tab[2][(to_permute >>  8) & 0xff][0] << 32) |
-	   (long64)eperm32tab[2][(to_permute >>  8) & 0xff][1];
-	sb[sg][inx] |=
-	  ((long64)eperm32tab[3][(to_permute)       & 0xff][0] << 32) |
-	   (long64)eperm32tab[3][(to_permute)       & 0xff][1];
+              inx = ((j1 << 6) | j2);
+              sb[sg][inx] =
+                ((long64) eperm32tab[0][(to_permute >> 24) & 0xff][0] << 32) |
+                (long64) eperm32tab[0][(to_permute >> 24) & 0xff][1];
+              sb[sg][inx] |=
+                ((long64) eperm32tab[1][(to_permute >> 16) & 0xff][0] << 32) |
+                (long64) eperm32tab[1][(to_permute >> 16) & 0xff][1];
+              sb[sg][inx] |=
+                ((long64) eperm32tab[2][(to_permute >> 8) & 0xff][0] << 32) |
+                (long64) eperm32tab[2][(to_permute >> 8) & 0xff][1];
+              sb[sg][inx] |=
+                ((long64) eperm32tab[3][(to_permute) & 0xff][0] << 32) |
+                (long64) eperm32tab[3][(to_permute) & 0xff][1];
 #endif
-      }
+            }
+        }
     }
-  }
 
   __data->current_saltbits = 0;
   __data->current_salt[0] = 0;
@@ -540,9 +559,9 @@ __init_des_r(__data)
 }
 
 void
-__init_des()
+__init_des ()
 {
-  __init_des_r(&_ufc_foobar);
+  __init_des_r (&_ufc_foobar);
 }
 
 /*
@@ -552,32 +571,34 @@ __init_des()
 
 #ifdef _UFC_32_
 STATIC void
-shuffle_sb(k, saltbits)
+shuffle_sb (k, saltbits)
      long32 *k;
      ufc_long saltbits;
 {
   ufc_long j;
   long32 x;
-  for(j=4096; j--;) {
-    x = (k[0] ^ k[1]) & (long32)saltbits;
-    *k++ ^= x;
-    *k++ ^= x;
-  }
+  for (j = 4096; j--;)
+    {
+      x = (k[0] ^ k[1]) & (long32) saltbits;
+      *k++ ^= x;
+      *k++ ^= x;
+    }
 }
 #endif
 
 #ifdef _UFC_64_
 STATIC void
-shuffle_sb(k, saltbits)
+shuffle_sb (k, saltbits)
      long64 *k;
      ufc_long saltbits;
 {
   ufc_long j;
   long64 x;
-  for(j=4096; j--;) {
-    x = ((*k >> 32) ^ *k) & (long64)saltbits;
-    *k++ ^= (x << 32) | x;
-  }
+  for (j = 4096; j--;)
+    {
+      x = ((*k >> 32) ^ *k) & (long64) saltbits;
+      *k++ ^= (x << 32) | x;
+    }
 }
 #endif
 
@@ -587,18 +608,19 @@ shuffle_sb(k, saltbits)
  */
 
 void
-_ufc_setup_salt_r(s, __data)
+_ufc_setup_salt_r (s, __data)
      __const char *s;
-     struct crypt_data * __restrict __data;
+     struct crypt_data *__restrict __data;
 {
   ufc_long i, j, saltbits;
 
-  if(__data->initialized == 0)
-    __init_des_r(__data);
+  if (__data->initialized == 0)
+    __init_des_r (__data);
 
-  if(s[0] == __data->current_salt[0] && s[1] == __data->current_salt[1])
+  if (s[0] == __data->current_salt[0] && s[1] == __data->current_salt[1])
     return;
-  __data->current_salt[0] = s[0]; __data->current_salt[1] = s[1];
+  __data->current_salt[0] = s[0];
+  __data->current_salt[1] = s[1];
 
   /*
    * This is the only crypt change to DES:
@@ -606,13 +628,15 @@ _ufc_setup_salt_r(s, __data)
    * according to the bits set in the salt.
    */
   saltbits = 0;
-  for(i = 0; i < 2; i++) {
-    long c=ascii_to_bin(s[i]);
-    for(j = 0; j < 6; j++) {
-      if((c >> j) & 0x1)
-	saltbits |= BITMASK[6 * i + j];
+  for (i = 0; i < 2; i++)
+    {
+      long c = ascii_to_bin (s[i]);
+      for (j = 0; j < 6; j++)
+        {
+          if ((c >> j) & 0x1)
+            saltbits |= BITMASK[6 * i + j];
+        }
     }
-  }
 
   /*
    * Permute the sb table values
@@ -626,65 +650,76 @@ _ufc_setup_salt_r(s, __data)
 #define LONGG long64*
 #endif
 
-  shuffle_sb((LONGG)__data->sb0, __data->current_saltbits ^ saltbits);
-  shuffle_sb((LONGG)__data->sb1, __data->current_saltbits ^ saltbits);
-  shuffle_sb((LONGG)__data->sb2, __data->current_saltbits ^ saltbits);
-  shuffle_sb((LONGG)__data->sb3, __data->current_saltbits ^ saltbits);
+  shuffle_sb ((LONGG) __data->sb0, __data->current_saltbits ^ saltbits);
+  shuffle_sb ((LONGG) __data->sb1, __data->current_saltbits ^ saltbits);
+  shuffle_sb ((LONGG) __data->sb2, __data->current_saltbits ^ saltbits);
+  shuffle_sb ((LONGG) __data->sb3, __data->current_saltbits ^ saltbits);
 
   __data->current_saltbits = saltbits;
 }
 
 void
-_ufc_mk_keytab_r (const char *key,
-		  struct crypt_data * __restrict __data)
+_ufc_mk_keytab_r (const char *key, struct crypt_data *__restrict __data)
 {
   ufc_long v1, v2, *k1;
   int i;
 #ifdef _UFC_32_
   long32 v, *k2;
-  k2 = (long32*)__data->keysched;
+  k2 = (long32 *) __data->keysched;
 #endif
 #ifdef _UFC_64_
   long64 v, *k2;
-  k2 = (long64*)__data->keysched;
+  k2 = (long64 *) __data->keysched;
 #endif
 
-  v1 = v2 = 0; k1 = &do_pc1[0][0][0];
-  for(i = 8; i--;) {
-    v1 |= k1[*key   & 0x7f]; k1 += 128;
-    v2 |= k1[*key++ & 0x7f]; k1 += 128;
-  }
+  v1 = v2 = 0;
+  k1 = &do_pc1[0][0][0];
+  for (i = 8; i--;)
+    {
+      v1 |= k1[*key & 0x7f];
+      k1 += 128;
+      v2 |= k1[*key++ & 0x7f];
+      k1 += 128;
+    }
 
-  for(i = 0; i < 16; i++) {
-    k1 = &do_pc2[0][0];
+  for (i = 0; i < 16; i++)
+    {
+      k1 = &do_pc2[0][0];
 
-    v1 = (v1 << rots[i]) | (v1 >> (28 - rots[i]));
-    v  = k1[(v1 >> 21) & 0x7f]; k1 += 128;
-    v |= k1[(v1 >> 14) & 0x7f]; k1 += 128;
-    v |= k1[(v1 >>  7) & 0x7f]; k1 += 128;
-    v |= k1[(v1      ) & 0x7f]; k1 += 128;
+      v1 = (v1 << rots[i]) | (v1 >> (28 - rots[i]));
+      v = k1[(v1 >> 21) & 0x7f];
+      k1 += 128;
+      v |= k1[(v1 >> 14) & 0x7f];
+      k1 += 128;
+      v |= k1[(v1 >> 7) & 0x7f];
+      k1 += 128;
+      v |= k1[(v1) & 0x7f];
+      k1 += 128;
 
 #ifdef _UFC_32_
-    *k2++ = (v | 0x00008000);
-    v = 0;
+      *k2++ = (v | 0x00008000);
+      v = 0;
 #endif
 #ifdef _UFC_64_
-    v = (v << 32);
+      v = (v << 32);
 #endif
 
-    v2 = (v2 << rots[i]) | (v2 >> (28 - rots[i]));
-    v |= k1[(v2 >> 21) & 0x7f]; k1 += 128;
-    v |= k1[(v2 >> 14) & 0x7f]; k1 += 128;
-    v |= k1[(v2 >>  7) & 0x7f]; k1 += 128;
-    v |= k1[(v2      ) & 0x7f];
+      v2 = (v2 << rots[i]) | (v2 >> (28 - rots[i]));
+      v |= k1[(v2 >> 21) & 0x7f];
+      k1 += 128;
+      v |= k1[(v2 >> 14) & 0x7f];
+      k1 += 128;
+      v |= k1[(v2 >> 7) & 0x7f];
+      k1 += 128;
+      v |= k1[(v2) & 0x7f];
 
 #ifdef _UFC_32_
-    *k2++ = (v | 0x00008000);
+      *k2++ = (v | 0x00008000);
 #endif
 #ifdef _UFC_64_
-    *k2++ = v | 0x0000800000008000l;
+      *k2++ = v | 0x0000800000008000l;
 #endif
-  }
+    }
 
   __data->direction = 0;
 }
@@ -694,42 +729,69 @@ _ufc_mk_keytab_r (const char *key,
  */
 
 void
-_ufc_dofinalperm_r(res, __data)
+_ufc_dofinalperm_r (res, __data)
      ufc_long *res;
-     struct crypt_data * __restrict __data;
+     struct crypt_data *__restrict __data;
 {
   ufc_long v1, v2, x;
-  ufc_long l1,l2,r1,r2;
+  ufc_long l1, l2, r1, r2;
 
-  l1 = res[0]; l2 = res[1];
-  r1 = res[2]; r2 = res[3];
+  l1 = res[0];
+  l2 = res[1];
+  r1 = res[2];
+  r2 = res[3];
 
-  x = (l1 ^ l2) & __data->current_saltbits; l1 ^= x; l2 ^= x;
-  x = (r1 ^ r2) & __data->current_saltbits; r1 ^= x; r2 ^= x;
+  x = (l1 ^ l2) & __data->current_saltbits;
+  l1 ^= x;
+  l2 ^= x;
+  x = (r1 ^ r2) & __data->current_saltbits;
+  r1 ^= x;
+  r2 ^= x;
 
-  v1=v2=0; l1 >>= 3; l2 >>= 3; r1 >>= 3; r2 >>= 3;
+  v1 = v2 = 0;
+  l1 >>= 3;
+  l2 >>= 3;
+  r1 >>= 3;
+  r2 >>= 3;
 
-  v1 |= efp[15][ r2         & 0x3f][0]; v2 |= efp[15][ r2 & 0x3f][1];
-  v1 |= efp[14][(r2 >>= 6)  & 0x3f][0]; v2 |= efp[14][ r2 & 0x3f][1];
-  v1 |= efp[13][(r2 >>= 10) & 0x3f][0]; v2 |= efp[13][ r2 & 0x3f][1];
-  v1 |= efp[12][(r2 >>= 6)  & 0x3f][0]; v2 |= efp[12][ r2 & 0x3f][1];
+  v1 |= efp[15][r2 & 0x3f][0];
+  v2 |= efp[15][r2 & 0x3f][1];
+  v1 |= efp[14][(r2 >>= 6) & 0x3f][0];
+  v2 |= efp[14][r2 & 0x3f][1];
+  v1 |= efp[13][(r2 >>= 10) & 0x3f][0];
+  v2 |= efp[13][r2 & 0x3f][1];
+  v1 |= efp[12][(r2 >>= 6) & 0x3f][0];
+  v2 |= efp[12][r2 & 0x3f][1];
 
-  v1 |= efp[11][ r1         & 0x3f][0]; v2 |= efp[11][ r1 & 0x3f][1];
-  v1 |= efp[10][(r1 >>= 6)  & 0x3f][0]; v2 |= efp[10][ r1 & 0x3f][1];
-  v1 |= efp[ 9][(r1 >>= 10) & 0x3f][0]; v2 |= efp[ 9][ r1 & 0x3f][1];
-  v1 |= efp[ 8][(r1 >>= 6)  & 0x3f][0]; v2 |= efp[ 8][ r1 & 0x3f][1];
+  v1 |= efp[11][r1 & 0x3f][0];
+  v2 |= efp[11][r1 & 0x3f][1];
+  v1 |= efp[10][(r1 >>= 6) & 0x3f][0];
+  v2 |= efp[10][r1 & 0x3f][1];
+  v1 |= efp[9][(r1 >>= 10) & 0x3f][0];
+  v2 |= efp[9][r1 & 0x3f][1];
+  v1 |= efp[8][(r1 >>= 6) & 0x3f][0];
+  v2 |= efp[8][r1 & 0x3f][1];
 
-  v1 |= efp[ 7][ l2         & 0x3f][0]; v2 |= efp[ 7][ l2 & 0x3f][1];
-  v1 |= efp[ 6][(l2 >>= 6)  & 0x3f][0]; v2 |= efp[ 6][ l2 & 0x3f][1];
-  v1 |= efp[ 5][(l2 >>= 10) & 0x3f][0]; v2 |= efp[ 5][ l2 & 0x3f][1];
-  v1 |= efp[ 4][(l2 >>= 6)  & 0x3f][0]; v2 |= efp[ 4][ l2 & 0x3f][1];
+  v1 |= efp[7][l2 & 0x3f][0];
+  v2 |= efp[7][l2 & 0x3f][1];
+  v1 |= efp[6][(l2 >>= 6) & 0x3f][0];
+  v2 |= efp[6][l2 & 0x3f][1];
+  v1 |= efp[5][(l2 >>= 10) & 0x3f][0];
+  v2 |= efp[5][l2 & 0x3f][1];
+  v1 |= efp[4][(l2 >>= 6) & 0x3f][0];
+  v2 |= efp[4][l2 & 0x3f][1];
 
-  v1 |= efp[ 3][ l1         & 0x3f][0]; v2 |= efp[ 3][ l1 & 0x3f][1];
-  v1 |= efp[ 2][(l1 >>= 6)  & 0x3f][0]; v2 |= efp[ 2][ l1 & 0x3f][1];
-  v1 |= efp[ 1][(l1 >>= 10) & 0x3f][0]; v2 |= efp[ 1][ l1 & 0x3f][1];
-  v1 |= efp[ 0][(l1 >>= 6)  & 0x3f][0]; v2 |= efp[ 0][ l1 & 0x3f][1];
+  v1 |= efp[3][l1 & 0x3f][0];
+  v2 |= efp[3][l1 & 0x3f][1];
+  v1 |= efp[2][(l1 >>= 6) & 0x3f][0];
+  v2 |= efp[2][l1 & 0x3f][1];
+  v1 |= efp[1][(l1 >>= 10) & 0x3f][0];
+  v2 |= efp[1][l1 & 0x3f][1];
+  v1 |= efp[0][(l1 >>= 6) & 0x3f][0];
+  v2 |= efp[0][l1 & 0x3f][1];
 
-  res[0] = v1; res[1] = v2;
+  res[0] = v1;
+  res[1] = v2;
 }
 
 /*
@@ -738,30 +800,32 @@ _ufc_dofinalperm_r(res, __data)
  */
 
 void
-_ufc_output_conversion_r(v1, v2, salt, __data)
+_ufc_output_conversion_r (v1, v2, salt, __data)
      ufc_long v1, v2;
      __const char *salt;
-     struct crypt_data * __restrict __data;
+     struct crypt_data *__restrict __data;
 {
   int i, s, shf;
 
   __data->crypt_3_buf[0] = salt[0];
   __data->crypt_3_buf[1] = salt[1] ? salt[1] : salt[0];
 
-  for(i = 0; i < 5; i++) {
-    shf = (26 - 6 * i); /* to cope with MSC compiler bug */
-    __data->crypt_3_buf[i + 2] = bin_to_ascii((v1 >> shf) & 0x3f);
-  }
+  for (i = 0; i < 5; i++)
+    {
+      shf = (26 - 6 * i);       /* to cope with MSC compiler bug */
+      __data->crypt_3_buf[i + 2] = bin_to_ascii ((v1 >> shf) & 0x3f);
+    }
 
-  s  = (v2 & 0xf) << 2;
+  s = (v2 & 0xf) << 2;
   v2 = (v2 >> 2) | ((v1 & 0x3) << 30);
 
-  for(i = 5; i < 10; i++) {
-    shf = (56 - 6 * i);
-    __data->crypt_3_buf[i + 2] = bin_to_ascii((v2 >> shf) & 0x3f);
-  }
+  for (i = 5; i < 10; i++)
+    {
+      shf = (56 - 6 * i);
+      __data->crypt_3_buf[i + 2] = bin_to_ascii ((v2 >> shf) & 0x3f);
+    }
 
-  __data->crypt_3_buf[12] = bin_to_ascii(s);
+  __data->crypt_3_buf[12] = bin_to_ascii (s);
   __data->crypt_3_buf[13] = 0;
 }
 
@@ -774,138 +838,145 @@ _ufc_output_conversion_r(v1, v2, salt, __data)
 
 void
 __encrypt_r (char *__block, int __edflag,
-	     struct crypt_data * __restrict __data)
-
+             struct crypt_data *__restrict __data)
 {
   ufc_long l1, l2, r1, r2, res[4];
   int i;
 #ifdef _UFC_32_
   long32 *kt;
-  kt = (long32*)__data->keysched;
+  kt = (long32 *) __data->keysched;
 #endif
 #ifdef _UFC_64_
   long64 *kt;
-  kt = (long64*)__data->keysched;
+  kt = (long64 *) __data->keysched;
 #endif
 
   /*
    * Undo any salt changes to E expansion
    */
-  _ufc_setup_salt_r("..", __data);
+  _ufc_setup_salt_r ("..", __data);
 
   /*
    * Reverse key table if
    * changing operation (encrypt/decrypt)
    */
-  if((__edflag == 0) != (__data->direction == 0)) {
-    for(i = 0; i < 8; i++) {
+  if ((__edflag == 0) != (__data->direction == 0))
+    {
+      for (i = 0; i < 8; i++)
+        {
 #ifdef _UFC_32_
-      long32 x;
-      x = kt[2 * (15-i)];
-      kt[2 * (15-i)] = kt[2 * i];
-      kt[2 * i] = x;
+          long32 x;
+          x = kt[2 * (15 - i)];
+          kt[2 * (15 - i)] = kt[2 * i];
+          kt[2 * i] = x;
 
-      x = kt[2 * (15-i) + 1];
-      kt[2 * (15-i) + 1] = kt[2 * i + 1];
-      kt[2 * i + 1] = x;
+          x = kt[2 * (15 - i) + 1];
+          kt[2 * (15 - i) + 1] = kt[2 * i + 1];
+          kt[2 * i + 1] = x;
 #endif
 #ifdef _UFC_64_
-      long64 x;
-      x = kt[15-i];
-      kt[15-i] = kt[i];
-      kt[i] = x;
+          long64 x;
+          x = kt[15 - i];
+          kt[15 - i] = kt[i];
+          kt[i] = x;
 #endif
-      }
-    __data->direction = __edflag;
-  }
+        }
+      __data->direction = __edflag;
+    }
 
   /*
    * Do initial permutation + E expansion
    */
   i = 0;
-  for(l1 = 0; i < 24; i++) {
-    if(__block[initial_perm[esel[i]-1]-1])
-      l1 |= BITMASK[i];
-  }
-  for(l2 = 0; i < 48; i++) {
-    if(__block[initial_perm[esel[i]-1]-1])
-      l2 |= BITMASK[i-24];
-  }
+  for (l1 = 0; i < 24; i++)
+    {
+      if (__block[initial_perm[esel[i] - 1] - 1])
+        l1 |= BITMASK[i];
+    }
+  for (l2 = 0; i < 48; i++)
+    {
+      if (__block[initial_perm[esel[i] - 1] - 1])
+        l2 |= BITMASK[i - 24];
+    }
 
   i = 0;
-  for(r1 = 0; i < 24; i++) {
-    if(__block[initial_perm[esel[i]-1+32]-1])
-      r1 |= BITMASK[i];
-  }
-  for(r2 = 0; i < 48; i++) {
-    if(__block[initial_perm[esel[i]-1+32]-1])
-      r2 |= BITMASK[i-24];
-  }
+  for (r1 = 0; i < 24; i++)
+    {
+      if (__block[initial_perm[esel[i] - 1 + 32] - 1])
+        r1 |= BITMASK[i];
+    }
+  for (r2 = 0; i < 48; i++)
+    {
+      if (__block[initial_perm[esel[i] - 1 + 32] - 1])
+        r2 |= BITMASK[i - 24];
+    }
 
   /*
    * Do DES inner loops + final conversion
    */
-  res[0] = l1; res[1] = l2;
-  res[2] = r1; res[3] = r2;
-  _ufc_doit_r((ufc_long)1, __data, &res[0]);
+  res[0] = l1;
+  res[1] = l2;
+  res[2] = r1;
+  res[3] = r2;
+  _ufc_doit_r ((ufc_long) 1, __data, &res[0]);
 
   /*
    * Do final permutations
    */
-  _ufc_dofinalperm_r(res, __data);
+  _ufc_dofinalperm_r (res, __data);
 
   /*
    * And convert to bit array
    */
-  l1 = res[0]; r1 = res[1];
-  for(i = 0; i < 32; i++) {
-    *__block++ = (l1 & longmask[i]) != 0;
-  }
-  for(i = 0; i < 32; i++) {
-    *__block++ = (r1 & longmask[i]) != 0;
-  }
+  l1 = res[0];
+  r1 = res[1];
+  for (i = 0; i < 32; i++)
+    {
+      *__block++ = (l1 & longmask[i]) != 0;
+    }
+  for (i = 0; i < 32; i++)
+    {
+      *__block++ = (r1 & longmask[i]) != 0;
+    }
 }
+
 weak_alias (__encrypt_r, encrypt_r)
+     extern void __encrypt (char *__block, int __edflag);
 
-extern void __encrypt (char *__block, int __edflag);
-
-void
-__encrypt (char *__block, int __edflag)
+     void __encrypt (char *__block, int __edflag)
 {
   __encrypt_r (__block, __edflag, &_ufc_foobar);
 }
+
 weak_alias (__encrypt, encrypt)
-
-
 /*
  * UNIX setkey function. Take a 64 bit DES
  * key and setup the machinery.
  */
-
-void
-__setkey_r (__const char *__key,
-	    struct crypt_data * __restrict __data)
+     void
+       __setkey_r (__const char *__key, struct crypt_data *__restrict __data)
 {
-  int i,j;
+  int i, j;
   unsigned char c;
   unsigned char ktab[8];
 
-  _ufc_setup_salt_r("..", __data); /* be sure we're initialized */
+  _ufc_setup_salt_r ("..", __data);     /* be sure we're initialized */
 
-  for(i = 0; i < 8; i++) {
-    for(j = 0, c = 0; j < 8; j++)
-      c = c << 1 | *__key++;
-    ktab[i] = c >> 1;
-  }
-  _ufc_mk_keytab_r((char *)ktab, __data);
+  for (i = 0; i < 8; i++)
+    {
+      for (j = 0, c = 0; j < 8; j++)
+        c = c << 1 | *__key++;
+      ktab[i] = c >> 1;
+    }
+  _ufc_mk_keytab_r ((char *) ktab, __data);
 }
+
 weak_alias (__setkey_r, setkey_r)
+     extern void __setkey (__const char *__key);
 
-extern void __setkey (__const char *__key);
-
-void
-__setkey (__const char *__key)
+     void __setkey (__const char *__key)
 {
-  __setkey_r(__key, &_ufc_foobar);
+  __setkey_r (__key, &_ufc_foobar);
 }
+
 weak_alias (__setkey, setkey)

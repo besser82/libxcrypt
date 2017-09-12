@@ -53,80 +53,84 @@
  * This function is not really thread safe. We use it internal only
  * in the moment.
  */
-char *__bigcrypt_r (const char *key, const char *salt,
-		    struct crypt_data * __restrict data)
+char *
+__bigcrypt_r (const char *key, const char *salt,
+              struct crypt_data *__restrict data)
 {
-	static char dec_c2_cryptbuf[CBUF_SIZE];		/* static storage area */
+  static char dec_c2_cryptbuf[CBUF_SIZE];       /* static storage area */
 
-	unsigned long int keylen, n_seg, j;
-	char *cipher_ptr, *plaintext_ptr, *tmp_ptr, *salt_ptr;
-	char keybuf[KEYBUF_SIZE + 1];
+  unsigned long int keylen, n_seg, j;
+  char *cipher_ptr, *plaintext_ptr, *tmp_ptr, *salt_ptr;
+  char keybuf[KEYBUF_SIZE + 1];
 
-	D(("called with key='%s', salt='%s'.", key, salt));
+  D (("called with key='%s', salt='%s'.", key, salt));
 
-	/* reset arrays */
-	memset(keybuf, 0, KEYBUF_SIZE + 1);
-	memset(dec_c2_cryptbuf, 0, CBUF_SIZE);
+  /* reset arrays */
+  memset (keybuf, 0, KEYBUF_SIZE + 1);
+  memset (dec_c2_cryptbuf, 0, CBUF_SIZE);
 
-	/* fill KEYBUF_SIZE with key */
-	strncpy(keybuf, key, KEYBUF_SIZE);
+  /* fill KEYBUF_SIZE with key */
+  strncpy (keybuf, key, KEYBUF_SIZE);
 
-	/* deal with case that we are doing a password check for a
-	   conventially encrypted password: the salt will be
-	   SALT_SIZE+ESEGMENT_SIZE long. */
-	if (strlen(salt) == (SALT_SIZE + ESEGMENT_SIZE))
-		keybuf[SEGMENT_SIZE] = '\0';	/* terminate password early(?) */
+  /* deal with case that we are doing a password check for a
+     conventially encrypted password: the salt will be
+     SALT_SIZE+ESEGMENT_SIZE long. */
+  if (strlen (salt) == (SALT_SIZE + ESEGMENT_SIZE))
+    keybuf[SEGMENT_SIZE] = '\0';        /* terminate password early(?) */
 
-	keylen = strlen(keybuf);
+  keylen = strlen (keybuf);
 
-	if (!keylen) {
-		n_seg = 1;
-	} else {
-		/* work out how many segments */
-		n_seg = 1 + ((keylen - 1) / SEGMENT_SIZE);
-	}
+  if (!keylen)
+    {
+      n_seg = 1;
+    }
+  else
+    {
+      /* work out how many segments */
+      n_seg = 1 + ((keylen - 1) / SEGMENT_SIZE);
+    }
 
-	if (n_seg > MAX_PASS_LEN)
-		n_seg = MAX_PASS_LEN;	/* truncate at max length */
+  if (n_seg > MAX_PASS_LEN)
+    n_seg = MAX_PASS_LEN;       /* truncate at max length */
 
-	/* set up some pointers */
-	cipher_ptr = dec_c2_cryptbuf;
-	plaintext_ptr = keybuf;
+  /* set up some pointers */
+  cipher_ptr = dec_c2_cryptbuf;
+  plaintext_ptr = keybuf;
 
-	/* do the first block with supplied salt */
-	tmp_ptr = __des_crypt_r (plaintext_ptr, salt, data);
+  /* do the first block with supplied salt */
+  tmp_ptr = __des_crypt_r (plaintext_ptr, salt, data);
 
-	/* and place in the static area */
-	strncpy(cipher_ptr, tmp_ptr, 13);
-	cipher_ptr += ESEGMENT_SIZE + SALT_SIZE;
-	plaintext_ptr += SEGMENT_SIZE;	/* first block of SEGMENT_SIZE */
+  /* and place in the static area */
+  strncpy (cipher_ptr, tmp_ptr, 13);
+  cipher_ptr += ESEGMENT_SIZE + SALT_SIZE;
+  plaintext_ptr += SEGMENT_SIZE;        /* first block of SEGMENT_SIZE */
 
-	/* change the salt (1st 2 chars of previous block) - this was found
-	   by dowsing */
+  /* change the salt (1st 2 chars of previous block) - this was found
+     by dowsing */
 
-	salt_ptr = cipher_ptr - ESEGMENT_SIZE;
+  salt_ptr = cipher_ptr - ESEGMENT_SIZE;
 
-	/* so far this is identical to "return crypt(key, salt);", if
-	   there is more than one block encrypt them... */
+  /* so far this is identical to "return crypt(key, salt);", if
+     there is more than one block encrypt them... */
 
-	if (n_seg > 1) {
-		for (j = 2; j <= n_seg; j++) {
+  if (n_seg > 1)
+    {
+      for (j = 2; j <= n_seg; j++)
+        {
 
-			tmp_ptr = __des_crypt_r (plaintext_ptr,
-						 salt_ptr, data);
+          tmp_ptr = __des_crypt_r (plaintext_ptr, salt_ptr, data);
 
-			/* skip the salt for seg!=0 */
-			strncpy(cipher_ptr, (tmp_ptr + SALT_SIZE),
-				ESEGMENT_SIZE);
+          /* skip the salt for seg!=0 */
+          strncpy (cipher_ptr, (tmp_ptr + SALT_SIZE), ESEGMENT_SIZE);
 
-			cipher_ptr += ESEGMENT_SIZE;
-			plaintext_ptr += SEGMENT_SIZE;
-			salt_ptr = cipher_ptr - ESEGMENT_SIZE;
-		}
-	}
-	D(("key=|%s|, salt=|%s|\nbuf=|%s|\n", key, salt, dec_c2_cryptbuf));
+          cipher_ptr += ESEGMENT_SIZE;
+          plaintext_ptr += SEGMENT_SIZE;
+          salt_ptr = cipher_ptr - ESEGMENT_SIZE;
+        }
+    }
+  D (("key=|%s|, salt=|%s|\nbuf=|%s|\n", key, salt, dec_c2_cryptbuf));
 
-	/* this is the <NUL> terminated encrypted password */
+  /* this is the <NUL> terminated encrypted password */
 
-	return dec_c2_cryptbuf;
+  return dec_c2_cryptbuf;
 }

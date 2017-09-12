@@ -18,39 +18,39 @@
  * Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
  * 02111-1307 USA.
  *
- * @(#)crypt-private.h	1.4 12/20/96
+ * @(#)crypt-private.h  1.4 12/20/96
  */
 
 /* Prototypes for local functions in libcrypt.a.  */
 
 #ifndef CRYPT_PRIVATE_H
-#define CRYPT_PRIVATE_H	1
+#define CRYPT_PRIVATE_H 1
 
 #include "crypt.h"
 #include "ufc-crypt.h"
 
 /* crypt.c */
-extern void _ufc_doit_r (ufc_long itr, struct crypt_data * __restrict __data,
-			 ufc_long *res);
+extern void _ufc_doit_r (ufc_long itr, struct crypt_data *__restrict __data,
+                         ufc_long * res);
 
 
 /* crypt_util.c */
-extern void __init_des_r (struct crypt_data * __restrict __data);
+extern void __init_des_r (struct crypt_data *__restrict __data);
 extern void __init_des (void);
 
 extern void _ufc_setup_salt_r (__const char *s,
-			       struct crypt_data * __restrict __data);
+                               struct crypt_data *__restrict __data);
 extern void _ufc_mk_keytab_r (__const char *key,
-			      struct crypt_data * __restrict __data);
-extern void _ufc_dofinalperm_r (ufc_long *res,
-				struct crypt_data * __restrict __data);
+                              struct crypt_data *__restrict __data);
+extern void _ufc_dofinalperm_r (ufc_long * res,
+                                struct crypt_data *__restrict __data);
 extern void _ufc_output_conversion_r (ufc_long v1, ufc_long v2,
-				      __const char *salt,
-				      struct crypt_data * __restrict __data);
+                                      __const char *salt,
+                                      struct crypt_data *__restrict __data);
 
 extern void __setkey_r (__const char *__key,
-			     struct crypt_data * __restrict __data);
-extern void __encrypt_r (char * __restrict __block, int __edflag,
-			      struct crypt_data * __restrict __data);
+                        struct crypt_data *__restrict __data);
+extern void __encrypt_r (char *__restrict __block, int __edflag,
+                         struct crypt_data *__restrict __data);
 
-#endif  /* crypt-private.h */
+#endif /* crypt-private.h */

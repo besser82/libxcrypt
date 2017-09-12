@@ -30,24 +30,24 @@ extern "C" {
    keep providing them for binary backward compatibility.  */
 
 /* Setup DES tables according KEY.  */
-extern void setkey (const char *__key) __THROW __nonnull ((1));
+extern void setkey (const char *__key)
+  __THROW __nonnull ((1));
 
 /* Encrypt data in BLOCK in place if EDFLAG is zero; otherwise decrypt
    block in place.  */
-extern void encrypt (char *__block, int __edflag) __THROW __nonnull ((1));
-
+extern void encrypt (char *__block, int __edflag)
+  __THROW __nonnull ((1));
 
 extern void setkey_r (const char *__key,
-		      struct crypt_data * __restrict __data)
-  __THROW __nonnull ((1,2));
+                      struct crypt_data *__restrict __data)
+  __THROW __nonnull ((1, 2));
 
 extern void encrypt_r (char *__block, int __edflag,
-		       struct crypt_data * __restrict __data)
-  __THROW __nonnull ((1,3));
-
+                       struct crypt_data *__restrict __data)
+  __THROW __nonnull ((1, 3));
 
 extern char *bigcrypt (const char *key, const char *salt)
-  __THROW __nonnull ((1,2));
+  __THROW __nonnull ((1, 2));
 
 #ifdef __cplusplus
 } /* extern "C" */

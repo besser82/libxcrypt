@@ -23,7 +23,7 @@ typedef uint_fast32_t ufc_long;
 typedef uint64_t long64;
 typedef uint32_t long32;
 #if UINT_FAST32_MAX == UINT_FAST64_MAX
-# define _UFC_64_
+#define _UFC_64_
 #else
-# define _UFC_32_
+#define _UFC_32_
 #endif
