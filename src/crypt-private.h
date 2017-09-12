@@ -26,7 +26,8 @@
 #ifndef CRYPT_PRIVATE_H
 #define CRYPT_PRIVATE_H	1
 
-#include <features.h>
+#include "crypt.h"
+#include "ufc-crypt.h"
 
 /* crypt.c */
 extern void _ufc_doit_r (ufc_long itr, struct crypt_data * __restrict __data,

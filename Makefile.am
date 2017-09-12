@@ -7,7 +7,7 @@ ACLOCAL_AMFLAGS = -I m4
 AUTOMAKE_OPTIONS = 1.7 foreign dist-bzip2
 MAINT_CHARSET = latin1
 #
-SUBDIRS = src plugins
+SUBDIRS = src
 
 CLEANFILES = *~
 

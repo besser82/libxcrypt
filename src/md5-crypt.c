@@ -26,9 +26,9 @@
 #include <string.h>
 #include <sys/param.h>
 
-#include "xcrypt.h"
+#include "crypt.h"
 #include "md5.h"
-#include "xcrypt-plugin.h"
+#include "xcrypt-private.h"
 
 
 /* Define our magic string to mark salt for MD5 "encryption"
@@ -44,11 +44,8 @@ static const char b64t[64] =
 /* This entry point is equivalent to the `crypt' function in Unix
    libcs.  */
 char *
-__crypt_r (key, salt, buffer, buflen)
-     const char *key;
-     const char *salt;
-     char *buffer;
-     int buflen;
+_xcrypt_crypt_md5_rn (const char *key, const char *salt,
+                      char *buffer, size_t buflen)
 {
   unsigned char alt_result[16]
     __attribute__ ((__aligned__ (__alignof__ (md5_uint32))));

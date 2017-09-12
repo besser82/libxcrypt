@@ -26,8 +26,7 @@
 #include <sys/param.h>
 
 #include "sha256.h"
-#include "xcrypt-plugin.h"
-
+#include "xcrypt-private.h"
 
 /* Define our magic string to mark salt for SHA256 "encryption"
    replacement.  */
@@ -49,19 +48,9 @@ static const char sha256_rounds_prefix[] = "rounds=";
 static const char b64t[64] =
 "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-#if 0
-/* Prototypes for local functions.  */
-extern char *__sha256_crypt_r (const char *key, const char *salt,
-			       char *buffer, int buflen);
-extern char *__sha256_crypt (const char *key, const char *salt);
-#endif
-
 char *
-__crypt_r (key, salt, buffer, buflen)
-     const char *key;
-     const char *salt;
-     char *buffer;
-     int buflen;
+_xcrypt_crypt_sha256_rn (const char *key, const char *salt,
+                         char *buffer, size_t buflen)
 {
   unsigned char alt_result[32]
     __attribute__ ((__aligned__ (__alignof__ (uint32_t))));
@@ -303,47 +292,3 @@ __crypt_r (key, salt, buffer, buflen)
 
   return buffer;
 }
-
-#if 0
-#ifndef _LIBC
-# define libc_freeres_ptr(decl) decl
-#endif
-libc_freeres_ptr (static char *buffer);
-
-/* This entry point is equivalent to the `crypt' function in Unix
-   libcs.  */
-char *
-__sha256_crypt (const char *key, const char *salt)
-{
-  /* We don't want to have an arbitrary limit in the size of the
-     password.  We can compute an upper bound for the size of the
-     result in advance and so we can prepare the buffer we pass to
-     `sha256_crypt_r'.  */
-  static int buflen;
-  int needed = (sizeof (sha256_salt_prefix) - 1
-		+ sizeof (sha256_rounds_prefix) + 9 + 1
-		+ strlen (salt) + 1 + 43 + 1);
-
-  if (buflen < needed)
-    {
-      char *new_buffer = (char *) realloc (buffer, needed);
-      if (new_buffer == NULL)
-	return NULL;
-
-      buffer = new_buffer;
-      buflen = needed;
-    }
-
-  return __sha256_crypt_r (key, salt, buffer, buflen);
-}
-
-#ifndef _LIBC
-static void
-__attribute__ ((__destructor__))
-free_mem (void)
-{
-  free (buffer);
-}
-#endif
-
-#endif

@@ -65,9 +65,7 @@
 #define BF_SCALE			0
 #endif
 
-#include "xcrypt-plugin.h"
-#define _crypt_blowfish_rn __crypt_r
-#include <dlfcn.h>
+#include "xcrypt-private.h"
 
 typedef unsigned int BF_word;
 typedef signed int BF_word_signed;
@@ -818,8 +816,8 @@ int _crypt_output_magic(const char *setting, char *output, int size)
  * The performance cost of this quick self-test is around 0.6% at the "$2a$08"
  * setting.
  */
-char *_crypt_blowfish_rn(const char *key, const char *setting,
-	char *output, int size)
+char *_xcrypt_crypt_bcrypt_rn(const char *key, const char *setting,
+                              char *output, size_t size)
 {
 	const char *test_key = "8b \xd0\xc1\xd2\xcf\xcc\xd8";
 	const char *test_setting = "$2a$00$abcdefghijklmnopqrstuu";
@@ -883,50 +881,74 @@ char *_crypt_blowfish_rn(const char *key, const char *setting,
 	return NULL;
 }
 
-char *_crypt_gensalt_blowfish_rn(const char *prefix, unsigned long count,
-	const char *input, int size, char *output, int output_size)
+static char *
+BF_gensalt (char subtype, unsigned long count,
+            const char *input, int size,
+            char *output, int output_size)
 {
-	if (size < 16 || output_size < 7 + 22 + 1 ||
-	    (count && (count < 4 || count > 31)) ||
-	    prefix[0] != '$' || prefix[1] != '2' ||
-	    (prefix[2] != 'a' && prefix[2] != 'b' && prefix[2] != 'y')) {
-		if (output_size > 0) output[0] = '\0';
-		__set_errno((output_size < 7 + 22 + 1) ? ERANGE : EINVAL);
-		return NULL;
-	}
+  if (output_size < 7 + 22 + 1)
+    {
+      __set_errno (ERANGE);
+      if (output_size > 0)
+        output[0] = '\0';
+      return NULL;
+    }
 
-	if (!count) count = 5;
+  if (!count)
+    count = 5;
 
-	output[0] = '$';
-	output[1] = '2';
-	output[2] = prefix[2];
-	output[3] = '$';
-	output[4] = '0' + count / 10;
-	output[5] = '0' + count % 10;
-	output[6] = '$';
+  if (size < 16 ||
+      count < 4 || count > 31 ||
+      (subtype != 'a' && subtype != 'b' && subtype != 'x' && subtype != 'y'))
+    {
+      __set_errno (EINVAL);
+      if (output_size > 0)
+        output[0] = '\0';
+      return NULL;
+    }
 
-	BF_encode(&output[7], (const BF_word *)input, 16);
-	output[7 + 22] = '\0';
+  output[0] = '$';
+  output[1] = '2';
+  output[2] = subtype;
+  output[3] = '$';
+  output[4] = '0' + count / 10;
+  output[5] = '0' + count % 10;
+  output[6] = '$';
 
-	return output;
+  BF_encode(&output[7], (const BF_word *)input, 16);
+  output[7 + 22] = '\0';
+
+  return output;
 }
 
-/* dirty hack */
-static const char* _find_prefix(const char* prefix)
+char *
+_xcrypt_gensalt_bcrypt_a_rn (unsigned long count,
+                             const char *input, int input_size,
+                             char *output, int output_size)
 {
-	Dl_info info;
-	if (dladdr(_find_prefix, &info) && strlen(info.dli_fname) > 8)
-	{
-	    const char* sfx = info.dli_fname+strlen(info.dli_fname)-8;
-	    if (!strncmp(sfx, "_2y.", 4))
-		prefix = "$2y$";
-	    else if (!strncmp(sfx, "_2x.", 4))
-		prefix = "$2x$";
-	}
-	return prefix;
+  return BF_gensalt ('a', count, input, input_size, output, output_size);
 }
 
-char *__crypt_gensalt_r (unsigned long count, __const char *input, int size, char *output, int output_size)
+char *
+_xcrypt_gensalt_bcrypt_b_rn (unsigned long count,
+                             const char *input, int input_size,
+                             char *output, int output_size)
 {
-	return _crypt_gensalt_blowfish_rn(_find_prefix("$2a$"), count, input, size, output, output_size);
+  return BF_gensalt ('b', count, input, input_size, output, output_size);
+}
+
+char *
+_xcrypt_gensalt_bcrypt_x_rn (unsigned long count,
+                             const char *input, int input_size,
+                             char *output, int output_size)
+{
+  return BF_gensalt ('x', count, input, input_size, output, output_size);
+}
+
+char *
+_xcrypt_gensalt_bcrypt_y_rn (unsigned long count,
+                             const char *input, int input_size,
+                             char *output, int output_size)
+{
+  return BF_gensalt ('y', count, input, input_size, output, output_size);
 }

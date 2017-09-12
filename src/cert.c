@@ -8,7 +8,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "xcrypt.h"
+#include "crypt.h"
+#include "crypt-obsolete.h"
 
 int totfails = 0;
 

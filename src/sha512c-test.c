@@ -1,9 +1,7 @@
-
 #include <stdio.h>
 #include <string.h>
 
-#include "xcrypt.h"
-#include "xcrypt-plugin.h"
+#include "crypt.h"
 
 static const struct
 {
@@ -49,8 +47,7 @@ main (void)
 
   for (i = 0; i < ntests; ++i)
     {
-      char *cp = __crypt_r (tests[i].input, tests[i].salt,
-			    (char *)&output, sizeof (output));
+      char *cp = crypt_r (tests[i].input, tests[i].salt, &output);
 
       if (strcmp (cp, tests[i].expected) != 0)
 	{

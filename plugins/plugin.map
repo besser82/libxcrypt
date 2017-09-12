@@ -1,6 +1,0 @@
-XCRYPT_PLUGIN_1.0 {
-  global:
-    __crypt_r; __crypt_gensalt_r;
-  local:
-    *;
-};

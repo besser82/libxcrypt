@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1991, 92, 93, 96, 97, 98, 2000, 2002, 2007 Free Software Foundation, Inc.
+ * Copyright (C) 1991-2017 Free Software Foundation, Inc.
  *
  * The GNU C Library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,27 +17,29 @@
  * 02111-1307 USA.
  */
 
-#ifndef _XCRYPT_H
-#define _XCRYPT_H	1
+#ifndef _CRYPT_H
+#define _CRYPT_H 1
 
-#include <features.h>
+#include <sys/types.h>
 
-__BEGIN_DECLS
+#ifndef __THROW
+#define __THROW /* nothing */
+#endif
+
+#ifndef __nonnull
+#define __nonnull(param) /* nothing */
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define CRYPT_OUTPUT_SIZE               (7 + 22 + 31 + 1)
 #define CRYPT_GENSALT_OUTPUT_SIZE       (7 + 22 + 1)
 
 /* Encrypt at most 8 characters from KEY using salt to perturb DES.  */
-extern char *xcrypt (__const char *__key, __const char *__salt)
+extern char *crypt (const char *__key, const char *__salt)
   __THROW __nonnull ((1,2));
-#define crypt xcrypt
-
-/* Setup DES tables according KEY.  */
-extern void setkey (__const char *__key) __THROW __nonnull ((1));
-
-/* Encrypt data in BLOCK in place if EDFLAG is zero; otherwise decrypt
-   block in place.  */
-extern void encrypt (char *__block, int __edflag) __THROW __nonnull ((1));
 
 /* Reentrant versions of the functions above.  The additional argument
    points to a structure where the results are placed in.  */
@@ -55,33 +57,39 @@ struct crypt_data
     int  direction, initialized;
 };
 
-extern char *xcrypt_r (__const char *__key, __const char *__salt,
+extern char *crypt_r (const char *__key, const char *__salt,
 		       struct crypt_data * __restrict __data)
   __THROW __nonnull ((1,2,3));
-#define crypt_r xcrypt_r
 
+extern char *crypt_rn (const char *__key, const char *__salt,
+                       void *__data, int __size)
+  __THROW __nonnull ((1,2,3));
 
-extern void setkey_r (__const char *__key,
-		      struct crypt_data * __restrict __data)
-  __THROW __nonnull ((1,2));
+extern char *crypt_ra (const char *__key, const char *__salt,
+                       void **__data, int *__size)
+  __THROW __nonnull ((1,2,3,4));
 
-extern void encrypt_r (char *__block, int __edflag,
-		       struct crypt_data * __restrict __data)
+extern char *crypt_gensalt (const char *__prefix, unsigned long __count,
+			     const char *__input, int __size)
   __THROW __nonnull ((1,3));
 
-extern char *xcrypt_gensalt (__const char *prefix, unsigned long count,
-			     __const char *input, int size)
-  __THROW __nonnull ((1,3));
-#define crypt_gensalt xcrypt_gensalt
+extern char *crypt_gensalt_r (const char *__prefix, unsigned long __count,
+                              const char *__input, int __size,
+                              char *__output, int __output_size)
+  __THROW __nonnull ((1,5));
 
-extern char *xcrypt_gensalt_r (__const char *prefix, unsigned long count,
-			       __const char *input, int size, char *output,
-			       int output_size) __THROW __nonnull ((1,5));
-#define crypt_gensalt_r xcrypt_gensalt_r
+extern char *crypt_gensalt_rn (const char *__prefix, unsigned long __count,
+                               const char *__input, int __size,
+                               char *__output, int __output_size)
+  __THROW __nonnull ((1,5));
 
-extern char *bigcrypt (__const char *key, __const char *salt)
-  __THROW __nonnull ((1,2));
+extern char *crypt_gensalt_ra (const char *__prefix, unsigned long __count,
+                               const char *__input, int __size)
+  __THROW __nonnull ((1));
 
-__END_DECLS
 
-#endif	/* xcrypt.h */
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
+
+#endif	/* crypt.h */

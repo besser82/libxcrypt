@@ -7,5 +7,6 @@ GLIBC_2.0 {
 XCRYPT_2.0 {
   global:
     bigcrypt;
-    xcrypt; xcrypt_r; xcrypt_gensalt; xcrypt_gensalt_r;
-}GLIBC_2.0;
+    crypt; crypt_r; crypt_ra; crypt_rn;
+    crypt_gensalt; crypt_gensalt_r; crypt_gensalt_ra; crypt_gensalt_rn;
+} GLIBC_2.0;

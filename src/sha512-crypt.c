@@ -26,7 +26,7 @@
 #include <sys/param.h>
 
 #include "sha512.h"
-#include "xcrypt-plugin.h"
+#include "xcrypt-private.h"
 
 
 /* Define our magic string to mark salt for SHA512 "encryption"
@@ -51,11 +51,8 @@ static const char b64t[64] =
 
 
 char *
-__crypt_r (key, salt, buffer, buflen)
-     const char *key;
-     const char *salt;
-     char *buffer;
-     int buflen;
+_xcrypt_crypt_sha512_rn (const char *key, const char *salt,
+                         char *buffer, size_t buflen)
 {
   unsigned char alt_result[64]
     __attribute__ ((__aligned__ (__alignof__ (uint64_t))));

@@ -14,77 +14,105 @@
    along with this program; if not, write to the Free Software Foundation,
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
-#include <dlfcn.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "xcrypt-private.h"
+#include "crypt-obsolete.h"
 
 #define CRYPT_OUTPUT_SIZE		(7 + 22 + 31 + 1)
 #define CRYPT_GENSALT_OUTPUT_SIZE	(7 + 22 + 1)
 
-
-struct plugin_t {
-  const char *id;
-  char *(*crypt_r) (const char *key, const char *salt, char *data, int size);
-  char *(*gensalt_r) (unsigned long count,
-                      const char *input, int input_size,
-		      char *output, int output_size);
-  struct plugin_t *next;
-};
-
-static struct plugin_t *plugins;
-
-static struct plugin_t *
-get_plugin (const char *hash_id)
+char *
+_xcrypt_crypt_traditional_rn (const char *key, const char *salt,
+                              char *data, size_t size)
 {
-   struct plugin_t *ptr = plugins;
-
-   while (ptr)
-     {
-        if (strcmp (hash_id, ptr->id) == 0)
-          return ptr;
-
-        ptr = ptr->next;
-     }
-
-   void *handle = NULL;
-   char *buf;
-
-   if (asprintf (&buf, "%s/libxcrypt_%s.so.1", PLUGINDIR, hash_id) < 0)
-     return NULL;
-
-   handle = dlopen (buf, RTLD_NOW);
-   free (buf);
-
-   if (handle == NULL)
-     return NULL;
-
-   struct plugin_t *new = malloc (sizeof (struct plugin_t));
-   new->next = NULL;
-
-   new->id = strdup (hash_id);
-
-   new->crypt_r = dlsym (handle, "__crypt_r");
-   new->gensalt_r = dlsym (handle, "__crypt_gensalt_r");
-
-  if (plugins == NULL)
-    plugins = new;
-  else
+  if (size < sizeof (struct crypt_data))
     {
-      ptr = plugins;
-
-      while (ptr->next != NULL)
-        ptr = ptr->next;
-
-      ptr->next = new;
+      __set_errno (EINVAL);
+      return NULL;
     }
-
-   return new;
+  if (strlen (salt) > 13)
+    return __bigcrypt_r (key, salt, (struct crypt_data *)data);
+  else
+    return __des_crypt_r (key, salt, (struct crypt_data *)data);
 }
 
+char *
+_xcrypt_crypt_extended_rn (const char *key __attribute__ ((unused)),
+                           const char *salt __attribute__ ((unused)),
+                           char *data __attribute__ ((unused)),
+                           size_t size __attribute__ ((unused)))
+{
+  /* "Extended BSDI-style DES-based" hashes are currently not supported. */
+  __set_errno (EINVAL);
+  return NULL;
+}
+
+struct hashfn {
+  const char *prefix;
+  char *(*crypt) (const char *key, const char *salt, char *data, size_t size);
+  char *(*gensalt) (unsigned long count,
+                    const char *input, int input_size,
+                    char *output, int output_size);
+};
+
+/* This table should always begin with the algorithm that should be used
+   for new encryptions.  */
+static const struct hashfn tagged_hashes[] = {
+  /* bcrypt */
+  { "$2a$", _xcrypt_crypt_bcrypt_rn, _xcrypt_gensalt_bcrypt_a_rn },
+  { "$2b$", _xcrypt_crypt_bcrypt_rn, _xcrypt_gensalt_bcrypt_b_rn },
+  { "$2x$", _xcrypt_crypt_bcrypt_rn, _xcrypt_gensalt_bcrypt_x_rn },
+  { "$2y$", _xcrypt_crypt_bcrypt_rn, _xcrypt_gensalt_bcrypt_y_rn },
+
+  /* legacy hashes */
+  { "$1$", _xcrypt_crypt_md5_rn, _xcrypt_gensalt_md5_rn },
+  { "$5$", _xcrypt_crypt_sha256_rn, _xcrypt_gensalt_sha256_rn },
+  { "$6$", _xcrypt_crypt_sha512_rn, _xcrypt_gensalt_sha512_rn },
+  { 0, 0, 0 }
+};
+
+/* BSD-style extended DES hash */
+static const struct hashfn bsdi_extended_hash = {
+  "_", _xcrypt_crypt_extended_rn, _xcrypt_gensalt_extended_rn
+};
+
+/* bigcrypt-style extended DES hash */
+static const struct hashfn traditional_hash = {
+  "", _xcrypt_crypt_traditional_rn, _xcrypt_gensalt_traditional_rn
+};
+
+static int
+is_des_salt_char(char c)
+{
+  return ((c >= 'a' && c <= 'z') ||
+          (c >= 'A' && c <= 'Z') ||
+          (c >= '0' && c <= '9') ||
+          c == '.' || c == '/');
+}
+
+static const struct hashfn *
+_xcrypt_get_hash(const char *salt)
+{
+  if (salt[0] == '$')
+    {
+      const struct hashfn *h;
+      for (h = tagged_hashes; h->prefix; h++)
+        if (!strncmp (salt, h->prefix, strlen (h->prefix)))
+          return h;
+      return NULL;
+    }
+  else if (salt[0] == '_')
+    return &bsdi_extended_hash;
+  else if (salt[0] == '\0' ||
+           (is_des_salt_char (salt[0]) && is_des_salt_char (salt[1])))
+    return &traditional_hash;
+  else
+    return NULL;
+}
 
 static char *
 _xcrypt_retval_magic (char *retval, __const char *salt, char *output)
@@ -103,72 +131,62 @@ _xcrypt_retval_magic (char *retval, __const char *salt, char *output)
 }
 
 static char *
-__xcrypt_rn (__const char *key, __const char *salt, char *data, size_t size)
+_xcrypt_rn (__const char *key, __const char *salt, char *data, size_t size)
 {
-  if (salt[0] == '$')
+  const struct hashfn *h = _xcrypt_get_hash (salt);
+  if (!h)
     {
-      char *hash_id = strdup (&salt[1]);
-      char *c = strchr (hash_id, '$');
+      /* Unrecognized hash algorithm */
+      __set_errno (ERANGE);
+      return NULL;
+    }
+  return h->crypt (key, salt, data, size);
+}
 
-      if (c == NULL)
-	{
-	  free (hash_id);
-	  return NULL;
-	}
+char *
+crypt_rn (const char *key, const char *salt, void *data, int size)
+{
+  return _xcrypt_retval_magic (_xcrypt_rn (key, salt, data, size),
+                               salt, data);
+}
 
-      *c = '\0';
-      struct plugin_t *plugin = get_plugin (hash_id);
-
-      free (hash_id);
-
-      if (plugin == NULL || plugin->crypt_r == NULL)
+char *
+crypt_ra (const char *key, const char *salt, void **data, int *size)
+{
+  if (!*data)
+    {
+      *data = malloc (sizeof (struct crypt_data));
+      if (!*data)
         return NULL;
-
-      return plugin->crypt_r (key, salt, (char *) data, size);
+      *size = sizeof (struct crypt_data);
     }
-  else if (salt[0] != '_' && size >= sizeof (struct crypt_data))
-    /* DES crypt and bigcrypt */
-    {
-      if (strlen (salt) > 13)
-	return __bigcrypt_r (key, salt, (struct crypt_data *) data);
-      else
-	return __des_crypt_r (key, salt, (struct crypt_data *) data);
-    }
-
-  /* Unknown salt */
-  __set_errno (ERANGE);
-  return NULL;
+  return crypt_rn (key, salt, *data, *size);
 }
 
 char *
-__xcrypt_r (__const char *key, __const char *salt, struct crypt_data *data)
+crypt_r (__const char *key, __const char *salt, struct crypt_data *data)
 {
-  return _xcrypt_retval_magic (__xcrypt_rn (key, salt, (char *)data,
-					    sizeof (*data)),
-			       salt, (char *) data);
+  return crypt_rn (key, salt, (char *) data, sizeof (*data));
 }
 
 char *
-__xcrypt (__const char *key, __const char *salt)
+crypt (__const char *key, __const char *salt)
 {
-  return _xcrypt_retval_magic (__xcrypt_rn (key, salt, (char *)&_ufc_foobar,
-					    sizeof (_ufc_foobar)),
-			       salt, (char *) &_ufc_foobar);
+  return crypt_rn (key, salt, (char *) &_ufc_foobar, sizeof (_ufc_foobar));
 }
 
 char *
-__bigcrypt (__const char *key, __const char *salt)
+bigcrypt (__const char *key, __const char *salt)
 {
   return __bigcrypt_r (key, salt, &_ufc_foobar);
 }
 
 char *
-__xcrypt_gensalt_r (__const char *prefix, unsigned long count,
-		    __const char *input, int size, char *output,
-		    int output_size)
+crypt_gensalt_rn (__const char *prefix, unsigned long count,
+                  __const char *input, int size, char *output,
+                  int output_size)
 {
-  char *(*use) (unsigned long count,
-		__const char *input, int size, char *output, int output_size);
+  const struct hashfn *h;
 
   /* This may be supported on some platforms in the future */
   if (!input)
@@ -177,69 +195,41 @@ __xcrypt_gensalt_r (__const char *prefix, unsigned long count,
       return NULL;
     }
 
-  if (prefix[0] == '$')
-    {
-      char *hash_id = strdup (&prefix[1]);
-      char *c = strchr (hash_id, '$');
-
-      if (c == NULL)
-	{
-	  free (hash_id);
-	  return NULL;
-	}
-
-      *c = '\0';
-      struct plugin_t *plugin = get_plugin (hash_id);
-
-      if (plugin == NULL || plugin->gensalt_r == NULL)
-	{
-	  if (hash_id[0] == '1') /* Special case: MD5 */
-	    use = _xcrypt_gensalt_md5_rn;
-	  else if (hash_id[0] == '5') /* sha256 */
-	    use = _xcrypt_gensalt_sha256_rn;
-	  else if (hash_id[0] == '6') /* sha512 */
-	    use = _xcrypt_gensalt_sha512_rn;
-	  else
-	    use = _xcrypt_gensalt_traditional_rn;
-	}
-      else
-	use = plugin->gensalt_r;
-
-      free (hash_id);
-    }
-  else if (prefix[0] == '_')
-    use = _xcrypt_gensalt_extended_rn;
-  else if (!prefix[0] ||
-	   (prefix[0] && prefix[1] &&
-	    memchr (_xcrypt_itoa64, prefix[0], 64) &&
-	    memchr (_xcrypt_itoa64, prefix[1], 64)))
-    use = _xcrypt_gensalt_traditional_rn;
-  else
+  h = _xcrypt_get_hash (prefix);
+  if (!h)
     {
       __set_errno (EINVAL);
       return NULL;
     }
-
-  return use (count, input, size, output, output_size);
+  return h->gensalt (count, input, size, output, output_size);
 }
 
 char *
-__xcrypt_gensalt (__const char *prefix, unsigned long count,
-		 __const char *input, int size)
+crypt_gensalt_r (__const char *prefix, unsigned long count,
+                  __const char *input, int size, char *output,
+                  int output_size)
+{
+  return crypt_gensalt_rn (prefix, count, input, size, output, output_size);
+}
+
+char *
+crypt_gensalt_ra (const char *prefix, unsigned long count,
+                  const char *input, int size)
+{
+  char *output = malloc (CRYPT_GENSALT_OUTPUT_SIZE);
+  if (!output)
+    return output;
+
+  return crypt_gensalt_rn (prefix, count, input, size, output,
+                           CRYPT_GENSALT_OUTPUT_SIZE);
+}
+
+char *
+crypt_gensalt (__const char *prefix, unsigned long count,
+               __const char *input, int size)
 {
   static char output[CRYPT_GENSALT_OUTPUT_SIZE];
 
-  return __xcrypt_gensalt_r (prefix, count,
-			     input, size, output, sizeof (output));
+  return crypt_gensalt_rn (prefix, count,
+                           input, size, output, sizeof (output));
 }
-
-weak_alias (__xcrypt_r, crypt_r)
-weak_alias (__xcrypt_r, xcrypt_r)
-weak_alias (__xcrypt, crypt)
-weak_alias (__xcrypt, xcrypt)
-weak_alias (__xcrypt, fcrypt)
-weak_alias (__bigcrypt, bigcrypt)
-weak_alias (__xcrypt_gensalt_r, crypt_gensalt_r)
-weak_alias (__xcrypt_gensalt, crypt_gensalt)
-weak_alias (__xcrypt_gensalt_r, xcrypt_gensalt_r)
-weak_alias (__xcrypt_gensalt, xcrypt_gensalt)

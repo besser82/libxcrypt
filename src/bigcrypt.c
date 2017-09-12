@@ -26,8 +26,8 @@
 
 #include <string.h>
 
+#include "crypt.h"
 #include "ufc-crypt.h"
-#include "xcrypt.h"
 #include "crypt-private.h"
 #include "xcrypt-private.h"
 

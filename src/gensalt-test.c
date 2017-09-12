@@ -8,7 +8,7 @@
 #include <sys/time.h>
 #include <sys/times.h>
 
-#include "xcrypt.h"
+#include "crypt.h"
 
 #ifndef RANDOM_DEVICE
 #define RANDOM_DEVICE "/dev/urandom"

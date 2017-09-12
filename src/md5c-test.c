@@ -1,8 +1,5 @@
-
 #include <string.h>
-#include "xcrypt.h"
-#include "xcrypt-plugin.h"
-
+#include "crypt.h"
 
 int
 main (void)
@@ -12,7 +9,7 @@ main (void)
   char *cp;
   int result = 0;
 
-  cp = __crypt_r ("Hello world!", salt, (char *)&output, sizeof (output));
+  cp = crypt_r ("Hello world!", salt, &output);
   if (cp == NULL)
     return 1;
 
