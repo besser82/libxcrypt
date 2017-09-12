@@ -18,15 +18,6 @@
 #include <string.h>
 #include <errno.h>
 #include <stdio.h>
-#include <unistd.h>
-#include <signal.h>
-#include <time.h>
-#include <sys/time.h>
-#include <sys/times.h>
-#include <pthread.h>
-
-#define CRYPT_OUTPUT_SIZE		(7 + 22 + 31 + 1)
-#define CRYPT_GENSALT_OUTPUT_SIZE	(7 + 22 + 1)
 
 #include "crypt.h"
 
@@ -117,51 +108,8 @@ static const char *tests[][3] = {
 
 #define which				tests[0]
 
-static volatile sig_atomic_t running;
-
-static void handle_timer(int signum)
-{
-	(void) signum;
-	running = 0;
-}
-
-static void *run(void *arg)
-{
-	unsigned long count = 0;
-	int i = 0;
-	void *data = NULL;
-	int size = 0x12345678;
-
-	do {
-		const char *hash = tests[i][0];
-		const char *key = tests[i][1];
-		const char *setting = tests[i][2];
-
-		if (!tests[++i][0])
-			i = 0;
-
-		if (setting && strlen(hash) < 30) /* not for benchmark */
-			continue;
-
-		if (strcmp(crypt_ra(key, hash, &data, &size), hash)) {
-			printf("%d: FAILED (crypt_ra/%d/%lu)\n",
-				(int)((char *)arg - (char *)0), i, count);
-			free(data);
-			return NULL;
-		}
-		count++;
-	} while (running);
-
-	free(data);
-	return count + (char *)0;
-}
-
 int main(void)
 {
-	struct itimerval it;
-	struct tms buf;
-	clock_t clk_tck, start_real, start_virtual, end_real, end_virtual;
-	unsigned long count;
 #if 0 /* used only by disabled test below */
 	void *data;
 	int size;
@@ -257,57 +205,6 @@ int main(void)
 	free(setting2);
 #if 0
 	free(data);
-#endif
-
-#if defined(_SC_CLK_TCK) || !defined(CLK_TCK)
-	clk_tck = sysconf(_SC_CLK_TCK);
-#else
-	clk_tck = CLK_TCK;
-#endif
-
-	running = 1;
-	signal(SIGALRM, handle_timer);
-
-	memset(&it, 0, sizeof(it));
-	it.it_value.tv_sec = 5;
-	setitimer(ITIMER_REAL, &it, NULL);
-
-	start_real = times(&buf);
-	start_virtual = buf.tms_utime + buf.tms_stime;
-
-	count = (char *)run((char *)0) - (char *)0;
-
-	end_real = times(&buf);
-	end_virtual = buf.tms_utime + buf.tms_stime;
-	if (end_virtual == start_virtual) end_virtual++;
-
-	printf("%.1f c/s real, %.1f c/s virtual\n",
-		(float)count * clk_tck / (end_real - start_real),
-		(float)count * clk_tck / (end_virtual - start_virtual));
-
-#ifdef TEST_THREADS
-	running = 1;
-	it.it_value.tv_sec = 60;
-	setitimer(ITIMER_REAL, &it, NULL);
-	start_real = times(&buf);
-
-	for (i = 0; i < TEST_THREADS; i++)
-	if (pthread_create(&t[i], NULL, run, i + (char *)0)) {
-		perror("pthread_create");
-		return 1;
-	}
-
-	for (i = 0; i < TEST_THREADS; i++) {
-		if (pthread_join(t[i], &t_retval)) {
-			perror("pthread_join");
-			continue;
-		}
-		if (!t_retval) continue;
-		count = (char *)t_retval - (char *)0;
-		end_real = times(&buf);
-		printf("%d: %.1f c/s real\n", i,
-			(float)count * clk_tck / (end_real - start_real));
-	}
 #endif
 
 	return 0;

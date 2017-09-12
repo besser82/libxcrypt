@@ -13,13 +13,7 @@ CLEANFILES = *~
 
 EXTRA_DIST = libxcrypt.map cert.sh cert.input
 
-if NOBOOTSTRAP
-GENSALT = gensalt-test
-else
-GENSALT =
-endif
-
-TESTS = cert.sh bigcrypt-test $(GENSALT) blowfish-test \
+TESTS = cert.sh bigcrypt-test gensalt-test blowfish-test \
 	md5test md5c-test sha256test sha256c-test sha512test sha512c-test
 
 include_HEADERS = crypt.h
@@ -39,24 +33,17 @@ libxcrypt_la_SOURCES = \
 	crypt_blowfish.c md5.c md5-crypt.c sha256.c sha256-crypt.c \
 	sha512.c sha512-crypt.c
 
-noinst_PROGRAMS = cert bigcrypt-test $(GENSALT) blowfish-test \
+noinst_PROGRAMS = cert bigcrypt-test gensalt-test blowfish-test \
 	md5test md5c-test sha256test sha256c-test sha512test sha512c-test
 
 cert_LDADD = libxcrypt.la
 bigcrypt_test_LDADD = libxcrypt.la
-
-if NOBOOTSTRAP
 gensalt_test_LDADD = libxcrypt.la
-endif
-
-blowfish_test_CFLAGS = $(AM_CFLAGS) -DTEST -DTEST_THREADS=4 -DXCRYPT
-blowfish_test_LDADD = libxcrypt.la -lpthread
+blowfish_test_LDADD = libxcrypt.la
+md5c_test_LDADD = libxcrypt.la
+sha256c_test_LDADD = libxcrypt.la
+sha512c_test_LDADD = libxcrypt.la
 
 md5test_LDADD = md5.lo
-md5c_test_LDADD = libxcrypt.la
-
 sha256test_LDADD = sha256.lo
-sha256c_test_LDADD = libxcrypt.la
-
 sha512test_LDADD = sha512.lo
-sha512c_test_LDADD = libxcrypt.la
