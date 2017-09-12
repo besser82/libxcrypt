@@ -89,21 +89,22 @@ int
 main(void)
 {
   int i;
+  int status = 0;
 
   for (i = 0; i < (int) (sizeof (salt_input) / sizeof (salt_input[0])); i++)
     {
       char *salt = make_crypt_salt (salt_input[i], 0);
 
-      if (salt_input[i][0] != '\0')
-	{
-	  if (strncmp (salt_input[i], salt, strlen (salt_input[i])) != 0)
-	    {
-	      fprintf (stderr, "ERROR: input=%s, output=%s\n",
-		       salt_input[i], salt);
-	      return 1;
-	    }
-	}
+      int ok = (salt_input[i][0] == '\0' ||
+                strncmp (salt_input[i], salt, strlen (salt_input[i])) == 0);
+
+      fprintf(stderr, "%s: input='%s', output='%s'\n",
+              ok ? "ok" : "ERROR",
+              salt_input[i], salt);
+
+      if (!ok)
+        status = 1;
     }
 
-  return 0;
+  return status;
 }
