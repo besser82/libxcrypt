@@ -85,7 +85,8 @@ void
 get8(cp)
 char *cp;
 {
-	int i,j,t;
+	int i,j;
+        unsigned t;
 
 	for(i=0;i<8;i++){
 	        if(scanf("%2x",&t)) {};

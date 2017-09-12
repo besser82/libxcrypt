@@ -23,10 +23,12 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/param.h>
 
 #include "sha256.h"
 #include "xcrypt-private.h"
+
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
 
 /* Define our magic string to mark salt for SHA256 "encryption"
    replacement.  */
@@ -50,7 +52,7 @@ static const char b64t[64] =
 
 char *
 _xcrypt_crypt_sha256_rn (const char *key, const char *salt,
-                         char *buffer, size_t buflen)
+                         char *buffer, size_t xbuflen)
 {
   unsigned char alt_result[32]
     __attribute__ ((__aligned__ (__alignof__ (uint32_t))));
@@ -61,6 +63,7 @@ _xcrypt_crypt_sha256_rn (const char *key, const char *salt,
   size_t salt_len;
   size_t key_len;
   size_t cnt;
+  ssize_t buflen = xbuflen;
   char *cp;
   char *copied_key = NULL;
   char *copied_salt = NULL;

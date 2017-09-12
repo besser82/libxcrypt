@@ -899,7 +899,7 @@ __setkey_r (__const char *__key,
   }
   _ufc_mk_keytab_r((char *)ktab, __data);
 }
-weak_alias (__setkey_r, setkey_r);
+weak_alias (__setkey_r, setkey_r)
 
 extern void __setkey (__const char *__key);
 

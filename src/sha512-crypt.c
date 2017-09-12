@@ -23,11 +23,12 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/param.h>
 
 #include "sha512.h"
 #include "xcrypt-private.h"
 
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
 
 /* Define our magic string to mark salt for SHA512 "encryption"
    replacement.  */
@@ -52,7 +53,7 @@ static const char b64t[64] =
 
 char *
 _xcrypt_crypt_sha512_rn (const char *key, const char *salt,
-                         char *buffer, size_t buflen)
+                         char *buffer, size_t xbuflen)
 {
   unsigned char alt_result[64]
     __attribute__ ((__aligned__ (__alignof__ (uint64_t))));
@@ -68,6 +69,7 @@ _xcrypt_crypt_sha512_rn (const char *key, const char *salt,
   char *copied_salt = NULL;
   char *p_bytes;
   char *s_bytes;
+  ssize_t buflen = xbuflen;
   /* Default number of rounds.  */
   size_t rounds = ROUNDS_DEFAULT;
   bool rounds_custom = false;

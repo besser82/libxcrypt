@@ -24,12 +24,13 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/param.h>
 
 #include "crypt.h"
 #include "md5.h"
 #include "xcrypt-private.h"
 
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
 
 /* Define our magic string to mark salt for MD5 "encryption"
    replacement.  This is meant to be the same as for other MD5 based
@@ -45,7 +46,7 @@ static const char b64t[64] =
    libcs.  */
 char *
 _xcrypt_crypt_md5_rn (const char *key, const char *salt,
-                      char *buffer, size_t buflen)
+                      char *buffer, size_t xbuflen)
 {
   unsigned char alt_result[16]
     __attribute__ ((__aligned__ (__alignof__ (md5_uint32))));
@@ -54,6 +55,7 @@ _xcrypt_crypt_md5_rn (const char *key, const char *salt,
   size_t salt_len;
   size_t key_len;
   size_t cnt;
+  ssize_t buflen = xbuflen;
   char *cp;
   char *copied_key = NULL;
   char *copied_salt = NULL;
