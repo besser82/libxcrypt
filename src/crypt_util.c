@@ -30,8 +30,7 @@
 #endif
 #include <string.h>
 
-#include <bits/libc-lock.h>
-#define __libc_lock_t pthread_mutex_t
+#include <pthread.h>
 
 #ifndef STATIC
 #define STATIC static
@@ -265,8 +264,6 @@ static ufc_long efp[16][64][2];
  */
 struct crypt_data _ufc_foobar;
 
-__libc_lock_define_initialized (static, _ufc_tables_lock)
-
 #ifdef DEBUG
 
 void
@@ -335,6 +332,121 @@ _ufc_copymem(from, to, cnt)
 
 #define s_lookup(i,s) sbox[(i)][(((s)>>4) & 0x2)|((s) & 0x1)][((s)>>1) & 0xf];
 
+/* Initialize static data */
+static pthread_once_t init_des_small_tables_once = PTHREAD_ONCE_INIT;
+static void
+init_des_small_tables (void)
+{
+  int bit;
+  int comes_from_bit;
+  int e_inverse[64];
+  ufc_long j;
+
+  /*
+   * Create the do_pc1 table used
+   * to affect pc1 permutation
+   * when generating keys
+   */
+  _ufc_clearmem((char*)do_pc1, (int)sizeof(do_pc1));
+  for(bit = 0; bit < 56; bit++) {
+    ufc_long mask1, mask2;
+
+    comes_from_bit  = pc1[bit] - 1;
+    mask1 = bytemask[comes_from_bit % 8 + 1];
+    mask2 = longmask[bit % 28 + 4];
+    for(j = 0; j < 128; j++) {
+      if(j & mask1)
+        do_pc1[comes_from_bit / 8][bit / 28][j] |= mask2;
+    }
+  }
+
+  /*
+   * Create the do_pc2 table used
+   * to affect pc2 permutation when
+   * generating keys
+   */
+  _ufc_clearmem((char*)do_pc2, (int)sizeof(do_pc2));
+  for(bit = 0; bit < 48; bit++) {
+    ufc_long mask1, mask2;
+
+    comes_from_bit  = pc2[bit] - 1;
+    mask1 = bytemask[comes_from_bit % 7 + 1];
+    mask2 = BITMASK[bit % 24];
+    for(j = 0; j < 128; j++) {
+      if(j & mask1)
+        do_pc2[comes_from_bit / 7][j] |= mask2;
+    }
+  }
+
+  /*
+   * Now generate the table used to do combined
+   * 32 bit permutation and e expansion
+   *
+   * We use it because we have to permute 16384 32 bit
+   * longs into 48 bit in order to initialize sb.
+   *
+   * Looping 48 rounds per permutation becomes
+   * just too slow...
+   *
+   */
+
+  _ufc_clearmem((char*)eperm32tab, (int)sizeof(eperm32tab));
+  for(bit = 0; bit < 48; bit++) {
+    ufc_long mask,comes_from;
+    comes_from = perm32[esel[bit]-1]-1;
+    mask       = bytemask[comes_from % 8];
+    for(j = 256; j--;) {
+      if(j & mask)
+        eperm32tab[comes_from / 8][j][bit / 24] |= BITMASK[bit % 24];
+    }
+  }
+
+  /*
+   * Create an inverse matrix for esel telling
+   * where to plug out bits if undoing it
+   */
+  for(bit=48; bit--;) {
+    e_inverse[esel[bit] - 1     ] = bit;
+    e_inverse[esel[bit] - 1 + 32] = bit + 48;
+  }
+
+  /*
+   * create efp: the matrix used to
+   * undo the E expansion and effect final permutation
+   */
+  _ufc_clearmem((char*)efp, (int)sizeof efp);
+  for(bit = 0; bit < 64; bit++) {
+    int o_bit, o_long;
+    ufc_long word_value, mask1, mask2;
+    int comes_from_f_bit, comes_from_e_bit;
+    int comes_from_word, bit_within_word;
+
+    /* See where bit i belongs in the two 32 bit long's */
+    o_long = bit / 32; /* 0..1  */
+    o_bit  = bit % 32; /* 0..31 */
+
+    /*
+     * And find a bit in the e permutated value setting this bit.
+     *
+     * Note: the e selection may have selected the same bit several
+     * times. By the initialization of e_inverse, we only look
+     * for one specific instance.
+     */
+    comes_from_f_bit = final_perm[bit] - 1;         /* 0..63 */
+    comes_from_e_bit = e_inverse[comes_from_f_bit]; /* 0..95 */
+    comes_from_word  = comes_from_e_bit / 6;        /* 0..15 */
+    bit_within_word  = comes_from_e_bit % 6;        /* 0..5  */
+
+    mask1 = longmask[bit_within_word + 26];
+    mask2 = longmask[o_bit];
+
+    for(word_value = 64; word_value--;) {
+      if(word_value & mask1)
+        efp[comes_from_word][word_value][o_long] |= mask2;
+    }
+  }
+}
+
 /*
  * Initialize unit - may be invoked directly
  * by fcrypt users.
@@ -344,11 +456,7 @@ void
 __init_des_r(__data)
      struct crypt_data * __restrict __data;
 {
-  int comes_from_bit;
-  int bit, sg;
-  ufc_long j;
-  int e_inverse[64];
-  static volatile int small_tables_initialized = 0;
+  int sg;
 
 #ifdef _UFC_32_
   long32 *sb[4];
@@ -361,118 +469,8 @@ __init_des_r(__data)
   sb[2] = (long64*)__data->sb2; sb[3] = (long64*)__data->sb3;
 #endif
 
-  if(small_tables_initialized == 0) {
-    __libc_lock_lock (_ufc_tables_lock);
-    if(small_tables_initialized)
-      goto small_tables_done;
+  pthread_once(&init_des_small_tables_once, init_des_small_tables);
 
-    /*
-     * Create the do_pc1 table used
-     * to affect pc1 permutation
-     * when generating keys
-     */
-    _ufc_clearmem((char*)do_pc1, (int)sizeof(do_pc1));
-    for(bit = 0; bit < 56; bit++) {
-      ufc_long mask1, mask2;
-
-      comes_from_bit  = pc1[bit] - 1;
-      mask1 = bytemask[comes_from_bit % 8 + 1];
-      mask2 = longmask[bit % 28 + 4];
-      for(j = 0; j < 128; j++) {
-	if(j & mask1)
-	  do_pc1[comes_from_bit / 8][bit / 28][j] |= mask2;
-      }
-    }
-
-    /*
-     * Create the do_pc2 table used
-     * to affect pc2 permutation when
-     * generating keys
-     */
-    _ufc_clearmem((char*)do_pc2, (int)sizeof(do_pc2));
-    for(bit = 0; bit < 48; bit++) {
-      ufc_long mask1, mask2;
-
-      comes_from_bit  = pc2[bit] - 1;
-      mask1 = bytemask[comes_from_bit % 7 + 1];
-      mask2 = BITMASK[bit % 24];
-      for(j = 0; j < 128; j++) {
-	if(j & mask1)
-	  do_pc2[comes_from_bit / 7][j] |= mask2;
-      }
-    }
-
-    /*
-     * Now generate the table used to do combined
-     * 32 bit permutation and e expansion
-     *
-     * We use it because we have to permute 16384 32 bit
-     * longs into 48 bit in order to initialize sb.
-     *
-     * Looping 48 rounds per permutation becomes
-     * just too slow...
-     *
-     */
-
-    _ufc_clearmem((char*)eperm32tab, (int)sizeof(eperm32tab));
-    for(bit = 0; bit < 48; bit++) {
-      ufc_long mask,comes_from;
-      comes_from = perm32[esel[bit]-1]-1;
-      mask       = bytemask[comes_from % 8];
-      for(j = 256; j--;) {
-	if(j & mask)
-	  eperm32tab[comes_from / 8][j][bit / 24] |= BITMASK[bit % 24];
-      }
-    }
-
-    /*
-     * Create an inverse matrix for esel telling
-     * where to plug out bits if undoing it
-     */
-    for(bit=48; bit--;) {
-      e_inverse[esel[bit] - 1     ] = bit;
-      e_inverse[esel[bit] - 1 + 32] = bit + 48;
-    }
-
-    /*
-     * create efp: the matrix used to
-     * undo the E expansion and effect final permutation
-     */
-    _ufc_clearmem((char*)efp, (int)sizeof efp);
-    for(bit = 0; bit < 64; bit++) {
-      int o_bit, o_long;
-      ufc_long word_value, mask1, mask2;
-      int comes_from_f_bit, comes_from_e_bit;
-      int comes_from_word, bit_within_word;
-
-      /* See where bit i belongs in the two 32 bit long's */
-      o_long = bit / 32; /* 0..1  */
-      o_bit  = bit % 32; /* 0..31 */
-
-      /*
-       * And find a bit in the e permutated value setting this bit.
-       *
-       * Note: the e selection may have selected the same bit several
-       * times. By the initialization of e_inverse, we only look
-       * for one specific instance.
-       */
-      comes_from_f_bit = final_perm[bit] - 1;         /* 0..63 */
-      comes_from_e_bit = e_inverse[comes_from_f_bit]; /* 0..95 */
-      comes_from_word  = comes_from_e_bit / 6;        /* 0..15 */
-      bit_within_word  = comes_from_e_bit % 6;        /* 0..5  */
-
-      mask1 = longmask[bit_within_word + 26];
-      mask2 = longmask[o_bit];
-
-      for(word_value = 64; word_value--;) {
-	if(word_value & mask1)
-	  efp[comes_from_word][word_value][o_long] |= mask2;
-      }
-    }
-    small_tables_initialized = 1;
-small_tables_done:
-    __libc_lock_unlock(_ufc_tables_lock);
-  }
 
   /*
    * Create the sb tables:

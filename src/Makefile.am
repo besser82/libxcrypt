@@ -29,7 +29,7 @@ noinst_HEADERS = crypt-private.h libc-symbols.h ufc-crypt.h xcrypt-private.h
 
 libxcrypt_la_LDFLAGS = -version-info 2:0:0 \
 			-Wl,--version-script=$(srcdir)/libxcrypt.map
-libxcrypt_la_LIBADD = -ldl
+libxcrypt_la_LIBADD = -ldl -lpthread
 
 lib_LTLIBRARIES = libxcrypt.la
 
