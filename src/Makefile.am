@@ -11,9 +11,9 @@ AM_CPPFLAGS = -include libc-symbols.h
 
 CLEANFILES = *~
 
-EXTRA_DIST = libxcrypt.map cert.sh cert.input
+EXTRA_DIST = libxcrypt.map
 
-TESTS = cert.sh bigcrypt-test gensalt-test blowfish-test \
+TESTS = destest bigcrypt-test gensalt-test blowfish-test \
 	md5test md5c-test sha256test sha256c-test sha512test sha512c-test
 
 include_HEADERS = crypt.h
@@ -33,10 +33,10 @@ libxcrypt_la_SOURCES = \
 	crypt_blowfish.c md5.c md5-crypt.c sha256.c sha256-crypt.c \
 	sha512.c sha512-crypt.c
 
-noinst_PROGRAMS = cert bigcrypt-test gensalt-test blowfish-test \
+noinst_PROGRAMS = destest bigcrypt-test gensalt-test blowfish-test \
 	md5test md5c-test sha256test sha256c-test sha512test sha512c-test
 
-cert_LDADD = libxcrypt.la
+destest_LDADD = libxcrypt.la
 bigcrypt_test_LDADD = libxcrypt.la
 gensalt_test_LDADD = libxcrypt.la
 blowfish_test_LDADD = libxcrypt.la
