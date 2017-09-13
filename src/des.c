@@ -18,14 +18,13 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 02111-1307, USA.
  *
+ * @(#)crypt.c  2.25 12/20/96
  * @(#)crypt_util.c     2.56 12/20/96
- *
- * Support routines
  *
  */
 
 #include "xcrypt-private.h"
-#include "crypt-private.h"
+#include "des.h"
 
 #include <string.h>
 #include <pthread.h>
@@ -73,7 +72,7 @@ static const int pc2[48] = {
  * The E expansion table which selects
  * bits from the 32 bit intermediate result.
  */
-static const int esel[48] = {
+const int esel[48] = {
   32,  1,  2,  3,  4,  5,  4,  5,  6,  7,  8,  9,
    8,  9, 10, 11, 12, 13, 12, 13, 14, 15, 16, 17,
   16, 17, 18, 19, 20, 21, 20, 21, 22, 23, 24, 25,
@@ -146,7 +145,7 @@ static const int sbox[8][4][16] = {
  * This is the initial
  * permutation matrix
  */
-static const int initial_perm[64] = {
+const int initial_perm[64] = {
   58, 50, 42, 34, 26, 18, 10,  2, 60, 52, 44, 36, 28, 20, 12, 4,
   62, 54, 46, 38, 30, 22, 14,  6, 64, 56, 48, 40, 32, 24, 16, 8,
   57, 49, 41, 33, 25, 17,  9,  1, 59, 51, 43, 35, 27, 19, 11, 3,
@@ -167,7 +166,7 @@ static const int final_perm[64] = {
 #define ascii_to_bin(c) ((c)>='a'?(c-59):(c)>='A'?((c)-53):(c)-'.')
 #define bin_to_ascii(c) ((c)>=38?((c)-38+'a'):(c)>=12?((c)-12+'A'):(c)+'.')
 
-static const uint_fast32_t BITMASK[24] = {
+const uint_fast32_t BITMASK[24] = {
   0x40000000, 0x20000000, 0x10000000, 0x08000000, 0x04000000, 0x02000000,
   0x01000000, 0x00800000, 0x00400000, 0x00200000, 0x00100000, 0x00080000,
   0x00004000, 0x00002000, 0x00001000, 0x00000800, 0x00000400, 0x00000200,
@@ -178,7 +177,7 @@ static const unsigned char bytemask[8] = {
   0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01
 };
 
-static const uint_fast32_t longmask[32] = {
+const uint_fast32_t longmask[32] = {
   0x80000000, 0x40000000, 0x20000000, 0x10000000,
   0x08000000, 0x04000000, 0x02000000, 0x01000000,
   0x00800000, 0x00400000, 0x00200000, 0x00100000,
@@ -720,153 +719,107 @@ _ufc_output_conversion_r (uint_fast32_t v1, uint_fast32_t v2, const char *salt,
   __data->crypt_3_buf[13] = 0;
 }
 
+#if !UFC_USE_64BIT
 
 /*
- * UNIX encrypt function. Takes a bitvector
- * represented by one byte per bit and
- * encrypt/decrypt according to edflag
+ * 32 bit version
  */
 
+#define SBA(sb, v) (*(uint32_t*)((char*)(sb)+(v)))
+
 void
-__encrypt_r (char *__block, int __edflag,
-             struct crypt_data *restrict __data)
+_ufc_doit_r (uint_fast32_t itr, struct crypt_data *restrict __data,
+             uint_fast32_t *res)
 {
-  uint_fast32_t l1, l2, r1, r2, res[4];
   int i;
-#if !UFC_USE_64BIT
-  uint32_t *kt;
-  kt = (uint32_t *) __data->keysched;
-#else
-  uint64_t *kt;
-  kt = (uint64_t *) __data->keysched;
-#endif
+  uint32_t s, *k;
+  uint32_t *sb01 = (uint32_t *) __data->sb0;
+  uint32_t *sb23 = (uint32_t *) __data->sb2;
+  uint32_t l1, l2, r1, r2;
 
-  /*
-   * Undo any salt changes to E expansion
-   */
-  _ufc_setup_salt_r ("..", __data);
+  l1 = (uint32_t) res[0];
+  l2 = (uint32_t) res[1];
+  r1 = (uint32_t) res[2];
+  r2 = (uint32_t) res[3];
 
-  /*
-   * Reverse key table if
-   * changing operation (encrypt/decrypt)
-   */
-  if ((__edflag == 0) != (__data->direction == 0))
+  while (itr--)
     {
-      for (i = 0; i < 8; i++)
+      k = (uint32_t *) __data->keysched;
+      for (i = 8; i--;)
         {
-#if !UFC_USE_64BIT
-          uint32_t x;
-          x = kt[2 * (15 - i)];
-          kt[2 * (15 - i)] = kt[2 * i];
-          kt[2 * i] = x;
+          s = *k++ ^ r1;
+          l1 ^= SBA (sb01, s & 0xffff); l2 ^= SBA (sb01, (s & 0xffff) + 4);
+          l1 ^= SBA (sb01, s >>= 16  ); l2 ^= SBA (sb01, (s         ) + 4);
+          s = *k++ ^ r2;
+          l1 ^= SBA (sb23, s & 0xffff); l2 ^= SBA (sb23, (s & 0xffff) + 4);
+          l1 ^= SBA (sb23, s >>= 16  ); l2 ^= SBA (sb23, (s         ) + 4);
 
-          x = kt[2 * (15 - i) + 1];
-          kt[2 * (15 - i) + 1] = kt[2 * i + 1];
-          kt[2 * i + 1] = x;
-#else
-          uint64_t x;
-          x = kt[15 - i];
-          kt[15 - i] = kt[i];
-          kt[i] = x;
-#endif
+          s = *k++ ^ l1;
+          r1 ^= SBA (sb01, s & 0xffff); r2 ^= SBA (sb01, (s & 0xffff) + 4);
+          r1 ^= SBA (sb01, s >>= 16  ); r2 ^= SBA (sb01, (s         ) + 4);
+          s = *k++ ^ l2;
+          r1 ^= SBA (sb23, s & 0xffff); r2 ^= SBA (sb23, (s & 0xffff) + 4);
+          r1 ^= SBA (sb23, s >>= 16  ); r2 ^= SBA (sb23, (s         ) + 4);
         }
-      __data->direction = __edflag;
+      s = l1;
+      l1 = r1;
+      r1 = s;
+      s = l2;
+      l2 = r2;
+      r2 = s;
     }
-
-  /*
-   * Do initial permutation + E expansion
-   */
-  i = 0;
-  for (l1 = 0; i < 24; i++)
-    {
-      if (__block[initial_perm[esel[i] - 1] - 1])
-        l1 |= BITMASK[i];
-    }
-  for (l2 = 0; i < 48; i++)
-    {
-      if (__block[initial_perm[esel[i] - 1] - 1])
-        l2 |= BITMASK[i - 24];
-    }
-
-  i = 0;
-  for (r1 = 0; i < 24; i++)
-    {
-      if (__block[initial_perm[esel[i] - 1 + 32] - 1])
-        r1 |= BITMASK[i];
-    }
-  for (r2 = 0; i < 48; i++)
-    {
-      if (__block[initial_perm[esel[i] - 1 + 32] - 1])
-        r2 |= BITMASK[i - 24];
-    }
-
-  /*
-   * Do DES inner loops + final conversion
-   */
   res[0] = l1;
   res[1] = l2;
   res[2] = r1;
   res[3] = r2;
-  _ufc_doit_r ((uint_fast32_t) 1, __data, &res[0]);
-
-  /*
-   * Do final permutations
-   */
-  _ufc_dofinalperm_r (res, __data);
-
-  /*
-   * And convert to bit array
-   */
-  l1 = res[0];
-  r1 = res[1];
-  for (i = 0; i < 32; i++)
-    {
-      *__block++ = (l1 & longmask[i]) != 0;
-    }
-  for (i = 0; i < 32; i++)
-    {
-      *__block++ = (r1 & longmask[i]) != 0;
-    }
 }
 
-weak_alias (__encrypt_r, encrypt_r)
-extern void __encrypt (char *__block, int __edflag);
-
-void __encrypt (char *__block, int __edflag)
-{
-  __encrypt_r (__block, __edflag, &_ufc_foobar);
-}
-
-weak_alias (__encrypt, encrypt)
+#else
 
 /*
- * UNIX setkey function. Take a 64 bit DES
- * key and setup the machinery.
+ * 64 bit version
  */
+
+#define SBA(sb, v) (*(uint64_t*)((char*)(sb)+(v)))
+
 void
-__setkey_r (const char *__key, struct crypt_data *restrict __data)
+_ufc_doit_r (uint_fast32_t itr, struct crypt_data *restrict __data,
+             uint_fast32_t *res)
 {
-  int i, j;
-  unsigned char c;
-  unsigned char ktab[8];
+  int i;
+  uint64_t l, r, s, *k;
+  uint64_t *sb01 = (uint64_t *) __data->sb0;
+  uint64_t *sb23 = (uint64_t *) __data->sb2;
 
-  _ufc_setup_salt_r ("..", __data);     /* be sure we're initialized */
+  l = (((uint64_t) res[0]) << 32) | ((uint64_t) res[1]);
+  r = (((uint64_t) res[2]) << 32) | ((uint64_t) res[3]);
 
-  for (i = 0; i < 8; i++)
+  while (itr--)
     {
-      for (j = 0, c = 0; j < 8; j++)
-        c = c << 1 | *__key++;
-      ktab[i] = c >> 1;
+      k = (uint64_t *) __data->keysched;
+      for (i = 8; i--;)
+        {
+          s = *k++ ^ r;
+          l ^= SBA (sb23, (s       ) & 0xffff);
+          l ^= SBA (sb23, (s >>= 16) & 0xffff);
+          l ^= SBA (sb01, (s >>= 16) & 0xffff);
+          l ^= SBA (sb01, (s >>= 16)         );
+
+          s = *k++ ^ l;
+          r ^= SBA (sb23, (s       ) & 0xffff);
+          r ^= SBA (sb23, (s >>= 16) & 0xffff);
+          r ^= SBA (sb01, (s >>= 16) & 0xffff);
+          r ^= SBA (sb01, (s >>= 16)         );
+        }
+      s = l;
+      l = r;
+      r = s;
     }
-  _ufc_mk_keytab_r ((char *) ktab, __data);
+
+  res[0] = l >> 32;
+  res[1] = l & 0xffffffff;
+  res[2] = r >> 32;
+  res[3] = r & 0xffffffff;
 }
 
-weak_alias (__setkey_r, setkey_r)
-extern void __setkey (const char *__key);
-
-void __setkey (const char *__key)
-{
-  __setkey_r (__key, &_ufc_foobar);
-}
-
-weak_alias (__setkey, setkey)
+#endif

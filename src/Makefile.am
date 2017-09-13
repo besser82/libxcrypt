@@ -18,9 +18,8 @@ TESTS = test-bcrypt test-bigcrypt test-des test-gensalt test-md5	\
 	test-sha512-crypt
 
 include_HEADERS = crypt.h
-noinst_HEADERS = crypt-private.h libc-symbols.h ufc-crypt.h \
-	xcrypt-private.h md5.h sha256.h sha512.h \
-	crypt_blowfish.h crypt-obsolete.h
+noinst_HEADERS = crypt-obsolete.h libc-symbols.h \
+	xcrypt-private.h des.h md5.h sha256.h sha512.h bcrypt.h
 
 libxcrypt_la_LDFLAGS = -version-info 2:0:0 \
 			-Wl,--version-script=$(srcdir)/libxcrypt.map \
@@ -30,9 +29,9 @@ libxcrypt_la_LIBADD = -lpthread
 lib_LTLIBRARIES = libxcrypt.la
 
 libxcrypt_la_SOURCES = \
-	crypt-entry.c crypt.c crypt_util.c crypt_gensalt.c xcrypt.c bigcrypt.c \
-	crypt_blowfish.c md5.c md5-crypt.c sha256.c sha256-crypt.c \
-	sha512.c sha512-crypt.c
+	xcrypt.c xcrypt-gensalt.c bcrypt.c sha256.c sha256-crypt.c \
+	sha512.c sha512-crypt.c md5.c md5-crypt.c \
+	des.c des-crypt.c des-obsolete.c
 
 noinst_PROGRAMS = $(TESTS)
 

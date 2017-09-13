@@ -52,7 +52,7 @@
 #endif
 
 /* Just to make sure the prototypes match the actual definitions */
-#include "crypt_blowfish.h"
+#include "bcrypt.h"
 
 #ifdef __i386__
 #define BF_ASM                          0

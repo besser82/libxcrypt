@@ -21,7 +21,7 @@
  * @(#)crypt-private.h  1.4 12/20/96
  */
 
-/* Prototypes for local functions in libcrypt.a.  */
+/* Prototypes for internal-UFC routines and data.  */
 
 #ifndef CRYPT_PRIVATE_H
 #define CRYPT_PRIVATE_H 1
@@ -36,12 +36,10 @@ struct crypt_data;
 #define UFC_USE_64BIT 0
 #endif
 
-/* crypt.c */
+/* des.c */
 extern void _ufc_doit_r (uint_fast32_t itr,
                          struct crypt_data *restrict __data,
                          uint_fast32_t * res);
-
-/* crypt_util.c */
 extern void __init_des_r (struct crypt_data *restrict __data);
 extern void __init_des (void);
 
@@ -55,9 +53,16 @@ extern void _ufc_output_conversion_r (uint_fast32_t v1, uint_fast32_t v2,
                                       const char *salt,
                                       struct crypt_data *restrict __data);
 
+extern const int esel[48];
+extern const int initial_perm[64];
+extern const uint_fast32_t BITMASK[24];
+extern const uint_fast32_t longmask[32];
+
+
+/* des-obsolete.c */
 extern void __setkey_r (const char *__key,
                         struct crypt_data *restrict __data);
 extern void __encrypt_r (char *restrict __block, int __edflag,
                          struct crypt_data *restrict __data);
 
-#endif /* crypt-private.h */
+#endif /* des.h */
