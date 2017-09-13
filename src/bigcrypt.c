@@ -26,9 +26,6 @@
 
 #include <string.h>
 
-#include "crypt.h"
-#include "ufc-crypt.h"
-#include "crypt-private.h"
 #include "xcrypt-private.h"
 
 /*
@@ -45,11 +42,6 @@
 #define CBUF_SIZE          ((MAX_PASS_LEN*ESEGMENT_SIZE)+SALT_SIZE+1)
 
 /*
- * Define D to nothing, for debug output, define it to printf.
- */
-#define D(s)
-
-/*
  * This function is not really thread safe. We use it internal only
  * in the moment.
  */
@@ -62,8 +54,6 @@ __bigcrypt_r (const char *key, const char *salt,
   unsigned long int keylen, n_seg, j;
   char *cipher_ptr, *plaintext_ptr, *tmp_ptr, *salt_ptr;
   char keybuf[KEYBUF_SIZE + 1];
-
-  D (("called with key='%s', salt='%s'.", key, salt));
 
   /* reset arrays */
   memset (keybuf, 0, KEYBUF_SIZE + 1);
@@ -128,7 +118,6 @@ __bigcrypt_r (const char *key, const char *salt,
           salt_ptr = cipher_ptr - ESEGMENT_SIZE;
         }
     }
-  D (("key=|%s|, salt=|%s|\nbuf=|%s|\n", key, salt, dec_c2_cryptbuf));
 
   /* this is the <NUL> terminated encrypted password */
 

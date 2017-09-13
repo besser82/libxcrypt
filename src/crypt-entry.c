@@ -24,10 +24,11 @@
  *
  */
 
+#include "xcrypt-private.h"
+#include "crypt-private.h"
+
 #include <string.h>
 
-#include "ufc-crypt.h"
-#include "xcrypt-private.h"
 
 /*
  * UNIX crypt function
@@ -37,9 +38,8 @@ char *
 __des_crypt_r (const char *key, const char *salt,
                struct crypt_data *restrict data)
 {
-  ufc_long res[4];
+  uint_fast32_t res[4];
   char ktab[9];
-  ufc_long xx = 25; /* to cope with GCC long long compiler bugs */
 
   /*
    * Hack DES tables according to salt
@@ -57,7 +57,7 @@ __des_crypt_r (const char *key, const char *salt,
    * Go for the 25 DES encryptions
    */
   memset (res, 0, sizeof (res));
-  _ufc_doit_r (xx, data, &res[0]);
+  _ufc_doit_r (25, data, &res[0]);
 
   /*
    * Do final permutations

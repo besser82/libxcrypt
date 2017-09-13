@@ -21,7 +21,6 @@
 #define _XCRYPT_PRIVATE_H       1
 
 #include "crypt.h"
-#include "crypt-private.h"
 
 /* Individual hash functions */
 

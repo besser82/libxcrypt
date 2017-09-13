@@ -26,13 +26,20 @@
 #ifndef CRYPT_PRIVATE_H
 #define CRYPT_PRIVATE_H 1
 
-#include "crypt.h"
-#include "ufc-crypt.h"
+#include <stdint.h>
+
+struct crypt_data;
+
+#if UINT_FAST32_MAX == UINT_FAST64_MAX
+#define UFC_USE_64BIT 1
+#else
+#define UFC_USE_64BIT 0
+#endif
 
 /* crypt.c */
-extern void _ufc_doit_r (ufc_long itr, struct crypt_data *restrict __data,
-                         ufc_long * res);
-
+extern void _ufc_doit_r (uint_fast32_t itr,
+                         struct crypt_data *restrict __data,
+                         uint_fast32_t * res);
 
 /* crypt_util.c */
 extern void __init_des_r (struct crypt_data *restrict __data);
@@ -42,9 +49,9 @@ extern void _ufc_setup_salt_r (const char *s,
                                struct crypt_data *restrict __data);
 extern void _ufc_mk_keytab_r (const char *key,
                               struct crypt_data *restrict __data);
-extern void _ufc_dofinalperm_r (ufc_long * res,
+extern void _ufc_dofinalperm_r (uint_fast32_t * res,
                                 struct crypt_data *restrict __data);
-extern void _ufc_output_conversion_r (ufc_long v1, ufc_long v2,
+extern void _ufc_output_conversion_r (uint_fast32_t v1, uint_fast32_t v2,
                                       const char *salt,
                                       struct crypt_data *restrict __data);
 

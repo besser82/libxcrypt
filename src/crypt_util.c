@@ -24,18 +24,18 @@
  *
  */
 
+#include "xcrypt-private.h"
+#include "crypt-private.h"
+
 #include <string.h>
 #include <pthread.h>
 
-#include "ufc-crypt.h"
-#include "xcrypt-private.h"
-
 
 /* Prototypes for local functions.  */
-#ifdef _UFC_32_
-static void shuffle_sb (long32 * k, ufc_long saltbits);
+#if !UFC_USE_64BIT
+static void shuffle_sb (uint32_t * k, uint_fast32_t saltbits);
 #else
-static void shuffle_sb (long64 * k, ufc_long saltbits);
+static void shuffle_sb (uint64_t * k, uint_fast32_t saltbits);
 #endif
 
 
@@ -167,7 +167,7 @@ static const int final_perm[64] = {
 #define ascii_to_bin(c) ((c)>='a'?(c-59):(c)>='A'?((c)-53):(c)-'.')
 #define bin_to_ascii(c) ((c)>=38?((c)-38+'a'):(c)>=12?((c)-12+'A'):(c)+'.')
 
-static const ufc_long BITMASK[24] = {
+static const uint_fast32_t BITMASK[24] = {
   0x40000000, 0x20000000, 0x10000000, 0x08000000, 0x04000000, 0x02000000,
   0x01000000, 0x00800000, 0x00400000, 0x00200000, 0x00100000, 0x00080000,
   0x00004000, 0x00002000, 0x00001000, 0x00000800, 0x00000400, 0x00000200,
@@ -178,7 +178,7 @@ static const unsigned char bytemask[8] = {
   0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01
 };
 
-static const ufc_long longmask[32] = {
+static const uint_fast32_t longmask[32] = {
   0x80000000, 0x40000000, 0x20000000, 0x10000000,
   0x08000000, 0x04000000, 0x02000000, 0x01000000,
   0x00800000, 0x00400000, 0x00200000, 0x00100000,
@@ -199,7 +199,7 @@ static const ufc_long longmask[32] = {
  * The result is kept with 28 bit per 32 bit with the 4 most significant
  * bits zero.
  */
-static ufc_long do_pc1[8][2][128];
+static uint_fast32_t do_pc1[8][2][128];
 
 /*
  * do_pc2: permform pc2 permutation in the key schedule generation.
@@ -212,7 +212,7 @@ static ufc_long do_pc1[8][2][128];
  * The result is kept with 28 bit per 32 bit with the 4 most significant
  * bits zero.
  */
-static ufc_long do_pc2[8][128];
+static uint_fast32_t do_pc2[8][128];
 
 /*
  * eperm32tab: do 32 bit permutation and E selection
@@ -223,7 +223,7 @@ static ufc_long do_pc2[8][128];
  *
  * The table is used and generated internally in init_des to speed it up
  */
-static ufc_long eperm32tab[4][256][2];
+static uint_fast32_t eperm32tab[4][256][2];
 
 /*
  * efp: undo an extra e selection and do final
@@ -232,7 +232,7 @@ static ufc_long eperm32tab[4][256][2];
  *      Invoked 6 bit a time on two 48 bit values
  *      giving two 32 bit longs.
  */
-static ufc_long efp[16][64][2];
+static uint_fast32_t efp[16][64][2];
 
 /*
  * For use by the old, non-reentrant routines
@@ -252,7 +252,7 @@ init_des_small_tables (void)
   int bit;
   int comes_from_bit;
   int e_inverse[64];
-  ufc_long j;
+  uint_fast32_t j;
 
   /*
    * Create the do_pc1 table used
@@ -262,7 +262,7 @@ init_des_small_tables (void)
   memset (do_pc1, 0, sizeof (do_pc1));
   for (bit = 0; bit < 56; bit++)
     {
-      ufc_long mask1, mask2;
+      uint_fast32_t mask1, mask2;
 
       comes_from_bit = pc1[bit] - 1;
       mask1 = bytemask[comes_from_bit % 8 + 1];
@@ -282,7 +282,7 @@ init_des_small_tables (void)
   memset (do_pc2, 0, sizeof (do_pc2));
   for (bit = 0; bit < 48; bit++)
     {
-      ufc_long mask1, mask2;
+      uint_fast32_t mask1, mask2;
 
       comes_from_bit = pc2[bit] - 1;
       mask1 = bytemask[comes_from_bit % 7 + 1];
@@ -309,7 +309,7 @@ init_des_small_tables (void)
   memset (eperm32tab, 0, sizeof (eperm32tab));
   for (bit = 0; bit < 48; bit++)
     {
-      ufc_long mask, comes_from;
+      uint_fast32_t mask, comes_from;
       comes_from = perm32[esel[bit] - 1] - 1;
       mask = bytemask[comes_from % 8];
       for (j = 256; j--;)
@@ -337,7 +337,7 @@ init_des_small_tables (void)
   for (bit = 0; bit < 64; bit++)
     {
       int o_bit, o_long;
-      ufc_long word_value, mask1, mask2;
+      uint_fast32_t word_value, mask1, mask2;
       int comes_from_f_bit, comes_from_e_bit;
       int comes_from_word, bit_within_word;
 
@@ -379,19 +379,18 @@ __init_des_r (struct crypt_data *restrict __data)
 {
   int sg;
 
-#ifdef _UFC_32_
-  long32 *sb[4];
-  sb[0] = (long32 *) __data->sb0;
-  sb[1] = (long32 *) __data->sb1;
-  sb[2] = (long32 *) __data->sb2;
-  sb[3] = (long32 *) __data->sb3;
-#endif
-#ifdef _UFC_64_
-  long64 *sb[4];
-  sb[0] = (long64 *) __data->sb0;
-  sb[1] = (long64 *) __data->sb1;
-  sb[2] = (long64 *) __data->sb2;
-  sb[3] = (long64 *) __data->sb3;
+#if !UFC_USE_64BIT
+  uint32_t *sb[4];
+  sb[0] = (uint32_t *) __data->sb0;
+  sb[1] = (uint32_t *) __data->sb1;
+  sb[2] = (uint32_t *) __data->sb2;
+  sb[3] = (uint32_t *) __data->sb3;
+#else
+  uint64_t *sb[4];
+  sb[0] = (uint64_t *) __data->sb0;
+  sb[1] = (uint64_t *) __data->sb1;
+  sb[2] = (uint64_t *) __data->sb2;
+  sb[3] = (uint64_t *) __data->sb3;
 #endif
 
   pthread_once (&init_des_small_tables_once, init_des_small_tables);
@@ -425,13 +424,13 @@ __init_des_r (struct crypt_data *restrict __data)
           s1 = s_lookup (2 * sg, j1);
           for (j2 = 0; j2 < 64; j2++)
             {
-              ufc_long to_permute, inx;
+              uint_fast32_t to_permute, inx;
 
               s2 = s_lookup (2 * sg + 1, j2);
-              to_permute = (((ufc_long) s1 << 4) |
-                            (ufc_long) s2) << (24 - 8 * (ufc_long) sg);
+              to_permute = (((uint_fast32_t) s1 << 4) |
+                            (uint_fast32_t) s2) << (24 - 8 * (uint_fast32_t) sg);
 
-#ifdef _UFC_32_
+#if !UFC_USE_64BIT
               inx = ((j1 << 6) | j2) << 1;
               sb[sg][inx] = eperm32tab[0][(to_permute >> 24) & 0xff][0];
               sb[sg][inx + 1] = eperm32tab[0][(to_permute >> 24) & 0xff][1];
@@ -441,21 +440,20 @@ __init_des_r (struct crypt_data *restrict __data)
               sb[sg][inx + 1] |= eperm32tab[2][(to_permute >> 8) & 0xff][1];
               sb[sg][inx] |= eperm32tab[3][(to_permute) & 0xff][0];
               sb[sg][inx + 1] |= eperm32tab[3][(to_permute) & 0xff][1];
-#endif
-#ifdef _UFC_64_
+#else
               inx = ((j1 << 6) | j2);
               sb[sg][inx] =
-                ((long64) eperm32tab[0][(to_permute >> 24) & 0xff][0] << 32) |
-                (long64) eperm32tab[0][(to_permute >> 24) & 0xff][1];
+                ((uint64_t) eperm32tab[0][(to_permute >> 24) & 0xff][0] << 32) |
+                (uint64_t) eperm32tab[0][(to_permute >> 24) & 0xff][1];
               sb[sg][inx] |=
-                ((long64) eperm32tab[1][(to_permute >> 16) & 0xff][0] << 32) |
-                (long64) eperm32tab[1][(to_permute >> 16) & 0xff][1];
+                ((uint64_t) eperm32tab[1][(to_permute >> 16) & 0xff][0] << 32) |
+                (uint64_t) eperm32tab[1][(to_permute >> 16) & 0xff][1];
               sb[sg][inx] |=
-                ((long64) eperm32tab[2][(to_permute >> 8) & 0xff][0] << 32) |
-                (long64) eperm32tab[2][(to_permute >> 8) & 0xff][1];
+                ((uint64_t) eperm32tab[2][(to_permute >> 8) & 0xff][0] << 32) |
+                (uint64_t) eperm32tab[2][(to_permute >> 8) & 0xff][1];
               sb[sg][inx] |=
-                ((long64) eperm32tab[3][(to_permute) & 0xff][0] << 32) |
-                (long64) eperm32tab[3][(to_permute) & 0xff][1];
+                ((uint64_t) eperm32tab[3][(to_permute) & 0xff][0] << 32) |
+                (uint64_t) eperm32tab[3][(to_permute) & 0xff][1];
 #endif
             }
         }
@@ -478,30 +476,28 @@ __init_des (void)
  * bits swapped in the expansion by the current salt.
  */
 
-#ifdef _UFC_32_
+#if !UFC_USE_64BIT
 static void
-shuffle_sb (long32 *k, ufc_long saltbits)
+shuffle_sb (uint32_t *k, uint_fast32_t saltbits)
 {
-  ufc_long j;
-  long32 x;
+  uint_fast32_t j;
+  uint32_t x;
   for (j = 4096; j--;)
     {
-      x = (k[0] ^ k[1]) & (long32) saltbits;
+      x = (k[0] ^ k[1]) & (uint32_t) saltbits;
       *k++ ^= x;
       *k++ ^= x;
     }
 }
-#endif
-
-#ifdef _UFC_64_
+#else
 static void
-shuffle_sb (long64 *k, ufc_long saltbits)
+shuffle_sb (uint64_t *k, uint_fast32_t saltbits)
 {
-  ufc_long j;
-  long64 x;
+  uint_fast32_t j;
+  uint64_t x;
   for (j = 4096; j--;)
     {
-      x = ((*k >> 32) ^ *k) & (long64) saltbits;
+      x = ((*k >> 32) ^ *k) & (uint64_t) saltbits;
       *k++ ^= (x << 32) | x;
     }
 }
@@ -515,7 +511,7 @@ shuffle_sb (long64 *k, ufc_long saltbits)
 void
 _ufc_setup_salt_r (const char *s, struct crypt_data *restrict __data)
 {
-  ufc_long i, j, saltbits;
+  uint_fast32_t i, j, saltbits;
 
   if (__data->initialized == 0)
     __init_des_r (__data);
@@ -546,11 +542,10 @@ _ufc_setup_salt_r (const char *s, struct crypt_data *restrict __data)
    * to reflect the changed e
    * selection table
    */
-#ifdef _UFC_32_
-#define LONGG long32*
-#endif
-#ifdef _UFC_64_
-#define LONGG long64*
+#if !UFC_USE_64BIT
+#define LONGG uint32_t*
+#else
+#define LONGG uint64_t*
 #endif
 
   shuffle_sb ((LONGG) __data->sb0, __data->current_saltbits ^ saltbits);
@@ -564,15 +559,14 @@ _ufc_setup_salt_r (const char *s, struct crypt_data *restrict __data)
 void
 _ufc_mk_keytab_r (const char *key, struct crypt_data *restrict __data)
 {
-  ufc_long v1, v2, *k1;
+  uint_fast32_t v1, v2, *k1;
   int i;
-#ifdef _UFC_32_
-  long32 v, *k2;
-  k2 = (long32 *) __data->keysched;
-#endif
-#ifdef _UFC_64_
-  long64 v, *k2;
-  k2 = (long64 *) __data->keysched;
+#if !UFC_USE_64BIT
+  uint32_t v, *k2;
+  k2 = (uint32_t *) __data->keysched;
+#else
+  uint64_t v, *k2;
+  k2 = (uint64_t *) __data->keysched;
 #endif
 
   v1 = v2 = 0;
@@ -599,11 +593,10 @@ _ufc_mk_keytab_r (const char *key, struct crypt_data *restrict __data)
       v |= k1[(v1) & 0x7f];
       k1 += 128;
 
-#ifdef _UFC_32_
+#if !UFC_USE_64BIT
       *k2++ = (v | 0x00008000);
       v = 0;
-#endif
-#ifdef _UFC_64_
+#else
       v = (v << 32);
 #endif
 
@@ -616,10 +609,9 @@ _ufc_mk_keytab_r (const char *key, struct crypt_data *restrict __data)
       k1 += 128;
       v |= k1[(v2) & 0x7f];
 
-#ifdef _UFC_32_
+#if !UFC_USE_64BIT
       *k2++ = (v | 0x00008000);
-#endif
-#ifdef _UFC_64_
+#else
       *k2++ = v | 0x0000800000008000l;
 #endif
     }
@@ -632,10 +624,10 @@ _ufc_mk_keytab_r (const char *key, struct crypt_data *restrict __data)
  */
 
 void
-_ufc_dofinalperm_r (ufc_long *res, struct crypt_data *restrict __data)
+_ufc_dofinalperm_r (uint_fast32_t *res, struct crypt_data *restrict __data)
 {
-  ufc_long v1, v2, x;
-  ufc_long l1, l2, r1, r2;
+  uint_fast32_t v1, v2, x;
+  uint_fast32_t l1, l2, r1, r2;
 
   l1 = res[0];
   l2 = res[1];
@@ -701,7 +693,7 @@ _ufc_dofinalperm_r (ufc_long *res, struct crypt_data *restrict __data)
  */
 
 void
-_ufc_output_conversion_r (ufc_long v1, ufc_long v2, const char *salt,
+_ufc_output_conversion_r (uint_fast32_t v1, uint_fast32_t v2, const char *salt,
                           struct crypt_data *restrict __data)
 {
   int i, s, shf;
@@ -739,15 +731,14 @@ void
 __encrypt_r (char *__block, int __edflag,
              struct crypt_data *restrict __data)
 {
-  ufc_long l1, l2, r1, r2, res[4];
+  uint_fast32_t l1, l2, r1, r2, res[4];
   int i;
-#ifdef _UFC_32_
-  long32 *kt;
-  kt = (long32 *) __data->keysched;
-#endif
-#ifdef _UFC_64_
-  long64 *kt;
-  kt = (long64 *) __data->keysched;
+#if !UFC_USE_64BIT
+  uint32_t *kt;
+  kt = (uint32_t *) __data->keysched;
+#else
+  uint64_t *kt;
+  kt = (uint64_t *) __data->keysched;
 #endif
 
   /*
@@ -763,8 +754,8 @@ __encrypt_r (char *__block, int __edflag,
     {
       for (i = 0; i < 8; i++)
         {
-#ifdef _UFC_32_
-          long32 x;
+#if !UFC_USE_64BIT
+          uint32_t x;
           x = kt[2 * (15 - i)];
           kt[2 * (15 - i)] = kt[2 * i];
           kt[2 * i] = x;
@@ -772,9 +763,8 @@ __encrypt_r (char *__block, int __edflag,
           x = kt[2 * (15 - i) + 1];
           kt[2 * (15 - i) + 1] = kt[2 * i + 1];
           kt[2 * i + 1] = x;
-#endif
-#ifdef _UFC_64_
-          long64 x;
+#else
+          uint64_t x;
           x = kt[15 - i];
           kt[15 - i] = kt[i];
           kt[i] = x;
@@ -817,7 +807,7 @@ __encrypt_r (char *__block, int __edflag,
   res[1] = l2;
   res[2] = r1;
   res[3] = r2;
-  _ufc_doit_r ((ufc_long) 1, __data, &res[0]);
+  _ufc_doit_r ((uint_fast32_t) 1, __data, &res[0]);
 
   /*
    * Do final permutations

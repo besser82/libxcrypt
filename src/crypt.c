@@ -24,36 +24,35 @@
  *
  */
 
-#include "ufc-crypt.h"
 #include "xcrypt-private.h"
 #include "crypt-private.h"
 
-#ifdef _UFC_32_
+#if !UFC_USE_64BIT
 
 /*
  * 32 bit version
  */
 
-#define SBA(sb, v) (*(long32*)((char*)(sb)+(v)))
+#define SBA(sb, v) (*(uint32_t*)((char*)(sb)+(v)))
 
 void
-_ufc_doit_r (ufc_long itr, struct crypt_data *restrict __data,
-             ufc_long *res)
+_ufc_doit_r (uint_fast32_t itr, struct crypt_data *restrict __data,
+             uint_fast32_t *res)
 {
   int i;
-  long32 s, *k;
-  long32 *sb01 = (long32 *) __data->sb0;
-  long32 *sb23 = (long32 *) __data->sb2;
-  long32 l1, l2, r1, r2;
+  uint32_t s, *k;
+  uint32_t *sb01 = (uint32_t *) __data->sb0;
+  uint32_t *sb23 = (uint32_t *) __data->sb2;
+  uint32_t l1, l2, r1, r2;
 
-  l1 = (long32) res[0];
-  l2 = (long32) res[1];
-  r1 = (long32) res[2];
-  r2 = (long32) res[3];
+  l1 = (uint32_t) res[0];
+  l2 = (uint32_t) res[1];
+  r1 = (uint32_t) res[2];
+  r2 = (uint32_t) res[3];
 
   while (itr--)
     {
-      k = (long32 *) __data->keysched;
+      k = (uint32_t *) __data->keysched;
       for (i = 8; i--;)
         {
           s = *k++ ^ r1;
@@ -83,31 +82,29 @@ _ufc_doit_r (ufc_long itr, struct crypt_data *restrict __data,
   res[3] = r2;
 }
 
-#endif
-
-#ifdef _UFC_64_
+#else
 
 /*
  * 64 bit version
  */
 
-#define SBA(sb, v) (*(long64*)((char*)(sb)+(v)))
+#define SBA(sb, v) (*(uint64_t*)((char*)(sb)+(v)))
 
 void
-_ufc_doit_r (ufc_long itr, struct crypt_data *restrict __data,
-             ufc_long *res)
+_ufc_doit_r (uint_fast32_t itr, struct crypt_data *restrict __data,
+             uint_fast32_t *res)
 {
   int i;
-  long64 l, r, s, *k;
-  register long64 *sb01 = (long64 *) __data->sb0;
-  register long64 *sb23 = (long64 *) __data->sb2;
+  uint64_t l, r, s, *k;
+  uint64_t *sb01 = (uint64_t *) __data->sb0;
+  uint64_t *sb23 = (uint64_t *) __data->sb2;
 
-  l = (((long64) res[0]) << 32) | ((long64) res[1]);
-  r = (((long64) res[2]) << 32) | ((long64) res[3]);
+  l = (((uint64_t) res[0]) << 32) | ((uint64_t) res[1]);
+  r = (((uint64_t) res[2]) << 32) | ((uint64_t) res[3]);
 
   while (itr--)
     {
-      k = (long64 *) __data->keysched;
+      k = (uint64_t *) __data->keysched;
       for (i = 8; i--;)
         {
           s = *k++ ^ r;
