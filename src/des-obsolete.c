@@ -33,8 +33,8 @@
  */
 
 void
-__encrypt_r (char *__block, int __edflag,
-             struct crypt_data *restrict __data)
+encrypt_r (char *__block, int __edflag,
+           struct crypt_data *restrict __data)
 {
   uint_fast32_t l1, l2, r1, r2, res[4];
   int i;
@@ -134,22 +134,17 @@ __encrypt_r (char *__block, int __edflag,
     }
 }
 
-weak_alias (__encrypt_r, encrypt_r)
-extern void __encrypt (char *__block, int __edflag);
-
-void __encrypt (char *__block, int __edflag)
+void encrypt (char *__block, int __edflag)
 {
-  __encrypt_r (__block, __edflag, &_ufc_foobar);
+  encrypt_r (__block, __edflag, &_ufc_foobar);
 }
-
-weak_alias (__encrypt, encrypt)
 
 /*
  * UNIX setkey function. Take a 64 bit DES
  * key and setup the machinery.
  */
 void
-__setkey_r (const char *__key, struct crypt_data *restrict __data)
+setkey_r (const char *__key, struct crypt_data *restrict __data)
 {
   int i, j;
   unsigned char c;
@@ -166,13 +161,13 @@ __setkey_r (const char *__key, struct crypt_data *restrict __data)
   _ufc_mk_keytab_r ((char *) ktab, __data);
 }
 
-weak_alias (__setkey_r, setkey_r)
-extern void __setkey (const char *__key);
-
-void __setkey (const char *__key)
+void setkey (const char *__key)
 {
-  __setkey_r (__key, &_ufc_foobar);
+  setkey_r (__key, &_ufc_foobar);
 }
 
-weak_alias (__setkey, setkey)
-
+char *
+bigcrypt (const char *key, const char *salt)
+{
+  return bigcrypt_r (key, salt, &_ufc_foobar);
+}

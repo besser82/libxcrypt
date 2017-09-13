@@ -43,12 +43,11 @@ static void shuffle_sb (uint64_t * k, uint_fast32_t saltbits);
 #define s_lookup(i,s) sbox[(i)][(((s)>>4) & 0x2)|((s) & 0x1)][((s)>>1) & 0xf];
 
 /*
- * Initialize unit - may be invoked directly
- * by fcrypt users.
+ * Initialize unit.
  */
 
-void
-__init_des_r (struct crypt_data *restrict __data)
+static void
+init_des_r (struct crypt_data *restrict __data)
 
 {
   int sg;
@@ -136,12 +135,6 @@ __init_des_r (struct crypt_data *restrict __data)
   __data->initialized++;
 }
 
-void
-__init_des (void)
-{
-  __init_des_r (&_ufc_foobar);
-}
-
 /*
  * Process the elements of the sb table permuting the
  * bits swapped in the expansion by the current salt.
@@ -185,7 +178,7 @@ _ufc_setup_salt_r (const char *s, struct crypt_data *restrict __data)
   uint_fast32_t i, j, saltbits;
 
   if (__data->initialized == 0)
-    __init_des_r (__data);
+    init_des_r (__data);
 
   if (s[0] == __data->current_salt[0] && s[1] == __data->current_salt[1])
     return;

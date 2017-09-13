@@ -40,6 +40,8 @@
    64-byte boundary.  (RFC 1321, 3.1: Step 1)  */
 static const unsigned char fillbuf[64] = { 0x80, 0 /* , 0, 0, ...  */  };
 
+static void md5_process_block (const void *buffer, size_t len,
+                               struct md5_ctx *ctx);
 
 /* Initialize structure containing state of computation.
    (RFC 1321, 3.3: Step 3)  */
@@ -60,7 +62,7 @@ md5_init_ctx (struct md5_ctx *ctx)
 
    IMPORTANT: On some systems it is required that RESBUF is correctly
    aligned for a 32 bits value.  */
-void *
+static void *
 md5_read_ctx (const struct md5_ctx *ctx, void *resbuf)
 {
   ((uint32_t *) resbuf)[0] = SWAP (ctx->A);
@@ -104,79 +106,6 @@ md5_finish_ctx (struct md5_ctx *ctx, void *resbuf)
   md5_process_block (ctx->buffer, bytes + pad + 8, ctx);
 
   return md5_read_ctx (ctx, resbuf);
-}
-
-/* Compute MD5 message digest for bytes read from STREAM.  The
-   resulting message digest number will be written into the 16 bytes
-   beginning at RESBLOCK.  */
-int
-md5_stream (FILE *stream, void *resblock)
-{
-  /* Important: BLOCKSIZE must be a multiple of 64.  */
-#define BLOCKSIZE 4096
-  struct md5_ctx ctx;
-  char buffer[BLOCKSIZE + 72];
-  size_t sum;
-
-  /* Initialize the computation context.  */
-  md5_init_ctx (&ctx);
-
-  /* Iterate over full file contents.  */
-  while (1)
-    {
-      /* We read the file in blocks of BLOCKSIZE bytes.  One call of the
-         computation function processes the whole buffer so that with the
-         next round of the loop another block can be read.  */
-      size_t n;
-      sum = 0;
-
-      /* Read block.  Take care for partial reads.  */
-      do
-        {
-          n = fread (buffer + sum, 1, BLOCKSIZE - sum, stream);
-
-          sum += n;
-        }
-      while (sum < BLOCKSIZE && n != 0);
-      if (n == 0 && ferror (stream))
-        return 1;
-
-      /* If end of file is reached, end the loop.  */
-      if (n == 0)
-        break;
-
-      /* Process buffer with BLOCKSIZE bytes.  Note that
-         BLOCKSIZE % 64 == 0
-       */
-      md5_process_block (buffer, BLOCKSIZE, &ctx);
-    }
-
-  /* Add the last bytes if necessary.  */
-  if (sum > 0)
-    md5_process_bytes (buffer, sum, &ctx);
-
-  /* Construct result in desired memory.  */
-  md5_finish_ctx (&ctx, resblock);
-  return 0;
-}
-
-/* Compute MD5 message digest for LEN bytes beginning at BUFFER.  The
-   result is always in little endian byte order, so that a byte-wise
-   output yields to the wanted ASCII representation of the message
-   digest.  */
-void *
-md5_buffer (const char *buffer, size_t len, void *resblock)
-{
-  struct md5_ctx ctx;
-
-  /* Initialize the computation context.  */
-  md5_init_ctx (&ctx);
-
-  /* Process whole buffer but last len % 64 bytes.  */
-  md5_process_bytes (buffer, len, &ctx);
-
-  /* Put result in desired memory area.  */
-  return md5_finish_ctx (&ctx, resblock);
 }
 
 
@@ -245,7 +174,7 @@ md5_process_bytes (const void *buffer, size_t len, struct md5_ctx *ctx)
 /* Process LEN bytes of BUFFER, accumulating context into CTX.
    It is assumed that LEN % 64 == 0.  */
 
-void
+static void
 md5_process_block (const void *buffer, size_t len, struct md5_ctx *ctx)
 {
   uint32_t correct_words[16];

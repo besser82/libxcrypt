@@ -1,10 +1,10 @@
 /*
  * Written by Solar Designer and placed in the public domain.
- * See crypt_blowfish.c for more information.
+ * See bcrypt.c for more information.
  *
  * This file contains salt generation functions for the traditional and
  * other common crypt(3) algorithms, except for bcrypt which is defined
- * entirely in crypt_blowfish.c.
+ * entirely in bcrypt.c.
  */
 
 #include <string.h>
@@ -14,7 +14,7 @@
 
 #include "xcrypt-private.h"
 
-unsigned char _xcrypt_itoa64[64 + 1] =
+static const unsigned char _xcrypt_itoa64[64 + 1] =
   "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 char *

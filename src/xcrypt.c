@@ -31,32 +31,6 @@
  */
 struct crypt_data _ufc_foobar;
 
-char *
-_xcrypt_crypt_traditional_rn (const char *key, const char *salt,
-                              char *data, size_t size)
-{
-  if (size < sizeof (struct crypt_data))
-    {
-      errno = EINVAL;
-      return NULL;
-    }
-  if (strlen (salt) > 13)
-    return __bigcrypt_r (key, salt, (struct crypt_data *) data);
-  else
-    return __des_crypt_r (key, salt, (struct crypt_data *) data);
-}
-
-char *
-_xcrypt_crypt_extended_rn (const char *key __attribute__ ((unused)),
-                           const char *salt __attribute__ ((unused)),
-                           char *data __attribute__ ((unused)),
-                           size_t size __attribute__ ((unused)))
-{
-  /* "Extended BSDI-style DES-based" hashes are currently not supported. */
-  errno = EINVAL;
-  return NULL;
-}
-
 struct hashfn
 {
   const char *prefix;
@@ -180,12 +154,6 @@ char *
 crypt (const char *key, const char *salt)
 {
   return crypt_rn (key, salt, (char *) &_ufc_foobar, sizeof (_ufc_foobar));
-}
-
-char *
-bigcrypt (const char *key, const char *salt)
-{
-  return __bigcrypt_r (key, salt, &_ufc_foobar);
 }
 
 char *

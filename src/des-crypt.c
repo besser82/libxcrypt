@@ -26,17 +26,19 @@
 
 #include "xcrypt-private.h"
 #include "des.h"
+#include "crypt-obsolete.h"
 
 #include <string.h>
+#include <errno.h>
 
 
 /*
  * UNIX crypt function
  */
 
-char *
-__des_crypt_r (const char *key, const char *salt,
-               struct crypt_data *restrict data)
+static char *
+des_crypt_r (const char *key, const char *salt,
+             struct crypt_data *restrict data)
 {
   uint_fast32_t res[4];
   char ktab[9];
@@ -110,19 +112,14 @@ __des_crypt_r (const char *key, const char *salt,
 #define ESEGMENT_SIZE      11
 #define CBUF_SIZE          ((MAX_PASS_LEN*ESEGMENT_SIZE)+SALT_SIZE+1)
 
-/*
- * This function is not really thread safe. We use it internal only
- * in the moment.
- */
 char *
-__bigcrypt_r (const char *key, const char *salt,
-              struct crypt_data *restrict data)
+bigcrypt_r (const char *key, const char *salt,
+            struct crypt_data *restrict data)
 {
-  static char dec_c2_cryptbuf[CBUF_SIZE];       /* static storage area */
-
   unsigned long int keylen, n_seg, j;
   char *cipher_ptr, *plaintext_ptr, *tmp_ptr, *salt_ptr;
   char keybuf[KEYBUF_SIZE + 1];
+  char dec_c2_cryptbuf[CBUF_SIZE];
 
   /* reset arrays */
   memset (keybuf, 0, KEYBUF_SIZE + 1);
@@ -157,7 +154,7 @@ __bigcrypt_r (const char *key, const char *salt,
   plaintext_ptr = keybuf;
 
   /* do the first block with supplied salt */
-  tmp_ptr = __des_crypt_r (plaintext_ptr, salt, data);
+  tmp_ptr = des_crypt_r (plaintext_ptr, salt, data);
 
   /* and place in the static area */
   strncpy (cipher_ptr, tmp_ptr, 13);
@@ -177,7 +174,7 @@ __bigcrypt_r (const char *key, const char *salt,
       for (j = 2; j <= n_seg; j++)
         {
 
-          tmp_ptr = __des_crypt_r (plaintext_ptr, salt_ptr, data);
+          tmp_ptr = des_crypt_r (plaintext_ptr, salt_ptr, data);
 
           /* skip the salt for seg!=0 */
           strncpy (cipher_ptr, (tmp_ptr + SALT_SIZE), ESEGMENT_SIZE);
@@ -189,6 +186,33 @@ __bigcrypt_r (const char *key, const char *salt,
     }
 
   /* this is the <NUL> terminated encrypted password */
+  memset (data, 0, sizeof *data);
+  memcpy (data, dec_c2_cryptbuf, CBUF_SIZE);
+  return (char *)data;
+}
 
-  return dec_c2_cryptbuf;
+char *
+_xcrypt_crypt_traditional_rn (const char *key, const char *salt,
+                              char *data, size_t size)
+{
+  if (size < sizeof (struct crypt_data))
+    {
+      errno = EINVAL;
+      return NULL;
+    }
+  if (strlen (salt) > 13)
+    return bigcrypt_r (key, salt, (struct crypt_data *) data);
+  else
+    return des_crypt_r (key, salt, (struct crypt_data *) data);
+}
+
+char *
+_xcrypt_crypt_extended_rn (const char *key __attribute__ ((unused)),
+                           const char *salt __attribute__ ((unused)),
+                           char *data __attribute__ ((unused)),
+                           size_t size __attribute__ ((unused)))
+{
+  /* "Extended BSDI-style DES-based" hashes are currently not supported. */
+  errno = EINVAL;
+  return NULL;
 }

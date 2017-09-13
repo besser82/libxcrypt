@@ -40,9 +40,6 @@ struct crypt_data;
 extern void _ufc_doit_r (uint_fast32_t itr,
                          struct crypt_data *restrict __data,
                          uint_fast32_t * res);
-extern void __init_des_r (struct crypt_data *restrict __data);
-extern void __init_des (void);
-
 extern void _ufc_setup_salt_r (const char *s,
                                struct crypt_data *restrict __data);
 extern void _ufc_mk_keytab_r (const char *key,

@@ -68,13 +68,7 @@ extern char *_xcrypt_gensalt_bcrypt_y_rn (unsigned long count,
                                           char *output, int output_size);
 
 /* to be eliminated */
-extern unsigned char _xcrypt_itoa64[];
 
 extern struct crypt_data _ufc_foobar;
-
-extern char *__des_crypt_r (const char *__key, const char *__salt,
-                            struct crypt_data *restrict __data);
-extern char *__bigcrypt_r (const char *key, const char *salt,
-                           struct crypt_data *restrict __data);
 
 #endif

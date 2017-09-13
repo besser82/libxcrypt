@@ -805,7 +805,7 @@ BF_crypt (const char *key, const char *setting,
   return output;
 }
 
-int
+static int
 _crypt_output_magic (const char *setting, char *output, int size)
 {
   if (size < 3)
