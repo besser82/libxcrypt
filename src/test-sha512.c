@@ -71,20 +71,20 @@ main (void)
 
   for (cnt = 0; cnt < (int) (sizeof (tests) / sizeof (tests[0])); ++cnt)
     {
-      __sha512_init_ctx (&ctx);
-      __sha512_process_bytes (tests[cnt].input, strlen (tests[cnt].input),
+      sha512_init_ctx (&ctx);
+      sha512_process_bytes (tests[cnt].input, strlen (tests[cnt].input),
                               &ctx);
-      __sha512_finish_ctx (&ctx, sum);
+      sha512_finish_ctx (&ctx, sum);
       if (memcmp (tests[cnt].result, sum, 64) != 0)
         {
           printf ("test %d run %d failed\n", cnt, 1);
           result = 1;
         }
 
-      __sha512_init_ctx (&ctx);
+      sha512_init_ctx (&ctx);
       for (i = 0; tests[cnt].input[i] != '\0'; ++i)
-        __sha512_process_bytes (&tests[cnt].input[i], 1, &ctx);
-      __sha512_finish_ctx (&ctx, sum);
+        sha512_process_bytes (&tests[cnt].input[i], 1, &ctx);
+      sha512_finish_ctx (&ctx, sum);
       if (memcmp (tests[cnt].result, sum, 64) != 0)
         {
           printf ("test %d run %d failed\n", cnt, 2);
@@ -95,10 +95,10 @@ main (void)
   /* Test vector from FIPS 180-2: appendix C.3.  */
   char buf[1000];
   memset (buf, 'a', sizeof (buf));
-  __sha512_init_ctx (&ctx);
+  sha512_init_ctx (&ctx);
   for (i = 0; i < 1000; ++i)
-    __sha512_process_bytes (buf, sizeof (buf), &ctx);
-  __sha512_finish_ctx (&ctx, sum);
+    sha512_process_bytes (buf, sizeof (buf), &ctx);
+  sha512_finish_ctx (&ctx, sum);
   static const char expected[64] =
     "\xe7\x18\x48\x3d\x0c\xe7\x69\x64\x4e\x2e\x42\xc7\xbc\x15\xb4\x63"
     "\x8e\x1f\x98\xb1\x3b\x20\x44\x28\x56\x32\xa8\x03\xaf\xa9\x73\xeb"

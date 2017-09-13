@@ -21,33 +21,14 @@
 
 /* Written by Ulrich Drepper <drepper@gnu.ai.mit.edu>, 1995.  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#include <sys/types.h>
-
+#include <endian.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 
 #include "md5.h"
 
-#include <endian.h>
 #if __BYTE_ORDER == __BIG_ENDIAN
-#define WORDS_BIGENDIAN 1
-#endif
-
-/* We need to keep the namespace clean so define the MD5 function
-   protected using leading __ .  */
-#define md5_init_ctx __md5_init_ctx
-#define md5_process_block __md5_process_block
-#define md5_process_bytes __md5_process_bytes
-#define md5_finish_ctx __md5_finish_ctx
-#define md5_read_ctx __md5_read_ctx
-#define md5_stream __md5_stream
-#define md5_buffer __md5_buffer
-
-#ifdef WORDS_BIGENDIAN
 #define SWAP(n)                                                 \
     (((n) << 24) | (((n) & 0xff00) << 8) | (((n) >> 8) & 0xff00) | ((n) >> 24))
 #else
@@ -82,10 +63,10 @@ md5_init_ctx (struct md5_ctx *ctx)
 void *
 md5_read_ctx (const struct md5_ctx *ctx, void *resbuf)
 {
-  ((md5_uint32 *) resbuf)[0] = SWAP (ctx->A);
-  ((md5_uint32 *) resbuf)[1] = SWAP (ctx->B);
-  ((md5_uint32 *) resbuf)[2] = SWAP (ctx->C);
-  ((md5_uint32 *) resbuf)[3] = SWAP (ctx->D);
+  ((uint32_t *) resbuf)[0] = SWAP (ctx->A);
+  ((uint32_t *) resbuf)[1] = SWAP (ctx->B);
+  ((uint32_t *) resbuf)[2] = SWAP (ctx->C);
+  ((uint32_t *) resbuf)[3] = SWAP (ctx->D);
 
   return resbuf;
 }
@@ -99,10 +80,10 @@ void *
 md5_finish_ctx (struct md5_ctx *ctx, void *resbuf)
 {
   /* helper variable */
-  md5_uint32 *helper;
+  uint32_t *helper;
 
   /* Take yet unprocessed bytes into account.  */
-  md5_uint32 bytes = ctx->buflen;
+  uint32_t bytes = ctx->buflen;
   size_t pad;
 
   /* Now count remaining bytes.  */
@@ -114,9 +95,9 @@ md5_finish_ctx (struct md5_ctx *ctx, void *resbuf)
   memcpy (&ctx->buffer[bytes], fillbuf, pad);
 
   /* Put the 64-bit file length in *bits* at the end of the buffer.  */
-  helper = (md5_uint32 *) & ctx->buffer[bytes + pad];
+  helper = (uint32_t *) & ctx->buffer[bytes + pad];
   *helper = SWAP (ctx->total[0] << 3);
-  helper = (md5_uint32 *) & ctx->buffer[bytes + pad + 4];
+  helper = (uint32_t *) & ctx->buffer[bytes + pad + 4];
   *helper = SWAP ((ctx->total[1] << 3) | (ctx->total[0] >> 29));
 
   /* Process last bytes.  */
@@ -227,30 +208,11 @@ md5_process_bytes (const void *buffer, size_t len, struct md5_ctx *ctx)
     }
 
   /* Process available complete blocks.  */
-  if (len >= 64)
+  while (len > 64)
     {
-#if 1
-/* To check alignment gcc has an appropriate operator.  Other
-   compilers don't.  */
-#if __GNUC__ >= 2
-#define UNALIGNED_P(p) (((md5_uintptr) p) % __alignof__ (md5_uint32) != 0)
-#else
-#define UNALIGNED_P(p) (((md5_uintptr) p) % sizeof (md5_uint32) != 0)
-#endif
-      if (UNALIGNED_P (buffer))
-        while (len > 64)
-          {
-            md5_process_block (memcpy (ctx->buffer, buffer, 64), 64, ctx);
-            buffer = (const char *) buffer + 64;
-            len -= 64;
-          }
-      else
-#endif
-        {
-          md5_process_block (buffer, len & ~63, ctx);
-          buffer = (const char *) buffer + (len & ~63);
-          len &= 63;
-        }
+      md5_process_block (memcpy (ctx->buffer, buffer, 64), 64, ctx);
+      buffer = (const char *) buffer + 64;
+      len -= 64;
     }
 
   /* Move remaining bytes in internal buffer.  */
@@ -286,14 +248,14 @@ md5_process_bytes (const void *buffer, size_t len, struct md5_ctx *ctx)
 void
 md5_process_block (const void *buffer, size_t len, struct md5_ctx *ctx)
 {
-  md5_uint32 correct_words[16];
-  const md5_uint32 *words = buffer;
-  size_t nwords = len / sizeof (md5_uint32);
-  const md5_uint32 *endp = words + nwords;
-  md5_uint32 A = ctx->A;
-  md5_uint32 B = ctx->B;
-  md5_uint32 C = ctx->C;
-  md5_uint32 D = ctx->D;
+  uint32_t correct_words[16];
+  const uint32_t *words = buffer;
+  size_t nwords = len / sizeof (uint32_t);
+  const uint32_t *endp = words + nwords;
+  uint32_t A = ctx->A;
+  uint32_t B = ctx->B;
+  uint32_t C = ctx->C;
+  uint32_t D = ctx->D;
 
   /* First increment the byte count.  RFC 1321 specifies the possible
      length of the file up to 2^64 bits.  Here we only compute the
@@ -306,11 +268,11 @@ md5_process_block (const void *buffer, size_t len, struct md5_ctx *ctx)
      the loop.  */
   while (words < endp)
     {
-      md5_uint32 *cwp = correct_words;
-      md5_uint32 A_save = A;
-      md5_uint32 B_save = B;
-      md5_uint32 C_save = C;
-      md5_uint32 D_save = D;
+      uint32_t *cwp = correct_words;
+      uint32_t A_save = A;
+      uint32_t B_save = B;
+      uint32_t C_save = C;
+      uint32_t D_save = D;
 
       /* First round: using the given function, the context and a constant
          the next context is computed.  Because the algorithms processing

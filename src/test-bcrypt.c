@@ -117,10 +117,6 @@ main (void)
 #endif
   char *setting1, *setting2;
   int i;
-#ifdef TEST_THREADS
-  pthread_t t[TEST_THREADS];
-  void *t_retval;
-#endif
 
 #if 0
   data = NULL;
@@ -145,7 +141,7 @@ main (void)
           setting = s_buf;
         }
 
-      __set_errno (0);
+      errno = 0;
       p = crypt (key, setting);
       if ((!ok && !errno) || strcmp (p, hash))
         {
@@ -171,7 +167,7 @@ main (void)
               if (setting[0] == '*' && setting[1] == '0')
                 x = "*1";
             }
-          __set_errno (0);
+          errno = 0;
           p = crypt_rn (key, setting, o_buf, o_size);
           if ((ok_n && (!p || strcmp (p, hash))) ||
               (!ok_n && (!errno || p || strcmp (o_buf, x))))
@@ -181,7 +177,7 @@ main (void)
             }
         }
 
-      __set_errno (0);
+      errno = 0;
       p = crypt_ra (key, setting, &data, &size);
       if ((ok && (!p || strcmp (p, hash))) ||
           (!ok && (!errno || p || strcmp ((char *) data, hash))))

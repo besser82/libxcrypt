@@ -20,10 +20,6 @@
 
 /* Written by Ulrich Drepper <drepper@redhat.com>, 2007.  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <endian.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,13 +28,8 @@
 #include "sha256.h"
 
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-#ifdef _LIBC
-#include <byteswap.h>
-#define SWAP(n) bswap_32 (n)
-#else
 #define SWAP(n) \
     (((n) << 24) | (((n) & 0xff00) << 8) | (((n) >> 8) & 0xff00) | ((n) >> 24))
-#endif
 #else
 #define SWAP(n) (n)
 #endif
@@ -174,7 +165,7 @@ sha256_process_block (const void *buffer, size_t len, struct sha256_ctx *ctx)
 /* Initialize structure containing state of computation.
    (FIPS 180-2:5.3.2)  */
 void
-__sha256_init_ctx (struct sha256_ctx *ctx)
+sha256_init_ctx (struct sha256_ctx *ctx)
 
 {
   ctx->H[0] = 0x6a09e667;
@@ -197,7 +188,7 @@ __sha256_init_ctx (struct sha256_ctx *ctx)
    IMPORTANT: On some systems it is required that RESBUF is correctly
    aligned for a 32 bits value.  */
 void *
-__sha256_finish_ctx (struct sha256_ctx *ctx, void *resbuf)
+sha256_finish_ctx (struct sha256_ctx *ctx, void *resbuf)
 {
   /* helper variable */
   uint32_t *helper;
@@ -233,7 +224,7 @@ __sha256_finish_ctx (struct sha256_ctx *ctx, void *resbuf)
 
 
 void
-__sha256_process_bytes (const void *buffer, size_t len, struct sha256_ctx *ctx)
+sha256_process_bytes (const void *buffer, size_t len, struct sha256_ctx *ctx)
 {
   /* When we already have some bits in our internal buffer concatenate
      both inputs first.  */
@@ -260,30 +251,11 @@ __sha256_process_bytes (const void *buffer, size_t len, struct sha256_ctx *ctx)
     }
 
   /* Process available complete blocks.  */
-  if (len >= 64)
+  while (len > 64)
     {
-#if 1
-/* To check alignment gcc has an appropriate operator.  Other
-   compilers don't.  */
-#if __GNUC__ >= 2
-#define UNALIGNED_P(p) (((uintptr_t) p) % __alignof__ (uint32_t) != 0)
-#else
-#define UNALIGNED_P(p) (((uintptr_t) p) % sizeof (uint32_t) != 0)
-#endif
-      if (UNALIGNED_P (buffer))
-        while (len > 64)
-          {
-            sha256_process_block (memcpy (ctx->buffer, buffer, 64), 64, ctx);
-            buffer = (const char *) buffer + 64;
-            len -= 64;
-          }
-      else
-#endif
-        {
-          sha256_process_block (buffer, len & ~63, ctx);
-          buffer = (const char *) buffer + (len & ~63);
-          len &= 63;
-        }
+      sha256_process_block (memcpy (ctx->buffer, buffer, 64), 64, ctx);
+      buffer = (const char *) buffer + 64;
+      len -= 64;
     }
 
   /* Move remaining bytes into internal buffer.  */

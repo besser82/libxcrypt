@@ -45,23 +45,15 @@
 
 #include <string.h>
 #include <stdio.h>
-
 #include <errno.h>
-#ifndef __set_errno
-#define __set_errno(val) errno = (val)
-#endif
 
 /* Just to make sure the prototypes match the actual definitions */
 #include "bcrypt.h"
 
-#ifdef __i386__
-#define BF_ASM                          0
-#define BF_SCALE                        1
-#elif defined(__x86_64__) || defined(__alpha__) || defined(__hppa__)
-#define BF_ASM                          0
+#if defined(__i386__) || defined(__x86_64__) || \
+    defined(__alpha__) || defined(__hppa__)
 #define BF_SCALE                        1
 #else
-#define BF_ASM                          0
 #define BF_SCALE                        0
 #endif
 
@@ -538,10 +530,6 @@ BF_swap (BF_word * x, int count)
         R = L; \
         L = tmp4 ^ data.ctx.P[BF_N + 1];
 
-#if BF_ASM
-#define BF_body() \
-        _BF_body_r(&data.ctx);
-#else
 #define BF_body() \
         L = R = 0; \
         ptr = data.ctx.P; \
@@ -559,7 +547,6 @@ BF_swap (BF_word * x, int count)
                 *(ptr - 2) = L; \
                 *(ptr - 1) = R; \
         } while (ptr < &data.ctx.S[3][0xFF]);
-#endif
 
 static void
 BF_set_key (const char *key, BF_key expanded, BF_key initial,
@@ -675,9 +662,6 @@ static char *
 BF_crypt (const char *key, const char *setting,
           char *output, int size, BF_word min)
 {
-#if BF_ASM
-  extern void _BF_body_r (BF_ctx * ctx);
-#endif
   struct
   {
     BF_ctx ctx;
@@ -696,7 +680,7 @@ BF_crypt (const char *key, const char *setting,
 
   if (size < 7 + 22 + 31 + 1)
     {
-      __set_errno (ERANGE);
+      errno = ERANGE;
       return NULL;
     }
 
@@ -709,14 +693,14 @@ BF_crypt (const char *key, const char *setting,
       setting[5] < '0' || setting[5] > '9' ||
       (setting[4] == '3' && setting[5] > '1') || setting[6] != '$')
     {
-      __set_errno (EINVAL);
+      errno = EINVAL;
       return NULL;
     }
 
   count = (BF_word) 1 << ((setting[4] - '0') * 10 + (setting[5] - '0'));
   if (count < min || BF_decode (data.binary.salt, &setting[7], 16))
     {
-      __set_errno (EINVAL);
+      errno = EINVAL;
       return NULL;
     }
   BF_swap (data.binary.salt, 4);
@@ -915,13 +899,13 @@ _xcrypt_crypt_bcrypt_rn (const char *key, const char *setting,
       !memcmp (ae, ye, sizeof (ae)) && !memcmp (ai, yi, sizeof (ai));
   }
 
-  __set_errno (save_errno);
+  errno = save_errno;
   if (ok)
     return retval;
 
 /* Should not happen */
   _crypt_output_magic (setting, output, size);
-  __set_errno (EINVAL);         /* pretend we don't support this hash type */
+  errno = EINVAL;         /* pretend we don't support this hash type */
   return NULL;
 }
 
@@ -931,7 +915,7 @@ BF_gensalt (char subtype, unsigned long count,
 {
   if (output_size < 7 + 22 + 1)
     {
-      __set_errno (ERANGE);
+      errno = ERANGE;
       if (output_size > 0)
         output[0] = '\0';
       return NULL;
@@ -944,7 +928,7 @@ BF_gensalt (char subtype, unsigned long count,
       count < 4 || count > 31 ||
       (subtype != 'a' && subtype != 'b' && subtype != 'x' && subtype != 'y'))
     {
-      __set_errno (EINVAL);
+      errno = EINVAL;
       if (output_size > 0)
         output[0] = '\0';
       return NULL;

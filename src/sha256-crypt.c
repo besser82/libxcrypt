@@ -117,59 +117,59 @@ _xcrypt_crypt_sha256_rn (const char *key, const char *salt,
     }
 
   /* Prepare for the real work.  */
-  __sha256_init_ctx (&ctx);
+  sha256_init_ctx (&ctx);
 
   /* Add the key string.  */
-  __sha256_process_bytes (key, key_len, &ctx);
+  sha256_process_bytes (key, key_len, &ctx);
 
   /* The last part is the salt string.  This must be at most 8
      characters and it ends at the first `$' character (for
      compatibility with existing implementations).  */
-  __sha256_process_bytes (salt, salt_len, &ctx);
+  sha256_process_bytes (salt, salt_len, &ctx);
 
 
   /* Compute alternate SHA256 sum with input KEY, SALT, and KEY.  The
      final result will be added to the first context.  */
-  __sha256_init_ctx (&alt_ctx);
+  sha256_init_ctx (&alt_ctx);
 
   /* Add key.  */
-  __sha256_process_bytes (key, key_len, &alt_ctx);
+  sha256_process_bytes (key, key_len, &alt_ctx);
 
   /* Add salt.  */
-  __sha256_process_bytes (salt, salt_len, &alt_ctx);
+  sha256_process_bytes (salt, salt_len, &alt_ctx);
 
   /* Add key again.  */
-  __sha256_process_bytes (key, key_len, &alt_ctx);
+  sha256_process_bytes (key, key_len, &alt_ctx);
 
   /* Now get result of this (32 bytes) and add it to the other
      context.  */
-  __sha256_finish_ctx (&alt_ctx, alt_result);
+  sha256_finish_ctx (&alt_ctx, alt_result);
 
   /* Add for any character in the key one byte of the alternate sum.  */
   for (cnt = key_len; cnt > 32; cnt -= 32)
-    __sha256_process_bytes (alt_result, 32, &ctx);
-  __sha256_process_bytes (alt_result, cnt, &ctx);
+    sha256_process_bytes (alt_result, 32, &ctx);
+  sha256_process_bytes (alt_result, cnt, &ctx);
 
   /* Take the binary representation of the length of the key and for every
      1 add the alternate sum, for every 0 the key.  */
   for (cnt = key_len; cnt > 0; cnt >>= 1)
     if ((cnt & 1) != 0)
-      __sha256_process_bytes (alt_result, 32, &ctx);
+      sha256_process_bytes (alt_result, 32, &ctx);
     else
-      __sha256_process_bytes (key, key_len, &ctx);
+      sha256_process_bytes (key, key_len, &ctx);
 
   /* Create intermediate result.  */
-  __sha256_finish_ctx (&ctx, alt_result);
+  sha256_finish_ctx (&ctx, alt_result);
 
   /* Start computation of P byte sequence.  */
-  __sha256_init_ctx (&alt_ctx);
+  sha256_init_ctx (&alt_ctx);
 
   /* For every character in the password add the entire password.  */
   for (cnt = 0; cnt < key_len; ++cnt)
-    __sha256_process_bytes (key, key_len, &alt_ctx);
+    sha256_process_bytes (key, key_len, &alt_ctx);
 
   /* Finish the digest.  */
-  __sha256_finish_ctx (&alt_ctx, temp_result);
+  sha256_finish_ctx (&alt_ctx, temp_result);
 
   /* Create byte sequence P.  */
   cp = p_bytes = alloca (key_len);
@@ -178,14 +178,14 @@ _xcrypt_crypt_sha256_rn (const char *key, const char *salt,
   memcpy (cp, temp_result, cnt);
 
   /* Start computation of S byte sequence.  */
-  __sha256_init_ctx (&alt_ctx);
+  sha256_init_ctx (&alt_ctx);
 
   /* For every character in the password add the entire password.  */
   for (cnt = 0; cnt < (size_t) 16 + (size_t) alt_result[0]; ++cnt)
-    __sha256_process_bytes (salt, salt_len, &alt_ctx);
+    sha256_process_bytes (salt, salt_len, &alt_ctx);
 
   /* Finish the digest.  */
-  __sha256_finish_ctx (&alt_ctx, temp_result);
+  sha256_finish_ctx (&alt_ctx, temp_result);
 
   /* Create byte sequence S.  */
   cp = s_bytes = alloca (salt_len);
@@ -198,30 +198,30 @@ _xcrypt_crypt_sha256_rn (const char *key, const char *salt,
   for (cnt = 0; cnt < rounds; ++cnt)
     {
       /* New context.  */
-      __sha256_init_ctx (&ctx);
+      sha256_init_ctx (&ctx);
 
       /* Add key or last result.  */
       if ((cnt & 1) != 0)
-        __sha256_process_bytes (p_bytes, key_len, &ctx);
+        sha256_process_bytes (p_bytes, key_len, &ctx);
       else
-        __sha256_process_bytes (alt_result, 32, &ctx);
+        sha256_process_bytes (alt_result, 32, &ctx);
 
       /* Add salt for numbers not divisible by 3.  */
       if (cnt % 3 != 0)
-        __sha256_process_bytes (s_bytes, salt_len, &ctx);
+        sha256_process_bytes (s_bytes, salt_len, &ctx);
 
       /* Add key for numbers not divisible by 7.  */
       if (cnt % 7 != 0)
-        __sha256_process_bytes (p_bytes, key_len, &ctx);
+        sha256_process_bytes (p_bytes, key_len, &ctx);
 
       /* Add key or last result.  */
       if ((cnt & 1) != 0)
-        __sha256_process_bytes (alt_result, 32, &ctx);
+        sha256_process_bytes (alt_result, 32, &ctx);
       else
-        __sha256_process_bytes (p_bytes, key_len, &ctx);
+        sha256_process_bytes (p_bytes, key_len, &ctx);
 
       /* Create intermediate result.  */
-      __sha256_finish_ctx (&ctx, alt_result);
+      sha256_finish_ctx (&ctx, alt_result);
     }
 
   /* Now we can construct the result string.  It consists of three
@@ -281,8 +281,8 @@ _xcrypt_crypt_sha256_rn (const char *key, const char *salt,
      attaching to processes or reading core dumps cannot get any
      information.  We do it in this way to clear correct_words[]
      inside the SHA256 implementation as well.  */
-  __sha256_init_ctx (&ctx);
-  __sha256_finish_ctx (&ctx, alt_result);
+  sha256_init_ctx (&ctx);
+  sha256_finish_ctx (&ctx, alt_result);
   memset (temp_result, '\0', sizeof (temp_result));
   memset (p_bytes, '\0', key_len);
   memset (s_bytes, '\0', salt_len);

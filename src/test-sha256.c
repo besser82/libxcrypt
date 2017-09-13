@@ -52,20 +52,20 @@ main (void)
 
   for (cnt = 0; cnt < (int) (sizeof (tests) / sizeof (tests[0])); ++cnt)
     {
-      __sha256_init_ctx (&ctx);
-      __sha256_process_bytes (tests[cnt].input, strlen (tests[cnt].input),
+      sha256_init_ctx (&ctx);
+      sha256_process_bytes (tests[cnt].input, strlen (tests[cnt].input),
                               &ctx);
-      __sha256_finish_ctx (&ctx, sum);
+      sha256_finish_ctx (&ctx, sum);
       if (memcmp (tests[cnt].result, sum, 32) != 0)
         {
           printf ("test %d run %d failed\n", cnt, 1);
           result = 1;
         }
 
-      __sha256_init_ctx (&ctx);
+      sha256_init_ctx (&ctx);
       for (i = 0; tests[cnt].input[i] != '\0'; ++i)
-        __sha256_process_bytes (&tests[cnt].input[i], 1, &ctx);
-      __sha256_finish_ctx (&ctx, sum);
+        sha256_process_bytes (&tests[cnt].input[i], 1, &ctx);
+      sha256_finish_ctx (&ctx, sum);
       if (memcmp (tests[cnt].result, sum, 32) != 0)
         {
           printf ("test %d run %d failed\n", cnt, 2);
@@ -76,10 +76,10 @@ main (void)
   /* Test vector from FIPS 180-2: appendix B.3.  */
   char buf[1000];
   memset (buf, 'a', sizeof (buf));
-  __sha256_init_ctx (&ctx);
+  sha256_init_ctx (&ctx);
   for (i = 0; i < 1000; ++i)
-    __sha256_process_bytes (buf, sizeof (buf), &ctx);
-  __sha256_finish_ctx (&ctx, sum);
+    sha256_process_bytes (buf, sizeof (buf), &ctx);
+  sha256_finish_ctx (&ctx, sum);
   static const char expected[32] =
     "\xcd\xc7\x6e\x5c\x99\x14\xfb\x92\x81\xa1\xc7\xe2\x84\xd7\x3e\x67"
     "\xf1\x80\x9a\x48\xa4\x97\x20\x0e\x04\x6d\x39\xcc\xc7\x11\x2c\xd0";

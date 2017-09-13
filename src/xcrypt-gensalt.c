@@ -10,11 +10,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-
 #include <errno.h>
-#ifndef __set_errno
-#define __set_errno(val) errno = (val)
-#endif
 
 #include "xcrypt-private.h"
 
@@ -30,7 +26,7 @@ _xcrypt_gensalt_traditional_rn (unsigned long count,
     {
       if (output_size > 0)
         output[0] = '\0';
-      __set_errno ((output_size < 2 + 1) ? ERANGE : EINVAL);
+      errno = ((output_size < 2 + 1) ? ERANGE : EINVAL);
       return NULL;
     }
 
@@ -55,7 +51,7 @@ _xcrypt_gensalt_extended_rn (unsigned long count,
     {
       if (output_size > 0)
         output[0] = '\0';
-      __set_errno ((output_size < 1 + 4 + 4 + 1) ? ERANGE : EINVAL);
+      errno = ((output_size < 1 + 4 + 4 + 1) ? ERANGE : EINVAL);
       return NULL;
     }
 
@@ -220,7 +216,7 @@ _xcrypt_gensalt_sha512_rn (unsigned long count, const char *input, int size,
       free (buf);
       if (output_size > 0)
         output[0] = '\0';
-      __set_errno (ERANGE);
+      errno = ERANGE;
       return NULL;
     }
 

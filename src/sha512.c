@@ -20,10 +20,6 @@
 
 /* Written by Ulrich Drepper <drepper@redhat.com>, 2007.  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <endian.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,10 +28,6 @@
 #include "sha512.h"
 
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-#ifdef _LIBC
-#include <byteswap.h>
-#define SWAP(n) bswap_64 (n)
-#else
 #define SWAP(n) \
   (((n) << 56)                                  \
    | (((n) & 0xff00) << 40)                     \
@@ -45,7 +37,6 @@
    | (((n) >> 24) & 0xff0000)                   \
    | (((n) >> 40) & 0xff00)                     \
    | ((n) >> 56))
-#endif
 #else
 #define SWAP(n) (n)
 #endif
@@ -205,7 +196,7 @@ sha512_process_block (const void *buffer, size_t len, struct sha512_ctx *ctx)
 /* Initialize structure containing state of computation.
    (FIPS 180-2:5.3.3)  */
 void
-__sha512_init_ctx (struct sha512_ctx *ctx)
+sha512_init_ctx (struct sha512_ctx *ctx)
 {
   ctx->H[0] = UINT64_C (0x6a09e667f3bcc908);
   ctx->H[1] = UINT64_C (0xbb67ae8584caa73b);
@@ -227,7 +218,7 @@ __sha512_init_ctx (struct sha512_ctx *ctx)
    IMPORTANT: On some systems it is required that RESBUF is correctly
    aligned for a 32 bits value.  */
 void *
-__sha512_finish_ctx (struct sha512_ctx *ctx, void *resbuf)
+sha512_finish_ctx (struct sha512_ctx *ctx, void *resbuf)
 {
   /* helper variable */
   uint64_t *helper;
@@ -263,7 +254,7 @@ __sha512_finish_ctx (struct sha512_ctx *ctx, void *resbuf)
 
 
 void
-__sha512_process_bytes (const void *buffer, size_t len, struct sha512_ctx *ctx)
+sha512_process_bytes (const void *buffer, size_t len, struct sha512_ctx *ctx)
 {
   /* When we already have some bits in our internal buffer concatenate
      both inputs first.  */
@@ -290,31 +281,12 @@ __sha512_process_bytes (const void *buffer, size_t len, struct sha512_ctx *ctx)
     }
 
   /* Process available complete blocks.  */
-  if (len >= 128)
+  while (len > 128)
     {
-#if 1
-/* To check alignment gcc has an appropriate operator.  Other
-   compilers don't.  */
-#if __GNUC__ >= 2
-#define UNALIGNED_P(p) (((uintptr_t) p) % __alignof__ (uint64_t) != 0)
-#else
-#define UNALIGNED_P(p) (((uintptr_t) p) % sizeof (uint64_t) != 0)
-#endif
-      if (UNALIGNED_P (buffer))
-        while (len > 128)
-          {
-            sha512_process_block (memcpy (ctx->buffer, buffer, 128), 128,
-                                  ctx);
-            buffer = (const char *) buffer + 128;
-            len -= 128;
-          }
-      else
-#endif
-        {
-          sha512_process_block (buffer, len & ~127, ctx);
-          buffer = (const char *) buffer + (len & ~127);
-          len &= 127;
-        }
+      sha512_process_block (memcpy (ctx->buffer, buffer, 128), 128,
+                            ctx);
+      buffer = (const char *) buffer + 128;
+      len -= 128;
     }
 
   /* Move remaining bytes into internal buffer.  */

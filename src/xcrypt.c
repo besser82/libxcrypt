@@ -37,7 +37,7 @@ _xcrypt_crypt_traditional_rn (const char *key, const char *salt,
 {
   if (size < sizeof (struct crypt_data))
     {
-      __set_errno (EINVAL);
+      errno = EINVAL;
       return NULL;
     }
   if (strlen (salt) > 13)
@@ -53,7 +53,7 @@ _xcrypt_crypt_extended_rn (const char *key __attribute__ ((unused)),
                            size_t size __attribute__ ((unused)))
 {
   /* "Extended BSDI-style DES-based" hashes are currently not supported. */
-  __set_errno (EINVAL);
+  errno = EINVAL;
   return NULL;
 }
 
@@ -144,7 +144,7 @@ _xcrypt_rn (const char *key, const char *salt, char *data, size_t size)
   if (!h)
     {
       /* Unrecognized hash algorithm */
-      __set_errno (ERANGE);
+      errno = ERANGE;
       return NULL;
     }
   return h->crypt (key, salt, data, size);
@@ -198,14 +198,14 @@ crypt_gensalt_rn (const char *prefix, unsigned long count,
   /* This may be supported on some platforms in the future */
   if (!input)
     {
-      __set_errno (EINVAL);
+      errno = EINVAL;
       return NULL;
     }
 
   h = _xcrypt_get_hash (prefix);
   if (!h)
     {
-      __set_errno (EINVAL);
+      errno = EINVAL;
       return NULL;
     }
   return h->gensalt (count, input, size, output, output_size);

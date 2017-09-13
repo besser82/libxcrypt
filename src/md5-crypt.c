@@ -49,7 +49,7 @@ _xcrypt_crypt_md5_rn (const char *key, const char *salt,
                       char *buffer, size_t xbuflen)
 {
   unsigned char alt_result[16]
-    __attribute__ ((__aligned__ (__alignof__ (md5_uint32))));
+    __attribute__ ((__aligned__ (__alignof__ (uint32_t))));
   struct md5_ctx ctx;
   struct md5_ctx alt_ctx;
   size_t salt_len;
@@ -69,63 +69,63 @@ _xcrypt_crypt_md5_rn (const char *key, const char *salt,
   salt_len = MIN (strcspn (salt, "$"), 8);
   key_len = strlen (key);
 
-  if ((key - (char *) 0) % __alignof__ (md5_uint32) != 0)
+  if ((key - (char *) 0) % __alignof__ (uint32_t) != 0)
     {
-      char *tmp = (char *) alloca (key_len + __alignof__ (md5_uint32));
+      char *tmp = (char *) alloca (key_len + __alignof__ (uint32_t));
       key = copied_key =
-        memcpy (tmp + __alignof__ (md5_uint32)
-                - (tmp - (char *) 0) % __alignof__ (md5_uint32),
+        memcpy (tmp + __alignof__ (uint32_t)
+                - (tmp - (char *) 0) % __alignof__ (uint32_t),
                 key, key_len);
-      assert ((key - (char *) 0) % __alignof__ (md5_uint32) == 0);
+      assert ((key - (char *) 0) % __alignof__ (uint32_t) == 0);
     }
 
-  if ((salt - (char *) 0) % __alignof__ (md5_uint32) != 0)
+  if ((salt - (char *) 0) % __alignof__ (uint32_t) != 0)
     {
-      char *tmp = (char *) alloca (salt_len + __alignof__ (md5_uint32));
+      char *tmp = (char *) alloca (salt_len + __alignof__ (uint32_t));
       salt = copied_salt =
-        memcpy (tmp + __alignof__ (md5_uint32)
-                - (tmp - (char *) 0) % __alignof__ (md5_uint32),
+        memcpy (tmp + __alignof__ (uint32_t)
+                - (tmp - (char *) 0) % __alignof__ (uint32_t),
                 salt, salt_len);
-      assert ((salt - (char *) 0) % __alignof__ (md5_uint32) == 0);
+      assert ((salt - (char *) 0) % __alignof__ (uint32_t) == 0);
     }
 
   /* Prepare for the real work.  */
-  __md5_init_ctx (&ctx);
+  md5_init_ctx (&ctx);
 
   /* Add the key string.  */
-  __md5_process_bytes (key, key_len, &ctx);
+  md5_process_bytes (key, key_len, &ctx);
 
   /* Because the SALT argument need not always have the salt prefix we
      add it separately.  */
-  __md5_process_bytes (md5_salt_prefix, sizeof (md5_salt_prefix) - 1, &ctx);
+  md5_process_bytes (md5_salt_prefix, sizeof (md5_salt_prefix) - 1, &ctx);
 
   /* The last part is the salt string.  This must be at most 8
      characters and it ends at the first `$' character (for
      compatibility with existing implementations).  */
-  __md5_process_bytes (salt, salt_len, &ctx);
+  md5_process_bytes (salt, salt_len, &ctx);
 
 
   /* Compute alternate MD5 sum with input KEY, SALT, and KEY.  The
      final result will be added to the first context.  */
-  __md5_init_ctx (&alt_ctx);
+  md5_init_ctx (&alt_ctx);
 
   /* Add key.  */
-  __md5_process_bytes (key, key_len, &alt_ctx);
+  md5_process_bytes (key, key_len, &alt_ctx);
 
   /* Add salt.  */
-  __md5_process_bytes (salt, salt_len, &alt_ctx);
+  md5_process_bytes (salt, salt_len, &alt_ctx);
 
   /* Add key again.  */
-  __md5_process_bytes (key, key_len, &alt_ctx);
+  md5_process_bytes (key, key_len, &alt_ctx);
 
   /* Now get result of this (16 bytes) and add it to the other
      context.  */
-  __md5_finish_ctx (&alt_ctx, alt_result);
+  md5_finish_ctx (&alt_ctx, alt_result);
 
   /* Add for any character in the key one byte of the alternate sum.  */
   for (cnt = key_len; cnt > 16; cnt -= 16)
-    __md5_process_bytes (alt_result, 16, &ctx);
-  __md5_process_bytes (alt_result, cnt, &ctx);
+    md5_process_bytes (alt_result, 16, &ctx);
+  md5_process_bytes (alt_result, cnt, &ctx);
 
   /* For the following code we need a NUL byte.  */
   *alt_result = '\0';
@@ -135,11 +135,11 @@ _xcrypt_crypt_md5_rn (const char *key, const char *salt,
      bit the first character of the key.  This does not seem to be
      what was intended but we have to follow this to be compatible.  */
   for (cnt = key_len; cnt > 0; cnt >>= 1)
-    __md5_process_bytes ((cnt & 1) != 0 ? (const char *) alt_result : key, 1,
+    md5_process_bytes ((cnt & 1) != 0 ? (const char *) alt_result : key, 1,
                          &ctx);
 
   /* Create intermediate result.  */
-  __md5_finish_ctx (&ctx, alt_result);
+  md5_finish_ctx (&ctx, alt_result);
 
   /* Now comes another weirdness.  In fear of password crackers here
      comes a quite long loop which just processes the output of the
@@ -147,30 +147,30 @@ _xcrypt_crypt_md5_rn (const char *key, const char *salt,
   for (cnt = 0; cnt < 1000; ++cnt)
     {
       /* New context.  */
-      __md5_init_ctx (&ctx);
+      md5_init_ctx (&ctx);
 
       /* Add key or last result.  */
       if ((cnt & 1) != 0)
-        __md5_process_bytes (key, key_len, &ctx);
+        md5_process_bytes (key, key_len, &ctx);
       else
-        __md5_process_bytes (alt_result, 16, &ctx);
+        md5_process_bytes (alt_result, 16, &ctx);
 
       /* Add salt for numbers not divisible by 3.  */
       if (cnt % 3 != 0)
-        __md5_process_bytes (salt, salt_len, &ctx);
+        md5_process_bytes (salt, salt_len, &ctx);
 
       /* Add key for numbers not divisible by 7.  */
       if (cnt % 7 != 0)
-        __md5_process_bytes (key, key_len, &ctx);
+        md5_process_bytes (key, key_len, &ctx);
 
       /* Add key or last result.  */
       if ((cnt & 1) != 0)
-        __md5_process_bytes (alt_result, 16, &ctx);
+        md5_process_bytes (alt_result, 16, &ctx);
       else
-        __md5_process_bytes (key, key_len, &ctx);
+        md5_process_bytes (key, key_len, &ctx);
 
       /* Create intermediate result.  */
-      __md5_finish_ctx (&ctx, alt_result);
+      md5_finish_ctx (&ctx, alt_result);
     }
 
   /* Now we can construct the result string.  It consists of three
@@ -218,8 +218,8 @@ _xcrypt_crypt_md5_rn (const char *key, const char *salt,
      attaching to processes or reading core dumps cannot get any
      information.  We do it in this way to clear correct_words[]
      inside the MD5 implementation as well.  */
-  __md5_init_ctx (&ctx);
-  __md5_finish_ctx (&ctx, alt_result);
+  md5_init_ctx (&ctx);
+  md5_finish_ctx (&ctx, alt_result);
   memset (&ctx, '\0', sizeof (ctx));
   memset (&alt_ctx, '\0', sizeof (alt_ctx));
   if (copied_key != NULL)
