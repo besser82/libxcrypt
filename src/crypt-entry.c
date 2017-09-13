@@ -34,10 +34,8 @@
  */
 
 char *
-__des_crypt_r (key, salt, data)
-     const char *key;
-     const char *salt;
-     struct crypt_data *restrict data;
+__des_crypt_r (const char *key, const char *salt,
+               struct crypt_data *restrict data)
 {
   ufc_long res[4];
   char ktab[9];

@@ -100,9 +100,10 @@ AC_ARG_ENABLE(
         -Winline dnl
         -Wmissing-declarations dnl
         -Wmissing-prototypes dnl
-        -Wnested-externs
-        -Wpointer-arith
-        -Wshadow
+        -Wnested-externs dnl
+        -Wold-style-definition dnl
+        -Wpointer-arith dnl
+        -Wshadow dnl
         -Wstrict-prototypes dnl
         -Wundef dnl
         -Wwrite-strings dnl

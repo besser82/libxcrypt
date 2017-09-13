@@ -374,8 +374,8 @@ init_des_small_tables (void)
  */
 
 void
-__init_des_r (__data)
-     struct crypt_data *restrict __data;
+__init_des_r (struct crypt_data *restrict __data)
+
 {
   int sg;
 
@@ -468,7 +468,7 @@ __init_des_r (__data)
 }
 
 void
-__init_des ()
+__init_des (void)
 {
   __init_des_r (&_ufc_foobar);
 }
@@ -480,9 +480,7 @@ __init_des ()
 
 #ifdef _UFC_32_
 static void
-shuffle_sb (k, saltbits)
-     long32 *k;
-     ufc_long saltbits;
+shuffle_sb (long32 *k, ufc_long saltbits)
 {
   ufc_long j;
   long32 x;
@@ -497,9 +495,7 @@ shuffle_sb (k, saltbits)
 
 #ifdef _UFC_64_
 static void
-shuffle_sb (k, saltbits)
-     long64 *k;
-     ufc_long saltbits;
+shuffle_sb (long64 *k, ufc_long saltbits)
 {
   ufc_long j;
   long64 x;
@@ -517,9 +513,7 @@ shuffle_sb (k, saltbits)
  */
 
 void
-_ufc_setup_salt_r (s, __data)
-     const char *s;
-     struct crypt_data *restrict __data;
+_ufc_setup_salt_r (const char *s, struct crypt_data *restrict __data)
 {
   ufc_long i, j, saltbits;
 
@@ -638,9 +632,7 @@ _ufc_mk_keytab_r (const char *key, struct crypt_data *restrict __data)
  */
 
 void
-_ufc_dofinalperm_r (res, __data)
-     ufc_long *res;
-     struct crypt_data *restrict __data;
+_ufc_dofinalperm_r (ufc_long *res, struct crypt_data *restrict __data)
 {
   ufc_long v1, v2, x;
   ufc_long l1, l2, r1, r2;
@@ -709,10 +701,8 @@ _ufc_dofinalperm_r (res, __data)
  */
 
 void
-_ufc_output_conversion_r (v1, v2, salt, __data)
-     ufc_long v1, v2;
-     const char *salt;
-     struct crypt_data *restrict __data;
+_ufc_output_conversion_r (ufc_long v1, ufc_long v2, const char *salt,
+                          struct crypt_data *restrict __data)
 {
   int i, s, shf;
 
