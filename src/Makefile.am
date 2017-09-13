@@ -24,16 +24,27 @@ noinst_HEADERS = crypt-obsolete.h libc-symbols.h \
 libxcrypt_la_LDFLAGS = -version-info 2:0:0 \
 			-Wl,--version-script=$(srcdir)/libxcrypt.map \
 			-Wl,-z,defs -Wl,-z,text
-libxcrypt_la_LIBADD = -lpthread
 
 lib_LTLIBRARIES = libxcrypt.la
 
 libxcrypt_la_SOURCES = \
 	xcrypt.c xcrypt-gensalt.c bcrypt.c sha256.c sha256-crypt.c \
 	sha512.c sha512-crypt.c md5.c md5-crypt.c \
-	des.c des-crypt.c des-obsolete.c
+	des.c des-crypt.c des-tables.c des-obsolete.c
 
-noinst_PROGRAMS = $(TESTS)
+nodist_libxcrypt_la_SOURCES = \
+	des-tables2.c
+
+CLEANFILES += des-tables2.c
+
+des-tables2.c: des-mktables
+	./des-mktables > des-tables2.c.T
+	-mv -f des-tables2.c.T des-tables2.c
+
+noinst_PROGRAMS = $(TESTS) des-mktables
+
+des_mktables_SOURCES = des-mktables.c
+des_mktables_LDADD = des-tables.lo
 
 test_bcrypt_LDADD = libxcrypt.la
 test_bigcrypt_LDADD = libxcrypt.la

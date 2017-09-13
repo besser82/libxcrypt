@@ -25,6 +25,12 @@
 #define CRYPT_OUTPUT_SIZE               (7 + 22 + 31 + 1)
 #define CRYPT_GENSALT_OUTPUT_SIZE       (7 + 22 + 1)
 
+/*
+ * For use by the old, non-reentrant routines
+ * (crypt/encrypt/setkey)
+ */
+struct crypt_data _ufc_foobar;
+
 char *
 _xcrypt_crypt_traditional_rn (const char *key, const char *salt,
                               char *data, size_t size)

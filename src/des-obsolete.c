@@ -85,24 +85,24 @@ __encrypt_r (char *__block, int __edflag,
   for (l1 = 0; i < 24; i++)
     {
       if (__block[initial_perm[esel[i] - 1] - 1])
-        l1 |= BITMASK[i];
+        l1 |= bitmask[i];
     }
   for (l2 = 0; i < 48; i++)
     {
       if (__block[initial_perm[esel[i] - 1] - 1])
-        l2 |= BITMASK[i - 24];
+        l2 |= bitmask[i - 24];
     }
 
   i = 0;
   for (r1 = 0; i < 24; i++)
     {
       if (__block[initial_perm[esel[i] - 1 + 32] - 1])
-        r1 |= BITMASK[i];
+        r1 |= bitmask[i];
     }
   for (r2 = 0; i < 48; i++)
     {
       if (__block[initial_perm[esel[i] - 1 + 32] - 1])
-        r2 |= BITMASK[i - 24];
+        r2 |= bitmask[i - 24];
     }
 
   /*

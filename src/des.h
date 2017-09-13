@@ -53,11 +53,24 @@ extern void _ufc_output_conversion_r (uint_fast32_t v1, uint_fast32_t v2,
                                       const char *salt,
                                       struct crypt_data *restrict __data);
 
+/* des-tables.c */
+extern const int pc1[56];
+extern const int rots[16];
+extern const int pc2[48];
 extern const int esel[48];
+extern const int perm32[32];
+extern const int sbox[8][4][16];
 extern const int initial_perm[64];
-extern const uint_fast32_t BITMASK[24];
+extern const int final_perm[64];
+extern const uint_fast32_t bitmask[24];
+extern const unsigned char bytemask[8];
 extern const uint_fast32_t longmask[32];
 
+/* des-tables2.c */
+extern const uint_fast32_t do_pc1[8][2][128];
+extern const uint_fast32_t do_pc2[8][128];
+extern const uint_fast32_t eperm32tab[4][256][2];
+extern const uint_fast32_t efp[16][64][2];
 
 /* des-obsolete.c */
 extern void __setkey_r (const char *__key,

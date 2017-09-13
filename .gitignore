@@ -32,14 +32,15 @@ Makefile.in
 
 # compiler output
 
-*test
 *.la
 *.lo
 *.log
 *.o
 *.so
 *.trs
-src/cert
+/src/test-*
+/src/des-mktables
+/src/des-tables2.c
 
 # backup-files
 
