@@ -29,9 +29,6 @@
 #include "md5.h"
 #include "xcrypt-private.h"
 
-#define MIN(a,b) (((a)<(b))?(a):(b))
-#define MAX(a,b) (((a)>(b))?(a):(b))
-
 /* Define our magic string to mark salt for MD5 "encryption"
    replacement.  This is meant to be the same as for other MD5 based
    encryption implementations.  */
@@ -41,12 +38,21 @@ static const char md5_salt_prefix[] = "$1$";
 static const char b64t[64] =
   "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
+/* The maximum length of an MD5 salt string (just the actual salt, not
+   the entire prefix).  */
+#define SALT_LEN_MAX 8
+
+/* The length of an MD5-hashed password string, including the
+   terminating NUL character.  Prefix (including its NUL) + 8 bytes of
+   salt + separator + 22 bytes of hashed password.  */
+static const size_t md5_hash_length =
+  sizeof (md5_salt_prefix) + SALT_LEN_MAX + 1 + 22;
 
 /* This entry point is equivalent to the `crypt' function in Unix
    libcs.  */
 char *
 _xcrypt_crypt_md5_rn (const char *key, const char *salt,
-                      char *buffer, size_t xbuflen)
+                      char *buffer, size_t buflen)
 {
   unsigned char alt_result[16]
     __attribute__ ((__aligned__ (__alignof__ (uint32_t))));
@@ -55,10 +61,16 @@ _xcrypt_crypt_md5_rn (const char *key, const char *salt,
   size_t salt_len;
   size_t key_len;
   size_t cnt;
-  ssize_t buflen = xbuflen;
   char *cp;
   char *copied_key = NULL;
   char *copied_salt = NULL;
+
+  if (buflen < md5_hash_length)
+    {
+      /* Not enough space to store the hashed password.  */
+      errno = ERANGE;
+      return 0;
+    }
 
   /* Find beginning of salt string.  The prefix should normally always
      be present.  Just in case it is not.  */
@@ -66,7 +78,9 @@ _xcrypt_crypt_md5_rn (const char *key, const char *salt,
     /* Skip salt prefix.  */
     salt += sizeof (md5_salt_prefix) - 1;
 
-  salt_len = MIN (strcspn (salt, "$"), 8);
+  salt_len = strcspn (salt, "$");
+  if (salt_len > SALT_LEN_MAX)
+    salt_len = SALT_LEN_MAX;
   key_len = strlen (key);
 
   if ((key - (char *) 0) % __alignof__ (uint32_t) != 0)
@@ -174,27 +188,21 @@ _xcrypt_crypt_md5_rn (const char *key, const char *salt,
     }
 
   /* Now we can construct the result string.  It consists of three
-     parts.  */
-  cp = __stpncpy (buffer, md5_salt_prefix, MAX (0, buflen));
-  buflen -= sizeof (md5_salt_prefix) - 1;
+     parts.  We already know that buflen is at least md5_hash_length.  */
+  memcpy (buffer, md5_salt_prefix, sizeof (md5_salt_prefix) - 1);
+  cp = buffer + sizeof (md5_salt_prefix) - 1;
 
-  cp = __stpncpy (cp, salt, MIN ((size_t) MAX (0, buflen), salt_len));
-  buflen -= MIN ((size_t) MAX (0, buflen), salt_len);
-
-  if (buflen > 0)
-    {
-      *cp++ = '$';
-      --buflen;
-    }
+  memcpy (cp, salt, salt_len);
+  cp += salt_len;
+  *cp++ = '$';
 
 #define b64_from_24bit(B2, B1, B0, N)                                         \
   do {                                                                        \
     unsigned int w = ((B2) << 16) | ((B1) << 8) | (B0);                       \
     int n = (N);                                                              \
-    while (n-- > 0 && buflen > 0)                                             \
+    while (n-- > 0)                                                           \
       {                                                                       \
         *cp++ = b64t[w & 0x3f];                                               \
-        --buflen;                                                             \
         w >>= 6;                                                              \
       }                                                                       \
   } while (0)
@@ -206,13 +214,8 @@ _xcrypt_crypt_md5_rn (const char *key, const char *salt,
   b64_from_24bit (alt_result[3], alt_result[9], alt_result[15], 4);
   b64_from_24bit (alt_result[4], alt_result[10], alt_result[5], 4);
   b64_from_24bit (0, 0, alt_result[11], 2);
-  if (buflen <= 0)
-    {
-      errno = ERANGE;
-      buffer = NULL;
-    }
-  else
-    *cp = '\0';                 /* Terminate the string.  */
+
+  *cp = '\0';
 
   /* Clear the buffer for the intermediate result so that people
      attaching to processes or reading core dumps cannot get any

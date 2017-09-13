@@ -46,6 +46,17 @@ static const char sha512_rounds_prefix[] = "rounds=";
 /* Maximum number of rounds.  */
 #define ROUNDS_MAX 999999999
 
+/* The maximum possible length of a SHA512-hashed password string,
+   including the terminating NUL character.  Prefix (including its NUL)
+   + rounds tag ("rounds=$" = "rounds=\0") + strlen(ROUNDS_MAX)
+   + salt (up to SALT_LEN_MAX chars) + '$' + hash (86 chars).  */
+
+#define LENGTH_OF_NUMBER(n) (sizeof #n - 1)
+
+static const size_t sha512_hash_length =
+  sizeof (sha512_salt_prefix) + sizeof (sha512_rounds_prefix) +
+  LENGTH_OF_NUMBER (ROUNDS_MAX) + SALT_LEN_MAX + 1 + 86;
+
 /* Table with characters for base64 transformation.  */
 static const char b64t[64] =
   "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -53,7 +64,7 @@ static const char b64t[64] =
 
 char *
 _xcrypt_crypt_sha512_rn (const char *key, const char *salt,
-                         char *buffer, size_t xbuflen)
+                         char *buffer, size_t buflen)
 {
   unsigned char alt_result[64]
     __attribute__ ((__aligned__ (__alignof__ (uint64_t))));
@@ -69,15 +80,20 @@ _xcrypt_crypt_sha512_rn (const char *key, const char *salt,
   char *copied_salt = NULL;
   char *p_bytes;
   char *s_bytes;
-  ssize_t buflen = xbuflen;
   /* Default number of rounds.  */
   size_t rounds = ROUNDS_DEFAULT;
   bool rounds_custom = false;
 
+  if (buflen < sha512_hash_length)
+    {
+      /* Not enough space to store the hashed password (in the worst case).  */
+      errno = ERANGE;
+      return 0;
+    }
+
   /* Find beginning of salt string.  The prefix should normally always
      be present.  Just in case it is not.  */
-  if (strncmp (sha512_salt_prefix, salt, sizeof (sha512_salt_prefix) - 1) ==
-      0)
+  if (strncmp (sha512_salt_prefix, salt, sizeof (sha512_salt_prefix) - 1) == 0)
     /* Skip salt prefix.  */
     salt += sizeof (sha512_salt_prefix) - 1;
 
@@ -225,36 +241,32 @@ _xcrypt_crypt_sha512_rn (const char *key, const char *salt,
       sha512_finish_ctx (&ctx, alt_result);
     }
 
-  /* Now we can construct the result string.  It consists of three
-     parts.  */
-  cp = __stpncpy (buffer, sha512_salt_prefix, MAX (0, buflen));
+  /* Now we can construct the result string.  It consists of four
+     parts, one of which is optional.  We already know that buflen is
+     at least sha512_hash_length, therefore none of the string bashing
+     below can overflow the buffer. */
+
+  memcpy (buffer, sha512_salt_prefix, sizeof (sha512_salt_prefix) - 1);
+  cp = buffer + sizeof (sha512_salt_prefix) - 1;
   buflen -= sizeof (sha512_salt_prefix) - 1;
 
   if (rounds_custom)
     {
-      int n = snprintf (cp, MAX (0, buflen), "%s%zu$",
-                        sha512_rounds_prefix, rounds);
+      int n = snprintf (cp, buflen, "%s%zu$", sha512_rounds_prefix, rounds);
       cp += n;
-      buflen -= n;
     }
 
-  cp = __stpncpy (cp, salt, MIN ((size_t) MAX (0, buflen), salt_len));
-  buflen -= MIN ((size_t) MAX (0, buflen), salt_len);
-
-  if (buflen > 0)
-    {
-      *cp++ = '$';
-      --buflen;
-    }
+  memcpy (cp, salt, salt_len);
+  cp += salt_len;
+  *cp++ = '$';
 
 #define b64_from_24bit(B2, B1, B0, N)                                         \
   do {                                                                        \
     unsigned int w = ((B2) << 16) | ((B1) << 8) | (B0);                       \
     int n = (N);                                                              \
-    while (n-- > 0 && buflen > 0)                                             \
+    while (n-- > 0)                                                           \
       {                                                                       \
         *cp++ = b64t[w & 0x3f];                                               \
-        --buflen;                                                             \
         w >>= 6;                                                              \
       }                                                                       \
   } while (0)
@@ -282,13 +294,7 @@ _xcrypt_crypt_sha512_rn (const char *key, const char *salt,
   b64_from_24bit (alt_result[62], alt_result[20], alt_result[41], 4);
   b64_from_24bit (0, 0, alt_result[63], 2);
 
-  if (buflen <= 0)
-    {
-      errno = ERANGE;
-      buffer = NULL;
-    }
-  else
-    *cp = '\0';                 /* Terminate the string.  */
+  *cp = '\0';
 
   /* Clear the buffer for the intermediate result so that people
      attaching to processes or reading core dumps cannot get any
