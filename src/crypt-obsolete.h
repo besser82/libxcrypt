@@ -39,11 +39,11 @@ extern void encrypt (char *__block, int __edflag)
   __THROW __nonnull ((1));
 
 extern void setkey_r (const char *__key,
-                      struct crypt_data *__restrict __data)
+                      struct crypt_data *restrict __data)
   __THROW __nonnull ((1, 2));
 
 extern void encrypt_r (char *__block, int __edflag,
-                       struct crypt_data *__restrict __data)
+                       struct crypt_data *restrict __data)
   __THROW __nonnull ((1, 3));
 
 extern char *bigcrypt (const char *key, const char *salt)

@@ -55,7 +55,7 @@
  */
 char *
 __bigcrypt_r (const char *key, const char *salt,
-              struct crypt_data *__restrict data)
+              struct crypt_data *restrict data)
 {
   static char dec_c2_cryptbuf[CBUF_SIZE];       /* static storage area */
 

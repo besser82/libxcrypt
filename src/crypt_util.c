@@ -466,7 +466,7 @@ init_des_small_tables (void)
 
 void
 __init_des_r (__data)
-     struct crypt_data *__restrict __data;
+     struct crypt_data *restrict __data;
 {
   int sg;
 
@@ -609,8 +609,8 @@ shuffle_sb (k, saltbits)
 
 void
 _ufc_setup_salt_r (s, __data)
-     __const char *s;
-     struct crypt_data *__restrict __data;
+     const char *s;
+     struct crypt_data *restrict __data;
 {
   ufc_long i, j, saltbits;
 
@@ -659,7 +659,7 @@ _ufc_setup_salt_r (s, __data)
 }
 
 void
-_ufc_mk_keytab_r (const char *key, struct crypt_data *__restrict __data)
+_ufc_mk_keytab_r (const char *key, struct crypt_data *restrict __data)
 {
   ufc_long v1, v2, *k1;
   int i;
@@ -731,7 +731,7 @@ _ufc_mk_keytab_r (const char *key, struct crypt_data *__restrict __data)
 void
 _ufc_dofinalperm_r (res, __data)
      ufc_long *res;
-     struct crypt_data *__restrict __data;
+     struct crypt_data *restrict __data;
 {
   ufc_long v1, v2, x;
   ufc_long l1, l2, r1, r2;
@@ -802,8 +802,8 @@ _ufc_dofinalperm_r (res, __data)
 void
 _ufc_output_conversion_r (v1, v2, salt, __data)
      ufc_long v1, v2;
-     __const char *salt;
-     struct crypt_data *__restrict __data;
+     const char *salt;
+     struct crypt_data *restrict __data;
 {
   int i, s, shf;
 
@@ -838,7 +838,7 @@ _ufc_output_conversion_r (v1, v2, salt, __data)
 
 void
 __encrypt_r (char *__block, int __edflag,
-             struct crypt_data *__restrict __data)
+             struct crypt_data *restrict __data)
 {
   ufc_long l1, l2, r1, r2, res[4];
   int i;
@@ -941,20 +941,21 @@ __encrypt_r (char *__block, int __edflag,
 }
 
 weak_alias (__encrypt_r, encrypt_r)
-     extern void __encrypt (char *__block, int __edflag);
+extern void __encrypt (char *__block, int __edflag);
 
-     void __encrypt (char *__block, int __edflag)
+void __encrypt (char *__block, int __edflag)
 {
   __encrypt_r (__block, __edflag, &_ufc_foobar);
 }
 
 weak_alias (__encrypt, encrypt)
+
 /*
  * UNIX setkey function. Take a 64 bit DES
  * key and setup the machinery.
  */
-     void
-       __setkey_r (__const char *__key, struct crypt_data *__restrict __data)
+void
+__setkey_r (const char *__key, struct crypt_data *restrict __data)
 {
   int i, j;
   unsigned char c;
@@ -972,9 +973,9 @@ weak_alias (__encrypt, encrypt)
 }
 
 weak_alias (__setkey_r, setkey_r)
-     extern void __setkey (__const char *__key);
+extern void __setkey (const char *__key);
 
-     void __setkey (__const char *__key)
+void __setkey (const char *__key)
 {
   __setkey_r (__key, &_ufc_foobar);
 }

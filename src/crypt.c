@@ -39,7 +39,7 @@
 void
 _ufc_doit_r (itr, __data, res)
      ufc_long itr, *res;
-     struct crypt_data *__restrict __data;
+     struct crypt_data *restrict __data;
 {
   int i;
   long32 s, *k;
@@ -97,7 +97,7 @@ _ufc_doit_r (itr, __data, res)
 void
 _ufc_doit_r (itr, __data, res)
      ufc_long itr, *res;
-     struct crypt_data *__restrict __data;
+     struct crypt_data *restrict __data;
 {
   int i;
   long64 l, r, s, *k;

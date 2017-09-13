@@ -116,7 +116,7 @@ _xcrypt_get_hash (const char *salt)
 }
 
 static char *
-_xcrypt_retval_magic (char *retval, __const char *salt, char *output)
+_xcrypt_retval_magic (char *retval, const char *salt, char *output)
 {
   if (retval)
     return retval;
@@ -132,7 +132,7 @@ _xcrypt_retval_magic (char *retval, __const char *salt, char *output)
 }
 
 static char *
-_xcrypt_rn (__const char *key, __const char *salt, char *data, size_t size)
+_xcrypt_rn (const char *key, const char *salt, char *data, size_t size)
 {
   const struct hashfn *h = _xcrypt_get_hash (salt);
   if (!h)
@@ -165,26 +165,26 @@ crypt_ra (const char *key, const char *salt, void **data, int *size)
 }
 
 char *
-crypt_r (__const char *key, __const char *salt, struct crypt_data *data)
+crypt_r (const char *key, const char *salt, struct crypt_data *data)
 {
   return crypt_rn (key, salt, (char *) data, sizeof (*data));
 }
 
 char *
-crypt (__const char *key, __const char *salt)
+crypt (const char *key, const char *salt)
 {
   return crypt_rn (key, salt, (char *) &_ufc_foobar, sizeof (_ufc_foobar));
 }
 
 char *
-bigcrypt (__const char *key, __const char *salt)
+bigcrypt (const char *key, const char *salt)
 {
   return __bigcrypt_r (key, salt, &_ufc_foobar);
 }
 
 char *
-crypt_gensalt_rn (__const char *prefix, unsigned long count,
-                  __const char *input, int size, char *output,
+crypt_gensalt_rn (const char *prefix, unsigned long count,
+                  const char *input, int size, char *output,
                   int output_size)
 {
   const struct hashfn *h;
@@ -206,8 +206,8 @@ crypt_gensalt_rn (__const char *prefix, unsigned long count,
 }
 
 char *
-crypt_gensalt_r (__const char *prefix, unsigned long count,
-                 __const char *input, int size, char *output, int output_size)
+crypt_gensalt_r (const char *prefix, unsigned long count,
+                 const char *input, int size, char *output, int output_size)
 {
   return crypt_gensalt_rn (prefix, count, input, size, output, output_size);
 }
@@ -225,8 +225,8 @@ crypt_gensalt_ra (const char *prefix, unsigned long count,
 }
 
 char *
-crypt_gensalt (__const char *prefix, unsigned long count,
-               __const char *input, int size)
+crypt_gensalt (const char *prefix, unsigned long count,
+               const char *input, int size)
 {
   static char output[CRYPT_GENSALT_OUTPUT_SIZE];
 

@@ -30,27 +30,27 @@
 #include "ufc-crypt.h"
 
 /* crypt.c */
-extern void _ufc_doit_r (ufc_long itr, struct crypt_data *__restrict __data,
+extern void _ufc_doit_r (ufc_long itr, struct crypt_data *restrict __data,
                          ufc_long * res);
 
 
 /* crypt_util.c */
-extern void __init_des_r (struct crypt_data *__restrict __data);
+extern void __init_des_r (struct crypt_data *restrict __data);
 extern void __init_des (void);
 
-extern void _ufc_setup_salt_r (__const char *s,
-                               struct crypt_data *__restrict __data);
-extern void _ufc_mk_keytab_r (__const char *key,
-                              struct crypt_data *__restrict __data);
+extern void _ufc_setup_salt_r (const char *s,
+                               struct crypt_data *restrict __data);
+extern void _ufc_mk_keytab_r (const char *key,
+                              struct crypt_data *restrict __data);
 extern void _ufc_dofinalperm_r (ufc_long * res,
-                                struct crypt_data *__restrict __data);
+                                struct crypt_data *restrict __data);
 extern void _ufc_output_conversion_r (ufc_long v1, ufc_long v2,
-                                      __const char *salt,
-                                      struct crypt_data *__restrict __data);
+                                      const char *salt,
+                                      struct crypt_data *restrict __data);
 
-extern void __setkey_r (__const char *__key,
-                        struct crypt_data *__restrict __data);
-extern void __encrypt_r (char *__restrict __block, int __edflag,
-                         struct crypt_data *__restrict __data);
+extern void __setkey_r (const char *__key,
+                        struct crypt_data *restrict __data);
+extern void __encrypt_r (char *restrict __block, int __edflag,
+                         struct crypt_data *restrict __data);
 
 #endif /* crypt-private.h */

@@ -19,7 +19,7 @@ TESTS = destest bigcrypt-test gensalt-test blowfish-test \
 include_HEADERS = crypt.h
 noinst_HEADERS = crypt-private.h libc-symbols.h ufc-crypt.h \
 	xcrypt-private.h md5.h sha256.h sha512.h \
-	crypt_blowfish.h ow-crypt.h crypt-obsolete.h
+	crypt_blowfish.h crypt-obsolete.h
 
 libxcrypt_la_LDFLAGS = -version-info 2:0:0 \
 			-Wl,--version-script=$(srcdir)/libxcrypt.map \

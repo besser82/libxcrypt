@@ -58,7 +58,7 @@ struct crypt_data
 };
 
 extern char *crypt_r (const char *__key, const char *__salt,
-                      struct crypt_data *__restrict __data)
+                      struct crypt_data *restrict __data)
   __THROW __nonnull ((1, 2, 3));
 
 extern char *crypt_rn (const char *__key, const char *__salt,
