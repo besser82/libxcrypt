@@ -17,7 +17,7 @@ struct testcase
   unsigned int expected_len;
 };
 
-const struct testcase testcases[] = {
+static const struct testcase testcases[] = {
   { "", 2 }, // DES
   { "_", 9 }, // BSDi extended DES
   { "$1$", 11 }, // MD5

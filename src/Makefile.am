@@ -13,8 +13,9 @@ CLEANFILES = *~
 
 EXTRA_DIST = libxcrypt.map
 
-TESTS = destest bigcrypt-test gensalt-test blowfish-test \
-	md5test md5c-test sha256test sha256c-test sha512test sha512c-test
+TESTS = test-bcrypt test-bigcrypt test-des test-gensalt test-md5	\
+	test-md5-crypt test-sha256 test-sha256-crypt test-sha512	\
+	test-sha512-crypt
 
 include_HEADERS = crypt.h
 noinst_HEADERS = crypt-private.h libc-symbols.h ufc-crypt.h \
@@ -33,17 +34,16 @@ libxcrypt_la_SOURCES = \
 	crypt_blowfish.c md5.c md5-crypt.c sha256.c sha256-crypt.c \
 	sha512.c sha512-crypt.c
 
-noinst_PROGRAMS = destest bigcrypt-test gensalt-test blowfish-test \
-	md5test md5c-test sha256test sha256c-test sha512test sha512c-test
+noinst_PROGRAMS = $(TESTS)
 
-destest_LDADD = libxcrypt.la
-bigcrypt_test_LDADD = libxcrypt.la
-gensalt_test_LDADD = libxcrypt.la
-blowfish_test_LDADD = libxcrypt.la
-md5c_test_LDADD = libxcrypt.la
-sha256c_test_LDADD = libxcrypt.la
-sha512c_test_LDADD = libxcrypt.la
+test_bcrypt_LDADD = libxcrypt.la
+test_bigcrypt_LDADD = libxcrypt.la
+test_des_LDADD = libxcrypt.la
+test_gensalt_LDADD = libxcrypt.la
+test_md5_crypt_LDADD = libxcrypt.la
+test_sha256_crypt_LDADD = libxcrypt.la
+test_sha512_crypt_LDADD = libxcrypt.la
 
-md5test_LDADD = md5.lo
-sha256test_LDADD = sha256.lo
-sha512test_LDADD = sha512.lo
+test_md5_LDADD = md5.lo
+test_sha256_LDADD = sha256.lo
+test_sha512_LDADD = sha512.lo
