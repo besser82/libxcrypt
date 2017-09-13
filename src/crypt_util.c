@@ -24,42 +24,18 @@
  *
  */
 
-
-#ifdef DEBUG
-#include <stdio.h>
-#endif
 #include <string.h>
-
 #include <pthread.h>
 
-#ifndef STATIC
-#define STATIC static
-#endif
-
-#ifndef DOS
 #include "ufc-crypt.h"
-#else
-/*
- * Thanks to greg%wind@plains.NoDak.edu (Greg W. Wettstein)
- * for DOS patches
- */
-#include "pl.h"
-#include "ufc.h"
-#endif
 #include "xcrypt-private.h"
-#include "crypt-private.h"
+
 
 /* Prototypes for local functions.  */
-#if __STDC__ - 0
-#ifndef __GNU_LIBRARY__
-void _ufc_clearmem (char *start, int cnt);
-void _ufc_copymem (char *from, char *to, int cnt);
-#endif
 #ifdef _UFC_32_
-STATIC void shuffle_sb (long32 * k, ufc_long saltbits);
+static void shuffle_sb (long32 * k, ufc_long saltbits);
 #else
-STATIC void shuffle_sb (long64 * k, ufc_long saltbits);
-#endif
+static void shuffle_sb (long64 * k, ufc_long saltbits);
 #endif
 
 
@@ -264,73 +240,6 @@ static ufc_long efp[16][64][2];
  */
 struct crypt_data _ufc_foobar;
 
-#ifdef DEBUG
-
-void
-_ufc_prbits (a, n)
-     ufc_long *a;
-     int n;
-{
-  ufc_long i, j, t, tmp;
-  n /= 8;
-  for (i = 0; i < n; i++)
-    {
-      tmp = 0;
-      for (j = 0; j < 8; j++)
-        {
-          t = 8 * i + j;
-          tmp |= (a[t / 24] & BITMASK[t % 24]) ? bytemask[j] : 0;
-        }
-      (void) printf ("%02x ", tmp);
-    }
-  printf (" ");
-}
-
-static void
-_ufc_set_bits (v, b)
-     ufc_long v;
-     ufc_long *b;
-{
-  ufc_long i;
-  *b = 0;
-  for (i = 0; i < 24; i++)
-    {
-      if (v & longmask[8 + i])
-        *b |= BITMASK[i];
-    }
-}
-
-#endif
-
-#if 0
-/*
- * Silly rewrites of 'bzero'/'memset'. I do so
- * because some machines don't have
- * bzero and some don't have memset.
- */
-
-void
-_ufc_clearmem (start, cnt)
-     char *start;
-     int cnt;
-{
-  while (cnt--)
-    *start++ = '\0';
-}
-
-void
-_ufc_copymem (from, to, cnt)
-     char *from, *to;
-     int cnt;
-{
-  while (cnt--)
-    *to++ = *from++;
-}
-#else
-#define _ufc_clearmem(start, cnt)   memset(start, 0, cnt)
-#define _ufc_copymem(from, to, cnt) memcpy(to, from, cnt)
-#endif
-
 /* lookup a 6 bit value in sbox */
 
 #define s_lookup(i,s) sbox[(i)][(((s)>>4) & 0x2)|((s) & 0x1)][((s)>>1) & 0xf];
@@ -350,7 +259,7 @@ init_des_small_tables (void)
    * to affect pc1 permutation
    * when generating keys
    */
-  _ufc_clearmem ((char *) do_pc1, (int) sizeof (do_pc1));
+  memset (do_pc1, 0, sizeof (do_pc1));
   for (bit = 0; bit < 56; bit++)
     {
       ufc_long mask1, mask2;
@@ -370,7 +279,7 @@ init_des_small_tables (void)
    * to affect pc2 permutation when
    * generating keys
    */
-  _ufc_clearmem ((char *) do_pc2, (int) sizeof (do_pc2));
+  memset (do_pc2, 0, sizeof (do_pc2));
   for (bit = 0; bit < 48; bit++)
     {
       ufc_long mask1, mask2;
@@ -397,7 +306,7 @@ init_des_small_tables (void)
    *
    */
 
-  _ufc_clearmem ((char *) eperm32tab, (int) sizeof (eperm32tab));
+  memset (eperm32tab, 0, sizeof (eperm32tab));
   for (bit = 0; bit < 48; bit++)
     {
       ufc_long mask, comes_from;
@@ -424,7 +333,7 @@ init_des_small_tables (void)
    * create efp: the matrix used to
    * undo the E expansion and effect final permutation
    */
-  _ufc_clearmem ((char *) efp, (int) sizeof efp);
+  memset (efp, 0, sizeof efp);
   for (bit = 0; bit < 64; bit++)
     {
       int o_bit, o_long;
@@ -501,10 +410,10 @@ __init_des_r (__data)
    *
    */
 
-  _ufc_clearmem ((char *) __data->sb0, (int) sizeof (__data->sb0));
-  _ufc_clearmem ((char *) __data->sb1, (int) sizeof (__data->sb1));
-  _ufc_clearmem ((char *) __data->sb2, (int) sizeof (__data->sb2));
-  _ufc_clearmem ((char *) __data->sb3, (int) sizeof (__data->sb3));
+  memset (__data->sb0, 0, sizeof (__data->sb0));
+  memset (__data->sb1, 0, sizeof (__data->sb1));
+  memset (__data->sb2, 0, sizeof (__data->sb2));
+  memset (__data->sb3, 0, sizeof (__data->sb3));
 
   for (sg = 0; sg < 4; sg++)
     {
@@ -570,7 +479,7 @@ __init_des ()
  */
 
 #ifdef _UFC_32_
-STATIC void
+static void
 shuffle_sb (k, saltbits)
      long32 *k;
      ufc_long saltbits;
@@ -587,7 +496,7 @@ shuffle_sb (k, saltbits)
 #endif
 
 #ifdef _UFC_64_
-STATIC void
+static void
 shuffle_sb (k, saltbits)
      long64 *k;
      ufc_long saltbits;
