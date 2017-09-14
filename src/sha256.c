@@ -26,11 +26,6 @@
 #include <string.h>
 
 
-/* This array contains the bytes used to pad the buffer to the next
-   64-byte boundary.  (FIPS 180-2:5.1.1)  */
-static const unsigned char fillbuf[64] = { 0x80, 0 /* , 0, 0, ...  */  };
-
-
 /* Constants for SHA256 from FIPS 180-2:4.2.2.  */
 static const uint32_t K[64] = {
   0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
@@ -58,7 +53,7 @@ static void
 sha256_process_block (const void *buffer, size_t len, struct sha256_ctx *ctx)
 {
   unsigned int t;
-  const char *p = buffer;
+  const unsigned char *p = buffer;
   size_t nwords = len / sizeof (uint32_t);
   uint32_t a = ctx->H[0];
   uint32_t b = ctx->H[1];
@@ -180,13 +175,16 @@ sha256_finish_ctx (struct sha256_ctx *ctx, void *resbuf)
   uint32_t bytes = ctx->buflen;
   size_t pad;
   unsigned int i;
-  char *rp = resbuf;
+  unsigned char *rp = resbuf;
 
   /* Now count remaining bytes.  */
   ctx->total += bytes;
 
   pad = bytes >= 56 ? 64 + 56 - bytes : 56 - bytes;
-  memcpy (&ctx->buffer[bytes], fillbuf, pad);
+  /* The first byte of padding should be 0x80 and the rest should be
+     zero.  (FIPS 180-2:5.1.1) */
+  ctx->buffer[bytes] = 0x80u;
+  memset (&ctx->buffer[bytes+1], 0x00, pad-1);
 
   /* Put the 64-bit file length in big-endian *bits* at the end of the
      buffer.  */

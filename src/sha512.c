@@ -26,11 +26,6 @@
 #include <string.h>
 
 
-/* This array contains the bytes used to pad the buffer to the next
-   64-byte boundary.  (FIPS 180-2:5.1.2)  */
-static const unsigned char fillbuf[128] = { 0x80, 0 /* , 0, 0, ...  */  };
-
-
 /* Constants for SHA512 from FIPS 180-2:4.2.3.  */
 static const uint64_t K[80] = {
   UINT64_C (0x428a2f98d728ae22), UINT64_C (0x7137449123ef65cd),
@@ -82,7 +77,7 @@ static void
 sha512_process_block (const void *buffer, size_t len, struct sha512_ctx *ctx)
 {
   unsigned int t;
-  const char *p = buffer;
+  const unsigned char *p = buffer;
   size_t nwords = len / sizeof (uint64_t);
   uint64_t a = ctx->H[0];
   uint64_t b = ctx->H[1];
@@ -208,7 +203,7 @@ sha512_finish_ctx (struct sha512_ctx *ctx, void *resbuf)
   uint64_t bytes = ctx->buflen;
   size_t pad;
   unsigned int i;
-  char *rp = resbuf;
+  unsigned char *rp = resbuf;
 
   /* Now count remaining bytes.  */
   ctx->total[0] += bytes;
@@ -216,7 +211,10 @@ sha512_finish_ctx (struct sha512_ctx *ctx, void *resbuf)
     ++ctx->total[1];
 
   pad = bytes >= 112 ? 128 + 112 - bytes : 112 - bytes;
-  memcpy (&ctx->buffer[bytes], fillbuf, pad);
+  /* The first byte of padding should be 0x80 and the rest should be
+     zero.  (FIPS 180-2:5.1.2) */
+  ctx->buffer[bytes] = 0x80u;
+  memset (&ctx->buffer[bytes+1], 0x00, pad-1);
 
   /* Put the 128-bit file length in big-endian *bits* at the end of
      the buffer.  */

@@ -23,13 +23,13 @@
 struct test_32
 {
   uint32_t val;
-  char bytes[4];
+  unsigned char bytes[4];
 };
 
 struct test_64
 {
   uint64_t val;
-  char bytes[8];
+  unsigned char bytes[8];
 };
 
 #define Z(x) ((unsigned int)(unsigned char)(x)) /* zero extend char */
@@ -48,7 +48,7 @@ test_le32 (void)
   size_t n_cases = sizeof cases / sizeof cases[0];
   size_t i;
   uint32_t v;
-  char x[4];
+  unsigned char x[4];
   int status = 0;
 
   for (i = 0; i < n_cases; i++)
@@ -94,7 +94,7 @@ test_be32 (void)
   size_t n_cases = sizeof cases / sizeof cases[0];
   size_t i;
   uint32_t v;
-  char x[4];
+  unsigned char x[4];
   int status = 0;
 
   for (i = 0; i < n_cases; i++)
@@ -144,7 +144,7 @@ test_le64 (void)
   size_t n_cases = sizeof cases / sizeof cases[0];
   size_t i;
   uint64_t v;
-  char x[8];
+  unsigned char x[8];
   int status = 0;
 
   for (i = 0; i < n_cases; i++)
@@ -200,7 +200,7 @@ test_be64 (void)
   size_t n_cases = sizeof cases / sizeof cases[0];
   size_t i;
   uint64_t v;
-  char x[8];
+  unsigned char x[8];
   int status = 0;
 
   for (i = 0; i < n_cases; i++)

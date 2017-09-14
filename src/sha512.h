@@ -31,7 +31,7 @@ struct sha512_ctx
 
   uint64_t total[2];
   uint64_t buflen;
-  char buffer[256];
+  unsigned char buffer[256];
 };
 
 /* Initialize structure containing state of computation.

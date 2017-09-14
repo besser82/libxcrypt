@@ -27,10 +27,6 @@
 #include <string.h>
 
 
-/* This array contains the bytes used to pad the buffer to the next
-   64-byte boundary.  (RFC 1321, 3.1: Step 1)  */
-static const unsigned char fillbuf[64] = { 0x80, 0 /* , 0, 0, ...  */  };
-
 static void md5_process_block (const void *buffer, size_t len,
                                struct md5_ctx *ctx);
 
@@ -53,7 +49,7 @@ md5_init_ctx (struct md5_ctx *ctx)
 static void *
 md5_read_ctx (const struct md5_ctx *ctx, void *resbuf)
 {
-  char *buf = resbuf;
+  unsigned char *buf = resbuf;
   cpu_to_le32 (buf +  0, ctx->A);
   cpu_to_le32 (buf +  4, ctx->B);
   cpu_to_le32 (buf +  8, ctx->C);
@@ -75,7 +71,11 @@ md5_finish_ctx (struct md5_ctx *ctx, void *resbuf)
   ctx->total += bytes;
 
   pad = bytes >= 56 ? 64 + 56 - bytes : 56 - bytes;
-  memcpy (&ctx->buffer[bytes], fillbuf, pad);
+
+  /* The first byte of padding should be 0x80 and the rest should be
+     zero.  (RFC 1321, 3.1: Step 1) */
+  ctx->buffer[bytes] = 0x80u;
+  memset (&ctx->buffer[bytes+1], 0x00, pad-1);
 
   /* Put the 64-bit file length in little-endian *bits* at the end of
      the buffer.  */
@@ -157,8 +157,8 @@ static void
 md5_process_block (const void *buffer, size_t len, struct md5_ctx *ctx)
 {
   uint32_t correct_words[16];
-  const char *p = buffer;
-  const char *endp = p + len;
+  const unsigned char *p = buffer;
+  const unsigned char *endp = p + len;
   uint32_t A = ctx->A;
   uint32_t B = ctx->B;
   uint32_t C = ctx->C;
