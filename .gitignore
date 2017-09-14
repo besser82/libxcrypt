@@ -38,7 +38,17 @@ Makefile.in
 *.o
 *.so
 *.trs
-/src/test-*
+/src/test-bcrypt
+/src/test-bigcrypt
+/src/test-byteorder
+/src/test-des
+/src/test-gensalt
+/src/test-md5
+/src/test-md5-crypt
+/src/test-sha256
+/src/test-sha256-crypt
+/src/test-sha512
+/src/test-sha512-crypt
 /src/des-mktables
 /src/des-tables2.c
 

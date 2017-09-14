@@ -1,5 +1,7 @@
-#include <string.h>
 #include "sha256.h"
+
+#include <string.h>
+#include <stdio.h>
 
 static const struct
 {
@@ -28,9 +30,6 @@ static const struct
     { "abcdefghijklmnopqrstuvwxyz",
       "\x71\xc4\x80\xdf\x93\xd6\xae\x2f\x1e\xfa\xd1\x44\x7c\x66\xc9\x52"
       "\x5e\x31\x62\x18\xcf\x51\xfc\x8d\x9e\xd8\x32\xf2\xda\xf1\x8b\x73" },
-    { "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
-      "\x24\x8d\x6a\x61\xd2\x06\x38\xb8\xe5\xc0\x26\x93\x0c\x3e\x60\x39"
-      "\xa3\x3c\xe4\x59\x64\xff\x21\x67\xf6\xec\xed\xd4\x19\xdb\x06\xc1" },
     { "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
       "\xdb\x4b\xfc\xbd\x4d\xa0\xcd\x85\xa6\x0c\x3c\x37\xd3\xfb\xd8\x80"
       "\x5c\x77\xf1\x5f\xc6\xb1\xfd\xfe\x61\x4e\xe0\xa7\xc8\xfd\xb4\xc0" },
@@ -40,6 +39,29 @@ static const struct
       "\x2b\x60\x02\x6c\x8e\x93\x55\x92\xd0\xf9\xc3\x08\x45\x3c\x81\x3e" }
   };
 
+
+static void
+report_failure(int n, const char *tag,
+               const char expected[32], const char actual[32])
+{
+  int i;
+  printf ("FAIL: test %d (%s):\n  exp:", n, tag);
+  for (i = 0; i < 32; i++)
+    {
+      if (i % 4 == 0)
+        putchar (' ');
+      printf ("%02x", (unsigned int)(unsigned char)expected[i]);
+    }
+  printf ("\n  got:");
+  for (i = 0; i < 32; i++)
+    {
+      if (i % 4 == 0)
+        putchar (' ');
+      printf ("%02x", (unsigned int)(unsigned char)actual[i]);
+    }
+  putchar ('\n');
+  putchar ('\n');
+}
 
 int
 main (void)
@@ -58,7 +80,7 @@ main (void)
       sha256_finish_ctx (&ctx, sum);
       if (memcmp (tests[cnt].result, sum, 32) != 0)
         {
-          printf ("test %d run %d failed\n", cnt, 1);
+          report_failure (cnt, "all at once", tests[cnt].result, sum);
           result = 1;
         }
 
@@ -68,7 +90,7 @@ main (void)
       sha256_finish_ctx (&ctx, sum);
       if (memcmp (tests[cnt].result, sum, 32) != 0)
         {
-          printf ("test %d run %d failed\n", cnt, 2);
+          report_failure (cnt, "byte by byte", tests[cnt].result, sum);
           result = 1;
         }
     }
@@ -85,7 +107,7 @@ main (void)
     "\xf1\x80\x9a\x48\xa4\x97\x20\x0e\x04\x6d\x39\xcc\xc7\x11\x2c\xd0";
   if (memcmp (expected, sum, 32) != 0)
     {
-      printf ("test %d failed\n", cnt);
+      report_failure (cnt, "block by block", expected, sum);
       result = 1;
     }
 

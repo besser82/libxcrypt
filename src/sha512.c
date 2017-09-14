@@ -20,26 +20,10 @@
 
 /* Written by Ulrich Drepper <drepper@redhat.com>, 2007.  */
 
-#include <endian.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-
 #include "sha512.h"
+#include "byteorder.h"
 
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-#define SWAP(n) \
-  (((n) << 56)                                  \
-   | (((n) & 0xff00) << 40)                     \
-   | (((n) & 0xff0000) << 24)                   \
-   | (((n) & 0xff000000) << 8)                  \
-   | (((n) >> 8) & 0xff000000)                  \
-   | (((n) >> 24) & 0xff0000)                   \
-   | (((n) >> 40) & 0xff00)                     \
-   | ((n) >> 56))
-#else
-#define SWAP(n) (n)
-#endif
+#include <string.h>
 
 
 /* This array contains the bytes used to pad the buffer to the next
@@ -98,7 +82,7 @@ static void
 sha512_process_block (const void *buffer, size_t len, struct sha512_ctx *ctx)
 {
   unsigned int t;
-  const uint64_t *words = buffer;
+  const char *p = buffer;
   size_t nwords = len / sizeof (uint64_t);
   uint64_t a = ctx->H[0];
   uint64_t b = ctx->H[1];
@@ -145,8 +129,8 @@ sha512_process_block (const void *buffer, size_t len, struct sha512_ctx *ctx)
       /* Compute the message schedule according to FIPS 180-2:6.3.2 step 2.  */
       for (t = 0; t < 16; ++t)
         {
-          W[t] = SWAP (*words);
-          ++words;
+          W[t] = be64_to_cpu (p);
+          p += 8;
         }
       for (t = 16; t < 80; ++t)
         W[t] = R1 (W[t - 2]) + W[t - 7] + R0 (W[t - 15]) + W[t - 16];
@@ -220,12 +204,11 @@ sha512_init_ctx (struct sha512_ctx *ctx)
 void *
 sha512_finish_ctx (struct sha512_ctx *ctx, void *resbuf)
 {
-  /* helper variable */
-  uint64_t *helper;
-
   /* Take yet unprocessed bytes into account.  */
   uint64_t bytes = ctx->buflen;
   size_t pad;
+  unsigned int i;
+  char *rp = resbuf;
 
   /* Now count remaining bytes.  */
   ctx->total[0] += bytes;
@@ -235,19 +218,19 @@ sha512_finish_ctx (struct sha512_ctx *ctx, void *resbuf)
   pad = bytes >= 112 ? 128 + 112 - bytes : 112 - bytes;
   memcpy (&ctx->buffer[bytes], fillbuf, pad);
 
-  /* Put the 128-bit file length in *bits* at the end of the buffer.  */
-  helper = (uint64_t *) & ctx->buffer[bytes + pad + 8];
-  *helper = SWAP (ctx->total[0] << 3);
-  helper = (uint64_t *) & ctx->buffer[bytes + pad];
-  *helper = SWAP ((ctx->total[1] << 3) | (ctx->total[0] >> 61));
+  /* Put the 128-bit file length in big-endian *bits* at the end of
+     the buffer.  */
+  cpu_to_be64 (&ctx->buffer[bytes + pad],
+               (ctx->total[1] << 3) | (ctx->total[0] >> 61));
+  cpu_to_be64 (&ctx->buffer[bytes + pad + 8],
+               ctx->total[0] << 3);
 
   /* Process last bytes.  */
   sha512_process_block (ctx->buffer, bytes + pad + 16, ctx);
 
   /* Put result from CTX in first 64 bytes following RESBUF.  */
-  unsigned int i;
   for (i = 0; i < 8; ++i)
-    ((uint64_t *) resbuf)[i] = SWAP (ctx->H[i]);
+    cpu_to_be64 (rp + i*8, ctx->H[i]);
 
   return resbuf;
 }
@@ -281,12 +264,11 @@ sha512_process_bytes (const void *buffer, size_t len, struct sha512_ctx *ctx)
     }
 
   /* Process available complete blocks.  */
-  while (len > 128)
+  if (len > 128)
     {
-      sha512_process_block (memcpy (ctx->buffer, buffer, 128), 128,
-                            ctx);
-      buffer = (const char *) buffer + 128;
-      len -= 128;
+      sha512_process_block (buffer, len & ~127, ctx);
+      buffer = (const char *) buffer + (len & ~127);
+      len &= 127;
     }
 
   /* Move remaining bytes into internal buffer.  */

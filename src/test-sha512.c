@@ -1,5 +1,7 @@
-#include <string.h>
 #include "sha512.h"
+
+#include <stdio.h>
+#include <string.h>
 
 static const struct
 {
@@ -60,6 +62,33 @@ static const struct
   };
 
 
+static void
+report_failure(int n, const char *tag,
+               const char expected[64], const char actual[64])
+{
+  int i;
+  printf ("FAIL: test %d (%s):\n  exp:", n, tag);
+  for (i = 0; i < 64; i++)
+    {
+      if (i == 32)
+        printf ("\n         ");
+      else if (i % 4 == 0)
+        putchar (' ');
+      printf ("%02x", (unsigned int)(unsigned char)expected[i]);
+    }
+  printf ("\n  got:");
+  for (i = 0; i < 64; i++)
+    {
+      if (i == 32)
+        printf ("\n         ");
+      else if (i % 4 == 0)
+        putchar (' ');
+      printf ("%02x", (unsigned int)(unsigned char)actual[i]);
+    }
+  putchar ('\n');
+  putchar ('\n');
+}
+
 int
 main (void)
 {
@@ -77,7 +106,7 @@ main (void)
       sha512_finish_ctx (&ctx, sum);
       if (memcmp (tests[cnt].result, sum, 64) != 0)
         {
-          printf ("test %d run %d failed\n", cnt, 1);
+          report_failure (cnt, "all at once", tests[cnt].result, sum);
           result = 1;
         }
 
@@ -87,7 +116,7 @@ main (void)
       sha512_finish_ctx (&ctx, sum);
       if (memcmp (tests[cnt].result, sum, 64) != 0)
         {
-          printf ("test %d run %d failed\n", cnt, 2);
+          report_failure (cnt, "byte by byte", tests[cnt].result, sum);
           result = 1;
         }
     }
@@ -106,7 +135,7 @@ main (void)
     "\xeb\x00\x9c\x5c\x2c\x49\xaa\x2e\x4e\xad\xb2\x17\xad\x8c\xc0\x9b";
   if (memcmp (expected, sum, 64) != 0)
     {
-      printf ("test %d failed\n", cnt);
+      report_failure (cnt, "block by block", expected, sum);
       result = 1;
     }
 

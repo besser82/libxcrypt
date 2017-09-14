@@ -18,14 +18,15 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
 
-#include <assert.h>
+#include "sha512.h"
+#include "xcrypt-private.h"
+
 #include <errno.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "sha512.h"
-#include "xcrypt-private.h"
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
@@ -66,10 +67,8 @@ char *
 _xcrypt_crypt_sha512_rn (const char *key, const char *salt,
                          char *buffer, size_t buflen)
 {
-  unsigned char alt_result[64]
-    __attribute__ ((__aligned__ (__alignof__ (uint64_t))));
-  unsigned char temp_result[64]
-    __attribute__ ((__aligned__ (__alignof__ (uint64_t))));
+  unsigned char alt_result[64];
+  unsigned char temp_result[64];
   struct sha512_ctx ctx;
   struct sha512_ctx alt_ctx;
   size_t salt_len;
@@ -113,25 +112,6 @@ _xcrypt_crypt_sha512_rn (const char *key, const char *salt,
 
   salt_len = MIN (strcspn (salt, "$"), SALT_LEN_MAX);
   key_len = strlen (key);
-
-  if ((key - (char *) 0) % __alignof__ (uint64_t) != 0)
-    {
-      char *tmp = (char *) alloca (key_len + __alignof__ (uint64_t));
-      key = copied_key =
-        memcpy (tmp + __alignof__ (uint64_t)
-                - (tmp - (char *) 0) % __alignof__ (uint64_t), key, key_len);
-      assert ((key - (char *) 0) % __alignof__ (uint64_t) == 0);
-    }
-
-  if ((salt - (char *) 0) % __alignof__ (uint64_t) != 0)
-    {
-      char *tmp = (char *) alloca (salt_len + __alignof__ (uint64_t));
-      salt = copied_salt =
-        memcpy (tmp + __alignof__ (uint64_t)
-                - (tmp - (char *) 0) % __alignof__ (uint64_t),
-                salt, salt_len);
-      assert ((salt - (char *) 0) % __alignof__ (uint64_t) == 0);
-    }
 
   /* Prepare for the real work.  */
   sha512_init_ctx (&ctx);

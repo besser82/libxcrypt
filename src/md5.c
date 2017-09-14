@@ -21,19 +21,10 @@
 
 /* Written by Ulrich Drepper <drepper@gnu.ai.mit.edu>, 1995.  */
 
-#include <endian.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-
 #include "md5.h"
+#include "byteorder.h"
 
-#if __BYTE_ORDER == __BIG_ENDIAN
-#define SWAP(n)                                                 \
-    (((n) << 24) | (((n) & 0xff00) << 8) | (((n) >> 8) & 0xff00) | ((n) >> 24))
-#else
-#define SWAP(n) (n)
-#endif
+#include <string.h>
 
 
 /* This array contains the bytes used to pad the buffer to the next
@@ -53,54 +44,42 @@ md5_init_ctx (struct md5_ctx *ctx)
   ctx->C = 0x98badcfe;
   ctx->D = 0x10325476;
 
-  ctx->total[0] = ctx->total[1] = 0;
+  ctx->total = 0;
   ctx->buflen = 0;
 }
 
 /* Put result from CTX in first 16 bytes following RESBUF.  The result
-   must be in little endian byte order.
-
-   IMPORTANT: On some systems it is required that RESBUF is correctly
-   aligned for a 32 bits value.  */
+   will be in little endian byte order.  */
 static void *
 md5_read_ctx (const struct md5_ctx *ctx, void *resbuf)
 {
-  ((uint32_t *) resbuf)[0] = SWAP (ctx->A);
-  ((uint32_t *) resbuf)[1] = SWAP (ctx->B);
-  ((uint32_t *) resbuf)[2] = SWAP (ctx->C);
-  ((uint32_t *) resbuf)[3] = SWAP (ctx->D);
-
+  char *buf = resbuf;
+  cpu_to_le32 (buf +  0, ctx->A);
+  cpu_to_le32 (buf +  4, ctx->B);
+  cpu_to_le32 (buf +  8, ctx->C);
+  cpu_to_le32 (buf + 12, ctx->D);
   return resbuf;
 }
 
 /* Process the remaining bytes in the internal buffer and the usual
-   prolog according to the standard and write the result to RESBUF.
+   prolog according to the standard and write the result to RESBUF.  */
 
-   IMPORTANT: On some systems it is required that RESBUF is correctly
-   aligned for a 32 bits value.  */
 void *
 md5_finish_ctx (struct md5_ctx *ctx, void *resbuf)
 {
-  /* helper variable */
-  uint32_t *helper;
-
   /* Take yet unprocessed bytes into account.  */
   uint32_t bytes = ctx->buflen;
   size_t pad;
 
   /* Now count remaining bytes.  */
-  ctx->total[0] += bytes;
-  if (ctx->total[0] < bytes)
-    ++ctx->total[1];
+  ctx->total += bytes;
 
   pad = bytes >= 56 ? 64 + 56 - bytes : 56 - bytes;
   memcpy (&ctx->buffer[bytes], fillbuf, pad);
 
-  /* Put the 64-bit file length in *bits* at the end of the buffer.  */
-  helper = (uint32_t *) & ctx->buffer[bytes + pad];
-  *helper = SWAP (ctx->total[0] << 3);
-  helper = (uint32_t *) & ctx->buffer[bytes + pad + 4];
-  *helper = SWAP ((ctx->total[1] << 3) | (ctx->total[0] >> 29));
+  /* Put the 64-bit file length in little-endian *bits* at the end of
+     the buffer.  */
+  cpu_to_le64 (&ctx->buffer[bytes + pad], ctx->total << 3);
 
   /* Process last bytes.  */
   md5_process_block (ctx->buffer, bytes + pad + 8, ctx);
@@ -137,11 +116,11 @@ md5_process_bytes (const void *buffer, size_t len, struct md5_ctx *ctx)
     }
 
   /* Process available complete blocks.  */
-  while (len > 64)
+  if (len > 64)
     {
-      md5_process_block (memcpy (ctx->buffer, buffer, 64), 64, ctx);
-      buffer = (const char *) buffer + 64;
-      len -= 64;
+      md5_process_block (buffer, len & ~63, ctx);
+      buffer = (const char *) buffer + (len & ~63);
+      len &= 63;
     }
 
   /* Move remaining bytes in internal buffer.  */
@@ -178,9 +157,8 @@ static void
 md5_process_block (const void *buffer, size_t len, struct md5_ctx *ctx)
 {
   uint32_t correct_words[16];
-  const uint32_t *words = buffer;
-  size_t nwords = len / sizeof (uint32_t);
-  const uint32_t *endp = words + nwords;
+  const char *p = buffer;
+  const char *endp = p + len;
   uint32_t A = ctx->A;
   uint32_t B = ctx->B;
   uint32_t C = ctx->C;
@@ -188,14 +166,12 @@ md5_process_block (const void *buffer, size_t len, struct md5_ctx *ctx)
 
   /* First increment the byte count.  RFC 1321 specifies the possible
      length of the file up to 2^64 bits.  Here we only compute the
-     number of bytes.  Do a double word increment.  */
-  ctx->total[0] += len;
-  if (ctx->total[0] < len)
-    ++ctx->total[1];
+     number of bytes.  */
+  ctx->total += len;
 
   /* Process all bytes in the buffer with 64 bytes in each round of
      the loop.  */
-  while (words < endp)
+  while (p < endp)
     {
       uint32_t *cwp = correct_words;
       uint32_t A_save = A;
@@ -213,8 +189,10 @@ md5_process_block (const void *buffer, size_t len, struct md5_ctx *ctx)
 #define OP(a, b, c, d, s, T)                                            \
       do                                                                \
         {                                                               \
-          a += FF (b, c, d) + (*cwp++ = SWAP (*words)) + T;             \
-          ++words;                                                      \
+          uint32_t word = le32_to_cpu (p);                              \
+          p += 4;                                                       \
+          *cwp++ = word;                                                \
+          a += FF (b, c, d) + word + T;                                 \
           CYCLIC (a, s);                                                \
           a += b;                                                       \
         }                                                               \

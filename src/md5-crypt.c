@@ -20,14 +20,12 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
 
-#include <assert.h>
-#include <errno.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "crypt.h"
 #include "md5.h"
 #include "xcrypt-private.h"
+
+#include <errno.h>
+#include <string.h>
+
 
 /* Define our magic string to mark salt for MD5 "encryption"
    replacement.  This is meant to be the same as for other MD5 based
@@ -54,8 +52,7 @@ char *
 _xcrypt_crypt_md5_rn (const char *key, const char *salt,
                       char *buffer, size_t buflen)
 {
-  unsigned char alt_result[16]
-    __attribute__ ((__aligned__ (__alignof__ (uint32_t))));
+  unsigned char alt_result[16];
   struct md5_ctx ctx;
   struct md5_ctx alt_ctx;
   size_t salt_len;
@@ -82,26 +79,6 @@ _xcrypt_crypt_md5_rn (const char *key, const char *salt,
   if (salt_len > SALT_LEN_MAX)
     salt_len = SALT_LEN_MAX;
   key_len = strlen (key);
-
-  if ((key - (char *) 0) % __alignof__ (uint32_t) != 0)
-    {
-      char *tmp = (char *) alloca (key_len + __alignof__ (uint32_t));
-      key = copied_key =
-        memcpy (tmp + __alignof__ (uint32_t)
-                - (tmp - (char *) 0) % __alignof__ (uint32_t),
-                key, key_len);
-      assert ((key - (char *) 0) % __alignof__ (uint32_t) == 0);
-    }
-
-  if ((salt - (char *) 0) % __alignof__ (uint32_t) != 0)
-    {
-      char *tmp = (char *) alloca (salt_len + __alignof__ (uint32_t));
-      salt = copied_salt =
-        memcpy (tmp + __alignof__ (uint32_t)
-                - (tmp - (char *) 0) % __alignof__ (uint32_t),
-                salt, salt_len);
-      assert ((salt - (char *) 0) % __alignof__ (uint32_t) == 0);
-    }
 
   /* Prepare for the real work.  */
   md5_init_ctx (&ctx);

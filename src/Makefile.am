@@ -13,12 +13,12 @@ CLEANFILES = *~
 
 EXTRA_DIST = libxcrypt.map
 
-TESTS = test-bcrypt test-bigcrypt test-des test-gensalt test-md5	\
-	test-md5-crypt test-sha256 test-sha256-crypt test-sha512	\
+TESTS = test-bcrypt test-bigcrypt test-byteorder test-des test-gensalt \
+	test-md5 test-md5-crypt test-sha256 test-sha256-crypt test-sha512 \
 	test-sha512-crypt
 
 include_HEADERS = crypt.h
-noinst_HEADERS = crypt-obsolete.h libc-symbols.h \
+noinst_HEADERS = byteorder.h crypt-obsolete.h libc-symbols.h \
 	xcrypt-private.h des.h md5.h sha256.h sha512.h bcrypt.h
 
 libxcrypt_la_LDFLAGS = -version-info 2:0:0 \

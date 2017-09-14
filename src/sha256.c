@@ -20,19 +20,10 @@
 
 /* Written by Ulrich Drepper <drepper@redhat.com>, 2007.  */
 
-#include <endian.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-
 #include "sha256.h"
+#include "byteorder.h"
 
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-#define SWAP(n) \
-    (((n) << 24) | (((n) & 0xff00) << 8) | (((n) >> 8) & 0xff00) | ((n) >> 24))
-#else
-#define SWAP(n) (n)
-#endif
+#include <string.h>
 
 
 /* This array contains the bytes used to pad the buffer to the next
@@ -67,7 +58,7 @@ static void
 sha256_process_block (const void *buffer, size_t len, struct sha256_ctx *ctx)
 {
   unsigned int t;
-  const uint32_t *words = buffer;
+  const char *p = buffer;
   size_t nwords = len / sizeof (uint32_t);
   uint32_t a = ctx->H[0];
   uint32_t b = ctx->H[1];
@@ -80,10 +71,8 @@ sha256_process_block (const void *buffer, size_t len, struct sha256_ctx *ctx)
 
   /* First increment the byte count.  FIPS 180-2 specifies the possible
      length of the file up to 2^64 bits.  Here we only compute the
-     number of bytes.  Do a double word increment.  */
-  ctx->total[0] += len;
-  if (ctx->total[0] < len)
-    ++ctx->total[1];
+     number of bytes.  */
+  ctx->total += len;
 
   /* Process all bytes in the buffer with 64 bytes in each round of
      the loop.  */
@@ -114,8 +103,8 @@ sha256_process_block (const void *buffer, size_t len, struct sha256_ctx *ctx)
       /* Compute the message schedule according to FIPS 180-2:6.2.2 step 2.  */
       for (t = 0; t < 16; ++t)
         {
-          W[t] = SWAP (*words);
-          ++words;
+          W[t] = be32_to_cpu (p);
+          p += 4;
         }
       for (t = 16; t < 64; ++t)
         W[t] = R1 (W[t - 2]) + W[t - 7] + R0 (W[t - 15]) + W[t - 16];
@@ -177,47 +166,38 @@ sha256_init_ctx (struct sha256_ctx *ctx)
   ctx->H[6] = 0x1f83d9ab;
   ctx->H[7] = 0x5be0cd19;
 
-  ctx->total[0] = ctx->total[1] = 0;
+  ctx->total = 0;
   ctx->buflen = 0;
 }
 
 
 /* Process the remaining bytes in the internal buffer and the usual
-   prolog according to the standard and write the result to RESBUF.
-
-   IMPORTANT: On some systems it is required that RESBUF is correctly
-   aligned for a 32 bits value.  */
+   prolog according to the standard and write the result to RESBUF.  */
 void *
 sha256_finish_ctx (struct sha256_ctx *ctx, void *resbuf)
 {
-  /* helper variable */
-  uint32_t *helper;
-
   /* Take yet unprocessed bytes into account.  */
   uint32_t bytes = ctx->buflen;
   size_t pad;
+  unsigned int i;
+  char *rp = resbuf;
 
   /* Now count remaining bytes.  */
-  ctx->total[0] += bytes;
-  if (ctx->total[0] < bytes)
-    ++ctx->total[1];
+  ctx->total += bytes;
 
   pad = bytes >= 56 ? 64 + 56 - bytes : 56 - bytes;
   memcpy (&ctx->buffer[bytes], fillbuf, pad);
 
-  /* Put the 64-bit file length in *bits* at the end of the buffer.  */
-  helper = (uint32_t *) & ctx->buffer[bytes + pad + 4];
-  *helper = SWAP (ctx->total[0] << 3);
-  helper = (uint32_t *) & ctx->buffer[bytes + pad];
-  *helper = SWAP ((ctx->total[1] << 3) | (ctx->total[0] >> 29));
+  /* Put the 64-bit file length in big-endian *bits* at the end of the
+     buffer.  */
+  cpu_to_be64 (&ctx->buffer[bytes + pad], ctx->total << 3);
 
   /* Process last bytes.  */
   sha256_process_block (ctx->buffer, bytes + pad + 8, ctx);
 
   /* Put result from CTX in first 32 bytes following RESBUF.  */
-  unsigned int i;
-  for (i = 0; i < 8; ++i)
-    ((uint32_t *) resbuf)[i] = SWAP (ctx->H[i]);
+  for (i = 0; i < 8; i++)
+    cpu_to_be32 (rp + i*4, ctx->H[i]);
 
   return resbuf;
 }
@@ -251,11 +231,11 @@ sha256_process_bytes (const void *buffer, size_t len, struct sha256_ctx *ctx)
     }
 
   /* Process available complete blocks.  */
-  while (len > 64)
+   if (len > 64)
     {
-      sha256_process_block (memcpy (ctx->buffer, buffer, 64), 64, ctx);
-      buffer = (const char *) buffer + 64;
-      len -= 64;
+      sha256_process_block (buffer, len & ~63, ctx);
+      buffer = (const char *) buffer + (len & ~63);
+      len &= 63;
     }
 
   /* Move remaining bytes into internal buffer.  */
