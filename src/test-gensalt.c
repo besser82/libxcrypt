@@ -1,7 +1,8 @@
+#include "crypt.h"
+
 #include <string.h>
 #include <stdio.h>
-
-#include "crypt.h"
+#include <stdlib.h>
 
 static const char *const entropy[] = {
   "\x58\x35\xcd\x26\x03\xab\x2c\x14\x92\x13\x1e\x59\xb0\xbc\xfe\xd5",
@@ -77,6 +78,36 @@ main (void)
           strncpy (prev_output, salt, CRYPT_GENSALT_OUTPUT_SIZE);
         }
     }
+
+  /* FIXME: This test is a little too specific.  It used to be in
+     test-bcrypt.c and I'm not sure what it's meant to be testing.  */
+  {
+    char *setting1, *setting2;
+    const char *which = "$2a$05$CCCCCCCCCCCCCCCCCCCCC.E5YPO9kmyuRGyh0XouQYb4YMJKvyOeW";
+    setting1 = crypt_gensalt (which, 12, "CCCCCCCCCCCCCCCCCCCCC", 21);
+    if (!setting1 || strncmp (setting1, "$2a$12$", 7))
+      {
+        printf ("FAILED (crypt_gensalt: wrong prefix) s1=%s\n", setting1);
+        status = 1;
+      }
+
+    setting2 = crypt_gensalt_ra (setting1, 12, "CCCCCCCCCCCCCCCCCCCCC", 21);
+    if (strcmp (setting1, setting2))
+      {
+        printf ("FAILED (crypt_gensalt_ra/1: s1=%s s2=%s)\n", setting1, setting2);
+        status = 1;
+      }
+
+    setting1 = crypt_gensalt_ra (setting2, 12, "DCCCCCCCCCCCCCCCCCCCC", 21);
+    if (!strcmp (setting1, setting2))
+      {
+        printf ("FAILED (crypt_gensalt_ra/2: s1=%s s2=%s)\n", setting1, setting2);
+        status = 1;
+      }
+
+    free (setting1);
+    free (setting2);
+  }
 
   return status;
 }

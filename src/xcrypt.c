@@ -76,7 +76,7 @@ is_des_salt_char (char c)
 }
 
 static const struct hashfn *
-_xcrypt_get_hash (const char *salt)
+get_hashfn (const char *salt)
 {
   if (salt[0] == '$')
     {
@@ -95,11 +95,19 @@ _xcrypt_get_hash (const char *salt)
     return NULL;
 }
 
-static char *
-_xcrypt_retval_magic (char *retval, const char *salt, char *output)
+/* For historical reasons, crypt and crypt_r are not expected ever
+   to return NULL.  This function generates a "failure token" in the
+   output buffer, which is guaranteed not to be equal to any valid
+   password hash, or to the salt(+hash) string; thus, a subsequent
+   blind attempt to authenticate someone by comparing the output to
+   a previously recorded hash string will fail, even if that string
+   is itself one of these "failure tokens".  */
+
+static void
+make_failure_token (const char *salt, char *output, int size)
 {
-  if (retval)
-    return retval;
+  if (size < 3)
+    return;
 
   output[0] = '*';
   output[1] = '0';
@@ -107,33 +115,32 @@ _xcrypt_retval_magic (char *retval, const char *salt, char *output)
 
   if (salt[0] == '*' && salt[1] == '0')
     output[1] = '1';
-
-  return output;
 }
 
 static char *
-_xcrypt_rn (const char *key, const char *salt, char *data, size_t size)
+do_crypt_rn (const char *key, const char *salt, char *data, int size)
 {
-  const struct hashfn *h = _xcrypt_get_hash (salt);
+  const struct hashfn *h = get_hashfn (salt);
   if (!h)
     {
       /* Unrecognized hash algorithm */
-      errno = ERANGE;
+      errno = EINVAL;
       return NULL;
     }
   return h->crypt (key, salt, data, size);
 }
 
-char *
-crypt_rn (const char *key, const char *salt, void *data, int size)
+static char *
+do_crypt_ra (const char *key, const char *salt, void **data, int *size)
 {
-  return _xcrypt_retval_magic (_xcrypt_rn (key, salt, data, size),
-                               salt, data);
-}
+  const struct hashfn *h = get_hashfn (salt);
+  if (!h)
+    {
+      /* Unrecognized hash algorithm */
+      errno = EINVAL;
+      return NULL;
+    }
 
-char *
-crypt_ra (const char *key, const char *salt, void **data, int *size)
-{
   if (!*data)
     {
       *data = malloc (sizeof (struct crypt_data));
@@ -141,19 +148,41 @@ crypt_ra (const char *key, const char *salt, void **data, int *size)
         return NULL;
       *size = sizeof (struct crypt_data);
     }
-  return crypt_rn (key, salt, *data, *size);
+
+  return h->crypt (key, salt, *data, *size);
+}
+
+char *
+crypt_rn (const char *key, const char *salt, void *data, int size)
+{
+  char *retval = do_crypt_rn (key, salt, data, size);
+  if (!retval)
+    make_failure_token (salt, data, size);
+  return retval;
+}
+
+char *
+crypt_ra (const char *key, const char *salt, void **data, int *size)
+{
+  char *retval = do_crypt_ra (key, salt, data, size);
+  if (!retval)
+    make_failure_token (salt, *data, *size);
+  return retval;
 }
 
 char *
 crypt_r (const char *key, const char *salt, struct crypt_data *data)
 {
-  return crypt_rn (key, salt, (char *) data, sizeof (*data));
+  char *retval = crypt_rn (key, salt, (char *) data, sizeof (*data));
+  if (!retval)
+    return (char *)data; /* return the failure token */
+  return retval;
 }
 
 char *
 crypt (const char *key, const char *salt)
 {
-  return crypt_rn (key, salt, (char *) &_ufc_foobar, sizeof (_ufc_foobar));
+  return crypt_r (key, salt, &_ufc_foobar);
 }
 
 char *
@@ -170,7 +199,7 @@ crypt_gensalt_rn (const char *prefix, unsigned long count,
       return NULL;
     }
 
-  h = _xcrypt_get_hash (prefix);
+  h = get_hashfn (prefix);
   if (!h)
     {
       errno = EINVAL;

@@ -805,22 +805,6 @@ BF_crypt (const char *key, const char *setting,
   return output;
 }
 
-static int
-_crypt_output_magic (const char *setting, char *output, int size)
-{
-  if (size < 3)
-    return -1;
-
-  output[0] = '*';
-  output[1] = '0';
-  output[2] = '\0';
-
-  if (setting[0] == '*' && setting[1] == '0')
-    output[1] = '1';
-
-  return 0;
-}
-
 /*
  * Please preserve the runtime self-test.  It serves two purposes at once:
  *
@@ -862,7 +846,6 @@ _xcrypt_crypt_bcrypt_rn (const char *key, const char *setting,
   } buf;
 
 /* Hash the supplied password */
-  _crypt_output_magic (setting, output, size);
   retval = BF_crypt (key, setting, output, size, 16);
   save_errno = errno;
 
@@ -899,14 +882,14 @@ _xcrypt_crypt_bcrypt_rn (const char *key, const char *setting,
       !memcmp (ae, ye, sizeof (ae)) && !memcmp (ai, yi, sizeof (ai));
   }
 
-  errno = save_errno;
-  if (ok)
-    return retval;
+  if (!ok)
+    {
+      errno = EINVAL;  /* self-test failed; pretend we don't support this hash type */
+      return NULL;
+    }
 
-/* Should not happen */
-  _crypt_output_magic (setting, output, size);
-  errno = EINVAL;         /* pretend we don't support this hash type */
-  return NULL;
+  errno = save_errno;
+  return retval;
 }
 
 static char *

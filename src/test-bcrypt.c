@@ -106,22 +106,14 @@ static const char *tests[][3] = {
   { 0 }
 };
 
-#define which tests[0]
-
 int
 main (void)
 {
-#if 0                           /* used only by disabled test below */
-  void *data;
-  int size;
-#endif
-  char *setting1, *setting2;
+  void *data = NULL;
+  int size = 0x12345678;
   int i;
+  int status = 0;
 
-#if 0
-  data = NULL;
-  size = 0x12345678;
-#endif
   for (i = 0; tests[i][0]; i++)
     {
       const char *hash = tests[i][0];
@@ -130,10 +122,10 @@ main (void)
       const char *p;
       int ok = !setting || strlen (hash) >= 30;
       char s_buf[30];
-#if 0 /* used only by disabled test below */
       int o_size;
       char o_buf[61];
-#endif
+      int errnm, match;
+
       if (!setting)
         {
           memcpy (s_buf, hash, sizeof (s_buf) - 1);
@@ -143,19 +135,36 @@ main (void)
 
       errno = 0;
       p = crypt (key, setting);
+      errnm = errno;
+      match = strcmp (p, hash);
+      printf ("%d/crypt.1: key=%s setting=%s: xhash=%s xerr=%d, "
+              "p=%s match=%d err=%s...",
+              i, key, setting, hash, !ok, p, match==0, strerror (errnm));
       if ((!ok && !errno) || strcmp (p, hash))
         {
-          printf ("FAILED (crypt/%d)\n", i);
-          return 1;
+          puts ("FAIL");
+          status = 1;
+          continue;
         }
+      else
+        puts ("ok");
 
-      if (ok && strcmp (crypt (key, hash), hash))
+      if (ok)
         {
-          printf ("FAILED (crypt/%d)\n", i);
-          return 1;
+          p = crypt (key, hash);
+          match = strcmp (p, hash);
+          printf ("%d/crypt.2: key=%s hash=%s p=%s match=%d...",
+                  i, key, hash, p, match==0);
+          if (match)
+            {
+              puts ("FAIL");
+              status = 1;
+              continue;
+            }
+          else
+            puts ("ok");
         }
 
-#if 0 /* This test doesn't work right now due to conflicting expectations */
       for (o_size = -1; o_size <= (int) sizeof (o_buf); o_size++)
         {
           int ok_n = ok && o_size == (int) sizeof (o_buf);
@@ -169,51 +178,50 @@ main (void)
             }
           errno = 0;
           p = crypt_rn (key, setting, o_buf, o_size);
-          if ((ok_n && (!p || strcmp (p, hash))) ||
-              (!ok_n && (!errno || p || strcmp (o_buf, x))))
+          errnm = errno;
+          if (ok_n)
+            match = p && !strcmp (p, hash);
+          else
+            match = !p && errnm && !strcmp (o_buf, x);
+
+          printf ("%d/crypt_rn: key=%s setting=%s osize=%d: "
+                  "xhash=%s xmagic=%s xerr=%d, p=%s obuf=%s err=%s...",
+                  i, key, setting, o_size, hash, x, !ok_n, p, o_buf,
+                  strerror (errnm));
+
+          if (match)
+            puts ("ok");
+          else
             {
-              printf ("FAILED (crypt_rn/%d)\n", i);
-              return 1;
+              puts ("FAIL");
+              status = 1;
+              continue;
             }
         }
 
       errno = 0;
       p = crypt_ra (key, setting, &data, &size);
-      if ((ok && (!p || strcmp (p, hash))) ||
-          (!ok && (!errno || p || strcmp ((char *) data, hash))))
+      errnm = errno;
+
+      if (ok)
+        match = p && !strcmp (p, hash);
+      else
+        match = !p && errnm && !strcmp (data, hash);
+
+      printf ("%d/crypt_ra: key=%s setting=%s: xhash=%s xerr=%d, "
+              "p=%s data=%s err=%s...",
+              i, key, setting, hash, !ok, p, (char *)data, strerror (errnm));
+
+      if (match)
+        puts ("ok");
+      else
         {
-          printf ("FAILED (crypt_ra/%d)\n", i);
-          return 1;
+          puts ("FAIL");
+          status = 1;
+          continue;
         }
-#endif
     }
 
-  setting1 = crypt_gensalt (which[0], 12, "CCCCCCCCCCCCCCCCCCCCC", 21);
-  if (!setting1 || strncmp (setting1, "$2a$12$", 7))
-    {
-      printf ("FAILED (crypt_gensalt) w=%s s1=%s\n", which[0], setting1);
-      return 1;
-    }
-
-  setting2 = crypt_gensalt_ra (setting1, 12, "CCCCCCCCCCCCCCCCCCCCC", 21);
-  if (strcmp (setting1, setting2))
-    {
-      puts ("FAILED (crypt_gensalt_ra/1)\n");
-      return 1;
-    }
-
-  setting1 = crypt_gensalt_ra (setting2, 12, "DCCCCCCCCCCCCCCCCCCCC", 21);
-  if (!strcmp (setting1, setting2))
-    {
-      puts ("FAILED (crypt_gensalt_ra/2)\n");
-      return 1;
-    }
-
-  free (setting1);
-  free (setting2);
-#if 0
   free (data);
-#endif
-
-  return 0;
+  return status;
 }
