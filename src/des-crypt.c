@@ -207,10 +207,10 @@ _xcrypt_crypt_traditional_rn (const char *key, const char *salt,
 }
 
 char *
-_xcrypt_crypt_extended_rn (const char *key __attribute__ ((unused)),
-                           const char *salt __attribute__ ((unused)),
-                           char *data __attribute__ ((unused)),
-                           size_t size __attribute__ ((unused)))
+_xcrypt_crypt_extended_rn (const char *ARG_UNUSED (key),
+                           const char *ARG_UNUSED (salt),
+                           char *ARG_UNUSED (data),
+                           size_t ARG_UNUSED (size))
 {
   /* "Extended BSDI-style DES-based" hashes are currently not supported. */
   errno = EINVAL;

@@ -76,7 +76,7 @@ _xcrypt_gensalt_extended_rn (unsigned long count,
 }
 
 char *
-_xcrypt_gensalt_md5_rn (unsigned long count __attribute__ ((unused)),
+_xcrypt_gensalt_md5_rn (unsigned long ARG_UNUSED (count),
                         const char *input, int size,
                         char *output, int output_size)
 {

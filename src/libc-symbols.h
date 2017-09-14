@@ -3,8 +3,13 @@
 
 #include "config.h"
 
-#define weak_alias(name, aliasname) _weak_alias (name, aliasname)
-#define _weak_alias(name, aliasname) \
-  extern __typeof (name) aliasname __attribute__ ((weak, alias (#name)));
+/* Suppression of unused-argument warnings.  */
+#if defined __cplusplus
+# define ARG_UNUSED(x) /*nothing*/
+#elif defined __GNUC__ && __GNUC__ >= 3
+# define ARG_UNUSED(x) x __attribute__ ((__unused__))
+#else
+# define ARG_UNUSED(x) x
+#endif
 
 #endif
