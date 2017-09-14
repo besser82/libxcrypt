@@ -8,9 +8,7 @@ AC_PREREQ([2.62])dnl earliest version with working m4_version_prereq
 m4_version_prereq([2.70], [], [
   m4_define([AC_CHECK_HEADER], [_AC_CHECK_HEADER_COMPILE($@)])
   AC_DEFUN_ONCE([_AC_INCLUDES_DEFAULT_REQUIREMENTS],
-    dnl Including stddef.h (unconditionally) so that AC_TYPE_SIZE_T works.
-    dnl This can be removed again once AC_FUNC_ALLOCA is not needed.
-    [m4_divert_text([DEFAULTS],[ac_includes_default="#include <stddef.h>"
+    [m4_divert_text([DEFAULTS],[ac_includes_default=""
 ])])
   m4_define([AC_USE_SYSTEM_EXTENSIONS],
     m4_defn([AC_USE_SYSTEM_EXTENSIONS])[

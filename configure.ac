@@ -26,7 +26,6 @@ LT_INIT
 # Checks for typedefs, structures, and compiler characteristics.
 
 # Checks for library functions.
-AC_FUNC_ALLOCA
 
 # Configure options.
 zw_SIMPLE_ENABLE_WARNINGS

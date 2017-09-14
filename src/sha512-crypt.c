@@ -62,6 +62,18 @@ static const size_t sha512_hash_length =
 static const char b64t[64] =
   "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
+/* Subroutine of _xcrypt_crypt_sha512_rn: Feed CTX with LEN bytes of a
+   virtual byte sequence consisting of BLOCK repeated over and over
+   indefinitely.  */
+static void
+sha512_process_recycled_bytes (unsigned char block[64], size_t len,
+                               struct sha512_ctx *ctx)
+{
+  size_t cnt;
+  for (cnt = len; cnt >= 64; cnt -= 64)
+    sha512_process_bytes (block, 64, ctx);
+  sha512_process_bytes (block, cnt, ctx);
+}
 
 char *
 _xcrypt_crypt_sha512_rn (const char *key, const char *salt,
@@ -75,10 +87,8 @@ _xcrypt_crypt_sha512_rn (const char *key, const char *salt,
   size_t key_len;
   size_t cnt;
   char *cp;
-  char *copied_key = NULL;
-  char *copied_salt = NULL;
-  char *p_bytes;
-  char *s_bytes;
+  unsigned char p_bytes[64];
+  unsigned char s_bytes[64];
   /* Default number of rounds.  */
   size_t rounds = ROUNDS_DEFAULT;
   bool rounds_custom = false;
@@ -166,13 +176,7 @@ _xcrypt_crypt_sha512_rn (const char *key, const char *salt,
     sha512_process_bytes (key, key_len, &alt_ctx);
 
   /* Finish the digest.  */
-  sha512_finish_ctx (&alt_ctx, temp_result);
-
-  /* Create byte sequence P.  */
-  cp = p_bytes = alloca (key_len);
-  for (cnt = key_len; cnt >= 64; cnt -= 64)
-    cp = mempcpy (cp, temp_result, 64);
-  memcpy (cp, temp_result, cnt);
+  sha512_finish_ctx (&alt_ctx, p_bytes);
 
   /* Start computation of S byte sequence.  */
   sha512_init_ctx (&alt_ctx);
@@ -182,13 +186,7 @@ _xcrypt_crypt_sha512_rn (const char *key, const char *salt,
     sha512_process_bytes (salt, salt_len, &alt_ctx);
 
   /* Finish the digest.  */
-  sha512_finish_ctx (&alt_ctx, temp_result);
-
-  /* Create byte sequence S.  */
-  cp = s_bytes = alloca (salt_len);
-  for (cnt = salt_len; cnt >= 64; cnt -= 64)
-    cp = mempcpy (cp, temp_result, 64);
-  memcpy (cp, temp_result, cnt);
+  sha512_finish_ctx (&alt_ctx, s_bytes);
 
   /* Repeatedly run the collected hash value through SHA512 to burn
      CPU cycles.  */
@@ -199,23 +197,23 @@ _xcrypt_crypt_sha512_rn (const char *key, const char *salt,
 
       /* Add key or last result.  */
       if ((cnt & 1) != 0)
-        sha512_process_bytes (p_bytes, key_len, &ctx);
+        sha512_process_recycled_bytes (p_bytes, key_len, &ctx);
       else
         sha512_process_bytes (alt_result, 64, &ctx);
 
       /* Add salt for numbers not divisible by 3.  */
       if (cnt % 3 != 0)
-        sha512_process_bytes (s_bytes, salt_len, &ctx);
+        sha512_process_recycled_bytes (s_bytes, salt_len, &ctx);
 
       /* Add key for numbers not divisible by 7.  */
       if (cnt % 7 != 0)
-        sha512_process_bytes (p_bytes, key_len, &ctx);
+        sha512_process_recycled_bytes (p_bytes, key_len, &ctx);
 
       /* Add key or last result.  */
       if ((cnt & 1) != 0)
         sha512_process_bytes (alt_result, 64, &ctx);
       else
-        sha512_process_bytes (p_bytes, key_len, &ctx);
+        sha512_process_recycled_bytes (p_bytes, key_len, &ctx);
 
       /* Create intermediate result.  */
       sha512_finish_ctx (&ctx, alt_result);
@@ -283,14 +281,10 @@ _xcrypt_crypt_sha512_rn (const char *key, const char *salt,
   sha512_init_ctx (&ctx);
   sha512_finish_ctx (&ctx, alt_result);
   memset (temp_result, '\0', sizeof (temp_result));
-  memset (p_bytes, '\0', key_len);
-  memset (s_bytes, '\0', salt_len);
+  memset (p_bytes, '\0', sizeof (p_bytes));
+  memset (s_bytes, '\0', sizeof (s_bytes));
   memset (&ctx, '\0', sizeof (ctx));
   memset (&alt_ctx, '\0', sizeof (alt_ctx));
-  if (copied_key != NULL)
-    memset (copied_key, '\0', key_len);
-  if (copied_salt != NULL)
-    memset (copied_salt, '\0', salt_len);
 
   return buffer;
 }
