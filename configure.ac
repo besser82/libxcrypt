@@ -14,6 +14,13 @@ AM_INIT_AUTOMAKE
 
 # Checks for programs.
 AC_PROG_CC
+
+# C99 language and library features are used unconditionally.
+# Don't even try to build with an older compiler.
+case "$ac_prog_cc_stdc" in
+     c89 | no) AC_MSG_ERROR([a C99- or C11-compliant compiler is required]) ;;
+esac
+
 AC_PROG_MAKE_SET
 AC_USE_SYSTEM_EXTENSIONS
 AC_SYS_LARGEFILE
