@@ -117,40 +117,23 @@ _xcrypt_gensalt_md5_rn (unsigned long count __attribute__ ((unused)),
   return output;
 }
 
-char *
-_xcrypt_gensalt_sha256_rn (unsigned long count, const char *input, int size,
-                           char *output, int output_size)
+static char *
+_xcrypt_gensalt_sha_rn (char tag, unsigned long count,
+                        const char *input, int size,
+                        char *output, int output_size)
 {
   unsigned long value;
-  char *buf;
-  char buf2[12];
+  char raw_salt[9];
+  int written;
 
-  if (count > 0)
+  if (output_size < 1)
     {
-      if (asprintf (&buf, "$5$rounds=%ld$", count) < 0)
-        {
-          if (output_size > 0)
-            output[0] = '\0';
-          errno = ENOMEM;
-          return NULL;
-        }
+      errno = ERANGE;
+      return NULL;
     }
-  else
+  if (output_size < 7)
     {
-      if (asprintf (&buf, "$5$") < 0)
-        {
-          if (output_size > 0)
-            output[0] = '\0';
-          errno = ENOMEM;
-          return NULL;
-        }
-    }
-
-  if (size < 3 || output_size < (int) strlen (buf) + 4 + 1)
-    {
-      free (buf);
-      if (output_size > 0)
-        output[0] = '\0';
+      output[0] = '\0';
       errno = ERANGE;
       return NULL;
     }
@@ -158,91 +141,74 @@ _xcrypt_gensalt_sha256_rn (unsigned long count, const char *input, int size,
   value = (unsigned long) (unsigned char) input[0] |
     ((unsigned long) (unsigned char) input[1] << 8) |
     ((unsigned long) (unsigned char) input[2] << 16);
-  buf2[0] = _xcrypt_itoa64[value & 0x3f];
-  buf2[1] = _xcrypt_itoa64[(value >> 6) & 0x3f];
-  buf2[2] = _xcrypt_itoa64[(value >> 12) & 0x3f];
-  buf2[3] = _xcrypt_itoa64[(value >> 18) & 0x3f];
-  buf2[4] = '\0';
+  raw_salt[0] = _xcrypt_itoa64[value & 0x3f];
+  raw_salt[1] = _xcrypt_itoa64[(value >> 6) & 0x3f];
+  raw_salt[2] = _xcrypt_itoa64[(value >> 12) & 0x3f];
+  raw_salt[3] = _xcrypt_itoa64[(value >> 18) & 0x3f];
+  raw_salt[4] = '\0';
 
-  if (size >= 6 && output_size >= (int) strlen (buf) + 4 + 4 + 1)
+  if (size >= 6)
     {
       value = (unsigned long) (unsigned char) input[3] |
         ((unsigned long) (unsigned char) input[4] << 8) |
         ((unsigned long) (unsigned char) input[5] << 16);
-      buf2[4] = _xcrypt_itoa64[value & 0x3f];
-      buf2[5] = _xcrypt_itoa64[(value >> 6) & 0x3f];
-      buf2[6] = _xcrypt_itoa64[(value >> 12) & 0x3f];
-      buf2[7] = _xcrypt_itoa64[(value >> 18) & 0x3f];
-      buf2[8] = '\0';
+      raw_salt[4] = _xcrypt_itoa64[value & 0x3f];
+      raw_salt[5] = _xcrypt_itoa64[(value >> 6) & 0x3f];
+      raw_salt[6] = _xcrypt_itoa64[(value >> 12) & 0x3f];
+      raw_salt[7] = _xcrypt_itoa64[(value >> 18) & 0x3f];
+      raw_salt[8] = '\0';
     }
 
-  snprintf (output, output_size, "%s%s", buf, buf2);
-  free (buf);
+  if (count > 0)
+    {
+      written = snprintf (output, output_size, "$%c$rounds=%ld$%s",
+                          tag, count, raw_salt);
+      if (written > 0 && written <= output_size)
+        return output;
 
-  return output;
+      if (raw_salt[4] != '\0')
+        {
+          /* The output didn't fit.  Try truncating the salt to four
+             characters.  */
+          raw_salt[4] = '\0';
+          written = snprintf (output, output_size, "$%c$rounds=%ld$%s",
+                              tag, count, raw_salt);
+          if (written > 0 && written <= output_size)
+            return output;
+        }
+    }
+  else
+    {
+      written = snprintf (output, output_size, "$%c$%s", tag, raw_salt);
+      if (written > 0 && written <= output_size)
+        return output;
+
+      if (raw_salt[4] != '\0')
+        {
+          /* The output didn't fit.  Try truncating the salt to four
+             characters.  */
+          raw_salt[4] = '\0';
+          written = snprintf (output, output_size, "$%c$%s", tag, raw_salt);
+          if (written > 0 && written <= output_size)
+            return output;
+        }
+    }
+
+  output[0] = '\0';
+  errno = ERANGE;
+  return NULL;
+}
+
+char *
+_xcrypt_gensalt_sha256_rn (unsigned long count, const char *input, int size,
+                           char *output, int output_size)
+{
+  return _xcrypt_gensalt_sha_rn ('5', count, input, size, output, output_size);
 }
 
 char *
 _xcrypt_gensalt_sha512_rn (unsigned long count, const char *input, int size,
                            char *output, int output_size)
 {
-  unsigned long value;
-  char *buf;
-  char buf2[12];
-
-  if (count > 0)
-    {
-      if (asprintf (&buf, "$6$rounds=%ld$", count) < 0)
-        {
-          if (output_size > 0)
-            output[0] = '\0';
-          errno = ENOMEM;
-          return NULL;
-        }
-    }
-  else
-    {
-      if (asprintf (&buf, "$6$") < 0)
-        {
-          if (output_size > 0)
-            output[0] = '\0';
-          errno = ENOMEM;
-          return NULL;
-        }
-    }
-
-  if (size < 3 || output_size < (int) strlen (buf) + 4 + 1)
-    {
-      free (buf);
-      if (output_size > 0)
-        output[0] = '\0';
-      errno = ERANGE;
-      return NULL;
-    }
-
-  value = (unsigned long) (unsigned char) input[0] |
-    ((unsigned long) (unsigned char) input[1] << 8) |
-    ((unsigned long) (unsigned char) input[2] << 16);
-  buf2[0] = _xcrypt_itoa64[value & 0x3f];
-  buf2[1] = _xcrypt_itoa64[(value >> 6) & 0x3f];
-  buf2[2] = _xcrypt_itoa64[(value >> 12) & 0x3f];
-  buf2[3] = _xcrypt_itoa64[(value >> 18) & 0x3f];
-  buf2[4] = '\0';
-
-  if (size >= 6 && output_size >= (int) strlen (buf) + 4 + 4 + 1)
-    {
-      value = (unsigned long) (unsigned char) input[3] |
-        ((unsigned long) (unsigned char) input[4] << 8) |
-        ((unsigned long) (unsigned char) input[5] << 16);
-      buf2[4] = _xcrypt_itoa64[value & 0x3f];
-      buf2[5] = _xcrypt_itoa64[(value >> 6) & 0x3f];
-      buf2[6] = _xcrypt_itoa64[(value >> 12) & 0x3f];
-      buf2[7] = _xcrypt_itoa64[(value >> 18) & 0x3f];
-      buf2[8] = '\0';
-    }
-
-  snprintf (output, output_size, "%s%s", buf, buf2);
-  free (buf);
-
-  return output;
+  return _xcrypt_gensalt_sha_rn ('6', count, input, size, output, output_size);
 }
