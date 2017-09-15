@@ -1,218 +1,367 @@
 /*
- * UFC-crypt: ultra fast crypt(3) implementation
+ * FreeSec: libcrypt for NetBSD
  *
- * Copyright (C) 1991, 1992, 1993, 1996, 1997 Free Software Foundation, Inc.
+ * Copyright (c) 1994 David Burren
+ * All rights reserved.
  *
- * The GNU C Library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * Adapted for FreeBSD-2.0 by Geoffrey M. Rehmet
+ *	this file should now *only* export crypt(), in order to make
+ *	binaries of libcrypt exportable from the USA
  *
- * The GNU C Library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * Adapted for FreeBSD-4.0 by Mark R V Murray
+ *	this file should now *only* export crypt_des(), in order to make
+ *	a module that can be optionally included in libcrypt.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the GNU C Library; if not, write to the Free
- * Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
- * 02111-1307 USA.
+ * Adapted for libxcrypt by Zack Weinberg, 2017
+ *	see notes in des.c
  *
- * crypt entry points
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the author nor the names of other contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
- * @(#)crypt-entry.c  1.2 12/20/96
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
  *
+ * This is an original implementation of the DES and the crypt(3) interfaces
+ * by David Burren <davidb@werj.com.au>.
  */
 
-#include "xcrypt-private.h"
 #include "des.h"
-#include "crypt-obsolete.h"
+#include "xcrypt-private.h"
 
-#include <string.h>
 #include <errno.h>
+#include <stddef.h>
+#include <string.h>
 
+#define DES_TRD_OUTPUT_LEN 14                /* SShhhhhhhhhhh0 */
+#define DES_EXT_OUTPUT_LEN 21                /* _CCCCSSSShhhhhhhhhhh0 */
+#define DES_BIG_OUTPUT_LEN ((16*11) + 2 + 1) /* SS (hhhhhhhhhhh){1,16} 0 */
 
-/*
- * UNIX crypt function
- */
+#define MAX(x,y) ((x)>(y)?(x):(y))
 
-static char *
-des_crypt_r (const char *key, const char *salt,
-             struct crypt_data *restrict data)
+#define DES_MAX_OUTPUT_LEN \
+  MAX (DES_TRD_OUTPUT_LEN, MAX (DES_EXT_OUTPUT_LEN, DES_BIG_OUTPUT_LEN))
+
+/* A des_buffer holds the output plus all of the sensitive intermediate
+   data.  It may have been allocated by application code, so it may not
+   be properly aligned, and besides which DES_MAX_OUTPUT_LEN may be odd.
+   The alignment requirement for a des_ctx is no more than
+   sizeof(uint32_t), so allowing an extra sizeof(uint32_t) in ctxbuf
+   permits us to find a properly-aligned des_ctx within.  */
+
+struct des_buffer
 {
-  uint_fast32_t res[4];
-  char ktab[9];
+  char output[DES_MAX_OUTPUT_LEN];
+  uint8_t keybuf[8];
+  uint8_t pkbuf[8];
+  uint8_t ctxbuf[sizeof (struct des_ctx) + sizeof (uint32_t)];
+};
 
-  /*
-   * Hack DES tables according to salt
-   */
-  _ufc_setup_salt_r (salt, data);
-
-  /*
-   * Setup key schedule
-   */
-  memset (ktab, 0, sizeof (ktab));
-  strncpy (ktab, key, 8);
-  _ufc_mk_keytab_r (ktab, data);
-
-  /*
-   * Go for the 25 DES encryptions
-   */
-  memset (res, 0, sizeof (res));
-  _ufc_doit_r (25, data, &res[0]);
-
-  /*
-   * Do final permutations
-   */
-  _ufc_dofinalperm_r (res, data);
-
-  /*
-   * And convert back to 6 bit ASCII
-   */
-  _ufc_output_conversion_r (res[0], res[1], salt, data);
-  return data->crypt_3_buf;
+static inline struct des_ctx *
+des_get_ctx (struct des_buffer *buf)
+{
+  uintptr_t ctxp = (uintptr_t) &buf->ctxbuf;
+  ctxp = (ctxp + sizeof (uint32_t) - 1) & ~(uintptr_t)sizeof (uint32_t);
+  return (struct des_ctx *)ctxp;
 }
 
-/*
- * This function implements the "bigcrypt" algorithm specifically for
- * Linux-PAM.
- *
- * This algorithm is algorithm 0 (default) shipped with the C2 secure
- * implementation of Digital UNIX.
- *
- * Disclaimer: This work is not based on the source code to Digital
- * UNIX, nor am I connected to Digital Equipment Corp, in any way
- * other than as a customer. This code is based on published
- * interfaces and reasonable guesswork.
- *
- * Description: The cleartext is divided into blocks of SEGMENT_SIZE=8
- * characters or less. Each block is encrypted using the standard UNIX
- * libc crypt function. The result of the encryption for one block
- * provides the salt for the suceeding block.
- *
- * Restrictions: The buffer used to hold the encrypted result is
- * statically allocated. (see MAX_PASS_LEN below).  This is necessary,
- * as the returned pointer points to "static data that are overwritten
- * by each call", (XPG3: XSI System Interface + Headers pg 109), and
- * this is a drop in replacement for crypt();
- *
- * Andy Phillips <atp@mssl.ucl.ac.uk>
- */
-
-/*
- * Max cleartext password length in segments of 8 characters this
- * function can deal with (16 segments of 8 chars= max 128 character
- * password).
- */
-
-#define MAX_PASS_LEN       16
-#define SEGMENT_SIZE       8
-#define SALT_SIZE          2
-#define KEYBUF_SIZE        ((MAX_PASS_LEN*SEGMENT_SIZE)+SALT_SIZE)
-#define ESEGMENT_SIZE      11
-#define CBUF_SIZE          ((MAX_PASS_LEN*ESEGMENT_SIZE)+SALT_SIZE+1)
-
-char *
-bigcrypt_r (const char *key, const char *salt,
-            struct crypt_data *restrict data)
+static inline void
+des_wipe_intermediate_data (struct des_buffer *buf)
 {
-  unsigned long int keylen, n_seg, j;
-  char *cipher_ptr, *plaintext_ptr, *tmp_ptr, *salt_ptr;
-  char keybuf[KEYBUF_SIZE + 1];
-  char dec_c2_cryptbuf[CBUF_SIZE];
+  memset (((char *)buf) + offsetof (struct des_buffer, keybuf),
+          0,
+          sizeof (struct des_buffer) - offsetof (struct des_buffer, keybuf));
+}
 
-  /* reset arrays */
-  memset (keybuf, 0, KEYBUF_SIZE + 1);
-  memset (dec_c2_cryptbuf, 0, CBUF_SIZE);
+static const uint8_t ascii64[] =
+  "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+/* 0000000000111111111122222222223333333333444444444455555555556666 */
+/* 0123456789012345678901234567890123456789012345678901234567890123 */
 
-  /* fill KEYBUF_SIZE with key */
-  strncpy (keybuf, key, KEYBUF_SIZE);
+static inline int
+ascii_to_bin(char ch)
+{
+  if (ch > 'z')
+    return 0;
+  if (ch >= 'a')
+    return ch - 'a' + 38;
+  if (ch > 'Z')
+    return 0;
+  if (ch >= 'A')
+    return ch - 'A' + 12;
+  if (ch > '9')
+    return 0;
+  if (ch >= '.')
+    return ch - '.';
+  return 0;
+}
 
-  /* deal with case that we are doing a password check for a
-     conventially encrypted password: the salt will be
-     SALT_SIZE+ESEGMENT_SIZE long. */
-  if (strlen (salt) == (SALT_SIZE + ESEGMENT_SIZE))
-    keybuf[SEGMENT_SIZE] = '\0';        /* terminate password early(?) */
+/* Generate an 11-character DES password hash into the buffer at
+   OUTPUT, and nul-terminate it.  The salt and key have already been
+   set.  The plaintext is 64 bits of zeroes, and the raw ciphertext is
+   written to cbuf[].  */
+static void
+des_gen_hash (struct des_ctx *ctx, uint32_t count, char *output,
+              uint8_t cbuf[8])
+{
+  uint8_t plaintext[8];
+  memset (plaintext, 0, 8);
+  des_crypt_block (ctx, cbuf, plaintext, count, false);
 
-  keylen = strlen (keybuf);
+  /* Now encode the result.  */
+  const unsigned char *sptr = cbuf;
+  const unsigned char *end = sptr + 8;
+  unsigned char *dptr = (unsigned char *)output;
+  unsigned int c1, c2;
 
-  if (!keylen)
+  do
     {
-      n_seg = 1;
-    }
-  else
-    {
-      /* work out how many segments */
-      n_seg = 1 + ((keylen - 1) / SEGMENT_SIZE);
-    }
-
-  if (n_seg > MAX_PASS_LEN)
-    n_seg = MAX_PASS_LEN;       /* truncate at max length */
-
-  /* set up some pointers */
-  cipher_ptr = dec_c2_cryptbuf;
-  plaintext_ptr = keybuf;
-
-  /* do the first block with supplied salt */
-  tmp_ptr = des_crypt_r (plaintext_ptr, salt, data);
-
-  /* and place in the static area */
-  strncpy (cipher_ptr, tmp_ptr, 13);
-  cipher_ptr += ESEGMENT_SIZE + SALT_SIZE;
-  plaintext_ptr += SEGMENT_SIZE;        /* first block of SEGMENT_SIZE */
-
-  /* change the salt (1st 2 chars of previous block) - this was found
-     by dowsing */
-
-  salt_ptr = cipher_ptr - ESEGMENT_SIZE;
-
-  /* so far this is identical to "return crypt(key, salt);", if
-     there is more than one block encrypt them... */
-
-  if (n_seg > 1)
-    {
-      for (j = 2; j <= n_seg; j++)
+      c1 = *sptr++;
+      *dptr++ = ascii64[c1 >> 2];
+      c1 = (c1 & 0x03) << 4;
+      if (sptr >= end)
         {
-
-          tmp_ptr = des_crypt_r (plaintext_ptr, salt_ptr, data);
-
-          /* skip the salt for seg!=0 */
-          strncpy (cipher_ptr, (tmp_ptr + SALT_SIZE), ESEGMENT_SIZE);
-
-          cipher_ptr += ESEGMENT_SIZE;
-          plaintext_ptr += SEGMENT_SIZE;
-          salt_ptr = cipher_ptr - ESEGMENT_SIZE;
+          *dptr++ = ascii64[c1];
+          break;
         }
-    }
 
-  /* this is the <NUL> terminated encrypted password */
-  memset (data, 0, sizeof *data);
-  memcpy (data, dec_c2_cryptbuf, CBUF_SIZE);
-  return (char *)data;
+      c2 = *sptr++;
+      c1 |= c2 >> 4;
+      *dptr++ = ascii64[c1];
+      c1 = (c2 & 0x0f) << 2;
+      if (sptr >= end)
+        {
+          *dptr++ = ascii64[c1];
+          break;
+        }
+
+      c2 = *sptr++;
+      c1 |= c2 >> 6;
+      *dptr++ = ascii64[c1];
+      *dptr++ = ascii64[c2 & 0x3f];
+    }
+  while (sptr < end);
+  *dptr = '\0';
 }
 
-char *
-_xcrypt_crypt_traditional_rn (const char *key, const char *salt,
+/* The original UNIX DES-based password hash, no extensions.  */
+static char *
+_xcrypt_crypt_traditional_rn (const char *key, const char *setting,
                               char *data, size_t size)
 {
-  if (size < sizeof (struct crypt_data))
+  /* Ensure we have enough space for a des_buffer in DATA.  */
+  if (size < sizeof (struct des_buffer))
     {
-      errno = EINVAL;
-      return NULL;
+      errno = ERANGE;
+      return 0;
     }
-  if (strlen (salt) > 13)
-    return bigcrypt_r (key, salt, (struct crypt_data *) data);
-  else
-    return des_crypt_r (key, salt, (struct crypt_data *) data);
+
+  struct des_buffer *buf = (struct des_buffer *)data;
+  struct des_ctx *ctx = des_get_ctx (buf);
+  uint32_t salt = 0;
+  uint8_t *keybuf = buf->keybuf, *pkbuf = buf->pkbuf;
+  char *output = buf->output;
+  int i;
+
+  /* "old"-style: setting - 2 bytes of salt, key - up to 8 characters.
+     Note: ascii_to_bin maps all byte values outside the ascii64
+     alphabet to zero.  Do not read past the end of the string.  */
+  salt = ascii_to_bin (setting[0]);
+  if (setting[0])
+    salt |= ascii_to_bin (setting[1]) << 6;
+
+  /* Write the canonical form of the salt to the output buffer.  We do
+     this instead of copying from the setting because the setting
+     might be catastrophically malformed (e.g. a 0- or 1-byte string;
+     this could plausibly happen if e.g. login(8) doesn't special-case
+     "*" or "!" in the password database).  */
+  *output++ = ascii64[salt & 0x3f];
+  *output++ = ascii64[(salt >> 6) & 0x3f];
+
+  /* Copy the first 8 characters of the password into keybuf, shifting
+     each character up by 1 bit and padding on the right with zeroes.  */
+  for (i = 0; i < 8; i++)
+    {
+      keybuf[i] = *key << 1;
+      if (*key)
+        key++;
+    }
+
+  des_set_key (ctx, keybuf);
+  des_set_salt (ctx, salt);
+  des_gen_hash (ctx, 25, output, pkbuf);
+  des_wipe_intermediate_data (buf);
+  return buf->output;
 }
 
+/* This is called directly by the obsolete API functions bigcrypt()
+   and bigcrypt_r().
+
+   This algorithm is algorithm 0 (default) shipped with the C2 secure
+   implementation of Digital UNIX.
+
+   Disclaimer: This work is not based on the source code to Digital
+   UNIX, nor am I (Andy Phillips) connected to Digital Equipment Corp,
+   in any way other than as a customer. This code is based on
+   published interfaces and reasonable guesswork.
+
+   Description: The cleartext is divided into blocks of 8 characters
+   or less. Each block is encrypted using the standard UNIX libc crypt
+   function. The result of the encryption for one block provides the
+   salt for the suceeding block.  The output is simply the
+   concatenation of all the blocks.  Up to 16 blocks are supported
+   (that is, the password can be no more than 128 characters long).
+
+   Andy Phillips <atp@mssl.ucl.ac.uk>  */
 char *
-_xcrypt_crypt_extended_rn (const char *ARG_UNUSED (key),
-                           const char *ARG_UNUSED (salt),
-                           char *ARG_UNUSED (data),
-                           size_t ARG_UNUSED (size))
+_xcrypt_crypt_bigcrypt_rn (const char *key, const char *setting,
+                           char *data, size_t size)
 {
-  /* "Extended BSDI-style DES-based" hashes are currently not supported. */
-  errno = EINVAL;
-  return NULL;
+  /* Ensure we have enough space for a des_buffer in DATA.  */
+  if (size < sizeof (struct des_buffer))
+    {
+      errno = ERANGE;
+      return 0;
+    }
+
+  struct des_buffer *buf = (struct des_buffer *)data;
+  struct des_ctx *ctx = des_get_ctx (buf);
+  uint32_t salt = 0;
+  uint8_t *keybuf = buf->keybuf, *pkbuf = buf->pkbuf;
+  char *output = buf->output;
+  int i, seg;
+
+  /* The setting string is exactly the same as for a traditional DES
+     hash.  */
+  salt = ascii_to_bin (setting[0]);
+  if (setting[0])
+    salt |= ascii_to_bin (setting[1]) << 6;
+
+  *output++ = ascii64[salt & 0x3f];
+  *output++ = ascii64[(salt >> 6) & 0x3f];
+
+  for (seg = 0; seg < 16; seg++)
+    {
+      /* Copy and shift each block as for the traditional DES.  */
+      for (i = 0; i < 8; i++)
+        {
+          keybuf[i] = *key << 1;
+          if (*key)
+            key++;
+        }
+
+      des_set_key (ctx, keybuf);
+      des_set_salt (ctx, salt);
+      des_gen_hash (ctx, 25, output, pkbuf);
+
+      if (*key == 0)
+        break;
+
+      /* change the salt (1st 2 chars of previous block) - this was found
+         by dowsing */
+      salt = ascii_to_bin (output[0]);
+      salt |= ascii_to_bin (output[1]) << 6;
+      output += 11;
+    }
+
+  des_wipe_intermediate_data (buf);
+  return buf->output;
+}
+
+/* crypt_rn() entry point for both the original UNIX password hash, with
+   its 8-character length limit, and the "bigcrypt" extension to
+   permit longer passwords.  */
+char *
+_xcrypt_crypt_trd_or_big_rn (const char *key, const char *salt,
+                              char *data, size_t size)
+{
+  if (strlen (salt) > 13)
+    return _xcrypt_crypt_bigcrypt_rn (key, salt, data, size);
+  else
+    return _xcrypt_crypt_traditional_rn (key, salt, data, size);
+}
+
+/* crypt_rn() entry point for BSD-style extended DES hashes.  */
+char *
+_xcrypt_crypt_extended_rn (const char *key, const char *setting,
+                           char *data, size_t size)
+{
+  /* Ensure we have enough space for a des_buffer in DATA.  */
+  if (size < sizeof (struct des_buffer))
+    {
+      errno = ERANGE;
+      return 0;
+    }
+
+  /* If this is true, this function shouldn't have been called.  */
+  if (*setting != '_')
+    {
+      errno = EINVAL;
+      return 0;
+    }
+
+  struct des_buffer *buf = (struct des_buffer *)data;
+  struct des_ctx *ctx = des_get_ctx (buf);
+  uint32_t count = 0, salt = 0;
+  uint8_t *keybuf = buf->keybuf, *pkbuf = buf->pkbuf;
+  char *output = buf->output;
+  int i;
+
+  /* "new"-style DES hash:
+   	setting - underscore, 4 bytes of count, 4 bytes of salt
+   	key - unlimited characters
+   */
+  for (i = 1; i < 5; i++)
+    count |= ascii_to_bin(setting[i]) << ((i - 1) * 6);
+
+  for (i = 5; i < 9; i++)
+    salt |= ascii_to_bin(setting[i]) << ((i - 5) * 6);
+
+  memcpy (output, setting, 9);
+  output += 9;
+
+  /* Fold passwords longer than 8 bytes into a single DES key using a
+     procedure similar to a Merkle-Dåmgard hash construction.  Each
+     block is shifted and padded, as for the traditional hash, then
+     XORed with the output of the previous round (IV all bits zero),
+     set as the DES key, and encrypted to produce the round output.
+     The salt is zero throughout this procedure.  */
+  des_set_salt (ctx, 0);
+  memset (pkbuf, 0, 8);
+  for (;;)
+    {
+      for (i = 0; i < 8; i++)
+        {
+          keybuf[i] = pkbuf[i] ^ (*key << 1);
+          if (*key)
+            key++;
+        }
+      des_set_key (ctx, keybuf);
+      if (*key == 0)
+        break;
+      des_crypt_block (ctx, pkbuf, keybuf, 1, false);
+    }
+
+  /* Proceed as for the traditional DES hash.  */
+  des_set_salt (ctx, salt);
+  des_gen_hash (ctx, count, output, pkbuf);
+  des_wipe_intermediate_data (buf);
+  return buf->output;
 }

@@ -24,10 +24,13 @@
 
 /* Individual hash functions */
 
-extern char *_xcrypt_crypt_traditional_rn (const char *key, const char *salt,
-                                           char *data, size_t size);
+extern char *_xcrypt_crypt_trd_or_big_rn (const char *key, const char *salt,
+                                          char *data, size_t size);
 extern char *_xcrypt_crypt_extended_rn (const char *key, const char *salt,
                                         char *data, size_t size);
+extern char *_xcrypt_crypt_bigcrypt_rn (const char *key, const char *salt,
+                                        char *data, size_t size);
+
 extern char *_xcrypt_crypt_md5_rn (const char *key, const char *salt,
                                    char *data, size_t size);
 extern char *_xcrypt_crypt_sha256_rn (const char *key, const char *salt,
@@ -66,9 +69,5 @@ extern char *_xcrypt_gensalt_bcrypt_x_rn (unsigned long count,
 extern char *_xcrypt_gensalt_bcrypt_y_rn (unsigned long count,
                                           const char *input, int size,
                                           char *output, int output_size);
-
-/* to be eliminated */
-
-extern struct crypt_data _ufc_foobar;
 
 #endif

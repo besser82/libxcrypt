@@ -13,9 +13,10 @@ CLEANFILES = *~
 
 EXTRA_DIST = libxcrypt.map
 
-TESTS = test-bcrypt test-bigcrypt test-byteorder test-des test-gensalt \
-	test-md5 test-md5-crypt test-sha256 test-sha256-crypt test-sha512 \
-	test-sha512-crypt
+TESTS = test-byteorder test-gensalt test-bcrypt \
+	test-des test-md5 test-sha256 test-sha512 \
+	test-des-crypt test-md5-crypt test-sha256-crypt test-sha512-crypt \
+	test-des-obsolete test-bigcrypt
 
 include_HEADERS = crypt.h
 noinst_HEADERS = byteorder.h crypt-obsolete.h libc-symbols.h \
@@ -30,30 +31,31 @@ lib_LTLIBRARIES = libxcrypt.la
 libxcrypt_la_SOURCES = \
 	xcrypt.c xcrypt-gensalt.c bcrypt.c sha256.c sha256-crypt.c \
 	sha512.c sha512-crypt.c md5.c md5-crypt.c \
-	des.c des-crypt.c des-tables.c des-obsolete.c
+	des.c des-crypt.c des-obsolete.c
 
 nodist_libxcrypt_la_SOURCES = \
-	des-tables2.c
+	des-tables.c
 
-CLEANFILES += des-tables2.c
+CLEANFILES += des-tables.c
 
-des-tables2.c: des-mktables
-	./des-mktables > des-tables2.c.T
-	-mv -f des-tables2.c.T des-tables2.c
+des-tables.c: des-mktables
+	./des-mktables > des-tables.c.T
+	-mv -f des-tables.c.T des-tables.c
 
 noinst_PROGRAMS = $(TESTS) des-mktables
 
 des_mktables_SOURCES = des-mktables.c
-des_mktables_LDADD = des-tables.lo
 
 test_bcrypt_LDADD = libxcrypt.la
 test_bigcrypt_LDADD = libxcrypt.la
-test_des_LDADD = libxcrypt.la
 test_gensalt_LDADD = libxcrypt.la
+test_des_crypt_LDADD = libxcrypt.la
 test_md5_crypt_LDADD = libxcrypt.la
 test_sha256_crypt_LDADD = libxcrypt.la
 test_sha512_crypt_LDADD = libxcrypt.la
 
+test_des_LDADD = des.lo des-tables.lo
+test_des_obsolete_LDADD = des.lo des-tables.lo des-obsolete.lo
 test_md5_LDADD = md5.lo
 test_sha256_LDADD = sha256.lo
 test_sha512_LDADD = sha512.lo

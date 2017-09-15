@@ -22,14 +22,10 @@
 #include "xcrypt-private.h"
 #include "crypt-obsolete.h"
 
-#define CRYPT_OUTPUT_SIZE               (7 + 22 + 31 + 1)
 #define CRYPT_GENSALT_OUTPUT_SIZE       (7 + 22 + 1)
 
-/*
- * For use by the old, non-reentrant routines
- * (crypt/encrypt/setkey)
- */
-struct crypt_data _ufc_foobar;
+/* Static buffer used by crypt() and bigcrypt().  */
+static struct crypt_data nr_crypt_ctx;
 
 struct hashfn
 {
@@ -56,14 +52,14 @@ static const struct hashfn tagged_hashes[] = {
   { 0, 0, 0 }
 };
 
-/* BSD-style extended DES hash */
+/* BSD-style extended DES */
 static const struct hashfn bsdi_extended_hash = {
   "_", _xcrypt_crypt_extended_rn, _xcrypt_gensalt_extended_rn
 };
 
-/* bigcrypt-style extended DES hash */
+/* Traditional DES or bigcrypt-style extended DES */
 static const struct hashfn traditional_hash = {
-  "", _xcrypt_crypt_traditional_rn, _xcrypt_gensalt_traditional_rn
+  "", _xcrypt_crypt_trd_or_big_rn, _xcrypt_gensalt_traditional_rn
 };
 
 static int
@@ -182,7 +178,7 @@ crypt_r (const char *key, const char *salt, struct crypt_data *data)
 char *
 crypt (const char *key, const char *salt)
 {
-  return crypt_r (key, salt, &_ufc_foobar);
+  return crypt_r (key, salt, &nr_crypt_ctx);
 }
 
 char *
@@ -235,4 +231,25 @@ crypt_gensalt (const char *prefix, unsigned long count,
 
   return crypt_gensalt_rn (prefix, count,
                            input, size, output, sizeof (output));
+}
+
+/* Obsolete interfaces - not to be used in new code.  These are the
+   same as crypt_r and crypt, but they force the use of the Digital
+   Unix "bigcrypt" hash, which is nearly as weak as traditional DES.  */
+char *
+bigcrypt_r (const char *key, const char *salt,
+            struct crypt_data *restrict data)
+{
+  char *retval = _xcrypt_crypt_bigcrypt_rn (key, salt,
+                                            (char *) data, sizeof (*data));
+  if (retval)
+    return retval;
+  make_failure_token (salt, (char *)data, sizeof (*data));
+  return (char *)data;
+}
+
+char *
+bigcrypt (const char *key, const char *salt)
+{
+  return bigcrypt_r (key, salt, &nr_crypt_ctx);
 }

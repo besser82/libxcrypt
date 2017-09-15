@@ -42,6 +42,8 @@ Makefile.in
 /src/test-bigcrypt
 /src/test-byteorder
 /src/test-des
+/src/test-des-crypt
+/src/test-des-obsolete
 /src/test-gensalt
 /src/test-md5
 /src/test-md5-crypt
@@ -50,7 +52,7 @@ Makefile.in
 /src/test-sha512
 /src/test-sha512-crypt
 /src/des-mktables
-/src/des-tables2.c
+/src/des-tables.c
 
 # backup-files
 

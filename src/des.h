@@ -1,78 +1,77 @@
 /*
- * UFC-crypt: ultra fast crypt(3) implementation
+ * FreeSec: libcrypt for NetBSD
  *
- * Copyright (C) 1991, 92, 93, 96, 97, 98 Free Software Foundation, Inc.
+ * Copyright (c) 1994 David Burren
+ * All rights reserved.
  *
- * The GNU C Library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * Adapted for FreeBSD-2.0 by Geoffrey M. Rehmet
+ *      this file should now *only* export crypt(), in order to make
+ *      binaries of libcrypt exportable from the USA
  *
- * The GNU C Library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * Adapted for FreeBSD-4.0 by Mark R V Murray
+ *      this file should now *only* export crypt_des(), in order to make
+ *      a module that can be optionally included in libcrypt.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the GNU C Library; if not, write to the Free
- * Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
- * 02111-1307 USA.
+ * Adapted for libxcrypt by Zack Weinberg, 2017
+ *      see notes in des.c
  *
- * @(#)crypt-private.h  1.4 12/20/96
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the author nor the names of other contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * This is an original implementation of the DES and the crypt(3) interfaces
+ * by David Burren <davidb@werj.com.au>.
  */
 
-/* Prototypes for internal-UFC routines and data.  */
-
-#ifndef CRYPT_PRIVATE_H
-#define CRYPT_PRIVATE_H 1
+#ifndef _DES_H
+#define _DES_H 1
 
 #include <stdint.h>
-
-struct crypt_data;
-
-#if UINT_FAST32_MAX == UINT_FAST64_MAX
-#define UFC_USE_64BIT 1
-#else
-#define UFC_USE_64BIT 0
-#endif
+#include <stdbool.h>
 
 /* des.c */
-extern void _ufc_doit_r (uint_fast32_t itr,
-                         struct crypt_data *restrict __data,
-                         uint_fast32_t * res);
-extern void _ufc_setup_salt_r (const char *s,
-                               struct crypt_data *restrict __data);
-extern void _ufc_mk_keytab_r (const char *key,
-                              struct crypt_data *restrict __data);
-extern void _ufc_dofinalperm_r (uint_fast32_t * res,
-                                struct crypt_data *restrict __data);
-extern void _ufc_output_conversion_r (uint_fast32_t v1, uint_fast32_t v2,
-                                      const char *salt,
-                                      struct crypt_data *restrict __data);
 
-/* des-tables.c */
-extern const int pc1[56];
-extern const int rots[16];
-extern const int pc2[48];
-extern const int esel[48];
-extern const int perm32[32];
-extern const int sbox[8][4][16];
-extern const int initial_perm[64];
-extern const int final_perm[64];
-extern const uint_fast32_t bitmask[24];
-extern const unsigned char bytemask[8];
-extern const uint_fast32_t longmask[32];
+struct des_ctx
+{
+  uint32_t keysl[16];
+  uint32_t keysr[16];
+  uint32_t saltbits;
+};
 
-/* des-tables2.c */
-extern const uint_fast32_t do_pc1[8][2][128];
-extern const uint_fast32_t do_pc2[8][128];
-extern const uint_fast32_t eperm32tab[4][256][2];
-extern const uint_fast32_t efp[16][64][2];
+extern void des_set_key (struct des_ctx *restrict ctx,
+                         const unsigned char *key);
+extern void des_set_salt (struct des_ctx *restrict ctx,
+                          uint32_t salt);
+extern void des_crypt_block (struct des_ctx *restrict ctx,
+                             unsigned char *out, const unsigned char *in,
+                             unsigned int count, bool decrypt);
 
-/* des-obsolete.c */
-extern void __setkey_r (const char *__key,
-                        struct crypt_data *restrict __data);
-extern void __encrypt_r (char *restrict __block, int __edflag,
-                         struct crypt_data *restrict __data);
+/* des-tables.c (generated by des-mktables) */
+extern const uint8_t m_sbox[4][4096];
+extern const uint32_t ip_maskl[8][256], ip_maskr[8][256];
+extern const uint32_t fp_maskl[8][256], fp_maskr[8][256];
+extern const uint32_t key_perm_maskl[8][128], key_perm_maskr[8][128];
+extern const uint32_t comp_maskl[8][128], comp_maskr[8][128];
+extern const uint32_t psbox[4][256];
 
 #endif /* des.h */

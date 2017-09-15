@@ -1,173 +1,126 @@
 /*
- * UFC-crypt: ultra fast crypt(3) implementation
+ * FreeSec: libcrypt for NetBSD
  *
- * Copyright (C) 1991, 1992, 1993, 1996 Free Software Foundation, Inc.
+ * Copyright (c) 1994 David Burren
+ * All rights reserved.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Library General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Adapted for FreeBSD-2.0 by Geoffrey M. Rehmet
+ *	this file should now *only* export crypt(), in order to make
+ *	binaries of libcrypt exportable from the USA
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Library General Public License for more details.
+ * Adapted for FreeBSD-4.0 by Mark R V Murray
+ *	this file should now *only* export crypt_des(), in order to make
+ *	a module that can be optionally included in libcrypt.
  *
- * You should have received a copy of the GNU Library General Public
- * License along with this library; see the file COPYING.LIB.  If not,
- * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * Adapted for libxcrypt by Zack Weinberg, 2017
+ *	see notes in des.c
  *
- * Obsolete DES symmetric cipher primitives - not to be used in new code
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the author nor the names of other contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * This is an original implementation of the DES and the crypt(3) interfaces
+ * by David Burren <davidb@werj.com.au>.
  */
 
-#include "xcrypt-private.h"
+/* Obsolete DES symmetric cipher API - not to be used in new code.  */
+
 #include "crypt-obsolete.h"
 #include "des.h"
 
+#include <string.h>
 
-/*
- * UNIX encrypt function. Takes a bitvector
- * represented by one byte per bit and
- * encrypt/decrypt according to edflag
- */
+/* For reasons lost in the mists of time, these functions operate on
+   64-*byte* arrays, each of which should be either 0 or 1 - only the
+   low bit of each byte is examined.  The DES primitives, much more
+   sensibly, operate on 8-byte/64-*bit* arrays.  */
 
-void
-encrypt_r (char *__block, int __edflag,
-           struct crypt_data *restrict __data)
+static void
+unpack_bits (char bytev[64], const unsigned char bitv[8])
 {
-  uint_fast32_t l1, l2, r1, r2, res[4];
-  int i;
-#if !UFC_USE_64BIT
-  uint32_t *kt;
-  kt = (uint32_t *) __data->keysched;
-#else
-  uint64_t *kt;
-  kt = (uint64_t *) __data->keysched;
-#endif
-
-  /*
-   * Undo any salt changes to E expansion
-   */
-  _ufc_setup_salt_r ("..", __data);
-
-  /*
-   * Reverse key table if
-   * changing operation (encrypt/decrypt)
-   */
-  if ((__edflag == 0) != (__data->direction == 0))
-    {
-      for (i = 0; i < 8; i++)
-        {
-#if !UFC_USE_64BIT
-          uint32_t x;
-          x = kt[2 * (15 - i)];
-          kt[2 * (15 - i)] = kt[2 * i];
-          kt[2 * i] = x;
-
-          x = kt[2 * (15 - i) + 1];
-          kt[2 * (15 - i) + 1] = kt[2 * i + 1];
-          kt[2 * i + 1] = x;
-#else
-          uint64_t x;
-          x = kt[15 - i];
-          kt[15 - i] = kt[i];
-          kt[i] = x;
-#endif
-        }
-      __data->direction = __edflag;
-    }
-
-  /*
-   * Do initial permutation + E expansion
-   */
-  i = 0;
-  for (l1 = 0; i < 24; i++)
-    {
-      if (__block[initial_perm[esel[i] - 1] - 1])
-        l1 |= bitmask[i];
-    }
-  for (l2 = 0; i < 48; i++)
-    {
-      if (__block[initial_perm[esel[i] - 1] - 1])
-        l2 |= bitmask[i - 24];
-    }
-
-  i = 0;
-  for (r1 = 0; i < 24; i++)
-    {
-      if (__block[initial_perm[esel[i] - 1 + 32] - 1])
-        r1 |= bitmask[i];
-    }
-  for (r2 = 0; i < 48; i++)
-    {
-      if (__block[initial_perm[esel[i] - 1 + 32] - 1])
-        r2 |= bitmask[i - 24];
-    }
-
-  /*
-   * Do DES inner loops + final conversion
-   */
-  res[0] = l1;
-  res[1] = l2;
-  res[2] = r1;
-  res[3] = r2;
-  _ufc_doit_r ((uint_fast32_t) 1, __data, &res[0]);
-
-  /*
-   * Do final permutations
-   */
-  _ufc_dofinalperm_r (res, __data);
-
-  /*
-   * And convert to bit array
-   */
-  l1 = res[0];
-  r1 = res[1];
-  for (i = 0; i < 32; i++)
-    {
-      *__block++ = (l1 & longmask[i]) != 0;
-    }
-  for (i = 0; i < 32; i++)
-    {
-      *__block++ = (r1 & longmask[i]) != 0;
-    }
-}
-
-void encrypt (char *__block, int __edflag)
-{
-  encrypt_r (__block, __edflag, &_ufc_foobar);
-}
-
-/*
- * UNIX setkey function. Take a 64 bit DES
- * key and setup the machinery.
- */
-void
-setkey_r (const char *__key, struct crypt_data *restrict __data)
-{
-  int i, j;
   unsigned char c;
-  unsigned char ktab[8];
-
-  _ufc_setup_salt_r ("..", __data);     /* be sure we're initialized */
-
-  for (i = 0; i < 8; i++)
+  for (int i = 0; i < 8; i++)
     {
-      for (j = 0, c = 0; j < 8; j++)
-        c = c << 1 | *__key++;
-      ktab[i] = c >> 1;
+      c = bitv[i];
+      for (int j = 0; j < 8; j++)
+        bytev[i*8 + j] = (c & (0x01 << (7 - j))) != 0;
     }
-  _ufc_mk_keytab_r ((char *) ktab, __data);
 }
 
-void setkey (const char *__key)
+static void
+pack_bits (unsigned char bitv[8], const char bytev[64])
 {
-  setkey_r (__key, &_ufc_foobar);
+  unsigned char c;
+  for (int i = 0; i < 8; i++)
+    {
+      c = 0;
+      for (int j = 0; j < 8; j++)
+        c = c << 1 | (bytev[i*8 + j] & 0x01u);
+      bitv[i] = c;
+    }
 }
 
-char *
-bigcrypt (const char *key, const char *salt)
+/* Initialize DATA with a DES key, KEY, represented as a byte vector.  */
+void
+setkey_r (const char *key, struct crypt_data *data)
 {
-  return bigcrypt_r (key, salt, &_ufc_foobar);
+  unsigned char bkey[8];
+  pack_bits (bkey, key);
+
+  struct des_ctx *ctx = (struct des_ctx *)data;
+  memset (ctx, 0, sizeof *ctx);
+
+  des_set_salt (ctx, 0);
+  des_set_key (ctx, bkey);
+}
+
+/* Encrypt or decrypt one DES block, BLOCK, using the key schedule in
+   DATA.  BLOCK is processed in place.  */
+void
+encrypt_r (char *block, int edflag, struct crypt_data *data)
+{
+  unsigned char bin[8], bout[8];
+  pack_bits (bin, block);
+
+  struct des_ctx *ctx = (struct des_ctx *)data;
+  des_crypt_block (ctx, bout, bin, 1, edflag != 0);
+  unpack_bits (block, bout);
+}
+
+/* Even-more-deprecated-than-the-above nonreentrant versions.
+   These use a separate state object from the main library's
+   nonreentrant crypt().  */
+
+static struct des_ctx nr_encrypt_ctx;
+
+void
+setkey (const char *key)
+{
+  setkey_r (key, (struct crypt_data *) &nr_encrypt_ctx);
+}
+
+void
+encrypt (char *block, int edflag)
+{
+  encrypt_r (block, edflag, (struct crypt_data *) &nr_encrypt_ctx);
 }
