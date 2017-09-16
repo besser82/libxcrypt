@@ -7,8 +7,8 @@
  * @(#)cert.c   1.8 11 Aug 1996
  */
 
-#ifndef _TEST_DES_CASES_H
-#define _TEST_DES_CASES_H 1
+#ifndef _CRYPT_TEST_DES_CASES_H
+#define _CRYPT_TEST_DES_CASES_H 1
 
 #include <stddef.h>
 

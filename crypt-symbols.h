@@ -66,5 +66,4 @@
 #define sha512_init_ctx          _crypt_sha512_init_ctx
 #define sha512_process_bytes     _crypt_sha512_process_bytes
 
-
-#endif
+#endif /* crypt-symbols.h */

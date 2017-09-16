@@ -15,8 +15,8 @@
  * There's ABSOLUTELY NO WARRANTY, express or implied.
  */
 
-#ifndef _BYTEORDER_H
-#define _BYTEORDER_H 1
+#ifndef _CRYPT_BYTEORDER_H
+#define _CRYPT_BYTEORDER_H 1
 
 #include <stdint.h>
 
@@ -108,4 +108,4 @@ cpu_to_be64 (unsigned char *buf, uint64_t n)
   buf[7] = (unsigned char)((n & 0x00000000000000FFull) >>  0);
 }
 
-#endif
+#endif /* byteorder.h */

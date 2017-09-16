@@ -19,8 +19,8 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
 
-#ifndef _MD5_H
-#define _MD5_H 1
+#ifndef _CRYPT_ALG_MD5_H
+#define _CRYPT_ALG_MD5_H 1
 
 #include <stddef.h>
 #include <stdint.h>
@@ -52,4 +52,4 @@ extern void md5_process_bytes (const void *buffer, size_t len,
    hash to RESBUF, which should point to 16 bytes of storage.  */
 extern void *md5_finish_ctx (struct md5_ctx *ctx, void *resbuf);
 
-#endif /* md5.h */
+#endif /* alg-md5.h */

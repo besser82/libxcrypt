@@ -17,8 +17,8 @@
  * 02111-1307 USA.
  */
 
-#ifndef _XCRYPT_PRIVATE_H
-#define _XCRYPT_PRIVATE_H       1
+#ifndef _CRYPT_PRIVATE_H
+#define _CRYPT_PRIVATE_H 1
 
 #include "crypt.h"
 
@@ -70,4 +70,4 @@ extern char *gensalt_bcrypt_y_rn (unsigned long count,
                                   const char *input, int size,
                                   char *output, int output_size);
 
-#endif
+#endif /* crypt-private.h */

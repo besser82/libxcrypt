@@ -12,6 +12,12 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile])
 AM_INIT_AUTOMAKE
 
+AH_TOP(
+[#ifndef _CRYPT_CONFIG_H
+#define _CRYPT_CONFIG_H 1])
+AH_BOTTOM(
+[#endif /* config.h */])
+
 # Checks for programs.
 AC_PROG_CC
 

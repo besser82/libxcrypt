@@ -43,8 +43,8 @@
  * by David Burren <davidb@werj.com.au>.
  */
 
-#ifndef _DES_H
-#define _DES_H 1
+#ifndef _CRYPT_ALG_DES_H
+#define _CRYPT_ALG_DES_H 1
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -74,4 +74,4 @@ extern const uint32_t key_perm_maskl[8][128], key_perm_maskr[8][128];
 extern const uint32_t comp_maskl[8][128], comp_maskr[8][128];
 extern const uint32_t psbox[4][256];
 
-#endif /* des.h */
+#endif /* alg-des.h */

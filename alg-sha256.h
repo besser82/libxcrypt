@@ -18,8 +18,8 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
 
-#ifndef _SHA256_H
-#define _SHA256_H 1
+#ifndef _CRYPT_ALG_SHA256_H
+#define _CRYPT_ALG_SHA256_H 1
 
 #include <stddef.h>
 #include <stdint.h>
@@ -48,4 +48,4 @@ extern void sha256_process_bytes (const void *buffer, size_t len,
    hash to RESBUF, which should point to 32 bytes of storage.  */
 extern void *sha256_finish_ctx (struct sha256_ctx *ctx, void *resbuf);
 
-#endif /* sha256.h */
+#endif /* alg-sha256.h */
