@@ -20,8 +20,8 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
 
-#include "md5.h"
-#include "xcrypt-private.h"
+#include "alg-md5.h"
+#include "crypt-private.h"
 
 #include <errno.h>
 #include <string.h>

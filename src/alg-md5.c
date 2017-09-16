@@ -21,7 +21,7 @@
 
 /* Written by Ulrich Drepper <drepper@gnu.ai.mit.edu>, 1995.  */
 
-#include "md5.h"
+#include "alg-md5.h"
 #include "byteorder.h"
 
 #include <string.h>

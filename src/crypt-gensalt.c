@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <errno.h>
 
-#include "xcrypt-private.h"
+#include "crypt-private.h"
 
 static const unsigned char _xcrypt_itoa64[64 + 1] =
   "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";

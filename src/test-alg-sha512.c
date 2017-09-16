@@ -1,4 +1,4 @@
-#include "sha512.h"
+#include "alg-sha512.h"
 
 #include <stdio.h>
 #include <string.h>

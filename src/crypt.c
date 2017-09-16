@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "xcrypt-private.h"
+#include "crypt-private.h"
 #include "crypt-obsolete.h"
 
 #define CRYPT_GENSALT_OUTPUT_SIZE       (7 + 22 + 1)

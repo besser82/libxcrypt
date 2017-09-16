@@ -18,8 +18,8 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
 
-#include "sha256.h"
-#include "xcrypt-private.h"
+#include "alg-sha256.h"
+#include "crypt-private.h"
 
 #include <errno.h>
 #include <stdbool.h>

@@ -1,4 +1,4 @@
-#include "md5.h"
+#include "alg-md5.h"
 
 #include <string.h>
 #include <stdio.h>

@@ -46,7 +46,7 @@
 /* Obsolete DES symmetric cipher API - not to be used in new code.  */
 
 #include "crypt-obsolete.h"
-#include "des.h"
+#include "alg-des.h"
 
 #include <string.h>
 

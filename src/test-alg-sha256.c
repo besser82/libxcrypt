@@ -1,4 +1,4 @@
-#include "sha256.h"
+#include "alg-sha256.h"
 
 #include <string.h>
 #include <stdio.h>

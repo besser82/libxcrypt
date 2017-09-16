@@ -43,8 +43,8 @@
  * by David Burren <davidb@werj.com.au>.
  */
 
-#include "des.h"
-#include "xcrypt-private.h"
+#include "alg-des.h"
+#include "crypt-private.h"
 
 #include <errno.h>
 #include <stddef.h>

@@ -7,55 +7,54 @@
 AUTOMAKE_OPTIONS = 1.7 gnits
 
 AM_CFLAGS = $(WARN_CFLAGS)
-AM_CPPFLAGS = -include libc-symbols.h
-
-CLEANFILES = *~
-
-EXTRA_DIST = libxcrypt.map
-
-TESTS = test-byteorder test-gensalt test-bcrypt \
-	test-des test-md5 test-sha256 test-sha512 \
-	test-des-crypt test-md5-crypt test-sha256-crypt test-sha512-crypt \
-	test-des-obsolete test-bigcrypt
+AM_CPPFLAGS = -include crypt-symbols.h
 
 include_HEADERS = crypt.h
-noinst_HEADERS = byteorder.h crypt-obsolete.h libc-symbols.h \
-	xcrypt-private.h des.h md5.h sha256.h sha512.h bcrypt.h
+noinst_HEADERS = \
+	alg-des.h alg-md5.h alg-sha256.h alg-sha512.h byteorder.h \
+	crypt-obsolete.h crypt-private.h crypt-symbols.h \
+	test-des-cases.h
 
-libxcrypt_la_LDFLAGS = -version-info 2:0:0 \
-			-Wl,--version-script=$(srcdir)/libxcrypt.map \
-			-Wl,-z,defs -Wl,-z,text
+lib_LTLIBRARIES = libcrypt.la
+libcrypt_la_SOURCES = \
+	crypt.c crypt-gensalt.c crypt-bcrypt.c crypt-sha512.c crypt-sha256.c \
+	crypt-md5.c crypt-des.c crypt-des-obsolete.c \
+	alg-sha512.c alg-sha256.c alg-md5.c alg-des.c
 
-lib_LTLIBRARIES = libxcrypt.la
+nodist_libcrypt_la_SOURCES = \
+	alg-des-tables.c
 
-libxcrypt_la_SOURCES = \
-	xcrypt.c xcrypt-gensalt.c bcrypt.c sha256.c sha256-crypt.c \
-	sha512.c sha512-crypt.c md5.c md5-crypt.c \
-	des.c des-crypt.c des-obsolete.c
+libcrypt_la_LDFLAGS = \
+	-version-info 2:0:0 \
+	-Wl,--version-script=$(srcdir)/libcrypt.map \
+	-Wl,-z,defs -Wl,-z,text
 
-nodist_libxcrypt_la_SOURCES = \
-	des-tables.c
+alg-des-tables.c: alg-des-mktables
+	./alg-des-mktables > alg-des-tables.c.T
+	mv -f alg-des-tables.c.T alg-des-tables.c
 
-CLEANFILES += des-tables.c
+TESTS = test-alg-des test-alg-md5 test-alg-sha256 test-alg-sha512 \
+	test-crypt-des test-crypt-md5 test-crypt-sha256 test-crypt-sha512 \
+	test-crypt-bcrypt \
+	test-byteorder test-des-obsolete test-bigcrypt test-gensalt
 
-des-tables.c: des-mktables
-	./des-mktables > des-tables.c.T
-	-mv -f des-tables.c.T des-tables.c
+noinst_PROGRAMS = $(TESTS) alg-des-mktables
 
-noinst_PROGRAMS = $(TESTS) des-mktables
+EXTRA_DIST = libcrypt.map
+CLEANFILES = alg-des-tables.c
 
-des_mktables_SOURCES = des-mktables.c
+test_crypt_bcrypt_LDADD = libcrypt.la
+test_crypt_des_LDADD = libcrypt.la
+test_crypt_md5_LDADD = libcrypt.la
+test_crypt_sha256_LDADD = libcrypt.la
+test_crypt_sha512_LDADD = libcrypt.la
+test_bigcrypt_LDADD = libcrypt.la
+test_gensalt_LDADD = libcrypt.la
 
-test_bcrypt_LDADD = libxcrypt.la
-test_bigcrypt_LDADD = libxcrypt.la
-test_gensalt_LDADD = libxcrypt.la
-test_des_crypt_LDADD = libxcrypt.la
-test_md5_crypt_LDADD = libxcrypt.la
-test_sha256_crypt_LDADD = libxcrypt.la
-test_sha512_crypt_LDADD = libxcrypt.la
-
-test_des_LDADD = des.lo des-tables.lo
-test_des_obsolete_LDADD = des.lo des-tables.lo des-obsolete.lo
-test_md5_LDADD = md5.lo
-test_sha256_LDADD = sha256.lo
-test_sha512_LDADD = sha512.lo
+# These tests call internal APIs that may not be accessible from the
+# fully linked shared library.
+test_alg_des_LDADD = alg-des.lo alg-des-tables.lo
+test_alg_md5_LDADD = alg-md5.lo
+test_alg_sha256_LDADD = alg-sha256.lo
+test_alg_sha512_LDADD = alg-sha512.lo
+test_des_obsolete_LDADD = alg-des.lo alg-des-tables.lo crypt-des-obsolete.lo

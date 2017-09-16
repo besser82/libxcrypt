@@ -47,8 +47,7 @@
 #include <stdio.h>
 #include <errno.h>
 
-/* Just to make sure the prototypes match the actual definitions */
-#include "bcrypt.h"
+#include "crypt-private.h"
 
 #if defined(__i386__) || defined(__x86_64__) || \
     defined(__alpha__) || defined(__hppa__)
@@ -57,7 +56,6 @@
 #define BF_SCALE                        0
 #endif
 
-#include "xcrypt-private.h"
 
 typedef unsigned int BF_word;
 typedef signed int BF_word_signed;

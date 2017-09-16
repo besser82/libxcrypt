@@ -20,7 +20,7 @@
 
 /* Written by Ulrich Drepper <drepper@redhat.com>, 2007.  */
 
-#include "sha512.h"
+#include "alg-sha512.h"
 #include "byteorder.h"
 
 #include <string.h>

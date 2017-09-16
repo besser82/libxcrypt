@@ -5,7 +5,7 @@
  * @(#)cert.c   1.8 11 Aug 1996
  */
 
-#include "des.h"
+#include "alg-des.h"
 #include "test-des-cases.h"
 
 #include <stdio.h>
