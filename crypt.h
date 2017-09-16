@@ -67,11 +67,6 @@ extern char *crypt_gensalt (const char *__prefix, unsigned long __count,
                             const char *__input, int __size)
   __THROW __nonnull ((1, 3));
 
-extern char *crypt_gensalt_r (const char *__prefix, unsigned long __count,
-                              const char *__input, int __size,
-                              char *__output, int __output_size)
-  __THROW __nonnull ((1, 5));
-
 extern char *crypt_gensalt_rn (const char *__prefix, unsigned long __count,
                                const char *__input, int __size,
                                char *__output, int __output_size)

@@ -52,10 +52,6 @@ extern void encrypt_r (char *__block, int __edflag,
 extern char *bigcrypt (const char *key, const char *salt)
   __THROW __nonnull ((1, 2));
 
-extern char *bigcrypt_r (const char *key, const char *salt,
-                         struct crypt_data *restrict __data)
-  __THROW __nonnull ((1, 2, 3));
-
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

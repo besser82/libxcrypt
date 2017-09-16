@@ -46,9 +46,9 @@ main (void)
       for (ent = 0; entropy[ent]; ent++)
         {
           memset (output, 0, CRYPT_GENSALT_OUTPUT_SIZE);
-          char *salt = crypt_gensalt_r (tcase->prefix, 0,
-                                        entropy[ent], 16,
-                                        output, CRYPT_GENSALT_OUTPUT_SIZE);
+          char *salt = crypt_gensalt_rn (tcase->prefix, 0,
+                                         entropy[ent], 16,
+                                         output, CRYPT_GENSALT_OUTPUT_SIZE);
           size_t slen = strlen (salt);
           if (slen != tcase->expected_len)
             {

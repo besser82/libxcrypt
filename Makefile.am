@@ -34,12 +34,19 @@ alg-des-tables.c: alg-des-mktables
 	./alg-des-mktables > alg-des-tables.c.T
 	mv -f alg-des-tables.c.T alg-des-tables.c
 
-TESTS = test-alg-des test-alg-md5 test-alg-sha256 test-alg-sha512 \
+noinst_PROGRAMS = alg-des-mktables
+
+check_PROGRAMS = \
+	test-alg-des test-alg-md5 test-alg-sha256 test-alg-sha512 \
 	test-crypt-des test-crypt-md5 test-crypt-sha256 test-crypt-sha512 \
 	test-crypt-bcrypt \
 	test-byteorder test-des-obsolete test-bigcrypt test-gensalt
 
-noinst_PROGRAMS = $(TESTS) alg-des-mktables
+TESTS = $(check_PROGRAMS) test-symbols.sh
+
+AM_TESTS_ENVIRONMENT = \
+    lib_la="./libcrypt.la"; lib_map="$(srcdir)/libcrypt.map"; \
+    export lib_la lib_map;
 
 EXTRA_DIST = libcrypt.map
 CLEANFILES = alg-des-tables.c

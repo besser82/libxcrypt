@@ -191,6 +191,7 @@ crypt (const char *key, const char *salt)
 {
   return crypt_r (key, salt, &nr_crypt_ctx);
 }
+strong_alias(crypt, fcrypt);
 
 char *
 crypt_gensalt_rn (const char *prefix, unsigned long count,
@@ -216,13 +217,6 @@ crypt_gensalt_rn (const char *prefix, unsigned long count,
 }
 
 char *
-crypt_gensalt_r (const char *prefix, unsigned long count,
-                 const char *input, int size, char *output, int output_size)
-{
-  return crypt_gensalt_rn (prefix, count, input, size, output, output_size);
-}
-
-char *
 crypt_gensalt_ra (const char *prefix, unsigned long count,
                   const char *input, int size)
 {
@@ -244,22 +238,17 @@ crypt_gensalt (const char *prefix, unsigned long count,
                            input, size, output, sizeof (output));
 }
 
-/* Obsolete interfaces - not to be used in new code.  These are the
-   same as crypt_r and crypt, but they force the use of the Digital
-   Unix "bigcrypt" hash, which is nearly as weak as traditional DES.  */
-char *
-bigcrypt_r (const char *key, const char *salt,
-            struct crypt_data *restrict data)
-{
-  char *retval = crypt_des_big_rn (key, salt, (char *) data, sizeof (*data));
-  if (retval)
-    return retval;
-  make_failure_token (salt, (char *)data, sizeof (*data));
-  return (char *)data;
-}
-
+/* Obsolete interface - not to be used in new code.  This function is
+   the same as crypt, but it forces the use of the Digital Unix
+   "bigcrypt" hash, which is nearly as weak as traditional DES.
+   Because it is obsolete, we have not added a reentrant version.  */
 char *
 bigcrypt (const char *key, const char *salt)
 {
-  return bigcrypt_r (key, salt, &nr_crypt_ctx);
+  char *retval = crypt_des_big_rn
+    (key, salt, (char *)&nr_crypt_ctx, sizeof nr_crypt_ctx);
+  if (retval)
+    return retval;
+  make_failure_token (salt, (char *)&nr_crypt_ctx, sizeof nr_crypt_ctx);
+  return (char *)&nr_crypt_ctx;
 }
