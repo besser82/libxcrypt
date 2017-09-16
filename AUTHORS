@@ -1,0 +1,17 @@
+The bcrypt hash module, the extended crypt_* functions, and the
+high-level glue code (crypt.c, crypt-gensalt.c) come from crypt_blowfish,
+originally written by Solar Designer <solar at openwall.com> and
+based on algorithms and ideas by Niels Provos <provos at citi.umich.edu>
+and David Mazieres <dm at lcs.mit.edu>.
+
+The MD5, SHA256, and SHA512 hash modules, and the underlying
+secure-hash primitives, were originally written by Ulrich Drepper
+<drepper at cygnus.com> as part of the GNU C Library.
+
+The DES hash module was originally FreeSec, written by David Burren
+<davidb at werj.com.au> for the NetBSD project, and since extensively
+modified by Geoffrey M. Rehmet, Mark R V Murray, and Zack Weinberg.
+
+The work of integration into this standalone library was done by
+Thorsten Kukuk <kukuk at suse.de>, Björn Esser <besser72 at fedoraproject.org>,
+and Zack Weinberg <zackw at panix.com>.

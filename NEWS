@@ -7,6 +7,11 @@ Copyright (C) 2015 Björn Esser <besser82@fedoraproject.org>
 Please send bug reports, questions and suggestions to
 <besser82@fedoraproject.org>.
 
+Version 3.2.0
+* UFC-crypt replaced with FreeSec
+* extensive code cleanup and portability work
+* more thoroughly tested
+
 Version 3.1.1
 * add '--enable-Wno-cast-align' to silence 'cast increases required alignment'
 * whitespace clean-up

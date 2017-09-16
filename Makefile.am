@@ -4,7 +4,8 @@
 # Author: Thorsten Kukuk <kukuk@suse.de>
 #
 
-AUTOMAKE_OPTIONS = 1.7 gnits
+AUTOMAKE_OPTIONS = 1.15 gnits
+ACLOCAL_AMFLAGS = -I m4
 
 AM_CFLAGS = $(WARN_CFLAGS)
 AM_CPPFLAGS = -include crypt-symbols.h
