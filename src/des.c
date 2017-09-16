@@ -63,7 +63,7 @@
 
 #include <string.h>
 
-const uint8_t key_shifts[16] = {
+static const uint8_t key_shifts[16] = {
   1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1
 };
 

@@ -163,8 +163,8 @@ des_gen_hash (struct des_ctx *ctx, uint32_t count, char *output,
 
 /* The original UNIX DES-based password hash, no extensions.  */
 static char *
-_xcrypt_crypt_traditional_rn (const char *key, const char *setting,
-                              char *data, size_t size)
+crypt_des_trd_rn (const char *key, const char *setting,
+                  char *data, size_t size)
 {
   /* Ensure we have enough space for a des_buffer in DATA.  */
   if (size < sizeof (struct des_buffer))
@@ -231,8 +231,8 @@ _xcrypt_crypt_traditional_rn (const char *key, const char *setting,
 
    Andy Phillips <atp@mssl.ucl.ac.uk>  */
 char *
-_xcrypt_crypt_bigcrypt_rn (const char *key, const char *setting,
-                           char *data, size_t size)
+crypt_des_big_rn (const char *key, const char *setting,
+                  char *data, size_t size)
 {
   /* Ensure we have enough space for a des_buffer in DATA.  */
   if (size < sizeof (struct des_buffer))
@@ -289,19 +289,19 @@ _xcrypt_crypt_bigcrypt_rn (const char *key, const char *setting,
    its 8-character length limit, and the "bigcrypt" extension to
    permit longer passwords.  */
 char *
-_xcrypt_crypt_trd_or_big_rn (const char *key, const char *salt,
-                              char *data, size_t size)
+crypt_des_trd_or_big_rn (const char *key, const char *salt,
+                         char *data, size_t size)
 {
   if (strlen (salt) > 13)
-    return _xcrypt_crypt_bigcrypt_rn (key, salt, data, size);
+    return crypt_des_big_rn (key, salt, data, size);
   else
-    return _xcrypt_crypt_traditional_rn (key, salt, data, size);
+    return crypt_des_trd_rn (key, salt, data, size);
 }
 
 /* crypt_rn() entry point for BSD-style extended DES hashes.  */
 char *
-_xcrypt_crypt_extended_rn (const char *key, const char *setting,
-                           char *data, size_t size)
+crypt_des_xbsd_rn (const char *key, const char *setting,
+                   char *data, size_t size)
 {
   /* Ensure we have enough space for a des_buffer in DATA.  */
   if (size < sizeof (struct des_buffer))

@@ -826,8 +826,8 @@ BF_crypt (const char *key, const char *setting,
  * setting.
  */
 char *
-_xcrypt_crypt_bcrypt_rn (const char *key, const char *setting,
-                         char *output, size_t size)
+crypt_bcrypt_rn (const char *key, const char *setting,
+                 char *output, size_t size)
 {
   const char *test_key = "8b \xd0\xc1\xd2\xcf\xcc\xd8";
   const char *test_setting = "$2a$00$abcdefghijklmnopqrstuu";
@@ -932,33 +932,33 @@ BF_gensalt (char subtype, unsigned long count,
 }
 
 char *
-_xcrypt_gensalt_bcrypt_a_rn (unsigned long count,
-                             const char *input, int input_size,
-                             char *output, int output_size)
+gensalt_bcrypt_a_rn (unsigned long count,
+                     const char *input, int input_size,
+                     char *output, int output_size)
 {
   return BF_gensalt ('a', count, input, input_size, output, output_size);
 }
 
 char *
-_xcrypt_gensalt_bcrypt_b_rn (unsigned long count,
-                             const char *input, int input_size,
-                             char *output, int output_size)
+gensalt_bcrypt_b_rn (unsigned long count,
+                     const char *input, int input_size,
+                     char *output, int output_size)
 {
   return BF_gensalt ('b', count, input, input_size, output, output_size);
 }
 
 char *
-_xcrypt_gensalt_bcrypt_x_rn (unsigned long count,
-                             const char *input, int input_size,
-                             char *output, int output_size)
+gensalt_bcrypt_x_rn (unsigned long count,
+                     const char *input, int input_size,
+                     char *output, int output_size)
 {
   return BF_gensalt ('x', count, input, input_size, output, output_size);
 }
 
 char *
-_xcrypt_gensalt_bcrypt_y_rn (unsigned long count,
-                             const char *input, int input_size,
-                             char *output, int output_size)
+gensalt_bcrypt_y_rn (unsigned long count,
+                     const char *input, int input_size,
+                     char *output, int output_size)
 {
   return BF_gensalt ('y', count, input, input_size, output, output_size);
 }

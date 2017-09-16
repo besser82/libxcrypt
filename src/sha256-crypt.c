@@ -76,8 +76,8 @@ sha256_process_recycled_bytes (unsigned char block[32], size_t len,
 }
 
 char *
-_xcrypt_crypt_sha256_rn (const char *key, const char *salt,
-                         char *buffer, size_t buflen)
+crypt_sha256_rn (const char *key, const char *salt,
+                 char *buffer, size_t buflen)
 {
   unsigned char alt_result[32];
   unsigned char temp_result[32];

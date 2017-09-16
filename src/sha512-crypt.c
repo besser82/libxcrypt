@@ -76,8 +76,8 @@ sha512_process_recycled_bytes (unsigned char block[64], size_t len,
 }
 
 char *
-_xcrypt_crypt_sha512_rn (const char *key, const char *salt,
-                         char *buffer, size_t buflen)
+crypt_sha512_rn (const char *key, const char *salt,
+                 char *buffer, size_t buflen)
 {
   unsigned char alt_result[64];
   unsigned char temp_result[64];

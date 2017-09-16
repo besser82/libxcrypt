@@ -40,26 +40,26 @@ struct hashfn
    for new encryptions.  */
 static const struct hashfn tagged_hashes[] = {
   /* bcrypt */
-  { "$2a$", _xcrypt_crypt_bcrypt_rn, _xcrypt_gensalt_bcrypt_a_rn },
-  { "$2b$", _xcrypt_crypt_bcrypt_rn, _xcrypt_gensalt_bcrypt_b_rn },
-  { "$2x$", _xcrypt_crypt_bcrypt_rn, _xcrypt_gensalt_bcrypt_x_rn },
-  { "$2y$", _xcrypt_crypt_bcrypt_rn, _xcrypt_gensalt_bcrypt_y_rn },
+  { "$2a$", crypt_bcrypt_rn, gensalt_bcrypt_a_rn },
+  { "$2b$", crypt_bcrypt_rn, gensalt_bcrypt_b_rn },
+  { "$2x$", crypt_bcrypt_rn, gensalt_bcrypt_x_rn },
+  { "$2y$", crypt_bcrypt_rn, gensalt_bcrypt_y_rn },
 
   /* legacy hashes */
-  { "$1$", _xcrypt_crypt_md5_rn, _xcrypt_gensalt_md5_rn },
-  { "$5$", _xcrypt_crypt_sha256_rn, _xcrypt_gensalt_sha256_rn },
-  { "$6$", _xcrypt_crypt_sha512_rn, _xcrypt_gensalt_sha512_rn },
+  { "$1$", crypt_md5_rn, gensalt_md5_rn },
+  { "$5$", crypt_sha256_rn, gensalt_sha256_rn },
+  { "$6$", crypt_sha512_rn, gensalt_sha512_rn },
   { 0, 0, 0 }
 };
 
 /* BSD-style extended DES */
 static const struct hashfn bsdi_extended_hash = {
-  "_", _xcrypt_crypt_extended_rn, _xcrypt_gensalt_extended_rn
+  "_", crypt_des_xbsd_rn, gensalt_des_xbsd_rn
 };
 
 /* Traditional DES or bigcrypt-style extended DES */
 static const struct hashfn traditional_hash = {
-  "", _xcrypt_crypt_trd_or_big_rn, _xcrypt_gensalt_traditional_rn
+  "", crypt_des_trd_or_big_rn, gensalt_des_trd_rn
 };
 
 static int
@@ -240,8 +240,7 @@ char *
 bigcrypt_r (const char *key, const char *salt,
             struct crypt_data *restrict data)
 {
-  char *retval = _xcrypt_crypt_bigcrypt_rn (key, salt,
-                                            (char *) data, sizeof (*data));
+  char *retval = crypt_des_big_rn (key, salt, (char *) data, sizeof (*data));
   if (retval)
     return retval;
   make_failure_token (salt, (char *)data, sizeof (*data));

@@ -49,8 +49,8 @@ static const size_t md5_hash_length =
 /* This entry point is equivalent to the `crypt' function in Unix
    libcs.  */
 char *
-_xcrypt_crypt_md5_rn (const char *key, const char *salt,
-                      char *buffer, size_t buflen)
+crypt_md5_rn (const char *key, const char *salt,
+              char *buffer, size_t buflen)
 {
   unsigned char alt_result[16];
   struct md5_ctx ctx;

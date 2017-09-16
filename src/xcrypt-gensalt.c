@@ -18,9 +18,9 @@ static const unsigned char _xcrypt_itoa64[64 + 1] =
   "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 char *
-_xcrypt_gensalt_traditional_rn (unsigned long count,
-                                const char *input, int size, char *output,
-                                int output_size)
+gensalt_des_trd_rn (unsigned long count,
+                    const char *input, int size, char *output,
+                    int output_size)
 {
   if (size < 2 || output_size < 2 + 1 || (count && count != 25))
     {
@@ -38,9 +38,9 @@ _xcrypt_gensalt_traditional_rn (unsigned long count,
 }
 
 char *
-_xcrypt_gensalt_extended_rn (unsigned long count,
-                             const char *input, int size, char *output,
-                             int output_size)
+gensalt_des_xbsd_rn (unsigned long count,
+                     const char *input, int size, char *output,
+                     int output_size)
 {
   unsigned long value;
 
@@ -76,9 +76,9 @@ _xcrypt_gensalt_extended_rn (unsigned long count,
 }
 
 char *
-_xcrypt_gensalt_md5_rn (unsigned long ARG_UNUSED (count),
-                        const char *input, int size,
-                        char *output, int output_size)
+gensalt_md5_rn (unsigned long ARG_UNUSED (count),
+                const char *input, int size,
+                char *output, int output_size)
 {
   unsigned long value;
 
@@ -118,9 +118,9 @@ _xcrypt_gensalt_md5_rn (unsigned long ARG_UNUSED (count),
 }
 
 static char *
-_xcrypt_gensalt_sha_rn (char tag, unsigned long count,
-                        const char *input, int size,
-                        char *output, int output_size)
+gensalt_sha_rn (char tag, unsigned long count,
+                const char *input, int size,
+                char *output, int output_size)
 {
   unsigned long value;
   char raw_salt[9];
@@ -200,15 +200,15 @@ _xcrypt_gensalt_sha_rn (char tag, unsigned long count,
 }
 
 char *
-_xcrypt_gensalt_sha256_rn (unsigned long count, const char *input, int size,
-                           char *output, int output_size)
+gensalt_sha256_rn (unsigned long count, const char *input, int size,
+                   char *output, int output_size)
 {
-  return _xcrypt_gensalt_sha_rn ('5', count, input, size, output, output_size);
+  return gensalt_sha_rn ('5', count, input, size, output, output_size);
 }
 
 char *
-_xcrypt_gensalt_sha512_rn (unsigned long count, const char *input, int size,
+gensalt_sha512_rn (unsigned long count, const char *input, int size,
                            char *output, int output_size)
 {
-  return _xcrypt_gensalt_sha_rn ('6', count, input, size, output, output_size);
+  return gensalt_sha_rn ('6', count, input, size, output, output_size);
 }
