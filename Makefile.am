@@ -19,37 +19,59 @@ noinst_HEADERS = \
 lib_LTLIBRARIES = libcrypt.la
 libcrypt_la_SOURCES = \
 	crypt.c crypt-gensalt.c crypt-bcrypt.c crypt-sha512.c crypt-sha256.c \
-	crypt-md5.c crypt-des.c crypt-des-obsolete.c \
-	alg-sha512.c alg-sha256.c alg-md5.c alg-des.c
+	alg-sha512.c alg-sha256.c
 
-nodist_libcrypt_la_SOURCES = \
-	alg-des-tables.c
+# Build libcrypt.so.2 if obsolete APIs are excluded, libcrypt.so.1 otherwise.
+if ENABLE_OBSOLETE_API
+libcrypt_la_VERSION = 2:0:1
+else
+libcrypt_la_VERSION = 2:0:0
+endif
 
 libcrypt_la_LDFLAGS = \
-	-version-info 2:0:0 \
+	-version-info $(libcrypt_la_VERSION) \
 	-Wl,--version-script=$(srcdir)/libcrypt.map \
 	-Wl,-z,defs -Wl,-z,text
 
-alg-des-tables.c: alg-des-mktables
-	./alg-des-mktables > alg-des-tables.c.T
-	mv -f alg-des-tables.c.T alg-des-tables.c
+EXTRA_DIST = libcrypt.map.in
+EXTRA_libcrypt_la_DEPENDENCIES = libcrypt.map
+CLEANFILES = libcrypt.map libcrypt.map.T
 
-noinst_PROGRAMS = alg-des-mktables
+libcrypt.map: libcrypt.map.in
+	$(AM_V_GEN)$(CPP) -P - < libcrypt.map.in > libcrypt.map.T
+	$(AM_V_at)mv -f libcrypt.map.T libcrypt.map
 
 check_PROGRAMS = \
-	test-alg-des test-alg-md5 test-alg-sha256 test-alg-sha512 \
-	test-crypt-des test-crypt-md5 test-crypt-sha256 test-crypt-sha512 \
-	test-crypt-bcrypt \
-	test-byteorder test-des-obsolete test-bigcrypt test-gensalt
+	test-alg-sha256 test-alg-sha512 \
+	test-crypt-sha256 test-crypt-sha512 test-crypt-bcrypt \
+	test-byteorder test-gensalt
+
+if ENABLE_WEAK_HASHES
+libcrypt_la_SOURCES += \
+	crypt-md5.c crypt-des.c alg-md5.c alg-des.c
+
+nodist_libcrypt_la_SOURCES = \
+	alg-des-tables.c
+noinst_PROGRAMS = alg-des-mktables
+CLEANFILES += alg-des-tables.c alg-des-tables.c.T
+
+alg-des-tables.c: alg-des-mktables
+	$(AM_V_GEN)./alg-des-mktables > alg-des-tables.c.T
+	$(AM_V_at)mv -f alg-des-tables.c.T alg-des-tables.c
+
+check_PROGRAMS += test-alg-des test-alg-md5 test-crypt-des test-crypt-md5
+endif
+
+if ENABLE_OBSOLETE_API
+libcrypt_la_SOURCES += crypt-des-obsolete.c
+check_PROGRAMS += test-des-obsolete test-bigcrypt
+endif
 
 TESTS = $(check_PROGRAMS) test-symbols.sh
 
 AM_TESTS_ENVIRONMENT = \
     lib_la="./libcrypt.la"; lib_map="$(srcdir)/libcrypt.map"; \
     export lib_la lib_map;
-
-EXTRA_DIST = libcrypt.map
-CLEANFILES = alg-des-tables.c
 
 test_crypt_bcrypt_LDADD = libcrypt.la
 test_crypt_des_LDADD = libcrypt.la

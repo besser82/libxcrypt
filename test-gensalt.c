@@ -19,9 +19,11 @@ struct testcase
 };
 
 static const struct testcase testcases[] = {
+#if ENABLE_WEAK_HASHES
   { "", 2 }, // DES
   { "_", 9 }, // BSDi extended DES
   { "$1$", 11 }, // MD5
+#endif
   { "$5$", 11 }, // SHA-2-256
   { "$6$", 11 }, // SHA-2-512
   { "$2a$", 29 }, // bcrypt mode A
@@ -49,6 +51,12 @@ main (void)
           char *salt = crypt_gensalt_rn (tcase->prefix, 0,
                                          entropy[ent], 16,
                                          output, CRYPT_GENSALT_OUTPUT_SIZE);
+          if (salt == 0)
+            {
+              fprintf (stderr, "ERROR: %s/%u -> NULL\n", tcase->prefix, ent);
+              status = 1;
+              continue;
+            }
           size_t slen = strlen (salt);
           if (slen != tcase->expected_len)
             {

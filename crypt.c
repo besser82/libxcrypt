@@ -46,12 +46,15 @@ static const struct hashfn tagged_hashes[] = {
   { "$2y$", crypt_bcrypt_rn, gensalt_bcrypt_y_rn },
 
   /* legacy hashes */
+#if ENABLE_WEAK_HASHES
   { "$1$", crypt_md5_rn, gensalt_md5_rn },
+#endif
   { "$5$", crypt_sha256_rn, gensalt_sha256_rn },
   { "$6$", crypt_sha512_rn, gensalt_sha512_rn },
   { 0, 0, 0 }
 };
 
+#if ENABLE_WEAK_HASHES
 /* BSD-style extended DES */
 static const struct hashfn bsdi_extended_hash = {
   "_", crypt_des_xbsd_rn, gensalt_des_xbsd_rn
@@ -70,6 +73,7 @@ is_des_salt_char (char c)
           (c >= '0' && c <= '9') ||
           c == '.' || c == '/');
 }
+#endif /* ENABLE_WEAK_HASHES */
 
 static const struct hashfn *
 get_hashfn (const char *salt)
@@ -82,11 +86,13 @@ get_hashfn (const char *salt)
           return h;
       return NULL;
     }
+#if ENABLE_WEAK_HASHES
   else if (salt[0] == '_')
     return &bsdi_extended_hash;
   else if (salt[0] == '\0' ||
            (is_des_salt_char (salt[0]) && is_des_salt_char (salt[1])))
     return &traditional_hash;
+#endif
   else
     return NULL;
 }
@@ -191,7 +197,9 @@ crypt (const char *key, const char *salt)
 {
   return crypt_r (key, salt, &nr_crypt_ctx);
 }
-strong_alias(crypt, fcrypt);
+#if ENABLE_OBSOLETE_API
+strong_alias (crypt, fcrypt);
+#endif
 
 char *
 crypt_gensalt_rn (const char *prefix, unsigned long count,
@@ -238,6 +246,7 @@ crypt_gensalt (const char *prefix, unsigned long count,
                            input, size, output, sizeof (output));
 }
 
+#if ENABLE_OBSOLETE_API
 /* Obsolete interface - not to be used in new code.  This function is
    the same as crypt, but it forces the use of the Digital Unix
    "bigcrypt" hash, which is nearly as weak as traditional DES.
@@ -252,3 +261,4 @@ bigcrypt (const char *key, const char *salt)
   make_failure_token (salt, (char *)&nr_crypt_ctx, sizeof nr_crypt_ctx);
   return (char *)&nr_crypt_ctx;
 }
+#endif
