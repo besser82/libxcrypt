@@ -38,21 +38,21 @@ Makefile.in
 *.o
 *.so
 *.trs
-/src/alg-des-mktables
-/src/alg-des-tables.c
-/src/test-alg-des
-/src/test-alg-md5
-/src/test-alg-sha256
-/src/test-alg-sha512
-/src/test-bigcrypt
-/src/test-byteorder
-/src/test-crypt-bcrypt
-/src/test-crypt-des
-/src/test-crypt-md5
-/src/test-crypt-sha256
-/src/test-crypt-sha512
-/src/test-des-obsolete
-/src/test-gensalt
+/alg-des-mktables
+/alg-des-tables.c
+/test-alg-des
+/test-alg-md5
+/test-alg-sha256
+/test-alg-sha512
+/test-bigcrypt
+/test-byteorder
+/test-crypt-bcrypt
+/test-crypt-des
+/test-crypt-md5
+/test-crypt-sha256
+/test-crypt-sha512
+/test-des-obsolete
+/test-gensalt
 
 # backup-files
 
