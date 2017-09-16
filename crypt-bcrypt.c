@@ -897,6 +897,9 @@ static char *
 BF_gensalt (char subtype, unsigned long count,
             const char *input, int size, char *output, int output_size)
 {
+  BF_word aligned_input[16 / sizeof(BF_word)];
+  memcpy(aligned_input, input, 16);
+
   if (output_size < 7 + 22 + 1)
     {
       errno = ERANGE;
@@ -926,7 +929,7 @@ BF_gensalt (char subtype, unsigned long count,
   output[5] = (char)('0' + count % 10);
   output[6] = '$';
 
-  BF_encode (&output[7], (const BF_word *) input, 16);
+  BF_encode (&output[7], aligned_input, 16);
   output[7 + 22] = '\0';
 
   return output;

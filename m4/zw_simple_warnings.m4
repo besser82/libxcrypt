@@ -50,20 +50,6 @@ done
 AC_DEFUN([zw_SIMPLE_ENABLE_WARNINGS],
 [
 AC_ARG_ENABLE(
-    [warn-cast-align],
-    AS_HELP_STRING(
-        [--disable-warn-cast-align],
-        [do not warn about casts increasing required alignment of target type]
-    ),
-    [case "${enableval}" in
-        yes) cast_align=true ;;
-         no) cast_align=false ;;
-          *)
-       AC_MSG_ERROR([bad value ${enableval} for --enable-warn-cast-align]) ;;
-     esac],
-     [cast_align=true]
-)
-AC_ARG_ENABLE(
    [werror],
    AS_HELP_STRING(
         [--disable-werror],
@@ -76,7 +62,6 @@ AC_ARG_ENABLE(
      esac],
      [warnings_are_errors=true]
 )
-
 
     # Always pass -Werror=unknown-warning-option to get Clang to fail
     # on bad flags, otherwise they are always appended to the
@@ -98,6 +83,7 @@ AC_ARG_ENABLE(
         -Walloca dnl
         -Wbad-function-cast dnl
         -Wc99-c11-compat dnl
+        -Wcast-align dnl
         -Wcast-qual dnl
         -Wconversion dnl
         -Wformat=2 dnl
@@ -122,9 +108,6 @@ AC_ARG_ENABLE(
     "
     if test x$ac_prog_cc_stdc = xc11; then
         ax_candidate_warnings="$ax_candidate_warnings -Wpedantic"
-    fi
-    if test x$cast_align = xtrue; then
-        ax_candidate_warnings="$ax_candidate_warnings -Wcast-align"
     fi
     if test x$warnings_are_errors = xtrue; then
         ax_candidate_warnings="$ax_candidate_warnings -Werror"

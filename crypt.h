@@ -42,19 +42,13 @@ extern char *crypt (const char *__key, const char *__salt)
   __THROW __nonnull ((1, 2));
 
 /* Reentrant versions of the functions above.  The additional argument
-   points to a structure where the results are placed in.  */
+   points to a structure where the results are placed in.  For the moment,
+   we are preserving the public layout and original size of this struct,
+   but it may change in the future.  */
 struct crypt_data
 {
-  char keysched[16 * 8];
-  char sb0[32768];
-  char sb1[32768];
-  char sb2[32768];
-  char sb3[32768];
-  /* end-of-aligment-critical-data */
-  char crypt_3_buf[14];
-  char current_salt[2];
-  long int current_saltbits;
-  int direction, initialized;
+  char opaque[16 * 8 + 32768 * 4 + 14 + 2 + sizeof(long int) + sizeof(int)];
+  int initialized;
 };
 
 extern char *crypt_r (const char *__key, const char *__salt,
