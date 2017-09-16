@@ -116,6 +116,11 @@ make_failure_token (const char *salt, char *output, int size)
 static char *
 do_crypt_rn (const char *key, const char *salt, char *data, int size)
 {
+  if (size <= 0)
+    {
+      errno = ERANGE;
+      return NULL;
+    }
   const struct hashfn *h = get_hashfn (salt);
   if (!h)
     {
@@ -123,7 +128,7 @@ do_crypt_rn (const char *key, const char *salt, char *data, int size)
       errno = EINVAL;
       return NULL;
     }
-  return h->crypt (key, salt, data, size);
+  return h->crypt (key, salt, data, (size_t)size);
 }
 
 static char *
@@ -145,7 +150,13 @@ do_crypt_ra (const char *key, const char *salt, void **data, int *size)
       *size = sizeof (struct crypt_data);
     }
 
-  return h->crypt (key, salt, *data, *size);
+  if (*size <= 0)
+    {
+      errno = ERANGE;
+      return NULL;
+    }
+
+  return h->crypt (key, salt, *data, (size_t)*size);
 }
 
 char *

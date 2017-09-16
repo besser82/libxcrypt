@@ -14,7 +14,7 @@
 
 #include "crypt-private.h"
 
-static const unsigned char _xcrypt_itoa64[64 + 1] =
+static const char _xcrypt_itoa64[64 + 1] =
   "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 char *
@@ -137,6 +137,7 @@ gensalt_sha_rn (char tag, unsigned long count,
       errno = ERANGE;
       return NULL;
     }
+  /* at this point, output_size is known to be positive */
 
   value = (unsigned long) (unsigned char) input[0] |
     ((unsigned long) (unsigned char) input[1] << 8) |
@@ -161,7 +162,7 @@ gensalt_sha_rn (char tag, unsigned long count,
 
   if (count > 0)
     {
-      written = snprintf (output, output_size, "$%c$rounds=%ld$%s",
+      written = snprintf (output, (size_t)output_size, "$%c$rounds=%lu$%s",
                           tag, count, raw_salt);
       if (written > 0 && written <= output_size)
         return output;
@@ -171,7 +172,7 @@ gensalt_sha_rn (char tag, unsigned long count,
           /* The output didn't fit.  Try truncating the salt to four
              characters.  */
           raw_salt[4] = '\0';
-          written = snprintf (output, output_size, "$%c$rounds=%ld$%s",
+          written = snprintf (output, (size_t)output_size, "$%c$rounds=%lu$%s",
                               tag, count, raw_salt);
           if (written > 0 && written <= output_size)
             return output;
@@ -179,7 +180,8 @@ gensalt_sha_rn (char tag, unsigned long count,
     }
   else
     {
-      written = snprintf (output, output_size, "$%c$%s", tag, raw_salt);
+      written = snprintf (output, (size_t)output_size, "$%c$%s",
+                          tag, raw_salt);
       if (written > 0 && written <= output_size)
         return output;
 
@@ -188,7 +190,8 @@ gensalt_sha_rn (char tag, unsigned long count,
           /* The output didn't fit.  Try truncating the salt to four
              characters.  */
           raw_salt[4] = '\0';
-          written = snprintf (output, output_size, "$%c$%s", tag, raw_salt);
+          written = snprintf (output, (size_t)output_size, "$%c$%s",
+                              tag, raw_salt);
           if (written > 0 && written <= output_size)
             return output;
         }

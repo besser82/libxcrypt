@@ -75,7 +75,7 @@ main (void)
 
       if (strcmp (cp, tests[i].expected) != 0)
         {
-          printf ("test %d.0: expected \"%s\", got \"%s\"\n",
+          printf ("test %u.0: expected \"%s\", got \"%s\"\n",
                   i, tests[i].expected, cp);
           result = 1;
         }
@@ -84,7 +84,7 @@ main (void)
       cp = crypt_r (tests[i].input, prevhash, &output);
       if (strcmp (cp, prevhash) != 0)
         {
-          printf ("test %d.1: expected \"%s\", got \"%s\"\n",
+          printf ("test %u.1: expected \"%s\", got \"%s\"\n",
                   i, prevhash, cp);
           result = 1;
         }

@@ -186,7 +186,8 @@ des_init(void)
 	 * initialise the inverted key permutation.
 	 */
 	for (i = 0; i < 64; i++) {
-		init_perm[final_perm[i] = IP[i] - 1] = (uint8_t)i;
+                final_perm[i] = (uint8_t)(IP[i] - 1);
+                init_perm[final_perm[i]] = (uint8_t)i;
 		inv_key_perm[i] = 255;
 	}
 

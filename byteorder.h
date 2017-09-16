@@ -67,45 +67,45 @@ be64_to_cpu (const unsigned char *buf)
 static inline void
 cpu_to_le32 (unsigned char *buf, uint32_t n)
 {
-  buf[0] = (n & 0x000000FFu) >>  0;
-  buf[1] = (n & 0x0000FF00u) >>  8;
-  buf[2] = (n & 0x00FF0000u) >> 16;
-  buf[3] = (n & 0xFF000000u) >> 24;
+  buf[0] = (unsigned char)((n & 0x000000FFu) >>  0);
+  buf[1] = (unsigned char)((n & 0x0000FF00u) >>  8);
+  buf[2] = (unsigned char)((n & 0x00FF0000u) >> 16);
+  buf[3] = (unsigned char)((n & 0xFF000000u) >> 24);
 }
 
 static inline void
 cpu_to_be32 (unsigned char *buf, uint32_t n)
 {
-  buf[0] = (n & 0xFF000000u) >> 24;
-  buf[1] = (n & 0x00FF0000u) >> 16;
-  buf[2] = (n & 0x0000FF00u) >>  8;
-  buf[3] = (n & 0x000000FFu) >>  0;
+  buf[0] = (unsigned char)((n & 0xFF000000u) >> 24);
+  buf[1] = (unsigned char)((n & 0x00FF0000u) >> 16);
+  buf[2] = (unsigned char)((n & 0x0000FF00u) >>  8);
+  buf[3] = (unsigned char)((n & 0x000000FFu) >>  0);
 }
 
 static inline void
 cpu_to_le64 (unsigned char *buf, uint64_t n)
 {
-  buf[0] = (n & 0x00000000000000FFull) >>  0;
-  buf[1] = (n & 0x000000000000FF00ull) >>  8;
-  buf[2] = (n & 0x0000000000FF0000ull) >> 16;
-  buf[3] = (n & 0x00000000FF000000ull) >> 24;
-  buf[4] = (n & 0x000000FF00000000ull) >> 32;
-  buf[5] = (n & 0x0000FF0000000000ull) >> 40;
-  buf[6] = (n & 0x00FF000000000000ull) >> 48;
-  buf[7] = (n & 0xFF00000000000000ull) >> 56;
+  buf[0] = (unsigned char)((n & 0x00000000000000FFull) >>  0);
+  buf[1] = (unsigned char)((n & 0x000000000000FF00ull) >>  8);
+  buf[2] = (unsigned char)((n & 0x0000000000FF0000ull) >> 16);
+  buf[3] = (unsigned char)((n & 0x00000000FF000000ull) >> 24);
+  buf[4] = (unsigned char)((n & 0x000000FF00000000ull) >> 32);
+  buf[5] = (unsigned char)((n & 0x0000FF0000000000ull) >> 40);
+  buf[6] = (unsigned char)((n & 0x00FF000000000000ull) >> 48);
+  buf[7] = (unsigned char)((n & 0xFF00000000000000ull) >> 56);
 }
 
 static inline void
 cpu_to_be64 (unsigned char *buf, uint64_t n)
 {
-  buf[0] = (n & 0xFF00000000000000ull) >> 56;
-  buf[1] = (n & 0x00FF000000000000ull) >> 48;
-  buf[2] = (n & 0x0000FF0000000000ull) >> 40;
-  buf[3] = (n & 0x000000FF00000000ull) >> 32;
-  buf[4] = (n & 0x00000000FF000000ull) >> 24;
-  buf[5] = (n & 0x0000000000FF0000ull) >> 16;
-  buf[6] = (n & 0x000000000000FF00ull) >>  8;
-  buf[7] = (n & 0x00000000000000FFull) >>  0;
+  buf[0] = (unsigned char)((n & 0xFF00000000000000ull) >> 56);
+  buf[1] = (unsigned char)((n & 0x00FF000000000000ull) >> 48);
+  buf[2] = (unsigned char)((n & 0x0000FF0000000000ull) >> 40);
+  buf[3] = (unsigned char)((n & 0x000000FF00000000ull) >> 32);
+  buf[4] = (unsigned char)((n & 0x00000000FF000000ull) >> 24);
+  buf[5] = (unsigned char)((n & 0x0000000000FF0000ull) >> 16);
+  buf[6] = (unsigned char)((n & 0x000000000000FF00ull) >>  8);
+  buf[7] = (unsigned char)((n & 0x00000000000000FFull) >>  0);
 }
 
 #endif

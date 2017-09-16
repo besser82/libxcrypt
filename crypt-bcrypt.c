@@ -392,17 +392,17 @@ BF_decode (BF_word * dst, const char *src, int size)
     {
       BF_safe_atoi64 (c1, *sptr++);
       BF_safe_atoi64 (c2, *sptr++);
-      *dptr++ = (c1 << 2) | ((c2 & 0x30) >> 4);
+      *dptr++ = (unsigned char)((c1 << 2) | ((c2 & 0x30) >> 4));
       if (dptr >= end)
         break;
 
       BF_safe_atoi64 (c3, *sptr++);
-      *dptr++ = ((c2 & 0x0F) << 4) | ((c3 & 0x3C) >> 2);
+      *dptr++ = (unsigned char)(((c2 & 0x0F) << 4) | ((c3 & 0x3C) >> 2));
       if (dptr >= end)
         break;
 
       BF_safe_atoi64 (c4, *sptr++);
-      *dptr++ = ((c3 & 0x03) << 6) | c4;
+      *dptr++ = (unsigned char)(((c3 & 0x03) << 6) | c4);
     }
   while (dptr < end);
 
@@ -553,6 +553,7 @@ BF_set_key (const char *key, BF_key expanded, BF_key initial,
   const char *ptr = key;
   unsigned int bug, i, j;
   BF_word safety, sign, diff, tmp[2];
+  BF_word_signed stmp;
 
 /*
  * There was a sign extension bug in older revisions of this function.  While
@@ -602,7 +603,8 @@ BF_set_key (const char *key, BF_key expanded, BF_key initial,
           tmp[0] <<= 8;
           tmp[0] |= (unsigned char) *ptr;       /* correct */
           tmp[1] <<= 8;
-          tmp[1] |= (BF_word_signed) (signed char) *ptr;        /* bug */
+          stmp = (BF_word_signed) (signed char) *ptr; /* bug */
+          tmp[1] |= (BF_word) stmp; /* two steps avoid GCC 6 spurious warning */
 /*
  * Sign extension in the first char has no effect - nothing to overwrite yet,
  * and those extra 24 bits will be fully shifted out of the 32-bit word.  For
@@ -658,7 +660,7 @@ static const unsigned char flags_by_subtype[26] = {
 
 static char *
 BF_crypt (const char *key, const char *setting,
-          char *output, int size, BF_word min)
+          char *output, size_t size, BF_word min)
 {
   struct
   {
@@ -790,9 +792,10 @@ BF_crypt (const char *key, const char *setting,
     }
 
   memcpy (output, setting, 7 + 22 - 1);
-  output[7 + 22 - 1] = BF_itoa64[(int)
-                                 BF_atoi64[(int) setting[7 + 22 - 1] -
-                                           0x20] & 0x30];
+  output[7 + 22 - 1] =
+    (char)BF_itoa64[(int)
+                    BF_atoi64[(int) setting[7 + 22 - 1] -
+                              0x20] & 0x30];
 
 /* This has to be bug-compatible with the original implementation, so
  * only encode 23 of the 24 bytes. :-) */
@@ -919,8 +922,8 @@ BF_gensalt (char subtype, unsigned long count,
   output[1] = '2';
   output[2] = subtype;
   output[3] = '$';
-  output[4] = '0' + count / 10;
-  output[5] = '0' + count % 10;
+  output[4] = (char)('0' + count / 10);
+  output[5] = (char)('0' + count % 10);
   output[6] = '$';
 
   BF_encode (&output[7], (const BF_word *) input, 16);

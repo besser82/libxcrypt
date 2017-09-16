@@ -25,14 +25,15 @@ expand (unsigned char ex[64], const unsigned char pk[8])
     {
       t = pk[i];
       for (j = 0; j < 8; j++)
-        ex[i*8 + j] = (t & (0x01 << (7 - j))) != 0;
+        ex[i*8 + j] = (t & (0x01u << (7 - j))) != 0;
     }
 }
 
 static void
 ex_print (const unsigned char ex[64])
 {
-  int i, j, t;
+  int i, j;
+  unsigned int t;
 
   for (i = 0; i < 8; i++)
     {

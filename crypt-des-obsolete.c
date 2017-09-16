@@ -70,13 +70,16 @@ unpack_bits (char bytev[64], const unsigned char bitv[8])
 static void
 pack_bits (unsigned char bitv[8], const char bytev[64])
 {
-  unsigned char c;
+  unsigned int c;
   for (int i = 0; i < 8; i++)
     {
       c = 0;
       for (int j = 0; j < 8; j++)
-        c = c << 1 | (bytev[i*8 + j] & 0x01u);
-      bitv[i] = c;
+        {
+          c <<= 1;
+          c |= ((unsigned char)bytev[i*8 + j] & 0x01u);
+        }
+      bitv[i] = (unsigned char)c;
     }
 }
 

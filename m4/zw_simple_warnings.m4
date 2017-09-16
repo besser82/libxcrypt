@@ -94,18 +94,30 @@ AC_ARG_ENABLE(
     ax_candidate_warnings="dnl
         -Wall dnl
         -Wextra dnl
+        -Walloc-zero dnl
+        -Walloca dnl
         -Wbad-function-cast dnl
+        -Wc99-c11-compat dnl
         -Wcast-qual dnl
+        -Wconversion dnl
         -Wformat=2 dnl
+        -Wformat-overflow=2 dnl
+        -Wformat-signedness dnl
+        -Wformat-truncation=2 dnl
         -Winline dnl
+        -Wlogical-op dnl
         -Wmissing-declarations dnl
         -Wmissing-prototypes dnl
         -Wnested-externs dnl
+        -Wnull-dereference dnl
         -Wold-style-definition dnl
         -Wpointer-arith dnl
+        -Wrestrict dnl
         -Wshadow dnl
+        -Wstrict-overflow=2 dnl
         -Wstrict-prototypes dnl
         -Wundef dnl
+        dnl -Wvla dnl used on purpose in des-mktables.c
         -Wwrite-strings dnl
     "
     if test x$ac_prog_cc_stdc = xc11; then

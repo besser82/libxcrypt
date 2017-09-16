@@ -249,11 +249,11 @@ sha512_process_bytes (const void *buffer, size_t len, struct sha512_ctx *ctx)
 
       if (ctx->buflen > 128)
         {
-          sha512_process_block (ctx->buffer, ctx->buflen & ~127, ctx);
+          sha512_process_block (ctx->buffer, ctx->buflen & ~127u, ctx);
 
           ctx->buflen &= 127;
           /* The regions in the following copy operation cannot overlap.  */
-          memcpy (ctx->buffer, &ctx->buffer[(left_over + add) & ~127],
+          memcpy (ctx->buffer, &ctx->buffer[(left_over + add) & ~127u],
                   ctx->buflen);
         }
 
@@ -264,8 +264,8 @@ sha512_process_bytes (const void *buffer, size_t len, struct sha512_ctx *ctx)
   /* Process available complete blocks.  */
   if (len > 128)
     {
-      sha512_process_block (buffer, len & ~127, ctx);
-      buffer = (const char *) buffer + (len & ~127);
+      sha512_process_block (buffer, len & ~127u, ctx);
+      buffer = (const char *) buffer + (len & ~127u);
       len &= 127;
     }
 

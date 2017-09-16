@@ -51,7 +51,7 @@ main (void)
 
       if (strcmp (cp, tests[i].expected) != 0)
         {
-          printf ("test %d: expected \"%s\", got \"%s\"\n",
+          printf ("test %u: expected \"%s\", got \"%s\"\n",
                   i, tests[i].expected, cp);
           result = 1;
         }

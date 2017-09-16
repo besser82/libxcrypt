@@ -173,15 +173,17 @@ crypt_md5_rn (const char *key, const char *salt,
   cp += salt_len;
   *cp++ = '$';
 
-#define b64_from_24bit(B2, B1, B0, N)                                         \
-  do {                                                                        \
-    unsigned int w = ((B2) << 16) | ((B1) << 8) | (B0);                       \
-    int n = (N);                                                              \
-    while (n-- > 0)                                                           \
-      {                                                                       \
-        *cp++ = b64t[w & 0x3f];                                               \
-        w >>= 6;                                                              \
-      }                                                                       \
+#define b64_from_24bit(B2, B1, B0, N)                   \
+  do {                                                  \
+    unsigned int w = ((((unsigned int)(B2)) << 16) |    \
+                      (((unsigned int)(B1)) << 8) |     \
+                      ((unsigned int)(B0)));            \
+    int n = (N);                                        \
+    while (n-- > 0)                                     \
+      {                                                 \
+        *cp++ = b64t[w & 0x3f];                         \
+        w >>= 6;                                        \
+      }                                                 \
   } while (0)
 
 

@@ -49,11 +49,11 @@ main (void)
           char *salt = crypt_gensalt_r (tcase->prefix, 0,
                                         entropy[ent], 16,
                                         output, CRYPT_GENSALT_OUTPUT_SIZE);
-          unsigned int slen = strlen (salt);
+          size_t slen = strlen (salt);
           if (slen != tcase->expected_len)
             {
               fprintf (stderr,
-                       "ERROR: %s/%u -> %s (expected len=%u got %u)\n",
+                       "ERROR: %s/%u -> %s (expected len=%u got %zu)\n",
                        tcase->prefix, ent, salt, tcase->expected_len, slen);
               status = 1;
             }

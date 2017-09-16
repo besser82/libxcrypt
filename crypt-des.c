@@ -95,21 +95,21 @@ static const uint8_t ascii64[] =
 /* 0000000000111111111122222222223333333333444444444455555555556666 */
 /* 0123456789012345678901234567890123456789012345678901234567890123 */
 
-static inline int
+static inline unsigned int
 ascii_to_bin(char ch)
 {
   if (ch > 'z')
     return 0;
   if (ch >= 'a')
-    return ch - 'a' + 38;
+    return (unsigned int)(ch - 'a' + 38);
   if (ch > 'Z')
     return 0;
   if (ch >= 'A')
-    return ch - 'A' + 12;
+    return (unsigned int)(ch - 'A' + 12);
   if (ch > '9')
     return 0;
   if (ch >= '.')
-    return ch - '.';
+    return (unsigned int)(ch - '.');
   return 0;
 }
 
@@ -118,7 +118,7 @@ ascii_to_bin(char ch)
    set.  The plaintext is 64 bits of zeroes, and the raw ciphertext is
    written to cbuf[].  */
 static void
-des_gen_hash (struct des_ctx *ctx, uint32_t count, char *output,
+des_gen_hash (struct des_ctx *ctx, uint32_t count, unsigned char *output,
               uint8_t cbuf[8])
 {
   uint8_t plaintext[8];
@@ -128,37 +128,36 @@ des_gen_hash (struct des_ctx *ctx, uint32_t count, char *output,
   /* Now encode the result.  */
   const unsigned char *sptr = cbuf;
   const unsigned char *end = sptr + 8;
-  unsigned char *dptr = (unsigned char *)output;
   unsigned int c1, c2;
 
   do
     {
       c1 = *sptr++;
-      *dptr++ = ascii64[c1 >> 2];
+      *output++ = ascii64[c1 >> 2];
       c1 = (c1 & 0x03) << 4;
       if (sptr >= end)
         {
-          *dptr++ = ascii64[c1];
+          *output++ = ascii64[c1];
           break;
         }
 
       c2 = *sptr++;
       c1 |= c2 >> 4;
-      *dptr++ = ascii64[c1];
+      *output++ = ascii64[c1];
       c1 = (c2 & 0x0f) << 2;
       if (sptr >= end)
         {
-          *dptr++ = ascii64[c1];
+          *output++ = ascii64[c1];
           break;
         }
 
       c2 = *sptr++;
       c1 |= c2 >> 6;
-      *dptr++ = ascii64[c1];
-      *dptr++ = ascii64[c2 & 0x3f];
+      *output++ = ascii64[c1];
+      *output++ = ascii64[c2 & 0x3f];
     }
   while (sptr < end);
-  *dptr = '\0';
+  *output = '\0';
 }
 
 /* The original UNIX DES-based password hash, no extensions.  */
@@ -177,7 +176,7 @@ crypt_des_trd_rn (const char *key, const char *setting,
   struct des_ctx *ctx = des_get_ctx (buf);
   uint32_t salt = 0;
   uint8_t *keybuf = buf->keybuf, *pkbuf = buf->pkbuf;
-  char *output = buf->output;
+  unsigned char *output = (unsigned char *)buf->output;
   int i;
 
   /* "old"-style: setting - 2 bytes of salt, key - up to 8 characters.
@@ -199,7 +198,7 @@ crypt_des_trd_rn (const char *key, const char *setting,
      each character up by 1 bit and padding on the right with zeroes.  */
   for (i = 0; i < 8; i++)
     {
-      keybuf[i] = *key << 1;
+      keybuf[i] = (uint8_t)(*key << 1);
       if (*key)
         key++;
     }
@@ -245,7 +244,7 @@ crypt_des_big_rn (const char *key, const char *setting,
   struct des_ctx *ctx = des_get_ctx (buf);
   uint32_t salt = 0;
   uint8_t *keybuf = buf->keybuf, *pkbuf = buf->pkbuf;
-  char *output = buf->output;
+  unsigned char *output = (unsigned char *)buf->output;
   int i, seg;
 
   /* The setting string is exactly the same as for a traditional DES
@@ -262,7 +261,7 @@ crypt_des_big_rn (const char *key, const char *setting,
       /* Copy and shift each block as for the traditional DES.  */
       for (i = 0; i < 8; i++)
         {
-          keybuf[i] = *key << 1;
+          keybuf[i] = (uint8_t)(*key << 1);
           if (*key)
             key++;
         }
@@ -276,8 +275,8 @@ crypt_des_big_rn (const char *key, const char *setting,
 
       /* change the salt (1st 2 chars of previous block) - this was found
          by dowsing */
-      salt = ascii_to_bin (output[0]);
-      salt |= ascii_to_bin (output[1]) << 6;
+      salt = ascii_to_bin ((char)output[0]);
+      salt |= ascii_to_bin ((char)output[1]) << 6;
       output += 11;
     }
 
@@ -321,7 +320,7 @@ crypt_des_xbsd_rn (const char *key, const char *setting,
   struct des_ctx *ctx = des_get_ctx (buf);
   uint32_t count = 0, salt = 0;
   uint8_t *keybuf = buf->keybuf, *pkbuf = buf->pkbuf;
-  char *output = buf->output;
+  unsigned char *output = (unsigned char *)buf->output;
   int i;
 
   /* "new"-style DES hash:
@@ -349,7 +348,7 @@ crypt_des_xbsd_rn (const char *key, const char *setting,
     {
       for (i = 0; i < 8; i++)
         {
-          keybuf[i] = pkbuf[i] ^ (*key << 1);
+          keybuf[i] = (uint8_t)(pkbuf[i] ^ (*key << 1));
           if (*key)
             key++;
         }

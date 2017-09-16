@@ -208,19 +208,19 @@ sha256_process_bytes (const void *buffer, size_t len, struct sha256_ctx *ctx)
      both inputs first.  */
   if (ctx->buflen != 0)
     {
-      size_t left_over = ctx->buflen;
-      size_t add = 128 - left_over > len ? len : 128 - left_over;
+      uint32_t left_over = ctx->buflen;
+      uint32_t add = 128 - left_over > len ? (uint32_t)len : 128 - left_over;
 
       memcpy (&ctx->buffer[left_over], buffer, add);
       ctx->buflen += add;
 
       if (ctx->buflen > 64)
         {
-          sha256_process_block (ctx->buffer, ctx->buflen & ~63, ctx);
+          sha256_process_block (ctx->buffer, ctx->buflen & ~63u, ctx);
 
           ctx->buflen &= 63;
           /* The regions in the following copy operation cannot overlap.  */
-          memcpy (ctx->buffer, &ctx->buffer[(left_over + add) & ~63],
+          memcpy (ctx->buffer, &ctx->buffer[(left_over + add) & ~63u],
                   ctx->buflen);
         }
 
@@ -231,8 +231,8 @@ sha256_process_bytes (const void *buffer, size_t len, struct sha256_ctx *ctx)
   /* Process available complete blocks.  */
    if (len > 64)
     {
-      sha256_process_block (buffer, len & ~63, ctx);
-      buffer = (const char *) buffer + (len & ~63);
+      sha256_process_block (buffer, len & ~63u, ctx);
+      buffer = (const char *) buffer + (len & ~63u);
       len &= 63;
     }
 
@@ -249,6 +249,6 @@ sha256_process_bytes (const void *buffer, size_t len, struct sha256_ctx *ctx)
           left_over -= 64;
           memcpy (ctx->buffer, &ctx->buffer[64], left_over);
         }
-      ctx->buflen = left_over;
+      ctx->buflen = (uint32_t)left_over;
     }
 }
