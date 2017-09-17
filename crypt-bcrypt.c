@@ -43,9 +43,11 @@
  * hadn't seen his code).
  */
 
-#include <string.h>
-#include <stdio.h>
 #include <errno.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "crypt-private.h"
 
@@ -472,12 +474,12 @@ BF_swap (BF_word * x, int count)
         tmp3 = L >> 16; \
         tmp3 &= 0xFF; \
         tmp4 = L >> 24; \
-        tmp1 = data.ctx.S[3][tmp1]; \
-        tmp2 = data.ctx.S[2][tmp2]; \
-        tmp3 = data.ctx.S[1][tmp3]; \
-        tmp3 += data.ctx.S[0][tmp4]; \
+        tmp1 = data->ctx.S[3][tmp1]; \
+        tmp2 = data->ctx.S[2][tmp2]; \
+        tmp3 = data->ctx.S[1][tmp3]; \
+        tmp3 += data->ctx.S[0][tmp4]; \
         tmp3 ^= tmp2; \
-        R ^= data.ctx.P[N + 1]; \
+        R ^= data->ctx.P[N + 1]; \
         tmp3 += tmp1; \
         R ^= tmp3;
 #else
@@ -493,12 +495,12 @@ BF_swap (BF_word * x, int count)
         tmp3 &= 0x3FC; \
         tmp4 = L >> 22; \
         tmp4 &= 0x3FC; \
-        tmp1 = BF_INDEX(data.ctx.S[3], tmp1); \
-        tmp2 = BF_INDEX(data.ctx.S[2], tmp2); \
-        tmp3 = BF_INDEX(data.ctx.S[1], tmp3); \
-        tmp3 += BF_INDEX(data.ctx.S[0], tmp4); \
+        tmp1 = BF_INDEX(data->ctx.S[3], tmp1); \
+        tmp2 = BF_INDEX(data->ctx.S[2], tmp2); \
+        tmp3 = BF_INDEX(data->ctx.S[1], tmp3); \
+        tmp3 += BF_INDEX(data->ctx.S[0], tmp4); \
         tmp3 ^= tmp2; \
-        R ^= data.ctx.P[N + 1]; \
+        R ^= data->ctx.P[N + 1]; \
         tmp3 += tmp1; \
         R ^= tmp3;
 #endif
@@ -507,7 +509,7 @@ BF_swap (BF_word * x, int count)
  * Encrypt one block, BF_N is hardcoded here.
  */
 #define BF_ENCRYPT \
-        L ^= data.ctx.P[0]; \
+        L ^= data->ctx.P[0]; \
         BF_ROUND(L, R, 0); \
         BF_ROUND(R, L, 1); \
         BF_ROUND(L, R, 2); \
@@ -526,25 +528,25 @@ BF_swap (BF_word * x, int count)
         BF_ROUND(R, L, 15); \
         tmp4 = R; \
         R = L; \
-        L = tmp4 ^ data.ctx.P[BF_N + 1];
+        L = tmp4 ^ data->ctx.P[BF_N + 1];
 
 #define BF_body() \
         L = R = 0; \
-        ptr = data.ctx.P; \
+        ptr = data->ctx.P; \
         do { \
                 ptr += 2; \
                 BF_ENCRYPT; \
                 *(ptr - 2) = L; \
                 *(ptr - 1) = R; \
-        } while (ptr < &data.ctx.P[BF_N + 2]); \
+        } while (ptr < &data->ctx.P[BF_N + 2]); \
 \
-        ptr = data.ctx.S[0]; \
+        ptr = data->ctx.S[0]; \
         do { \
                 ptr += 2; \
                 BF_ENCRYPT; \
                 *(ptr - 2) = L; \
                 *(ptr - 1) = R; \
-        } while (ptr < &data.ctx.S[3][0xFF]);
+        } while (ptr < &data->ctx.S[3][0xFF]);
 
 static void
 BF_set_key (const char *key, BF_key expanded, BF_key initial,
@@ -633,11 +635,11 @@ BF_set_key (const char *key, BF_key expanded, BF_key initial,
  * is meant to protect from such many-buggy to one-correct collisions, by
  * deviating from the correct algorithm in such cases.  Let's check for this.
  */
-  diff |= diff >> 16;           /* still zero iff exact match */
-  diff &= 0xffff;               /* ditto */
-  diff += 0xffff;               /* bit 16 set iff "diff" was non-zero (on non-match) */
-  sign <<= 9;                   /* move the non-benign sign extension flag to bit 16 */
-  sign &= ~diff & safety;       /* action needed? */
+  diff |= diff >> 16;     /* still zero iff exact match */
+  diff &= 0xffff;         /* ditto */
+  diff += 0xffff;         /* bit 16 set iff "diff" was non-zero (on non-match) */
+  sign <<= 9;             /* move the non-benign sign extension flag to bit 16 */
+  sign &= ~diff & safety; /* action needed? */
 
 /*
  * If we have determined that we need to deviate from the correct algorithm,
@@ -658,31 +660,71 @@ static const unsigned char flags_by_subtype[26] = {
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 4, 0
 };
 
+/* prefix: $2z$00$ = 7 chars
+     (where z = a, b, x, or y, and 00 = a decimal number
+      from 00 to 31 inclusive)
+   salt: 22 chars */
+#define BF_SETTING_LENGTH (7 + 22)
+
+/* prefix: BF_SETTING_LENGTH
+   hash: 31 chars
+   terminator: 1 char */
+#define BF_HASH_LENGTH (BF_SETTING_LENGTH + 31 + 1)
+
+/* BF_data holds all of the sensitive intermediate data used by
+   BF_crypt.  */
+struct BF_data
+{
+  BF_ctx ctx;
+  BF_key expanded_key;
+  union
+  {
+    BF_word salt[4];
+    BF_word output[6];
+  } binary;
+};
+
+/* A BF_buffer holds the output plus all of the sensitive intermediate
+   data.  It may have been allocated by application code, so it may
+   not be properly aligned, and besides which BF_HASH_LENGTH may be
+   odd, so we pad 'databuf' enough to find a properly-aligned BF_data
+   object within.  The extra two characters' space in tmp_output are
+   used by the self-test -- see below.  */
+struct BF_buffer
+{
+  char output[BF_HASH_LENGTH];
+  char tmp_output[BF_HASH_LENGTH + 2];
+  uint8_t databuf[sizeof (struct BF_data) + alignof (struct BF_data)];
+};
+
+static inline struct BF_data *
+BF_get_data (struct BF_buffer *buf)
+{
+  uintptr_t datp = (uintptr_t) &buf->databuf;
+  uintptr_t align = alignof (struct BF_data);
+  datp = (datp + align - 1) & ~align;
+  return (struct BF_data *)datp;
+}
+
+static inline void
+BF_wipe_intermediate_data (struct BF_buffer *buf)
+{
+  memset (((char *)buf) + offsetof (struct BF_buffer, tmp_output),
+          0,
+          sizeof (struct BF_buffer) - offsetof (struct BF_buffer, tmp_output));
+}
+
 static char *
 BF_crypt (const char *key, const char *setting,
-          char *output, size_t size, BF_word min)
+          struct BF_buffer *buffer, BF_word min)
 {
-  struct
-  {
-    BF_ctx ctx;
-    BF_key expanded_key;
-    union
-    {
-      BF_word salt[4];
-      BF_word output[6];
-    } binary;
-  } data;
+  struct BF_data *data = BF_get_data (buffer);
   BF_word L, R;
   BF_word tmp1, tmp2, tmp3, tmp4;
   BF_word *ptr;
   BF_word count;
   int i;
-
-  if (size < 7 + 22 + 31 + 1)
-    {
-      errno = ERANGE;
-      return NULL;
-    }
+  char *output = buffer->tmp_output;
 
   if (setting[0] != '$' ||
       setting[1] != '2' ||
@@ -698,46 +740,46 @@ BF_crypt (const char *key, const char *setting,
     }
 
   count = (BF_word) 1 << ((setting[4] - '0') * 10 + (setting[5] - '0'));
-  if (count < min || BF_decode (data.binary.salt, &setting[7], 16))
+  if (count < min || BF_decode (data->binary.salt, &setting[7], 16))
     {
       errno = EINVAL;
       return NULL;
     }
-  BF_swap (data.binary.salt, 4);
+  BF_swap (data->binary.salt, 4);
 
-  BF_set_key (key, data.expanded_key, data.ctx.P,
+  BF_set_key (key, data->expanded_key, data->ctx.P,
               flags_by_subtype[(unsigned int) (unsigned char) setting[2] -
                                'a']);
 
-  memcpy (data.ctx.S, BF_init_state.S, sizeof (data.ctx.S));
+  memcpy (data->ctx.S, BF_init_state.S, sizeof (data->ctx.S));
 
   L = R = 0;
   for (i = 0; i < BF_N + 2; i += 2)
     {
-      L ^= data.binary.salt[i & 2];
-      R ^= data.binary.salt[(i & 2) + 1];
+      L ^= data->binary.salt[i & 2];
+      R ^= data->binary.salt[(i & 2) + 1];
       BF_ENCRYPT;
-      data.ctx.P[i] = L;
-      data.ctx.P[i + 1] = R;
+      data->ctx.P[i] = L;
+      data->ctx.P[i + 1] = R;
     }
 
-  ptr = data.ctx.S[0];
+  ptr = data->ctx.S[0];
   do
     {
       ptr += 4;
-      L ^= data.binary.salt[(BF_N + 2) & 3];
-      R ^= data.binary.salt[(BF_N + 3) & 3];
+      L ^= data->binary.salt[(BF_N + 2) & 3];
+      R ^= data->binary.salt[(BF_N + 3) & 3];
       BF_ENCRYPT;
       *(ptr - 4) = L;
       *(ptr - 3) = R;
 
-      L ^= data.binary.salt[(BF_N + 4) & 3];
-      R ^= data.binary.salt[(BF_N + 5) & 3];
+      L ^= data->binary.salt[(BF_N + 4) & 3];
+      R ^= data->binary.salt[(BF_N + 5) & 3];
       BF_ENCRYPT;
       *(ptr - 2) = L;
       *(ptr - 1) = R;
     }
-  while (ptr < &data.ctx.S[3][0xFF]);
+  while (ptr < &data->ctx.S[3][0xFF]);
 
   do
     {
@@ -745,8 +787,8 @@ BF_crypt (const char *key, const char *setting,
 
       for (i = 0; i < BF_N + 2; i += 2)
         {
-          data.ctx.P[i] ^= data.expanded_key[i];
-          data.ctx.P[i + 1] ^= data.expanded_key[i + 1];
+          data->ctx.P[i] ^= data->expanded_key[i];
+          data->ctx.P[i + 1] ^= data->expanded_key[i + 1];
         }
 
       done = 0;
@@ -757,19 +799,19 @@ BF_crypt (const char *key, const char *setting,
             break;
           done = 1;
 
-          tmp1 = data.binary.salt[0];
-          tmp2 = data.binary.salt[1];
-          tmp3 = data.binary.salt[2];
-          tmp4 = data.binary.salt[3];
+          tmp1 = data->binary.salt[0];
+          tmp2 = data->binary.salt[1];
+          tmp3 = data->binary.salt[2];
+          tmp4 = data->binary.salt[3];
           for (i = 0; i < BF_N; i += 4)
             {
-              data.ctx.P[i] ^= tmp1;
-              data.ctx.P[i + 1] ^= tmp2;
-              data.ctx.P[i + 2] ^= tmp3;
-              data.ctx.P[i + 3] ^= tmp4;
+              data->ctx.P[i] ^= tmp1;
+              data->ctx.P[i + 1] ^= tmp2;
+              data->ctx.P[i + 2] ^= tmp3;
+              data->ctx.P[i + 3] ^= tmp4;
             }
-          data.ctx.P[16] ^= tmp1;
-          data.ctx.P[17] ^= tmp2;
+          data->ctx.P[16] ^= tmp1;
+          data->ctx.P[17] ^= tmp2;
         }
       while (1);
     }
@@ -787,21 +829,21 @@ BF_crypt (const char *key, const char *setting,
         }
       while (--count);
 
-      data.binary.output[i] = L;
-      data.binary.output[i + 1] = R;
+      data->binary.output[i] = L;
+      data->binary.output[i + 1] = R;
     }
 
-  memcpy (output, setting, 7 + 22 - 1);
-  output[7 + 22 - 1] =
+  memcpy (output, setting, BF_SETTING_LENGTH - 1);
+  output[BF_SETTING_LENGTH - 1] =
     (char)BF_itoa64[(int)
-                    BF_atoi64[(int) setting[7 + 22 - 1] -
+                    BF_atoi64[(int) setting[BF_SETTING_LENGTH - 1] -
                               0x20] & 0x30];
 
 /* This has to be bug-compatible with the original implementation, so
  * only encode 23 of the 24 bytes. :-) */
-  BF_swap (data.binary.output, 6);
-  BF_encode (&output[7 + 22], data.binary.output, 23);
-  output[7 + 22 + 31] = '\0';
+  BF_swap (data->binary.output, 6);
+  BF_encode (&output[BF_SETTING_LENGTH], data->binary.output, 23);
+  output[BF_HASH_LENGTH - 1] = '\0';
 
   return output;
 }
@@ -828,51 +870,60 @@ BF_crypt (const char *key, const char *setting,
  */
 char *
 crypt_bcrypt_rn (const char *key, const char *setting,
-                 char *output, size_t size)
+                 char *data, size_t size)
 {
-  const char *test_key = "8b \xd0\xc1\xd2\xcf\xcc\xd8";
-  const char *test_setting = "$2a$00$abcdefghijklmnopqrstuu";
+  /* Ensure we have enough space for a BF_buffer in DATA.  */
+  if (size < sizeof (struct BF_buffer))
+    {
+      errno = ERANGE;
+      return NULL;
+    }
+  struct BF_buffer *buffer = (struct BF_buffer *)data;
+
+  /* Hash the supplied password */
+  char *rv = BF_crypt (key, setting, buffer, 16);
+  if (!rv)
+    {
+      BF_wipe_intermediate_data (buffer);
+      return 0;
+    }
+
+  /* Preserve the output and the current value of errno.  */
+  memcpy (buffer->output, buffer->tmp_output, BF_HASH_LENGTH);
+  int save_errno = errno;
+
+  /* Do a quick self-test.  It is important that we make both calls to
+     BF_crypt() from the same scope such that they likely use the same
+     stack locations, which makes the second call overwrite the first
+     call's sensitive data on the stack and makes it more likely that
+     any alignment related issues would be detected by the self-test.  */
+
+  static const char test_key[] = "8b \xd0\xc1\xd2\xcf\xcc\xd8";
+  static const char test_setting_init[] = "$2a$00$abcdefghijklmnopqrstuu";
   static const char *const test_hashes[2] = {
     "i1D709vfamulimlGcq0qq3UvuUasvEa\0\x55",  /* 'a', 'b', 'y' */
-    "VUrPmXD6q/nVSSp7pNDhCR9071IfIRe\0\x55"
-  };                            /* 'x' */
+    "VUrPmXD6q/nVSSp7pNDhCR9071IfIRe\0\x55"   /* 'x' */
+  };
   const char *test_hash = test_hashes[0];
-  char *retval;
+  char test_setting[BF_SETTING_LENGTH];
+  unsigned int flags = flags_by_subtype[(unsigned int) (unsigned char)
+                                        setting[2] - 'a'];
   const char *p;
-  int save_errno, ok;
-  struct
-  {
-    char s[7 + 22 + 1];
-    char o[7 + 22 + 31 + 1 + 1 + 1];
-  } buf;
+  int ok;
 
-/* Hash the supplied password */
-  retval = BF_crypt (key, setting, output, size, 16);
-  save_errno = errno;
+  memcpy (test_setting, test_setting_init, BF_SETTING_LENGTH + 1);
+  test_hash = test_hashes[flags & 1];
+  test_setting[2] = setting[2];
 
-/*
- * Do a quick self-test.  It is important that we make both calls to BF_crypt()
- * from the same scope such that they likely use the same stack locations,
- * which makes the second call overwrite the first call's sensitive data on the
- * stack and makes it more likely that any alignment related issues would be
- * detected by the self-test.
- */
-  memcpy (buf.s, test_setting, sizeof (buf.s));
-  if (retval)
-    {
-      unsigned int flags = flags_by_subtype[(unsigned int) (unsigned char)
-                                            setting[2] - 'a'];
-      test_hash = test_hashes[flags & 1];
-      buf.s[2] = setting[2];
-    }
-  memset (buf.o, 0x55, sizeof (buf.o));
-  buf.o[sizeof (buf.o) - 1] = 0;
-  p = BF_crypt (test_key, buf.s, buf.o, sizeof (buf.o) - (1 + 1), 1);
+  memset (buffer->tmp_output, 0x55, sizeof buffer->tmp_output);
+  p = BF_crypt (test_key, test_setting, buffer, 1);
 
-  ok = (p == buf.o &&
-        !memcmp (p, buf.s, 7 + 22) &&
-        !memcmp (p + (7 + 22), test_hash, 31 + 1 + 1 + 1));
+  ok = (p == buffer->tmp_output &&
+        !memcmp (p, test_setting, BF_SETTING_LENGTH) &&
+        !memcmp (p + BF_SETTING_LENGTH, test_hash,
+                 sizeof buffer->tmp_output - (BF_SETTING_LENGTH + 1)));
 
+  /* Do a second self-test of the key-expansion "safety" logic.  */
   {
     const char *k = "\xff\xa3" "34" "\xff\xff\xff\xa3" "345";
     BF_key ae, ai, ye, yi;
@@ -883,14 +934,20 @@ crypt_bcrypt_rn (const char *key, const char *setting,
       !memcmp (ae, ye, sizeof (ae)) && !memcmp (ai, yi, sizeof (ai));
   }
 
-  if (!ok)
+  if (ok)
     {
-      errno = EINVAL;  /* self-test failed; pretend we don't support this hash type */
-      return NULL;
+      errno = save_errno;
+      rv = buffer->output;
+    }
+  else
+    {
+      /* self-test failed; pretend we don't support this hash type */
+      errno = EINVAL;
+      rv = 0;
     }
 
-  errno = save_errno;
-  return retval;
+  BF_wipe_intermediate_data (buffer);
+  return rv;
 }
 
 static char *

@@ -122,8 +122,7 @@ main (void)
       const char *p;
       int ok = !setting || strlen (hash) >= 30;
       char s_buf[30];
-      int o_size;
-      char o_buf[61];
+      char o_buf[sizeof (struct crypt_data)];
       int errnm, match;
 
       if (!setting)
@@ -137,66 +136,47 @@ main (void)
       p = crypt (key, setting);
       errnm = errno;
       match = strcmp (p, hash);
-      printf ("%d/crypt.1: key=%s setting=%s: xhash=%s xerr=%d, "
-              "p=%s match=%d err=%s...",
-              i, key, setting, hash, !ok, p, match==0, strerror (errnm));
       if ((!ok && !errno) || strcmp (p, hash))
         {
-          puts ("FAIL");
+          printf ("FAIL: %d/crypt.1: key=%s setting=%s: xhash=%s xerr=%d, "
+                  "p=%s match=%d err=%s\n",
+                  i, key, setting, hash, !ok, p, match==0, strerror (errnm));
           status = 1;
           continue;
         }
-      else
-        puts ("ok");
 
       if (ok)
         {
           p = crypt (key, hash);
-          match = strcmp (p, hash);
-          printf ("%d/crypt.2: key=%s hash=%s p=%s match=%d...",
-                  i, key, hash, p, match==0);
-          if (match)
+          if (strcmp (p, hash))
             {
-              puts ("FAIL");
+              printf ("FAIL: %d/crypt.2: key=%s hash=%s p=%s\n",
+                      i, key, hash, p);
               status = 1;
               continue;
             }
-          else
-            puts ("ok");
         }
 
-      for (o_size = -1; o_size <= (int) sizeof (o_buf); o_size++)
+      strcpy (o_buf, "abc");
+      const char *x = "*0";
+      if (setting[0] == '*' && setting[1] == '0')
+        x = "*1";
+      errno = 0;
+      p = crypt_rn (key, setting, o_buf, sizeof o_buf);
+      errnm = errno;
+      if (ok)
+        match = p && !strcmp (p, hash);
+      else
+        match = !p && errnm && !strcmp (o_buf, x);
+
+      if (!match)
         {
-          int ok_n = ok && o_size == (int) sizeof (o_buf);
-          const char *x = "abc";
-          strcpy (o_buf, x);
-          if (o_size >= 3)
-            {
-              x = "*0";
-              if (setting[0] == '*' && setting[1] == '0')
-                x = "*1";
-            }
-          errno = 0;
-          p = crypt_rn (key, setting, o_buf, o_size);
-          errnm = errno;
-          if (ok_n)
-            match = p && !strcmp (p, hash);
-          else
-            match = !p && errnm && !strcmp (o_buf, x);
-
-          printf ("%d/crypt_rn: key=%s setting=%s osize=%d: "
-                  "xhash=%s xmagic=%s xerr=%d, p=%s obuf=%s err=%s...",
-                  i, key, setting, o_size, hash, x, !ok_n, p, o_buf,
+          printf ("FAIL: %d/crypt_rn: key=%s setting=%s: "
+                  "xhash=%s xmagic=%s xerr=%d, p=%s obuf=%s err=%s\n",
+                  i, key, setting, hash, x, !ok, p, o_buf,
                   strerror (errnm));
-
-          if (match)
-            puts ("ok");
-          else
-            {
-              puts ("FAIL");
-              status = 1;
-              continue;
-            }
+          status = 1;
+          continue;
         }
 
       errno = 0;
@@ -208,15 +188,12 @@ main (void)
       else
         match = !p && errnm && !strcmp (data, hash);
 
-      printf ("%d/crypt_ra: key=%s setting=%s: xhash=%s xerr=%d, "
-              "p=%s data=%s err=%s...",
-              i, key, setting, hash, !ok, p, (char *)data, strerror (errnm));
-
-      if (match)
-        puts ("ok");
-      else
+      if (!match)
         {
-          puts ("FAIL");
+          printf ("FAIL: %d/crypt_ra: key=%s setting=%s: xhash=%s xerr=%d, "
+                  "p=%s data=%s err=%s\n",
+                  i, key, setting, hash, !ok, p,
+                  (char *)data, strerror (errnm));
           status = 1;
           continue;
         }
