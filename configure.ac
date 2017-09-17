@@ -39,6 +39,8 @@ LT_INIT
 # Checks for header files.
 
 # Checks for typedefs, structures, and compiler characteristics.
+zw_C_ALIGNAS
+zw_C_ALIGNOF
 
 # Checks for library functions.
 

@@ -43,31 +43,69 @@ static const char b64t[64] =
 /* The length of an MD5-hashed password string, including the
    terminating NUL character.  Prefix (including its NUL) + 8 bytes of
    salt + separator + 22 bytes of hashed password.  */
-static const size_t md5_hash_length =
-  sizeof (md5_salt_prefix) + SALT_LEN_MAX + 1 + 22;
+#define MD5_HASH_LENGTH \
+  (sizeof (md5_salt_prefix) + SALT_LEN_MAX + 1 + 22)
+
+/* An md5_buffer holds the output plus all of the sensitive intermediate
+   data.  It may have been allocated by application code, so it may not
+   be properly aligned, and besides which MD5_HASH_LENGTH may be odd, so
+   we pad 'ctxbuf' and 'altctxbuf' enough to find a properly-aligned
+   md5_ctx within.  */
+struct md5_buffer
+{
+  char output[MD5_HASH_LENGTH];
+  uint8_t ctxbuf[sizeof (struct md5_ctx) + alignof (struct md5_ctx)];
+  uint8_t altctxbuf[sizeof (struct md5_ctx) + alignof (struct md5_ctx)];
+  uint8_t alt_result[16];
+};
+
+static inline struct md5_ctx *
+md5_get_ctx (struct md5_buffer *buf)
+{
+  uintptr_t ctxp = (uintptr_t) &buf->ctxbuf;
+  uintptr_t align = alignof (struct md5_ctx);
+  ctxp = (ctxp + align - 1) & ~align;
+  return (struct md5_ctx *)ctxp;
+}
+
+static inline struct md5_ctx *
+md5_get_alt_ctx (struct md5_buffer *buf)
+{
+  uintptr_t ctxp = (uintptr_t) &buf->altctxbuf;
+  uintptr_t align = alignof (struct md5_ctx);
+  ctxp = (ctxp + align - 1) & ~align;
+  return (struct md5_ctx *)ctxp;
+}
+
+static inline void
+md5_wipe_intermediate_data (struct md5_buffer *buf)
+{
+  memset (((char *)buf) + offsetof (struct md5_buffer, ctxbuf),
+          0,
+          sizeof (struct md5_buffer) - offsetof (struct md5_buffer, ctxbuf));
+}
 
 /* This entry point is equivalent to the `crypt' function in Unix
    libcs.  */
 char *
 crypt_md5_rn (const char *key, const char *salt,
-              char *buffer, size_t buflen)
+              char *data, size_t size)
 {
-  unsigned char alt_result[16];
-  struct md5_ctx ctx;
-  struct md5_ctx alt_ctx;
-  size_t salt_len;
-  size_t key_len;
-  size_t cnt;
-  char *cp;
-  char *copied_key = NULL;
-  char *copied_salt = NULL;
-
-  if (buflen < md5_hash_length)
+  /* Ensure we have enough space for an md5_buffer in DATA.  */
+  if (size < sizeof (struct md5_buffer))
     {
-      /* Not enough space to store the hashed password.  */
       errno = ERANGE;
       return 0;
     }
+
+  struct md5_buffer *buf = (struct md5_buffer *)data;
+  struct md5_ctx *ctx = md5_get_ctx (buf);
+  struct md5_ctx *alt_ctx = md5_get_alt_ctx (buf);
+  uint8_t *alt_result = buf->alt_result;
+  char *cp = buf->output;
+  size_t salt_len;
+  size_t key_len;
+  size_t cnt;
 
   /* Find beginning of salt string.  The prefix should normally always
      be present.  Just in case it is not.  */
@@ -81,42 +119,42 @@ crypt_md5_rn (const char *key, const char *salt,
   key_len = strlen (key);
 
   /* Prepare for the real work.  */
-  md5_init_ctx (&ctx);
+  md5_init_ctx (ctx);
 
   /* Add the key string.  */
-  md5_process_bytes (key, key_len, &ctx);
+  md5_process_bytes (key, key_len, ctx);
 
   /* Because the SALT argument need not always have the salt prefix we
      add it separately.  */
-  md5_process_bytes (md5_salt_prefix, sizeof (md5_salt_prefix) - 1, &ctx);
+  md5_process_bytes (md5_salt_prefix, sizeof (md5_salt_prefix) - 1, ctx);
 
   /* The last part is the salt string.  This must be at most 8
      characters and it ends at the first `$' character (for
      compatibility with existing implementations).  */
-  md5_process_bytes (salt, salt_len, &ctx);
+  md5_process_bytes (salt, salt_len, ctx);
 
 
   /* Compute alternate MD5 sum with input KEY, SALT, and KEY.  The
      final result will be added to the first context.  */
-  md5_init_ctx (&alt_ctx);
+  md5_init_ctx (alt_ctx);
 
   /* Add key.  */
-  md5_process_bytes (key, key_len, &alt_ctx);
+  md5_process_bytes (key, key_len, alt_ctx);
 
   /* Add salt.  */
-  md5_process_bytes (salt, salt_len, &alt_ctx);
+  md5_process_bytes (salt, salt_len, alt_ctx);
 
   /* Add key again.  */
-  md5_process_bytes (key, key_len, &alt_ctx);
+  md5_process_bytes (key, key_len, alt_ctx);
 
   /* Now get result of this (16 bytes) and add it to the other
      context.  */
-  md5_finish_ctx (&alt_ctx, alt_result);
+  md5_finish_ctx (alt_ctx, alt_result);
 
   /* Add for any character in the key one byte of the alternate sum.  */
   for (cnt = key_len; cnt > 16; cnt -= 16)
-    md5_process_bytes (alt_result, 16, &ctx);
-  md5_process_bytes (alt_result, cnt, &ctx);
+    md5_process_bytes (alt_result, 16, ctx);
+  md5_process_bytes (alt_result, cnt, ctx);
 
   /* For the following code we need a NUL byte.  */
   *alt_result = '\0';
@@ -127,10 +165,10 @@ crypt_md5_rn (const char *key, const char *salt,
      what was intended but we have to follow this to be compatible.  */
   for (cnt = key_len; cnt > 0; cnt >>= 1)
     md5_process_bytes ((cnt & 1) != 0 ? (const char *) alt_result : key, 1,
-                         &ctx);
+                         ctx);
 
   /* Create intermediate result.  */
-  md5_finish_ctx (&ctx, alt_result);
+  md5_finish_ctx (ctx, alt_result);
 
   /* Now comes another weirdness.  In fear of password crackers here
      comes a quite long loop which just processes the output of the
@@ -138,36 +176,36 @@ crypt_md5_rn (const char *key, const char *salt,
   for (cnt = 0; cnt < 1000; ++cnt)
     {
       /* New context.  */
-      md5_init_ctx (&ctx);
+      md5_init_ctx (ctx);
 
       /* Add key or last result.  */
       if ((cnt & 1) != 0)
-        md5_process_bytes (key, key_len, &ctx);
+        md5_process_bytes (key, key_len, ctx);
       else
-        md5_process_bytes (alt_result, 16, &ctx);
+        md5_process_bytes (alt_result, 16, ctx);
 
       /* Add salt for numbers not divisible by 3.  */
       if (cnt % 3 != 0)
-        md5_process_bytes (salt, salt_len, &ctx);
+        md5_process_bytes (salt, salt_len, ctx);
 
       /* Add key for numbers not divisible by 7.  */
       if (cnt % 7 != 0)
-        md5_process_bytes (key, key_len, &ctx);
+        md5_process_bytes (key, key_len, ctx);
 
       /* Add key or last result.  */
       if ((cnt & 1) != 0)
-        md5_process_bytes (alt_result, 16, &ctx);
+        md5_process_bytes (alt_result, 16, ctx);
       else
-        md5_process_bytes (key, key_len, &ctx);
+        md5_process_bytes (key, key_len, ctx);
 
       /* Create intermediate result.  */
-      md5_finish_ctx (&ctx, alt_result);
+      md5_finish_ctx (ctx, alt_result);
     }
 
   /* Now we can construct the result string.  It consists of three
-     parts.  We already know that buflen is at least md5_hash_length.  */
-  memcpy (buffer, md5_salt_prefix, sizeof (md5_salt_prefix) - 1);
-  cp = buffer + sizeof (md5_salt_prefix) - 1;
+     parts.  We already know that there is enough space at CP.  */
+  memcpy (cp, md5_salt_prefix, sizeof (md5_salt_prefix) - 1);
+  cp += sizeof (md5_salt_prefix) - 1;
 
   memcpy (cp, salt, salt_len);
   cp += salt_len;
@@ -196,18 +234,6 @@ crypt_md5_rn (const char *key, const char *salt,
 
   *cp = '\0';
 
-  /* Clear the buffer for the intermediate result so that people
-     attaching to processes or reading core dumps cannot get any
-     information.  We do it in this way to clear correct_words[]
-     inside the MD5 implementation as well.  */
-  md5_init_ctx (&ctx);
-  md5_finish_ctx (&ctx, alt_result);
-  memset (&ctx, '\0', sizeof (ctx));
-  memset (&alt_ctx, '\0', sizeof (alt_ctx));
-  if (copied_key != NULL)
-    memset (copied_key, '\0', key_len);
-  if (copied_salt != NULL)
-    memset (copied_salt, '\0', salt_len);
-
-  return buffer;
+  md5_wipe_intermediate_data (buf);
+  return buf->output;
 }

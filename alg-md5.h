@@ -35,6 +35,7 @@ struct md5_ctx
 
   uint64_t total;
   uint32_t buflen;
+  uint32_t correct_words[16];
   unsigned char buffer[128];
 };
 

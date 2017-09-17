@@ -156,7 +156,6 @@ md5_process_bytes (const void *buffer, size_t len, struct md5_ctx *ctx)
 static void
 md5_process_block (const void *buffer, size_t len, struct md5_ctx *ctx)
 {
-  uint32_t correct_words[16];
   const unsigned char *p = buffer;
   const unsigned char *endp = p + len;
   uint32_t A = ctx->A;
@@ -173,7 +172,7 @@ md5_process_block (const void *buffer, size_t len, struct md5_ctx *ctx)
      the loop.  */
   while (p < endp)
     {
-      uint32_t *cwp = correct_words;
+      uint32_t *cwp = ctx->correct_words;
       uint32_t A_save = A;
       uint32_t B_save = B;
       uint32_t C_save = C;
@@ -233,7 +232,7 @@ md5_process_block (const void *buffer, size_t len, struct md5_ctx *ctx)
 #define OP(f, a, b, c, d, k, s, T)                                      \
       do                                                                \
         {                                                               \
-          a += f (b, c, d) + correct_words[k] + T;                      \
+          a += f (b, c, d) + ctx->correct_words[k] + T;                 \
           CYCLIC (a, s);                                                \
           a += b;                                                       \
         }                                                               \

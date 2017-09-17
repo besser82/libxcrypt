@@ -61,24 +61,23 @@
 
 /* A des_buffer holds the output plus all of the sensitive intermediate
    data.  It may have been allocated by application code, so it may not
-   be properly aligned, and besides which DES_MAX_OUTPUT_LEN may be odd.
-   The alignment requirement for a des_ctx is no more than
-   sizeof(uint32_t), so allowing an extra sizeof(uint32_t) in ctxbuf
-   permits us to find a properly-aligned des_ctx within.  */
+   be properly aligned, and besides which DES_MAX_OUTPUT_LEN may be odd,
+   so we pad 'ctxbuf' enough to find a properly-aligned des_ctx within.  */
 
 struct des_buffer
 {
   char output[DES_MAX_OUTPUT_LEN];
   uint8_t keybuf[8];
   uint8_t pkbuf[8];
-  uint8_t ctxbuf[sizeof (struct des_ctx) + sizeof (uint32_t)];
+  uint8_t ctxbuf[sizeof (struct des_ctx) + alignof (struct des_ctx)];
 };
 
 static inline struct des_ctx *
 des_get_ctx (struct des_buffer *buf)
 {
   uintptr_t ctxp = (uintptr_t) &buf->ctxbuf;
-  ctxp = (ctxp + sizeof (uint32_t) - 1) & ~(uintptr_t)sizeof (uint32_t);
+  uintptr_t align = alignof (struct des_ctx);
+  ctxp = (ctxp + align - 1) & ~align;
   return (struct des_ctx *)ctxp;
 }
 

@@ -82,7 +82,6 @@ AC_ARG_ENABLE(
         -Walloc-zero dnl
         -Walloca dnl
         -Wbad-function-cast dnl
-        -Wc99-c11-compat dnl
         -Wcast-align dnl
         -Wcast-qual dnl
         -Wconversion dnl
