@@ -22,6 +22,10 @@
 
 #include "crypt.h"
 
+/* Miscellaneous utilities */
+
+extern void make_failure_token (const char *salt, char *output, int size);
+
 /* Individual hash functions */
 
 extern char *crypt_des_trd_or_big_rn (const char *key, const char *salt,

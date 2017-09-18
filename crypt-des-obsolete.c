@@ -122,7 +122,9 @@ compat_symbol (encrypt_r, encrypt_r);
 
 /* Even-more-deprecated-than-the-above nonreentrant versions.
    These use a separate state object from the main library's
-   nonreentrant crypt().  */
+   nonreentrant crypt().  Unlike with crypt() vs crypt_r(),
+   these do not get their own file because they're not compiled
+   into the static library anyway.  */
 
 #if COMPAT_setkey || COMPAT_encrypt
 static struct des_ctx nr_encrypt_ctx;
