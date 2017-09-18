@@ -14,6 +14,8 @@
 #include <stdio.h>
 #include <string.h>
 
+compat_symbol_ref (encrypt, encrypt);
+compat_symbol_ref (setkey, setkey);
 
 static void
 expand (unsigned char ex[64], const unsigned char pk[8])

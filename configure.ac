@@ -74,7 +74,14 @@ AC_ARG_ENABLE([weak-hashes],
      [enable_weak_hashes=1]
 )
 
+# If weak hashes are disabled, then the obsolete APIs won't work anyway
+# (they're all DES-specific).
 if test $enable_weak_hashes = 0; then enable_obsolete_api=0; fi
+
+# The obsolete APIs are unconditionally excluded from the static library,
+# so if we are not building the shared library, we are effectively not
+# building obsolete APIs, and we shouldn't try to test them.
+if test x$enable_shared != xyes; then enable_obsolete_api=0; fi
 
 AC_DEFINE_UNQUOTED([ENABLE_OBSOLETE_API], [$enable_obsolete_api],
  [Define as 1 if the obsolete APIs (bigcrypt, fcrypt, encrypt, setkey)

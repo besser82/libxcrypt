@@ -191,14 +191,37 @@ crypt_r (const char *key, const char *salt, struct crypt_data *data)
     return (char *)data; /* return the failure token */
   return retval;
 }
+#if COMPAT_crypt_r__glibc
+default_symbol(crypt_r, crypt_r);
+#endif
+
+/* 'crypt' and 'crypt_r' exist in two symbol versions because the
+   definition of 'struct crypt_data' has changed.  We don't need any
+   special case code here to make the new library work with programs
+   that use the old definition, but programs that use the new
+   definition will not work with the old library.  */
+#if COMPAT_crypt_r__glibc
+strong_alias(crypt_r, crypt_r__glibc);
+compat_symbol(crypt_r, crypt_r__glibc);
+#endif
 
 char *
 crypt (const char *key, const char *salt)
 {
   return crypt_r (key, salt, &nr_crypt_ctx);
 }
-#if ENABLE_OBSOLETE_API
+#if COMPAT_crypt__glibc
+default_symbol(crypt, crypt);
+#endif
+
+#if COMPAT_crypt__glibc
+strong_alias(crypt, crypt__glibc);
+compat_symbol(crypt, crypt__glibc);
+#endif
+
+#if COMPAT_fcrypt
 strong_alias (crypt, fcrypt);
+compat_symbol (fcrypt, fcrypt);
 #endif
 
 char *
@@ -246,7 +269,7 @@ crypt_gensalt (const char *prefix, unsigned long count,
                            input, size, output, sizeof (output));
 }
 
-#if ENABLE_OBSOLETE_API
+#if COMPAT_bigcrypt
 /* Obsolete interface - not to be used in new code.  This function is
    the same as crypt, but it forces the use of the Digital Unix
    "bigcrypt" hash, which is nearly as weak as traditional DES.
@@ -261,4 +284,5 @@ bigcrypt (const char *key, const char *salt)
   make_failure_token (salt, (char *)&nr_crypt_ctx, sizeof nr_crypt_ctx);
   return (char *)&nr_crypt_ctx;
 }
+compat_symbol (bigcrypt, bigcrypt);
 #endif

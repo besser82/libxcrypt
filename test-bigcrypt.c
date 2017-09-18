@@ -4,6 +4,8 @@
 #include "crypt.h"
 #include "crypt-obsolete.h"
 
+compat_symbol_ref (bigcrypt, bigcrypt);
+
 int
 main (void)
 {

@@ -50,6 +50,8 @@
 
 #include <string.h>
 
+#if COMPAT_encrypt || COMPAT_encrypt_r || COMPAT_setkey || COMPAT_setkey_r
+
 /* For reasons lost in the mists of time, these functions operate on
    64-*byte* arrays, each of which should be either 0 or 1 - only the
    low bit of each byte is examined.  The DES primitives, much more
@@ -83,7 +85,10 @@ pack_bits (unsigned char bitv[8], const char bytev[64])
     }
 }
 
+#endif
+
 /* Initialize DATA with a DES key, KEY, represented as a byte vector.  */
+#if COMPAT_setkey_r
 void
 setkey_r (const char *key, struct crypt_data *data)
 {
@@ -96,9 +101,12 @@ setkey_r (const char *key, struct crypt_data *data)
   des_set_salt (ctx, 0);
   des_set_key (ctx, bkey);
 }
+compat_symbol (setkey_r, setkey_r);
+#endif
 
 /* Encrypt or decrypt one DES block, BLOCK, using the key schedule in
    DATA.  BLOCK is processed in place.  */
+#if COMPAT_setkey
 void
 encrypt_r (char *block, int edflag, struct crypt_data *data)
 {
@@ -109,21 +117,31 @@ encrypt_r (char *block, int edflag, struct crypt_data *data)
   des_crypt_block (ctx, bout, bin, 1, edflag != 0);
   unpack_bits (block, bout);
 }
+compat_symbol (encrypt_r, encrypt_r);
+#endif
 
 /* Even-more-deprecated-than-the-above nonreentrant versions.
    These use a separate state object from the main library's
    nonreentrant crypt().  */
 
+#if COMPAT_setkey || COMPAT_encrypt
 static struct des_ctx nr_encrypt_ctx;
+#endif
 
+#if COMPAT_setkey
 void
 setkey (const char *key)
 {
   setkey_r (key, (struct crypt_data *) &nr_encrypt_ctx);
 }
+compat_symbol (setkey, setkey);
+#endif
 
+#if COMPAT_encrypt
 void
 encrypt (char *block, int edflag)
 {
   encrypt_r (block, edflag, (struct crypt_data *) &nr_encrypt_ctx);
 }
+compat_symbol (encrypt, encrypt);
+#endif
