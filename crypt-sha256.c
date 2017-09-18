@@ -68,8 +68,7 @@ struct sha256_buffer
 {
   char output[SHA256_HASH_LENGTH];
   uint8_t ctxbuf[sizeof (struct sha256_ctx) + alignof (struct sha256_ctx)];
-  uint8_t altctxbuf[sizeof (struct sha256_ctx) + alignof (struct sha256_ctx)];
-  uint8_t alt_result[32];
+  uint8_t result[32];
   uint8_t p_bytes[32];
   uint8_t s_bytes[32];
 };
@@ -78,15 +77,6 @@ static inline struct sha256_ctx *
 sha256_get_ctx (struct sha256_buffer *buf)
 {
   uintptr_t ctxp = (uintptr_t) &buf->ctxbuf;
-  uintptr_t align = alignof (struct sha256_ctx);
-  ctxp = (ctxp + align - 1) & ~align;
-  return (struct sha256_ctx *)ctxp;
-}
-
-static inline struct sha256_ctx *
-sha256_get_alt_ctx (struct sha256_buffer *buf)
-{
-  uintptr_t ctxp = (uintptr_t) &buf->altctxbuf;
   uintptr_t align = alignof (struct sha256_ctx);
   ctxp = (ctxp + align - 1) & ~align;
   return (struct sha256_ctx *)ctxp;
@@ -132,8 +122,7 @@ crypt_sha256_rn (const char *key, const char *salt,
 
   struct sha256_buffer *buf = (struct sha256_buffer *)data;
   struct sha256_ctx *ctx = sha256_get_ctx (buf);
-  struct sha256_ctx *alt_ctx = sha256_get_alt_ctx (buf);
-  uint8_t *alt_result = buf->alt_result;
+  uint8_t *result = buf->result;
   uint8_t *p_bytes = buf->p_bytes;
   uint8_t *s_bytes = buf->s_bytes;
   char *cp = buf->output;
@@ -168,6 +157,22 @@ crypt_sha256_rn (const char *key, const char *salt,
   salt_len = MIN (strcspn (salt, "$"), SALT_LEN_MAX);
   key_len = strlen (key);
 
+  /* Compute alternate SHA256 sum with input KEY, SALT, and KEY.  The
+     final result will be added to the first context.  */
+  sha256_init_ctx (ctx);
+
+  /* Add key.  */
+  sha256_process_bytes (key, key_len, ctx);
+
+  /* Add salt.  */
+  sha256_process_bytes (salt, salt_len, ctx);
+
+  /* Add key again.  */
+  sha256_process_bytes (key, key_len, ctx);
+
+  /* Now get result of this (32 bytes).  */
+  sha256_finish_ctx (ctx, result);
+
   /* Prepare for the real work.  */
   sha256_init_ctx (ctx);
 
@@ -179,59 +184,41 @@ crypt_sha256_rn (const char *key, const char *salt,
      compatibility with existing implementations).  */
   sha256_process_bytes (salt, salt_len, ctx);
 
-
-  /* Compute alternate SHA256 sum with input KEY, SALT, and KEY.  The
-     final result will be added to the first context.  */
-  sha256_init_ctx (alt_ctx);
-
-  /* Add key.  */
-  sha256_process_bytes (key, key_len, alt_ctx);
-
-  /* Add salt.  */
-  sha256_process_bytes (salt, salt_len, alt_ctx);
-
-  /* Add key again.  */
-  sha256_process_bytes (key, key_len, alt_ctx);
-
-  /* Now get result of this (32 bytes) and add it to the other
-     context.  */
-  sha256_finish_ctx (alt_ctx, alt_result);
-
   /* Add for any character in the key one byte of the alternate sum.  */
   for (cnt = key_len; cnt > 32; cnt -= 32)
-    sha256_process_bytes (alt_result, 32, ctx);
-  sha256_process_bytes (alt_result, cnt, ctx);
+    sha256_process_bytes (result, 32, ctx);
+  sha256_process_bytes (result, cnt, ctx);
 
   /* Take the binary representation of the length of the key and for every
      1 add the alternate sum, for every 0 the key.  */
   for (cnt = key_len; cnt > 0; cnt >>= 1)
     if ((cnt & 1) != 0)
-      sha256_process_bytes (alt_result, 32, ctx);
+      sha256_process_bytes (result, 32, ctx);
     else
       sha256_process_bytes (key, key_len, ctx);
 
   /* Create intermediate result.  */
-  sha256_finish_ctx (ctx, alt_result);
+  sha256_finish_ctx (ctx, result);
 
   /* Start computation of P byte sequence.  */
-  sha256_init_ctx (alt_ctx);
+  sha256_init_ctx (ctx);
 
   /* For every character in the password add the entire password.  */
   for (cnt = 0; cnt < key_len; ++cnt)
-    sha256_process_bytes (key, key_len, alt_ctx);
+    sha256_process_bytes (key, key_len, ctx);
 
   /* Finish the digest.  */
-  sha256_finish_ctx (alt_ctx, p_bytes);
+  sha256_finish_ctx (ctx, p_bytes);
 
   /* Start computation of S byte sequence.  */
-  sha256_init_ctx (alt_ctx);
+  sha256_init_ctx (ctx);
 
   /* For every character in the password add the entire password.  */
-  for (cnt = 0; cnt < (size_t) 16 + (size_t) alt_result[0]; ++cnt)
-    sha256_process_bytes (salt, salt_len, alt_ctx);
+  for (cnt = 0; cnt < (size_t) 16 + (size_t) result[0]; ++cnt)
+    sha256_process_bytes (salt, salt_len, ctx);
 
   /* Finish the digest.  */
-  sha256_finish_ctx (alt_ctx, s_bytes);
+  sha256_finish_ctx (ctx, s_bytes);
 
   /* Repeatedly run the collected hash value through SHA256 to burn
      CPU cycles.  */
@@ -244,7 +231,7 @@ crypt_sha256_rn (const char *key, const char *salt,
       if ((cnt & 1) != 0)
         sha256_process_recycled_bytes (p_bytes, key_len, ctx);
       else
-        sha256_process_bytes (alt_result, 32, ctx);
+        sha256_process_bytes (result, 32, ctx);
 
       /* Add salt for numbers not divisible by 3.  */
       if (cnt % 3 != 0)
@@ -256,12 +243,12 @@ crypt_sha256_rn (const char *key, const char *salt,
 
       /* Add key or last result.  */
       if ((cnt & 1) != 0)
-        sha256_process_bytes (alt_result, 32, ctx);
+        sha256_process_bytes (result, 32, ctx);
       else
         sha256_process_recycled_bytes (p_bytes, key_len, ctx);
 
       /* Create intermediate result.  */
-      sha256_finish_ctx (ctx, alt_result);
+      sha256_finish_ctx (ctx, result);
     }
 
   /* Now we can construct the result string.  It consists of four
@@ -295,17 +282,17 @@ crypt_sha256_rn (const char *key, const char *salt,
       }                                                 \
   } while (0)
 
-  b64_from_24bit (alt_result[0], alt_result[10], alt_result[20], 4);
-  b64_from_24bit (alt_result[21], alt_result[1], alt_result[11], 4);
-  b64_from_24bit (alt_result[12], alt_result[22], alt_result[2], 4);
-  b64_from_24bit (alt_result[3], alt_result[13], alt_result[23], 4);
-  b64_from_24bit (alt_result[24], alt_result[4], alt_result[14], 4);
-  b64_from_24bit (alt_result[15], alt_result[25], alt_result[5], 4);
-  b64_from_24bit (alt_result[6], alt_result[16], alt_result[26], 4);
-  b64_from_24bit (alt_result[27], alt_result[7], alt_result[17], 4);
-  b64_from_24bit (alt_result[18], alt_result[28], alt_result[8], 4);
-  b64_from_24bit (alt_result[9], alt_result[19], alt_result[29], 4);
-  b64_from_24bit (0, alt_result[31], alt_result[30], 3);
+  b64_from_24bit (result[0], result[10], result[20], 4);
+  b64_from_24bit (result[21], result[1], result[11], 4);
+  b64_from_24bit (result[12], result[22], result[2], 4);
+  b64_from_24bit (result[3], result[13], result[23], 4);
+  b64_from_24bit (result[24], result[4], result[14], 4);
+  b64_from_24bit (result[15], result[25], result[5], 4);
+  b64_from_24bit (result[6], result[16], result[26], 4);
+  b64_from_24bit (result[27], result[7], result[17], 4);
+  b64_from_24bit (result[18], result[28], result[8], 4);
+  b64_from_24bit (result[9], result[19], result[29], 4);
+  b64_from_24bit (0, result[31], result[30], 3);
 
   *cp = '\0';
 

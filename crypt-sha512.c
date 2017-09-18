@@ -62,14 +62,12 @@ static const char sha512_rounds_prefix[] = "rounds=";
 /* A sha512_buffer holds the output plus all of the sensitive intermediate
    data.  It may have been allocated by application code, so it may not
    be properly aligned, and besides which SHA512_HASH_LENGTH may be odd, so
-   we pad 'ctxbuf' and 'altctxbuf' enough to find a properly-aligned
-   sha512_ctx within.  */
+   we pad 'ctxbuf' enough to find a properly-aligned sha512_ctx within.  */
 struct sha512_buffer
 {
   char output[SHA512_HASH_LENGTH];
   uint8_t ctxbuf[sizeof (struct sha512_ctx) + alignof (struct sha512_ctx)];
-  uint8_t altctxbuf[sizeof (struct sha512_ctx) + alignof (struct sha512_ctx)];
-  uint8_t alt_result[64];
+  uint8_t result[64];
   uint8_t p_bytes[64];
   uint8_t s_bytes[64];
 };
@@ -78,15 +76,6 @@ static inline struct sha512_ctx *
 sha512_get_ctx (struct sha512_buffer *buf)
 {
   uintptr_t ctxp = (uintptr_t) &buf->ctxbuf;
-  uintptr_t align = alignof (struct sha512_ctx);
-  ctxp = (ctxp + align - 1) & ~align;
-  return (struct sha512_ctx *)ctxp;
-}
-
-static inline struct sha512_ctx *
-sha512_get_alt_ctx (struct sha512_buffer *buf)
-{
-  uintptr_t ctxp = (uintptr_t) &buf->altctxbuf;
   uintptr_t align = alignof (struct sha512_ctx);
   ctxp = (ctxp + align - 1) & ~align;
   return (struct sha512_ctx *)ctxp;
@@ -132,8 +121,7 @@ crypt_sha512_rn (const char *key, const char *salt,
 
   struct sha512_buffer *buf = (struct sha512_buffer *)data;
   struct sha512_ctx *ctx = sha512_get_ctx (buf);
-  struct sha512_ctx *alt_ctx = sha512_get_alt_ctx (buf);
-  uint8_t *alt_result = buf->alt_result;
+  uint8_t *result = buf->result;
   uint8_t *p_bytes = buf->p_bytes;
   uint8_t *s_bytes = buf->s_bytes;
   char *cp = buf->output;
@@ -168,6 +156,23 @@ crypt_sha512_rn (const char *key, const char *salt,
   salt_len = MIN (strcspn (salt, "$"), SALT_LEN_MAX);
   key_len = strlen (key);
 
+  /* Compute alternate SHA512 sum with input KEY, SALT, and KEY.  The
+     final result will be added to the first context.  */
+  sha512_init_ctx (ctx);
+
+  /* Add key.  */
+  sha512_process_bytes (key, key_len, ctx);
+
+  /* Add salt.  */
+  sha512_process_bytes (salt, salt_len, ctx);
+
+  /* Add key again.  */
+  sha512_process_bytes (key, key_len, ctx);
+
+  /* Now get result of this (64 bytes) and add it to the other
+     context.  */
+  sha512_finish_ctx (ctx, result);
+
   /* Prepare for the real work.  */
   sha512_init_ctx (ctx);
 
@@ -179,59 +184,41 @@ crypt_sha512_rn (const char *key, const char *salt,
      compatibility with existing implementations).  */
   sha512_process_bytes (salt, salt_len, ctx);
 
-
-  /* Compute alternate SHA512 sum with input KEY, SALT, and KEY.  The
-     final result will be added to the first context.  */
-  sha512_init_ctx (alt_ctx);
-
-  /* Add key.  */
-  sha512_process_bytes (key, key_len, alt_ctx);
-
-  /* Add salt.  */
-  sha512_process_bytes (salt, salt_len, alt_ctx);
-
-  /* Add key again.  */
-  sha512_process_bytes (key, key_len, alt_ctx);
-
-  /* Now get result of this (64 bytes) and add it to the other
-     context.  */
-  sha512_finish_ctx (alt_ctx, alt_result);
-
   /* Add for any character in the key one byte of the alternate sum.  */
   for (cnt = key_len; cnt > 64; cnt -= 64)
-    sha512_process_bytes (alt_result, 64, ctx);
-  sha512_process_bytes (alt_result, cnt, ctx);
+    sha512_process_bytes (result, 64, ctx);
+  sha512_process_bytes (result, cnt, ctx);
 
   /* Take the binary representation of the length of the key and for every
      1 add the alternate sum, for every 0 the key.  */
   for (cnt = key_len; cnt > 0; cnt >>= 1)
     if ((cnt & 1) != 0)
-      sha512_process_bytes (alt_result, 64, ctx);
+      sha512_process_bytes (result, 64, ctx);
     else
       sha512_process_bytes (key, key_len, ctx);
 
   /* Create intermediate result.  */
-  sha512_finish_ctx (ctx, alt_result);
+  sha512_finish_ctx (ctx, result);
 
   /* Start computation of P byte sequence.  */
-  sha512_init_ctx (alt_ctx);
+  sha512_init_ctx (ctx);
 
   /* For every character in the password add the entire password.  */
   for (cnt = 0; cnt < key_len; ++cnt)
-    sha512_process_bytes (key, key_len, alt_ctx);
+    sha512_process_bytes (key, key_len, ctx);
 
   /* Finish the digest.  */
-  sha512_finish_ctx (alt_ctx, p_bytes);
+  sha512_finish_ctx (ctx, p_bytes);
 
   /* Start computation of S byte sequence.  */
-  sha512_init_ctx (alt_ctx);
+  sha512_init_ctx (ctx);
 
   /* For every character in the password add the entire password.  */
-  for (cnt = 0; cnt < (size_t) 16 + (size_t) alt_result[0]; ++cnt)
-    sha512_process_bytes (salt, salt_len, alt_ctx);
+  for (cnt = 0; cnt < (size_t) 16 + (size_t) result[0]; ++cnt)
+    sha512_process_bytes (salt, salt_len, ctx);
 
   /* Finish the digest.  */
-  sha512_finish_ctx (alt_ctx, s_bytes);
+  sha512_finish_ctx (ctx, s_bytes);
 
   /* Repeatedly run the collected hash value through SHA512 to burn
      CPU cycles.  */
@@ -244,7 +231,7 @@ crypt_sha512_rn (const char *key, const char *salt,
       if ((cnt & 1) != 0)
         sha512_process_recycled_bytes (p_bytes, key_len, ctx);
       else
-        sha512_process_bytes (alt_result, 64, ctx);
+        sha512_process_bytes (result, 64, ctx);
 
       /* Add salt for numbers not divisible by 3.  */
       if (cnt % 3 != 0)
@@ -256,12 +243,12 @@ crypt_sha512_rn (const char *key, const char *salt,
 
       /* Add key or last result.  */
       if ((cnt & 1) != 0)
-        sha512_process_bytes (alt_result, 64, ctx);
+        sha512_process_bytes (result, 64, ctx);
       else
         sha512_process_recycled_bytes (p_bytes, key_len, ctx);
 
       /* Create intermediate result.  */
-      sha512_finish_ctx (ctx, alt_result);
+      sha512_finish_ctx (ctx, result);
     }
 
   /* Now we can construct the result string.  It consists of four
@@ -297,28 +284,28 @@ crypt_sha512_rn (const char *key, const char *salt,
       }                                                 \
   } while (0)
 
-  b64_from_24bit (alt_result[0], alt_result[21], alt_result[42], 4);
-  b64_from_24bit (alt_result[22], alt_result[43], alt_result[1], 4);
-  b64_from_24bit (alt_result[44], alt_result[2], alt_result[23], 4);
-  b64_from_24bit (alt_result[3], alt_result[24], alt_result[45], 4);
-  b64_from_24bit (alt_result[25], alt_result[46], alt_result[4], 4);
-  b64_from_24bit (alt_result[47], alt_result[5], alt_result[26], 4);
-  b64_from_24bit (alt_result[6], alt_result[27], alt_result[48], 4);
-  b64_from_24bit (alt_result[28], alt_result[49], alt_result[7], 4);
-  b64_from_24bit (alt_result[50], alt_result[8], alt_result[29], 4);
-  b64_from_24bit (alt_result[9], alt_result[30], alt_result[51], 4);
-  b64_from_24bit (alt_result[31], alt_result[52], alt_result[10], 4);
-  b64_from_24bit (alt_result[53], alt_result[11], alt_result[32], 4);
-  b64_from_24bit (alt_result[12], alt_result[33], alt_result[54], 4);
-  b64_from_24bit (alt_result[34], alt_result[55], alt_result[13], 4);
-  b64_from_24bit (alt_result[56], alt_result[14], alt_result[35], 4);
-  b64_from_24bit (alt_result[15], alt_result[36], alt_result[57], 4);
-  b64_from_24bit (alt_result[37], alt_result[58], alt_result[16], 4);
-  b64_from_24bit (alt_result[59], alt_result[17], alt_result[38], 4);
-  b64_from_24bit (alt_result[18], alt_result[39], alt_result[60], 4);
-  b64_from_24bit (alt_result[40], alt_result[61], alt_result[19], 4);
-  b64_from_24bit (alt_result[62], alt_result[20], alt_result[41], 4);
-  b64_from_24bit (0, 0, alt_result[63], 2);
+  b64_from_24bit (result[0], result[21], result[42], 4);
+  b64_from_24bit (result[22], result[43], result[1], 4);
+  b64_from_24bit (result[44], result[2], result[23], 4);
+  b64_from_24bit (result[3], result[24], result[45], 4);
+  b64_from_24bit (result[25], result[46], result[4], 4);
+  b64_from_24bit (result[47], result[5], result[26], 4);
+  b64_from_24bit (result[6], result[27], result[48], 4);
+  b64_from_24bit (result[28], result[49], result[7], 4);
+  b64_from_24bit (result[50], result[8], result[29], 4);
+  b64_from_24bit (result[9], result[30], result[51], 4);
+  b64_from_24bit (result[31], result[52], result[10], 4);
+  b64_from_24bit (result[53], result[11], result[32], 4);
+  b64_from_24bit (result[12], result[33], result[54], 4);
+  b64_from_24bit (result[34], result[55], result[13], 4);
+  b64_from_24bit (result[56], result[14], result[35], 4);
+  b64_from_24bit (result[15], result[36], result[57], 4);
+  b64_from_24bit (result[37], result[58], result[16], 4);
+  b64_from_24bit (result[59], result[17], result[38], 4);
+  b64_from_24bit (result[18], result[39], result[60], 4);
+  b64_from_24bit (result[40], result[61], result[19], 4);
+  b64_from_24bit (result[62], result[20], result[41], 4);
+  b64_from_24bit (0, 0, result[63], 2);
 
   *cp = '\0';
 
