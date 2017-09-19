@@ -32,8 +32,6 @@ extern char *crypt_des_trd_or_big_rn (const char *key, const char *salt,
                                       char *data, size_t size);
 extern char *crypt_des_xbsd_rn (const char *key, const char *salt,
                                 char *data, size_t size);
-extern char *crypt_des_big_rn (const char *key, const char *salt,
-                               char *data, size_t size);
 
 extern char *crypt_md5_rn (const char *key, const char *salt,
                            char *data, size_t size);

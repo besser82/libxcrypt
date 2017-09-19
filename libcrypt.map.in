@@ -4,7 +4,7 @@
 GLIBC_2.0 {
   global:
     crypt; crypt_r;
-    bigcrypt; fcrypt;
+    fcrypt;
     encrypt; encrypt_r; setkey; setkey_r;
   local:
     *;

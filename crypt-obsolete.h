@@ -46,12 +46,6 @@ extern void encrypt_r (char *__block, int __edflag,
                        struct crypt_data *restrict __data)
   __THROW __nonnull ((1, 3));
 
-/* Hash a password using the "bigcrypt" algorithm, which is a variant
-   of the traditional DES algorithm that considers more than the first
-   eight characters of the password.  */
-extern char *bigcrypt (const char *key, const char *salt)
-  __THROW __nonnull ((1, 2));
-
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

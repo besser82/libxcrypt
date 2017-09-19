@@ -101,7 +101,6 @@
 
 #if !defined PIC || !ENABLE_OBSOLETE_API
 
-#define COMPAT_bigcrypt       0
 #define COMPAT_crypt__glibc   0
 #define COMPAT_crypt_r__glibc 0
 #define COMPAT_encrypt        0
@@ -112,7 +111,6 @@
 
 #else
 
-#define COMPAT_bigcrypt       1
 #define COMPAT_crypt__glibc   1
 #define COMPAT_crypt_r__glibc 1
 #define COMPAT_encrypt        1
@@ -126,7 +124,6 @@
 #define VERSION_crypt          XCRYPT_2.0
 #define VERSION_crypt_r        XCRYPT_2.0
 
-#define VERSION_bigcrypt       GLIBC_2.0
 #define VERSION_crypt__glibc   GLIBC_2.0
 #define VERSION_crypt_r__glibc GLIBC_2.0
 #define VERSION_encrypt        GLIBC_2.0
@@ -142,7 +139,6 @@
 #define comp_maskl               _crypt_comp_maskl
 #define comp_maskr               _crypt_comp_maskr
 #define crypt_bcrypt_rn          _crypt_crypt_bcrypt_rn
-#define crypt_des_big_rn         _crypt_crypt_des_big_rn
 #define crypt_des_trd_or_big_rn  _crypt_crypt_des_trd_or_big_rn
 #define crypt_des_xbsd_rn        _crypt_crypt_des_xbsd_rn
 #define crypt_md5_rn             _crypt_crypt_md5_rn

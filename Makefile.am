@@ -65,7 +65,7 @@ endif
 
 if ENABLE_OBSOLETE_API
 libcrypt_la_SOURCES += crypt-des-obsolete.c
-check_PROGRAMS += test-des-obsolete test-bigcrypt
+check_PROGRAMS += test-des-obsolete
 endif
 
 TESTS = $(check_PROGRAMS) test-symbols.sh
@@ -79,7 +79,6 @@ test_crypt_des_LDADD = libcrypt.la
 test_crypt_md5_LDADD = libcrypt.la
 test_crypt_sha256_LDADD = libcrypt.la
 test_crypt_sha512_LDADD = libcrypt.la
-test_bigcrypt_LDADD = libcrypt.la
 test_gensalt_LDADD = libcrypt.la
 
 # These tests call internal APIs that may not be accessible from the

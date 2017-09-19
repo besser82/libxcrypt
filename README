@@ -9,7 +9,6 @@ don't need to work with libcrypt. You can replace libcrypt with a
 symlink to libxcrypt.
 
 The advantage of libxcrypt against libcrypt is, that it supports
-bigcrypt and blowfish password encryption and exports md5_crypt and
-the other md5 functions.
+blowfish password encryption.
 
   Thorsten Kukuk, 21. October 2002

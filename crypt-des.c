@@ -209,10 +209,7 @@ crypt_des_trd_rn (const char *key, const char *setting,
   return buf->output;
 }
 
-/* This is called directly by the obsolete API functions bigcrypt()
-   and bigcrypt_r().
-
-   This algorithm is algorithm 0 (default) shipped with the C2 secure
+/* This algorithm is algorithm 0 (default) shipped with the C2 secure
    implementation of Digital UNIX.
 
    Disclaimer: This work is not based on the source code to Digital
@@ -228,7 +225,7 @@ crypt_des_trd_rn (const char *key, const char *setting,
    (that is, the password can be no more than 128 characters long).
 
    Andy Phillips <atp@mssl.ucl.ac.uk>  */
-char *
+static char *
 crypt_des_big_rn (const char *key, const char *setting,
                   char *data, size_t size)
 {
@@ -283,9 +280,9 @@ crypt_des_big_rn (const char *key, const char *setting,
   return buf->output;
 }
 
-/* crypt_rn() entry point for both the original UNIX password hash, with
-   its 8-character length limit, and the "bigcrypt" extension to
-   permit longer passwords.  */
+/* crypt_rn() entry point for both the original UNIX password hash,
+   with its 8-character length limit, and the Digital UNIX "bigcrypt"
+   extension to permit longer passwords.  */
 char *
 crypt_des_trd_or_big_rn (const char *key, const char *salt,
                          char *data, size_t size)
@@ -296,7 +293,9 @@ crypt_des_trd_or_big_rn (const char *key, const char *salt,
     return crypt_des_trd_rn (key, salt, data, size);
 }
 
-/* crypt_rn() entry point for BSD-style extended DES hashes.  */
+/* crypt_rn() entry point for BSD-style extended DES hashes.  These
+   permit long passwords and have more salt and a controllable iteration
+   count, but are still unacceptably weak by modern standards.  */
 char *
 crypt_des_xbsd_rn (const char *key, const char *setting,
                    char *data, size_t size)

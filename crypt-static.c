@@ -21,7 +21,7 @@
    file so that a statically-linked program that doesn't use them will
    not have the state object its data segment.  */
 
-/* Static buffer used by crypt() and bigcrypt().  */
+/* Static buffer used by crypt().  */
 static struct crypt_data nr_crypt_ctx;
 
 char *
@@ -41,22 +41,4 @@ compat_symbol(crypt, crypt__glibc);
 #if COMPAT_fcrypt
 strong_alias (crypt, fcrypt);
 compat_symbol (fcrypt, fcrypt);
-#endif
-
-#if COMPAT_bigcrypt
-/* Obsolete interface - not to be used in new code.  This function is
-   the same as crypt, but it forces the use of the Digital Unix
-   "bigcrypt" hash, which is nearly as weak as traditional DES.
-   Because it is obsolete, we have not added a reentrant version.  */
-char *
-bigcrypt (const char *key, const char *salt)
-{
-  char *retval = crypt_des_big_rn
-    (key, salt, (char *)&nr_crypt_ctx, sizeof nr_crypt_ctx);
-  if (retval)
-    return retval;
-  make_failure_token (salt, (char *)&nr_crypt_ctx, sizeof nr_crypt_ctx);
-  return (char *)&nr_crypt_ctx;
-}
-compat_symbol (bigcrypt, bigcrypt);
 #endif

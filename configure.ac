@@ -49,7 +49,7 @@ zw_C_ALIGNOF
 AC_ARG_ENABLE([obsolete-api],
     AS_HELP_STRING(
         [--disable-obsolete-api],
-        [do not include obsolete APIs (bigcrypt, fcrypt, encrypt, setkey).
+        [do not include obsolete APIs (fcrypt, encrypt, setkey).
          Breaks binary compatibility.]
     ),
     [case "${enableval}" in
@@ -84,7 +84,7 @@ if test $enable_weak_hashes = 0; then enable_obsolete_api=0; fi
 if test x$enable_shared != xyes; then enable_obsolete_api=0; fi
 
 AC_DEFINE_UNQUOTED([ENABLE_OBSOLETE_API], [$enable_obsolete_api],
- [Define as 1 if the obsolete APIs (bigcrypt, fcrypt, encrypt, setkey)
+ [Define as 1 if the obsolete APIs (fcrypt, encrypt, setkey)
   should be included, 0 otherwise.])
 AM_CONDITIONAL([ENABLE_OBSOLETE_API], [test $enable_obsolete_api = 1])
 
