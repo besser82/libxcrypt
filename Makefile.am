@@ -33,14 +33,25 @@ libcrypt_la_LDFLAGS = \
 	-version-info $(libcrypt_la_VERSION) \
 	-Wl,--version-script=$(srcdir)/libcrypt.map \
 	-Wl,-z,defs -Wl,-z,text
+libcrypt_la_CPPFLAGS = $(AM_CPPFLAGS) -DIN_LIBCRYPT
 
 EXTRA_DIST = libcrypt.map.in
 EXTRA_libcrypt_la_DEPENDENCIES = libcrypt.map
-CLEANFILES = libcrypt.map libcrypt.map.T
+CLEANFILES = libcrypt.map libcrypt.map.T \
+	crypt-symbol-vers.h crypt-symbol-vers.h.T
 
-libcrypt.map: libcrypt.map.in
-	$(AM_V_GEN)$(CPP) -P - < libcrypt.map.in > libcrypt.map.T
+libcrypt.map: libcrypt.map.in gen-map.awk Makefile
+	$(AM_V_GEN)LC_ALL=C $(AWK) \
+	  -v SYMVER_MIN=$(SYMVER_MIN) -v SYMVER_FLOOR=$(SYMVER_FLOOR) \
+	  -f $(srcdir)/gen-map.awk $(srcdir)/libcrypt.map.in > libcrypt.map.T
 	$(AM_V_at)mv -f libcrypt.map.T libcrypt.map
+
+crypt-symbol-vers.h: libcrypt.map.in gen-vers.awk Makefile
+	$(AM_V_GEN)LC_ALL=C $(AWK) \
+	  -v SYMVER_MIN=$(SYMVER_MIN) -v SYMVER_FLOOR=$(SYMVER_FLOOR) \
+	  -f $(srcdir)/gen-vers.awk \
+	     $(srcdir)/libcrypt.map.in > crypt-symbol-vers.h.T
+	$(AM_V_at)mv -f crypt-symbol-vers.h.T crypt-symbol-vers.h
 
 check_PROGRAMS = \
 	test-alg-sha256 test-alg-sha512 \
@@ -68,10 +79,16 @@ libcrypt_la_SOURCES += crypt-des-obsolete.c
 check_PROGRAMS += test-des-obsolete
 endif
 
-TESTS = $(check_PROGRAMS) test-symbols.sh
+TESTS = $(check_PROGRAMS)
+if ENABLE_STATIC
+TESTS += test-symbols-static
+endif
+if ENABLE_OBSOLETE_API
+TESTS += test-symbols-compat
+endif
 
 AM_TESTS_ENVIRONMENT = \
-    lib_la="./libcrypt.la"; lib_map="$(srcdir)/libcrypt.map"; \
+    lib_la="./libcrypt.la"; lib_map="$(srcdir)/libcrypt.map.in"; \
     export lib_la lib_map;
 
 test_crypt_bcrypt_LDADD = libcrypt.la
@@ -80,6 +97,7 @@ test_crypt_md5_LDADD = libcrypt.la
 test_crypt_sha256_LDADD = libcrypt.la
 test_crypt_sha512_LDADD = libcrypt.la
 test_gensalt_LDADD = libcrypt.la
+test_des_obsolete_LDADD = libcrypt.la
 
 # These tests call internal APIs that may not be accessible from the
 # fully linked shared library.
@@ -87,4 +105,9 @@ test_alg_des_LDADD = alg-des.lo alg-des-tables.lo
 test_alg_md5_LDADD = alg-md5.lo
 test_alg_sha256_LDADD = alg-sha256.lo
 test_alg_sha512_LDADD = alg-sha512.lo
-test_des_obsolete_LDADD = alg-des.lo alg-des-tables.lo crypt-des-obsolete.lo
+
+
+# Every object file in the library depends on crypt-symbol-vers.h,
+# which is a generated file, so automatic dependency generation will
+# not detect it.
+$(libcrypt_la_OBJECTS): crypt-symbol-vers.h

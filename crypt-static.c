@@ -22,6 +22,7 @@
    not have the state object its data segment.  */
 
 /* Static buffer used by crypt().  */
+#if INCLUDE_crypt || INCLUDE_fcrypt
 static struct crypt_data nr_crypt_ctx;
 
 char *
@@ -29,16 +30,13 @@ crypt (const char *key, const char *salt)
 {
   return crypt_r (key, salt, &nr_crypt_ctx);
 }
-#if COMPAT_crypt__glibc
-default_symbol(crypt, crypt);
 #endif
 
-#if COMPAT_crypt__glibc
-strong_alias(crypt, crypt__glibc);
-compat_symbol(crypt, crypt__glibc);
+#if INCLUDE_crypt
+SYMVER_crypt;
 #endif
 
-#if COMPAT_fcrypt
+#if INCLUDE_fcrypt
 strong_alias (crypt, fcrypt);
-compat_symbol (fcrypt, fcrypt);
+SYMVER_fcrypt;
 #endif

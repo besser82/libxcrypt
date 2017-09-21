@@ -1,28 +1,32 @@
-#include "config.h"
-#if ENABLE_OBSOLETE_API
+# This file is processed by gen-map.awk to produce the versions map file
+# for libxcrypt.
+# symbol default_version compat_version [compat_version ...]
 
-GLIBC_2.0 {
-  global:
-    crypt; crypt_r;
-    fcrypt;
-    encrypt; encrypt_r; setkey; setkey_r;
-  local:
-    *;
-};
-XCRYPT_2.0 {
-  global:
-    crypt; crypt_r; crypt_ra; crypt_rn;
-    crypt_gensalt; crypt_gensalt_ra; crypt_gensalt_rn;
-} GLIBC_2.0;
+# Actively supported POSIX interfaces; in GNU libc since 2.0
+crypt			XCRYPT_2.0	GLIBC_2.0
+crypt_r			XCRYPT_2.0	GLIBC_2.0
 
-#else
+# Actively supported OpenWall extensions; never actually added to
+# upstream GNU libc, but present in at least OpenWall and ALT Linux
+# distributions with these symbol versions
+crypt_rn		XCRYPT_2.0	GLIBC_2.0	GLIBC_2.2.1
+crypt_gensalt		XCRYPT_2.0	GLIBC_2.0	GLIBC_2.2.1
+crypt_gensalt_rn	XCRYPT_2.0	GLIBC_2.0	GLIBC_2.2.1
+crypt_ra		XCRYPT_2.0	GLIBC_2.0	GLIBC_2.2.2
+crypt_gensalt_ra	XCRYPT_2.0	GLIBC_2.0	GLIBC_2.2.2
 
-XCRYPT_2.0 {
-  global:
-    crypt; crypt_r; crypt_ra; crypt_rn;
-    crypt_gensalt; crypt_gensalt_ra; crypt_gensalt_rn;
-  local:
-    *;
-};
+# Deprecated interfaces, POSIX and otherwise; also present in GNU libc
+# since 2.0
+encrypt			-		GLIBC_2.0
+encrypt_r		-		GLIBC_2.0
+setkey			-		GLIBC_2.0
+setkey_r		-		GLIBC_2.0
+fcrypt			-		GLIBC_2.0
 
-#endif
+# This determines the ordering of the version chain.  Each symbol
+# version that appears above must also appear in this list, and to
+# simplify gen-map.awk, so must all of the versions listed in
+# libcrypt.minver.  The ordering is left to right, top to bottom.
+%chain GLIBC_2.0 GLIBC_2.2 GLIBC_2.2.1 GLIBC_2.2.2 GLIBC_2.2.5 GLIBC_2.3
+%chain GLIBC_2.4 GLIBC_2.12 GLIBC_2.16 GLIBC_2.17 GLIBC_2.18 GLIBC_2.21
+%chain XCRYPT_2.0

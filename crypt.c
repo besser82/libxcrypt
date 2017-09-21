@@ -162,6 +162,7 @@ do_crypt_ra (const char *key, const char *salt, void **data, int *size)
   return h->crypt (key, salt, *data, (size_t)*size);
 }
 
+#if INCLUDE_crypt_rn
 char *
 crypt_rn (const char *key, const char *salt, void *data, int size)
 {
@@ -170,7 +171,10 @@ crypt_rn (const char *key, const char *salt, void *data, int size)
     make_failure_token (salt, data, size);
   return retval;
 }
+SYMVER_crypt_rn;
+#endif
 
+#if INCLUDE_crypt_ra
 char *
 crypt_ra (const char *key, const char *salt, void **data, int *size)
 {
@@ -179,7 +183,10 @@ crypt_ra (const char *key, const char *salt, void **data, int *size)
     make_failure_token (salt, *data, *size);
   return retval;
 }
+SYMVER_crypt_ra;
+#endif
 
+#if INCLUDE_crypt_r
 char *
 crypt_r (const char *key, const char *salt, struct crypt_data *data)
 {
@@ -188,20 +195,10 @@ crypt_r (const char *key, const char *salt, struct crypt_data *data)
     return (char *)data; /* return the failure token */
   return retval;
 }
-#if COMPAT_crypt_r__glibc
-default_symbol(crypt_r, crypt_r);
+SYMVER_crypt_r;
 #endif
 
-/* 'crypt' and 'crypt_r' exist in two symbol versions because the
-   definition of 'struct crypt_data' has changed.  We don't need any
-   special case code here to make the new library work with programs
-   that use the old definition, but programs that use the new
-   definition will not work with the old library.  */
-#if COMPAT_crypt_r__glibc
-strong_alias(crypt_r, crypt_r__glibc);
-compat_symbol(crypt_r, crypt_r__glibc);
-#endif
-
+#if INCLUDE_crypt_gensalt_rn
 char *
 crypt_gensalt_rn (const char *prefix, unsigned long count,
                   const char *input, int size, char *output,
@@ -224,7 +221,10 @@ crypt_gensalt_rn (const char *prefix, unsigned long count,
     }
   return h->gensalt (count, input, size, output, output_size);
 }
+SYMVER_crypt_gensalt_rn;
+#endif
 
+#if INCLUDE_crypt_gensalt_ra
 char *
 crypt_gensalt_ra (const char *prefix, unsigned long count,
                   const char *input, int size)
@@ -236,7 +236,10 @@ crypt_gensalt_ra (const char *prefix, unsigned long count,
   return crypt_gensalt_rn (prefix, count, input, size, output,
                            CRYPT_GENSALT_OUTPUT_SIZE);
 }
+SYMVER_crypt_gensalt_ra;
+#endif
 
+#if INCLUDE_crypt_gensalt
 char *
 crypt_gensalt (const char *prefix, unsigned long count,
                const char *input, int size)
@@ -246,3 +249,5 @@ crypt_gensalt (const char *prefix, unsigned long count,
   return crypt_gensalt_rn (prefix, count,
                            input, size, output, sizeof (output));
 }
+SYMVER_crypt_gensalt;
+#endif
