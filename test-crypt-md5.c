@@ -1,5 +1,5 @@
 #include <string.h>
-#include "crypt.h"
+#include "crypt-base.h"
 
 int
 main (void)

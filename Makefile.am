@@ -10,10 +10,10 @@ ACLOCAL_AMFLAGS = -I m4
 AM_CFLAGS = $(WARN_CFLAGS)
 AM_CPPFLAGS = -include crypt-symbols.h
 
-include_HEADERS = crypt.h
+nodist_include_HEADERS = crypt.h
 noinst_HEADERS = \
 	alg-des.h alg-md5.h alg-sha256.h alg-sha512.h byteorder.h \
-	crypt-obsolete.h crypt-private.h crypt-symbols.h \
+	crypt-base.h crypt-obsolete.h crypt-private.h crypt-symbols.h \
 	test-des-cases.h
 
 lib_LTLIBRARIES = libcrypt.la
@@ -38,7 +38,8 @@ libcrypt_la_CPPFLAGS = $(AM_CPPFLAGS) -DIN_LIBCRYPT
 EXTRA_DIST = libcrypt.map.in
 EXTRA_libcrypt_la_DEPENDENCIES = libcrypt.map
 CLEANFILES = libcrypt.map libcrypt.map.T \
-	crypt-symbol-vers.h crypt-symbol-vers.h.T
+	crypt-symbol-vers.h crypt-symbol-vers.h.T \
+	crypt.h crypt.h.T
 
 libcrypt.map: libcrypt.map.in gen-map.awk Makefile
 	$(AM_V_GEN)LC_ALL=C $(AWK) \
@@ -52,6 +53,12 @@ crypt-symbol-vers.h: libcrypt.map.in gen-vers.awk Makefile
 	  -f $(srcdir)/gen-vers.awk \
 	     $(srcdir)/libcrypt.map.in > crypt-symbol-vers.h.T
 	$(AM_V_at)mv -f crypt-symbol-vers.h.T crypt-symbol-vers.h
+
+crypt.h: crypt-base.h gen-crypt-h.awk config.h
+	$(AM_V_GEN)LC_ALL=C $(AWK) \
+	  -f $(srcdir)/gen-crypt-h.awk config.h $(srcdir)/crypt-base.h \
+	  > crypt.h.T
+	$(AM_V_at)mv -f crypt.h.T crypt.h
 
 check_PROGRAMS = \
 	test-alg-sha256 test-alg-sha512 \

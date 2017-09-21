@@ -3,6 +3,18 @@
 
 #include "config.h"
 
+#ifdef HAVE_SYS_CDEFS_H
+#include <sys/cdefs.h>
+#endif
+
+#ifndef HAVE_SYS_CDEFS_THROW
+#define __THROW /* nothing */
+#endif
+
+#ifndef HAVE_SYS_CDEFS_NONNULL
+#define __nonnull(param) /* nothing */
+#endif
+
 /* Suppression of unused-argument warnings.  */
 #if defined __cplusplus
 # define ARG_UNUSED(x) /*nothing*/

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "crypt.h"
+#include "crypt-base.h"
 
 static const struct
 {

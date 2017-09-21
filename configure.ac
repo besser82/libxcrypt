@@ -7,7 +7,7 @@ AC_INIT([xcrypt],
         [https://github.com/besser82/libxcrypt])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([m4])
-AC_CONFIG_SRCDIR([crypt.h])
+AC_CONFIG_SRCDIR([crypt.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile])
 AM_INIT_AUTOMAKE
@@ -39,6 +39,57 @@ LT_INIT
 # Checks for libraries.
 
 # Checks for header files.
+AC_CHECK_HEADERS_ONCE([sys/cdefs.h])
+
+# Checks for the specific things that we need from sys/cdefs.h, which
+# might or might not be there (there's no standard for this header).
+if test $ac_cv_header_sys_cdefs_h = yes; then
+  AC_CACHE_CHECK([whether sys/cdefs.h defines __BEGIN_DECLS and __END_DECLS],
+                 [ac_cv_header_sys_cdefs_begin_end_decls], [
+    AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+#include <sys/cdefs.h>
+__BEGIN_DECLS
+extern int foo(void);
+__END_DECLS
+    ]])],
+    [ac_cv_header_sys_cdefs_begin_end_decls=yes],
+    [ac_cv_header_sys_cdefs_begin_end_decls=no])
+  ])
+  AC_CACHE_CHECK([whether sys/cdefs.h defines __nonnull],
+                 [ac_cv_header_sys_cdefs_nonnull], [
+    AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+#include <sys/cdefs.h>
+extern char *foo(char *, char *) __nonnull ((1, 2));
+    ]])],
+    [ac_cv_header_sys_cdefs_nonnull=yes],
+    [ac_cv_header_sys_cdefs_nonnull=no])
+  ])
+  AC_CACHE_CHECK([whether sys/cdefs.h defines __THROW],
+                 [ac_cv_header_sys_cdefs_THROW], [
+    AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+#include <sys/cdefs.h>
+extern void foo(void) __THROW;
+    ]])],
+    [ac_cv_header_sys_cdefs_THROW=yes],
+    [ac_cv_header_sys_cdefs_THROW=no])
+  ])
+else
+  ac_cv_header_sys_cdefs_begin_end_decls=no
+  ac_cv_header_sys_cdefs_nonnull=no
+  ac_cv_header_sys_cdefs_THROW=no
+fi
+if test $ac_cv_header_sys_cdefs_begin_end_decls = yes; then
+  AC_DEFINE(HAVE_SYS_CDEFS_BEGIN_END_DECLS, 1,
+    [Define if <sys/cdefs.h> defines __BEGIN_DECLS and __END_DECLS.])
+fi
+if test $ac_cv_header_sys_cdefs_nonnull = yes; then
+  AC_DEFINE(HAVE_SYS_CDEFS_NONNULL, 1,
+    [Define if <sys/cdefs.h> defines __nonnull.])
+fi
+if test $ac_cv_header_sys_cdefs_THROW = yes; then
+  AC_DEFINE(HAVE_SYS_CDEFS_THROW, 1,
+    [Define if <sys/cdefs.h> defines __THROW.])
+fi
 
 # Checks for typedefs, structures, and compiler characteristics.
 zw_C_ALIGNAS

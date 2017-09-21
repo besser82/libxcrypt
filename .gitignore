@@ -40,6 +40,7 @@ Makefile.in
 *.trs
 /alg-des-mktables
 /alg-des-tables.c
+/crypt.h
 /crypt-symbol-vers.h
 /libcrypt.map
 /test-alg-des

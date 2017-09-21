@@ -20,7 +20,9 @@
 #ifndef _CRYPT_PRIVATE_H
 #define _CRYPT_PRIVATE_H 1
 
-#include "crypt.h"
+#include "crypt-base.h"
+
+#include <stddef.h>
 
 /* Miscellaneous utilities */
 

@@ -20,19 +20,7 @@
 #ifndef _CRYPT_H
 #define _CRYPT_H 1
 
-#include <sys/types.h>
-
-#ifndef __THROW
-#define __THROW /* nothing */
-#endif
-
-#ifndef __nonnull
-#define __nonnull(param) /* nothing */
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+/*HEADER*/
 
 #define CRYPT_OUTPUT_SIZE               (7 + 22 + 31 + 1)
 #define CRYPT_GENSALT_OUTPUT_SIZE       (7 + 22 + 1)
@@ -76,9 +64,6 @@ extern char *crypt_gensalt_ra (const char *__prefix, unsigned long __count,
                                const char *__input, int __size)
   __THROW __nonnull ((1));
 
-
-#ifdef __cplusplus
-} /* extern "C" */
-#endif
+/*TRAILER*/
 
 #endif /* crypt.h */

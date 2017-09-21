@@ -6,7 +6,7 @@
  * @(#)cert.c   1.8 11 Aug 1996
  */
 
-#include "crypt.h"
+#include "crypt-base.h"
 #include "crypt-obsolete.h"
 #include "test-des-cases.h"
 

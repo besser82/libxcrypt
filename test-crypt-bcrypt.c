@@ -19,7 +19,7 @@
 #include <errno.h>
 #include <stdio.h>
 
-#include "crypt.h"
+#include "crypt-base.h"
 
 static const char *tests[][3] = {
   { "$2a$05$CCCCCCCCCCCCCCCCCCCCC.E5YPO9kmyuRGyh0XouQYb4YMJKvyOeW",
