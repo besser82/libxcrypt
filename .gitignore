@@ -1,9 +1,10 @@
 # http://www.gnu.org/software/automake
 
-Makefile
-Makefile.in
-.deps/
-.libs/
+/Makefile
+/Makefile.in
+/.deps/
+/.libs/
+/INSTALL
 
 # http://www.gnu.org/software/autoconf
 

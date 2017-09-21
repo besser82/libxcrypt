@@ -10,6 +10,11 @@ ACLOCAL_AMFLAGS = -I m4
 AM_CFLAGS = $(WARN_CFLAGS)
 AM_CPPFLAGS = -include crypt-symbols.h
 
+EXTRA_DIST = \
+	LICENSE.bcrypt README.bcrypt \
+	libcrypt.map.in libcrypt.minver \
+	gen-map.awk gen-vers.awk gen-crypt-h.awk
+
 nodist_include_HEADERS = crypt.h
 noinst_HEADERS = \
 	alg-des.h alg-md5.h alg-sha256.h alg-sha512.h byteorder.h \
@@ -31,11 +36,10 @@ endif
 
 libcrypt_la_LDFLAGS = \
 	-version-info $(libcrypt_la_VERSION) \
-	-Wl,--version-script=$(srcdir)/libcrypt.map \
+	-Wl,--version-script=libcrypt.map \
 	-Wl,-z,defs -Wl,-z,text
 libcrypt_la_CPPFLAGS = $(AM_CPPFLAGS) -DIN_LIBCRYPT
 
-EXTRA_DIST = libcrypt.map.in
 EXTRA_libcrypt_la_DEPENDENCIES = libcrypt.map
 CLEANFILES = libcrypt.map libcrypt.map.T \
 	crypt-symbol-vers.h crypt-symbol-vers.h.T \
@@ -93,6 +97,7 @@ endif
 if ENABLE_OBSOLETE_API
 TESTS += test-symbols-compat
 endif
+EXTRA_DIST += test-symbols-static test-symbols-compat
 
 AM_TESTS_ENVIRONMENT = \
     lib_la="./libcrypt.la"; lib_map="$(srcdir)/libcrypt.map.in"; \
