@@ -75,11 +75,11 @@ libcrypt_la_SOURCES += \
 
 nodist_libcrypt_la_SOURCES = \
 	alg-des-tables.c
-noinst_PROGRAMS = alg-des-mktables
+noinst_PROGRAMS = gen-des-tables
 CLEANFILES += alg-des-tables.c alg-des-tables.c.T
 
-alg-des-tables.c: alg-des-mktables
-	$(AM_V_GEN)./alg-des-mktables > alg-des-tables.c.T
+alg-des-tables.c: gen-des-tables
+	$(AM_V_GEN)./gen-des-tables > alg-des-tables.c.T
 	$(AM_V_at)mv -f alg-des-tables.c.T alg-des-tables.c
 
 check_PROGRAMS += test-alg-des test-alg-md5 test-crypt-des test-crypt-md5

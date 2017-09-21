@@ -39,7 +39,7 @@
 *.o
 *.so
 *.trs
-/alg-des-mktables
+/gen-des-tables
 /alg-des-tables.c
 /crypt.h
 /crypt-symbol-vers.h
