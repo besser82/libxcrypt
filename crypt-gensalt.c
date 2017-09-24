@@ -17,6 +17,7 @@
 static const char _xcrypt_itoa64[64 + 1] =
   "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
+#if ENABLE_WEAK_HASHES
 char *
 gensalt_des_trd_rn (unsigned long count,
                     const char *input, int size, char *output,
@@ -116,6 +117,7 @@ gensalt_md5_rn (unsigned long ARG_UNUSED (count),
 
   return output;
 }
+#endif
 
 static char *
 gensalt_sha_rn (char tag, unsigned long count,

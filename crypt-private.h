@@ -30,13 +30,15 @@ extern void make_failure_token (const char *salt, char *output, int size);
 
 /* Individual hash functions */
 
+#if ENABLE_WEAK_HASHES
 extern char *crypt_des_trd_or_big_rn (const char *key, const char *salt,
                                       char *data, size_t size);
 extern char *crypt_des_xbsd_rn (const char *key, const char *salt,
                                 char *data, size_t size);
-
 extern char *crypt_md5_rn (const char *key, const char *salt,
                            char *data, size_t size);
+#endif
+
 extern char *crypt_sha256_rn (const char *key, const char *salt,
                               char *data, size_t size);
 extern char *crypt_sha512_rn (const char *key, const char *salt,
@@ -44,6 +46,7 @@ extern char *crypt_sha512_rn (const char *key, const char *salt,
 extern char *crypt_bcrypt_rn (const char *key, const char *salt,
                               char *data, size_t size);
 
+#if ENABLE_WEAK_HASHES
 extern char *gensalt_des_trd_rn (unsigned long count,
                                  const char *input, int size,
                                  char *output, int output_size);
@@ -52,6 +55,8 @@ extern char *gensalt_des_xbsd_rn (unsigned long count,
                                   char *output, int output_size);
 extern char *gensalt_md5_rn (unsigned long count, const char *input,
                              int size, char *output, int output_size);
+#endif
+
 extern char *gensalt_sha256_rn (unsigned long count,
                                 const char *input,
                                 int size, char *output,
