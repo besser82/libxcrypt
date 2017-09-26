@@ -62,8 +62,7 @@ static const char sha256_rounds_prefix[] = "rounds=";
 /* A sha256_buffer holds the output plus all of the sensitive intermediate
    data.  It may have been allocated by application code, so it may not
    be properly aligned, and besides which SHA256_HASH_LENGTH may be odd, so
-   we pad 'ctxbuf' and 'altctxbuf' enough to find a properly-aligned
-   sha256_ctx within.  */
+   we pad 'ctxbuf' enough to find a properly-aligned sha256_ctx within.  */
 struct sha256_buffer
 {
   char output[SHA256_HASH_LENGTH];
