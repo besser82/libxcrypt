@@ -102,7 +102,7 @@ get_hashfn (const char *salt)
    a previously recorded hash string will fail, even if that string
    is itself one of these "failure tokens".  */
 
-void
+static void
 make_failure_token (const char *salt, char *output, int size)
 {
   if (size < 3)

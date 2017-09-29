@@ -24,10 +24,6 @@
 
 #include <stddef.h>
 
-/* Miscellaneous utilities */
-
-extern void make_failure_token (const char *salt, char *output, int size);
-
 /* Individual hash functions */
 
 #if ENABLE_WEAK_HASHES
