@@ -36,6 +36,22 @@ AC_SYS_LARGEFILE
 zw_SIMPLE_ENABLE_WARNINGS
 LT_INIT
 
+# One of the test scripts needs to use -dD.
+AC_CACHE_CHECK([whether the preprocessor ($CPP) supports -dD],
+  [ac_cv_prog_cc_dD],
+  [printf '#include <errno.h>' |
+    $CPP -dD -xc - > conftest.i 2>&AS_MESSAGE_LOG_FD
+  if test $? -ne 0; then
+    ac_cv_prog_cc_dD=no
+  elif grep -q '#define EDOM' conftest.i; then
+    ac_cv_prog_cc_dD=yes
+  else
+    ac_cv_prog_cc_dD=no
+  fi
+  rm -f conftest.i
+])
+AM_CONDITIONAL([HAVE_CPP_dD], [test $ac_cv_prog_cc_dD = yes])
+
 # Checks for libraries.
 
 # Checks for header files.

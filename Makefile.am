@@ -93,15 +93,19 @@ endif
 TESTS = $(check_PROGRAMS)
 if ENABLE_STATIC
 TESTS += test-symbols-static
+if HAVE_CPP_dD
+TESTS += test-symbols-renames
+endif
 endif
 if ENABLE_OBSOLETE_API
 TESTS += test-symbols-compat
 endif
-EXTRA_DIST += test-symbols-static test-symbols-compat
+EXTRA_DIST += test-symbols-static test-symbols-compat test-symbols-renames
 
 AM_TESTS_ENVIRONMENT = \
     lib_la="./libcrypt.la"; lib_map="$(srcdir)/libcrypt.map.in"; \
-    export lib_la lib_map;
+    CPP="$(CPP)"; CPPFLAGS="$(CPPFLAGS) $(AM_CPPFLAGS)";
+    export lib_la lib_map CPP CPPFLAGS;
 
 test_crypt_bcrypt_LDADD = libcrypt.la
 test_crypt_des_LDADD = libcrypt.la
