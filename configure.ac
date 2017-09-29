@@ -94,6 +94,7 @@ fi
 # Checks for typedefs, structures, and compiler characteristics.
 zw_C_ALIGNAS
 zw_C_ALIGNOF
+zw_C_STATIC_ASSERT
 
 # Checks for library functions.
 

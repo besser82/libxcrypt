@@ -3,6 +3,9 @@
 
 #include "config.h"
 
+#undef NDEBUG
+#include <assert.h>
+
 #ifdef HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
 #endif
@@ -16,12 +19,23 @@
 #endif
 
 /* Suppression of unused-argument warnings.  */
-#if defined __cplusplus
-# define ARG_UNUSED(x) /*nothing*/
-#elif defined __GNUC__ && __GNUC__ >= 3
+#if defined __GNUC__ && __GNUC__ >= 3
 # define ARG_UNUSED(x) x __attribute__ ((__unused__))
 #else
 # define ARG_UNUSED(x) x
+#endif
+
+/* static_assert shim.  */
+#ifdef HAVE_STATIC_ASSERT_IN_ASSERT_H
+/* nothing to do */
+#elif defined HAVE__STATIC_ASSERT
+# define static_assert(expr, message) _Static_assert(expr, message)
+#else
+/* This fallback is known to work with most C99-compliant compilers.
+   See verify.h in gnulib for extensive discussion.  */
+# define static_assert(expr, message) \
+  extern int (*xcrypt_static_assert_fn (void)) \
+  [!!sizeof (struct { int xcrypt_error_if_negative: (expr) ? 2 : -1; })]
 #endif
 
 /* Per-symbol version tagging.  Currently we only know how to do this
