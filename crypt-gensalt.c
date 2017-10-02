@@ -7,12 +7,13 @@
  * entirely in bcrypt.c.
  */
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <errno.h>
-
+#include "crypt-port.h"
 #include "crypt-private.h"
+
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 static const unsigned char _xcrypt_itoa64[64 + 1] =
   "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";

@@ -20,6 +20,7 @@
 
 /* Written by Ulrich Drepper <drepper@redhat.com>, 2007.  */
 
+#include "crypt-port.h"
 #include "alg-sha512.h"
 #include "byteorder.h"
 

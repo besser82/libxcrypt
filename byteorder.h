@@ -18,8 +18,6 @@
 #ifndef _CRYPT_BYTEORDER_H
 #define _CRYPT_BYTEORDER_H 1
 
-#include <stdint.h>
-
 static inline uint32_t
 le32_to_cpu (const unsigned char *buf)
 {

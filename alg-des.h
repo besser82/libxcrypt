@@ -46,9 +46,6 @@
 #ifndef _CRYPT_ALG_DES_H
 #define _CRYPT_ALG_DES_H 1
 
-#include <stdint.h>
-#include <stdbool.h>
-
 /* des.c */
 
 struct des_ctx

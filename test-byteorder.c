@@ -14,11 +14,12 @@
  * There's ABSOLUTELY NO WARRANTY, express or implied.
  */
 
+#include "crypt-port.h"
 #include "byteorder.h"
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
-#include <inttypes.h>
 
 struct test_32
 {

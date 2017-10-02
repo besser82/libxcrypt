@@ -6,11 +6,11 @@
  * @(#)cert.c   1.8 11 Aug 1996
  */
 
+#include "crypt-port.h"
 #include "crypt-base.h"
 #include "crypt-obsolete.h"
 #include "test-des-cases.h"
 
-#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 

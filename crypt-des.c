@@ -43,11 +43,11 @@
  * by David Burren <davidb@werj.com.au>.
  */
 
-#include "alg-des.h"
+#include "crypt-port.h"
 #include "crypt-private.h"
+#include "alg-des.h"
 
 #include <errno.h>
-#include <stddef.h>
 #include <string.h>
 
 #define DES_TRD_OUTPUT_LEN 14                /* SShhhhhhhhhhh0 */

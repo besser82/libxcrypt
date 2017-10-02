@@ -21,9 +21,6 @@
 #ifndef _CRYPT_ALG_SHA512_H
 #define _CRYPT_ALG_SHA512_H 1
 
-#include <stddef.h>
-#include <stdint.h>
-
 /* Structure to save state of computation between the single steps.  */
 struct sha512_ctx
 {

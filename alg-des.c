@@ -58,6 +58,7 @@
  * posted to the sci.crypt newsgroup by the author and is available for FTP.
  */
 
+#include "crypt-port.h"
 #include "alg-des.h"
 #include "byteorder.h"
 

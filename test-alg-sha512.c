@@ -1,3 +1,4 @@
+#include "crypt-port.h"
 #include "alg-sha512.h"
 
 #include <stdio.h>

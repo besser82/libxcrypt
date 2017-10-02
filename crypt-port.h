@@ -1,14 +1,21 @@
 #ifndef _CRYPT_SYMBOLS_H
 #define _CRYPT_SYMBOLS_H 1
 
+#ifndef HAVE_CONFIG_H
+#error "Run configure before compiling; see INSTALL for instructions"
+#endif
+
 #include "config.h"
 
 #undef NDEBUG
 #include <assert.h>
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
 #ifdef HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
 #endif
@@ -182,4 +189,4 @@ typedef union
 #define psbox                    _crypt_psbox
 #endif
 
-#endif /* crypt-symbols.h */
+#endif /* crypt-port.h */

@@ -14,12 +14,13 @@
  * See crypt_blowfish.c for more information.
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include "crypt-port.h"
+#include "crypt-base.h"
+
 #include <errno.h>
 #include <stdio.h>
-
-#include "crypt-base.h"
+#include <stdlib.h>
+#include <string.h>
 
 static const char *tests[][3] = {
   { "$2a$05$CCCCCCCCCCCCCCCCCCCCC.E5YPO9kmyuRGyh0XouQYb4YMJKvyOeW",

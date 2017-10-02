@@ -55,7 +55,15 @@ AM_CONDITIONAL([HAVE_CPP_dD], [test $ac_cv_prog_cc_dD = yes])
 # Checks for libraries.
 
 # Checks for header files.
-AC_CHECK_HEADERS_ONCE([sys/cdefs.h ucontext.h])
+AC_CHECK_HEADERS_ONCE([stdbool.h sys/cdefs.h ucontext.h])
+
+# stdint.h and inttypes.h were checked for by AC_INCLUDES_DEFAULT,
+# invoked implicitly by the above.
+if test $ac_cv_header_stdbool_h != yes ||
+   test $ac_cv_header_stdint_h != yes ||
+   test $ac_cv_header_inttypes_h != yes; then
+   AC_MSG_ERROR([a C99- or C11-compliant runtime library is required])
+fi
 
 # Checks for the specific things that we need from sys/cdefs.h, which
 # might or might not be there (there's no standard for this header).

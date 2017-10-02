@@ -22,9 +22,6 @@
 #ifndef _CRYPT_ALG_MD5_H
 #define _CRYPT_ALG_MD5_H 1
 
-#include <stddef.h>
-#include <stdint.h>
-
 /* Structure to save state of computation between the single steps.  */
 struct md5_ctx
 {

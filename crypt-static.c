@@ -14,12 +14,13 @@
    along with this program; if not, write to the Free Software Foundation,
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
+#include "crypt-port.h"
 #include "crypt-private.h"
 #include "crypt-obsolete.h"
 
 /* The functions that use a global state object are isolated in this
    file so that a statically-linked program that doesn't use them will
-   not have the state object its data segment.  */
+   not have the state object in its data segment.  */
 
 /* Static buffer used by crypt().  */
 #if INCLUDE_crypt || INCLUDE_fcrypt

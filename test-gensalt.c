@@ -1,8 +1,9 @@
+#include "crypt-port.h"
 #include "crypt-base.h"
 
-#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 static const char *const entropy[] = {
   "\x58\x35\xcd\x26\x03\xab\x2c\x14\x92\x13\x1e\x59\xb0\xbc\xfe\xd5",

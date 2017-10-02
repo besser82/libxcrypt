@@ -18,11 +18,11 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
 
-#include "alg-sha512.h"
+#include "crypt-port.h"
 #include "crypt-private.h"
+#include "alg-sha512.h"
 
 #include <errno.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -8,7 +8,6 @@ AUTOMAKE_OPTIONS = 1.15 gnits
 ACLOCAL_AMFLAGS = -I m4
 
 AM_CFLAGS = $(WARN_CFLAGS)
-AM_CPPFLAGS = -include crypt-symbols.h
 
 EXTRA_DIST = \
 	LICENSE.bcrypt README.bcrypt \
@@ -18,7 +17,7 @@ EXTRA_DIST = \
 nodist_include_HEADERS = crypt.h
 noinst_HEADERS = \
 	alg-des.h alg-md5.h alg-sha256.h alg-sha512.h byteorder.h \
-	crypt-base.h crypt-obsolete.h crypt-private.h crypt-symbols.h \
+	crypt-base.h crypt-obsolete.h crypt-private.h crypt-port.h \
 	test-des-cases.h
 
 lib_LTLIBRARIES = libcrypt.la
@@ -104,7 +103,9 @@ EXTRA_DIST += test-symbols-static test-symbols-compat test-symbols-renames
 
 AM_TESTS_ENVIRONMENT = \
     lib_la="./libcrypt.la"; lib_map="$(srcdir)/libcrypt.map.in"; \
-    CPP="$(CPP)"; CPPFLAGS="$(CPPFLAGS) $(AM_CPPFLAGS)";
+    CPP="$(CPP)"; \
+    CPPFLAGS="$(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES)"; \
+    CPPFLAGS="$${CPPFLAGS} $(AM_CPPFLAGS) $(CPPFLAGS)"; \
     export lib_la lib_map CPP CPPFLAGS;
 
 test_crypt_bcrypt_LDADD = libcrypt.la

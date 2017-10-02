@@ -21,9 +21,6 @@
 #ifndef _CRYPT_ALG_SHA256_H
 #define _CRYPT_ALG_SHA256_H 1
 
-#include <stddef.h>
-#include <stdint.h>
-
 /* Structure to save state of computation between the single steps.  */
 struct sha256_ctx
 {

@@ -43,13 +43,12 @@
  * hadn't seen his code).
  */
 
+#include "crypt-port.h"
+#include "crypt-private.h"
+
 #include <errno.h>
-#include <stddef.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-
-#include "crypt-private.h"
 
 #if defined(__i386__) || defined(__x86_64__) || \
     defined(__alpha__) || defined(__hppa__)

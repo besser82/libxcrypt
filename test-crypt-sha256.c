@@ -1,7 +1,8 @@
+#include "crypt-port.h"
+#include "crypt-base.h"
+
 #include <stdio.h>
 #include <string.h>
-
-#include "crypt-base.h"
 
 static const struct
 {

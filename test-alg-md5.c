@@ -1,7 +1,8 @@
+#include "crypt-port.h"
 #include "alg-md5.h"
 
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 static const struct
 {

@@ -10,8 +10,6 @@
 #ifndef _CRYPT_TEST_DES_CASES_H
 #define _CRYPT_TEST_DES_CASES_H 1
 
-#include <stddef.h>
-
 struct des_testcase
 {
   unsigned char key[8];
