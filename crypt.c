@@ -42,8 +42,8 @@ struct crypt_internal
 #endif
 };
 
-static_assert(sizeof(struct crypt_internal) + alignof(struct crypt_internal)
-              <= sizeof(((struct crypt_data){0}).internal),
+static_assert(sizeof (struct crypt_internal) + alignof (struct crypt_internal)
+              <= CRYPT_DATA_INTERNAL_SIZE,
               "crypt_data.internal is too small for crypt_internal");
 
 /* struct crypt_data is allocated by application code and contains

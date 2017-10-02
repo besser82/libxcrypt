@@ -53,6 +53,22 @@
 
 #if INCLUDE_encrypt || INCLUDE_encrypt_r || INCLUDE_setkey || INCLUDE_setkey_r
 
+static_assert(sizeof (struct des_ctx) + alignof (struct des_ctx)
+              <= CRYPT_DATA_INTERNAL_SIZE,
+              "crypt_data.internal is too small for struct des_ctx");
+
+/* struct crypt_data is allocated by application code and contains
+   only char-typed fields, so its 'internal' field may not be
+   sufficiently aligned.  */
+static inline struct des_ctx *
+get_des_ctx (struct crypt_data *data)
+{
+  uintptr_t internalp = (uintptr_t) data->internal;
+  uintptr_t align = alignof (struct des_ctx);
+  internalp = (internalp + align - 1) & ~align;
+  return (struct des_ctx *)internalp;
+}
+
 /* For reasons lost in the mists of time, these functions operate on
    64-*byte* arrays, each of which should be either 0 or 1 - only the
    low bit of each byte is examined.  The DES primitives, much more
@@ -88,34 +104,46 @@ pack_bits (unsigned char bitv[8], const char bytev[64])
 #endif
 
 /* Initialize DATA with a DES key, KEY, represented as a byte vector.  */
+#if INCLUDE_setkey_r || INCLUDE_setkey
+static void
+do_setkey_r (const char *key, struct des_ctx *ctx)
+{
+  memset (ctx, 0, sizeof *ctx);
+  des_set_salt (ctx, 0);
+
+  unsigned char bkey[8];
+  pack_bits (bkey, key);
+  des_set_key (ctx, bkey);
+}
+#endif
+
 #if INCLUDE_setkey_r
 void
 setkey_r (const char *key, struct crypt_data *data)
 {
-  unsigned char bkey[8];
-  pack_bits (bkey, key);
-
-  struct des_ctx *ctx = (struct des_ctx *)data;
-  memset (ctx, 0, sizeof *ctx);
-
-  des_set_salt (ctx, 0);
-  des_set_key (ctx, bkey);
+  do_setkey_r (key, get_des_ctx (data));
 }
 SYMVER_setkey_r;
 #endif
 
 /* Encrypt or decrypt one DES block, BLOCK, using the key schedule in
    DATA.  BLOCK is processed in place.  */
+#if INCLUDE_encrypt_r || INCLUDE_encrypt
+static void
+do_encrypt_r (char *block, int edflag, struct des_ctx *ctx)
+{
+  unsigned char bin[8], bout[8];
+  pack_bits (bin, block);
+  des_crypt_block (ctx, bout, bin, 1, edflag != 0);
+  unpack_bits (block, bout);
+}
+#endif
+
 #if INCLUDE_encrypt_r
 void
 encrypt_r (char *block, int edflag, struct crypt_data *data)
 {
-  unsigned char bin[8], bout[8];
-  pack_bits (bin, block);
-
-  struct des_ctx *ctx = (struct des_ctx *)data;
-  des_crypt_block (ctx, bout, bin, 1, edflag != 0);
-  unpack_bits (block, bout);
+  do_encrypt_r (block, edflag, get_des_ctx (data));
 }
 SYMVER_encrypt_r;
 #endif
@@ -134,7 +162,7 @@ static struct des_ctx nr_encrypt_ctx;
 void
 setkey (const char *key)
 {
-  setkey_r (key, (struct crypt_data *) &nr_encrypt_ctx);
+  do_setkey_r (key, &nr_encrypt_ctx);
 }
 SYMVER_setkey;
 #endif
@@ -143,7 +171,7 @@ SYMVER_setkey;
 void
 encrypt (char *block, int edflag)
 {
-  encrypt_r (block, edflag, (struct crypt_data *) &nr_encrypt_ctx);
+  do_encrypt_r (block, edflag, &nr_encrypt_ctx);
 }
 SYMVER_encrypt;
 #endif

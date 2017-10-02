@@ -62,6 +62,11 @@
 extern char *crypt (const char *__phrase, const char *__setting)
   __THROW __nonnull ((1, 2));
 
+/* These sizes are chosen to make sizeof (struct crypt_data) add up to
+   exactly 32768 bytes.  */
+#define CRYPT_DATA_RESERVED_SIZE 767
+#define CRYPT_DATA_INTERNAL_SIZE 30720
+
 /* Memory area used by crypt_r.  */
 struct crypt_data
 {
@@ -96,12 +101,12 @@ struct crypt_data
      bytes zero before calling crypt_r, crypt_rn, or crypt_ra for the
      first time with a just-allocated 'struct crypt_data'.  Future
      extensions to the API may make this more ergonomic.  */
-  char reserved[767];
+  char reserved[CRYPT_DATA_RESERVED_SIZE];
 
   /* Scratch space used internally.  Applications should not read or
      write this field.  All data written to this area is erased before
      returning from the library.  */
-  char internal[30720];
+  char internal[CRYPT_DATA_INTERNAL_SIZE];
 };
 
 /* Thread-safe version of crypt.  Instead of writing to a static
