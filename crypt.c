@@ -22,6 +22,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef USE_SWAPCONTEXT
+#include <limits.h>
+#include <ucontext.h>
+#endif
+
 /* The internal storage area within struct crypt_data is used as
    follows.  We don't know what alignment the algorithm modules will
    need for their scratch data, so give it the maximum natural
@@ -32,6 +37,10 @@
 struct crypt_internal
 {
   char alignas (max_align_t) alg_specific[ALG_SPECIFIC_SIZE];
+#ifdef USE_SWAPCONTEXT
+  char inner_stack[16384];
+  ucontext_t inner_ctx;
+#endif
 };
 
 static_assert(sizeof(struct crypt_internal) + alignof(struct crypt_internal)
@@ -58,16 +67,121 @@ typedef uint8_t *(*gensalt_fn) (unsigned long count,
                                 const uint8_t *rbytes, size_t nrbytes,
                                 uint8_t *output, size_t output_size);
 
-static inline char *
+
+/* If getcontext, makecontext, and swapcontext are available, we use
+   them to force the stack frames and register state for the actual
+   hash algorithm to be saved in a place (inside struct crypt_internal)
+   where we can erase them after we're done.  Passing arguments into
+   the makecontext callback is somewhat awkward; you can call any
+   function that takes any number of 'int' arguments and returns
+   nothing.  We need to pass a whole bunch of pointers, which don't
+   necessarily fit, and we need to get a return value back out.  The
+   code below handles only the case where a pointer to a struct fits
+   in one 'int', and the case where it fits in two 'int's.  */
+
+#ifdef USE_SWAPCONTEXT
+struct crypt_fn_args
+{
+  crypt_fn cfn;
+  const char *phrase;
+  const char *setting;
+  uint8_t *output;
+  size_t o_size;
+  void *scratch;
+  size_t s_size;
+  uint8_t *rv;
+};
+
+#if UINTPTR_MAX == UINT_MAX
+static_assert (sizeof (uintptr_t) == sizeof (int),
+  "UINTPTR_MAX matches UINT_MAX but sizeof (uintptr_t) != sizeof (int)");
+
+static_assert (sizeof (struct crypt_fn_args *) == sizeof (int),
+  "UINTPTR_MAX matches UINT_MAX but sizeof (crypt_fn_args *) != sizeof (int)");
+
+#define SWIZZLE_PTR(ptr) 1, ((int)(uintptr_t)(ptr))
+#define UNSWIZZLE_PTR(val) ((struct crypt_fn_args *)(uintptr_t)(val))
+#define CCF1_ARGDECL int arg
+#define CCF1_ARGS arg
+#define CCF1_UNSWIZZLE_ARGS UNSWIZZLE_PTR (CCF1_ARGS)
+
+#elif UINTPTR_MAX == ULONG_MAX
+static_assert (sizeof (uintptr_t) == 2*sizeof (int),
+  "UINTPTR_MAX matches ULONG_MAX but sizeof (uintptr_t) != 2*sizeof (int)");
+
+static_assert (sizeof (struct crypt_fn_args *) == 2*sizeof (int),
+"UINTPTR_MAX matches ULONG_MAX but sizeof (crypt_fn_args *) != 2*sizeof (int)");
+
+#define SWIZZLE_PTR(ptr) 2,                                             \
+    (int)((((uintptr_t)ptr) >> (sizeof(int)*CHAR_BIT)) & UINT_MAX),     \
+    (int)((((uintptr_t)ptr) >> 0)                      & UINT_MAX)
+
+#define UNSWIZZLE_PTR(a, b)                                             \
+  ((struct crypt_fn_args *)                                             \
+   ((((uintptr_t)(unsigned int)a) << (sizeof(int)*CHAR_BIT)) |          \
+    (((uintptr_t)(unsigned int)b) << 0)))
+
+#define UNSWIZZLE_PTR_(ARGS) UNSWIZZLE_PTR (ARGS)
+
+#define CCF1_ARGDECL int a1, int a2
+#define CCF1_ARGS a1, a2
+#define CCF1_UNSWIZZLE_ARGS UNSWIZZLE_PTR_ (CCF1_ARGS)
+
+#else
+#error "Don't know how to swizzle pointers for makecontext with this ABI"
+#endif
+
+static void
+call_crypt_fn_1 (CCF1_ARGDECL)
+{
+  struct crypt_fn_args *a = CCF1_UNSWIZZLE_ARGS;
+  a->rv = a->cfn (a->phrase, a->setting, a->output, a->o_size,
+                  a->scratch, a->s_size);
+}
+#endif /* USE_SWAPCONTEXT */
+
+static char *
 call_crypt_fn (crypt_fn cfn,
                const char *phrase, const char *setting,
                struct crypt_data *data)
 {
   struct crypt_internal *cint = get_internal (data);
   unsigned char *rv;
-    rv = cfn (phrase, setting,
-              (unsigned char *)data->output, sizeof data->output,
-              cint->alg_specific, sizeof cint->alg_specific);
+
+#ifdef USE_SWAPCONTEXT
+  ucontext_t outer_ctx;
+  struct crypt_fn_args a;
+
+  if (getcontext (&cint->inner_ctx))
+    return 0;
+
+  a.cfn     = cfn;
+  a.phrase  = phrase;
+  a.setting = setting;
+  a.output  = (unsigned char *)data->output;
+  a.o_size  = sizeof data->output;
+  a.scratch = cint->alg_specific;
+  a.s_size  = sizeof cint->alg_specific;
+  a.rv      = 0;
+
+  cint->inner_ctx.uc_stack.ss_sp   = cint->inner_stack;
+  cint->inner_ctx.uc_stack.ss_size = sizeof cint->inner_stack;
+  cint->inner_ctx.uc_link = &outer_ctx;
+  makecontext (&cint->inner_ctx,
+               (void (*)(void))call_crypt_fn_1,
+               SWIZZLE_PTR (&a));
+
+  if (swapcontext (&outer_ctx, &cint->inner_ctx))
+    return 0;
+
+  rv = a.rv;
+
+#else
+  rv = cfn (phrase, setting,
+            (unsigned char *)data->output, sizeof data->output,
+            cint->alg_specific, sizeof cint->alg_specific);
+#endif
+
   memset (data->internal, 0, sizeof data->internal);
   return (char *)rv;
 }

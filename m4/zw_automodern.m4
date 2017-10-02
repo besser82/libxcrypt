@@ -6,10 +6,50 @@ dnl  - Darwin (OSX) support in AC_USE_SYSTEM_EXTENSIONS
 dnl  - C11 mode by default in AC_PROG_CC, falling back to C99
 AC_PREREQ([2.62])dnl earliest version with working m4_version_prereq
 m4_version_prereq([2.70], [], [
+
   m4_define([AC_CHECK_HEADER], [_AC_CHECK_HEADER_COMPILE($@)])
+
   AC_DEFUN_ONCE([_AC_INCLUDES_DEFAULT_REQUIREMENTS],
-    [m4_divert_text([DEFAULTS],[ac_includes_default=""
-])])
+[m4_divert_text([DEFAULTS],
+[# Factoring default headers for most tests.
+ac_includes_default="\
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#ifdef HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif
+#ifdef HAVE_SYS_STAT_H
+# include <sys/stat.h>
+#endif
+#ifdef HAVE_STRINGS_H
+# include <strings.h>
+#endif
+#ifdef HAVE_INTTYPES_H
+# include <inttypes.h>
+#endif
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+#endif
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif"
+])]dnl
+[AC_CHECK_HEADERS(
+  [sys/types.h sys/stat.h strings.h inttypes.h stdint.h unistd.h],,,[/**/])]dnl
+dnl For backward compatibility, provide unconditional AC_DEFINEs of
+dnl HAVE_STDLIB_H, HAVE_STRING_H, and STDC_HEADERS.
+[AC_DEFINE([HAVE_STDLIB_H], [1],
+  [Always define to 1, for backward compatibility.
+   You can assume <stdlib.h> exists.])]dnl
+[AC_DEFINE([HAVE_STRING_H], [1],
+  [Always define to 1, for backward compatibility.
+   You can assume <string.h> exists.])]dnl
+[AC_DEFINE([STDC_HEADERS], [1],
+  [Always define to 1, for backward compatibility.
+   You can assume the C90 standard headers exist.])])
+
   m4_define([AC_USE_SYSTEM_EXTENSIONS],
     m4_defn([AC_USE_SYSTEM_EXTENSIONS])[
     AH_VERBATIM([USE_SYSTEM_EXTENSIONS_270],
