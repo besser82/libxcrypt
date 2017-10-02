@@ -14,23 +14,69 @@
    along with this program; if not, write to the Free Software Foundation,
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
+#include "crypt-private.h"
+#include "crypt-obsolete.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "crypt-private.h"
-#include "crypt-obsolete.h"
+/* The internal storage area within struct crypt_data is used as
+   follows.  We don't know what alignment the algorithm modules will
+   need for their scratch data, so give it the maximum natural
+   alignment.  Note that the C11 alignas() specifier can't be applied
+   directly to a struct type, but it can be applied to the first field
+   of a struct, which effectively forces alignment of the entire
+   struct, since the first field must always have offset 0.  */
+struct crypt_internal
+{
+  char alignas (max_align_t) alg_specific[ALG_SPECIFIC_SIZE];
+};
 
-#define CRYPT_GENSALT_OUTPUT_SIZE       (7 + 22 + 1)
+static_assert(sizeof(struct crypt_internal) + alignof(struct crypt_internal)
+              <= sizeof(((struct crypt_data){0}).internal),
+              "crypt_data.internal is too small for crypt_internal");
+
+/* struct crypt_data is allocated by application code and contains
+   only char-typed fields, so its 'internal' field may not be
+   sufficiently aligned.  */
+static inline struct crypt_internal *
+get_internal (struct crypt_data *data)
+{
+  uintptr_t internalp = (uintptr_t) data->internal;
+  uintptr_t align = alignof (struct crypt_internal);
+  internalp = (internalp + align - 1) & ~align;
+  return (struct crypt_internal *)internalp;
+}
+
+typedef uint8_t *(*crypt_fn) (const char *phrase, const char *setting,
+                              uint8_t *output, size_t o_size,
+                              void *scratch, size_t s_size);
+
+typedef uint8_t *(*gensalt_fn) (unsigned long count,
+                                const uint8_t *rbytes, size_t nrbytes,
+                                uint8_t *output, size_t output_size);
+
+static inline char *
+call_crypt_fn (crypt_fn cfn,
+               const char *phrase, const char *setting,
+               struct crypt_data *data)
+{
+  struct crypt_internal *cint = get_internal (data);
+  unsigned char *rv;
+    rv = cfn (phrase, setting,
+              (unsigned char *)data->output, sizeof data->output,
+              cint->alg_specific, sizeof cint->alg_specific);
+  memset (data->internal, 0, sizeof data->internal);
+  return (char *)rv;
+}
 
 struct hashfn
 {
   const char *prefix;
-  char *(*crypt) (const char *key, const char *salt, char *data, size_t size);
-  char *(*gensalt) (unsigned long count,
-                    const char *input, int input_size,
-                    char *output, int output_size);
+  crypt_fn crypt;
+  gensalt_fn gensalt;
 };
 
 /* This table should always begin with the algorithm that should be used
@@ -73,21 +119,21 @@ is_des_salt_char (char c)
 #endif /* ENABLE_WEAK_HASHES */
 
 static const struct hashfn *
-get_hashfn (const char *salt)
+get_hashfn (const char *setting)
 {
-  if (salt[0] == '$')
+  if (setting[0] == '$')
     {
       const struct hashfn *h;
       for (h = tagged_hashes; h->prefix; h++)
-        if (!strncmp (salt, h->prefix, strlen (h->prefix)))
+        if (!strncmp (setting, h->prefix, strlen (h->prefix)))
           return h;
       return NULL;
     }
 #if ENABLE_WEAK_HASHES
-  else if (salt[0] == '_')
+  else if (setting[0] == '_')
     return &bsdi_extended_hash;
-  else if (salt[0] == '\0' ||
-           (is_des_salt_char (salt[0]) && is_des_salt_char (salt[1])))
+  else if (setting[0] == '\0' ||
+           (is_des_salt_char (setting[0]) && is_des_salt_char (setting[1])))
     return &traditional_hash;
 #endif
   else
@@ -97,47 +143,62 @@ get_hashfn (const char *salt)
 /* For historical reasons, crypt and crypt_r are not expected ever
    to return NULL.  This function generates a "failure token" in the
    output buffer, which is guaranteed not to be equal to any valid
-   password hash, or to the salt(+hash) string; thus, a subsequent
+   password hash, or to the setting(+hash) string; thus, a subsequent
    blind attempt to authenticate someone by comparing the output to
    a previously recorded hash string will fail, even if that string
-   is itself one of these "failure tokens".  */
+   is itself one of these "failure tokens".
+
+   crypt_gensalt_rn also uses this technique, for extra defensiveness
+   in case someone doesn't bother checking the return value.  */
 
 static void
-make_failure_token (const char *salt, char *output, int size)
+make_failure_token (const char *setting, char *output, int size)
 {
-  if (size < 3)
-    return;
+  if (size >= 3)
+    {
+      output[0] = '*';
+      output[1] = '0';
+      output[2] = '\0';
 
-  output[0] = '*';
-  output[1] = '0';
-  output[2] = '\0';
+      if (setting[0] == '*' && setting[1] == '0')
+        output[1] = '1';
+    }
 
-  if (salt[0] == '*' && salt[1] == '0')
-    output[1] = '1';
+  /* If there's not enough space for the full failure token, do the
+     best we can.  */
+  else if (size == 2)
+    {
+      output[0] = '*';
+      output[1] = '\0';
+    }
+  else if (size == 1)
+    {
+      output[0] = '\0';
+    }
 }
 
 static char *
-do_crypt_rn (const char *key, const char *salt, char *data, int size)
+do_crypt_rn (const char *phrase, const char *setting, void *data, int size)
 {
-  if (size <= 0)
+  if (size < 0 || (size_t)size < sizeof (struct crypt_data))
     {
       errno = ERANGE;
       return NULL;
     }
-  const struct hashfn *h = get_hashfn (salt);
+  const struct hashfn *h = get_hashfn (setting);
   if (!h)
     {
       /* Unrecognized hash algorithm */
       errno = EINVAL;
       return NULL;
     }
-  return h->crypt (key, salt, data, (size_t)size);
+  return call_crypt_fn (h->crypt, phrase, setting, data);
 }
 
 static char *
-do_crypt_ra (const char *key, const char *salt, void **data, int *size)
+do_crypt_ra (const char *phrase, const char *setting, void **data, int *size)
 {
-  const struct hashfn *h = get_hashfn (salt);
+  const struct hashfn *h = get_hashfn (setting);
   if (!h)
     {
       /* Unrecognized hash algorithm */
@@ -159,16 +220,16 @@ do_crypt_ra (const char *key, const char *salt, void **data, int *size)
       return NULL;
     }
 
-  return h->crypt (key, salt, *data, (size_t)*size);
+  return call_crypt_fn (h->crypt, phrase, setting, *data);
 }
 
 #if INCLUDE_crypt_rn
 char *
-crypt_rn (const char *key, const char *salt, void *data, int size)
+crypt_rn (const char *phrase, const char *setting, void *data, int size)
 {
-  char *retval = do_crypt_rn (key, salt, data, size);
+  char *retval = do_crypt_rn (phrase, setting, data, size);
   if (!retval)
-    make_failure_token (salt, data, size);
+    make_failure_token (setting, data, size);
   return retval;
 }
 SYMVER_crypt_rn;
@@ -176,11 +237,11 @@ SYMVER_crypt_rn;
 
 #if INCLUDE_crypt_ra
 char *
-crypt_ra (const char *key, const char *salt, void **data, int *size)
+crypt_ra (const char *phrase, const char *setting, void **data, int *size)
 {
-  char *retval = do_crypt_ra (key, salt, data, size);
+  char *retval = do_crypt_ra (phrase, setting, data, size);
   if (!retval)
-    make_failure_token (salt, *data, *size);
+    make_failure_token (setting, *data, *size);
   return retval;
 }
 SYMVER_crypt_ra;
@@ -188,9 +249,9 @@ SYMVER_crypt_ra;
 
 #if INCLUDE_crypt_r
 char *
-crypt_r (const char *key, const char *salt, struct crypt_data *data)
+crypt_r (const char *phrase, const char *setting, struct crypt_data *data)
 {
-  char *retval = crypt_rn (key, salt, (char *) data, sizeof (*data));
+  char *retval = crypt_rn (phrase, setting, (char *) data, sizeof (*data));
   if (!retval)
     return (char *)data; /* return the failure token */
   return retval;
@@ -201,25 +262,41 @@ SYMVER_crypt_r;
 #if INCLUDE_crypt_gensalt_rn
 char *
 crypt_gensalt_rn (const char *prefix, unsigned long count,
-                  const char *input, int size, char *output,
+                  const char *rbytes, int nrbytes, char *output,
                   int output_size)
 {
-  const struct hashfn *h;
+  make_failure_token ("", output, output_size);
 
-  /* This may be supported on some platforms in the future */
-  if (!input)
+  /* Individual gensalt functions will check for adequate space for
+     their own breed of setting, but the shortest possible one is
+     three bytes (DES two-character salt + NUL terminator) and we
+     also want to rule out negative numbers early.  */
+  if (output_size < 3)
+    {
+      errno = ERANGE;
+      return NULL;
+    }
+
+  /* Empty rbytes may be supported on some platforms in the future.
+     Individual gensalt functions will check for sufficient random bits
+     for their own breed of setting, but the shortest possible one has
+     64**2 = 4096 possibilitiesm, which requires two bytes of input.  */
+  if (!rbytes || nrbytes < 2)
     {
       errno = EINVAL;
       return NULL;
     }
 
-  h = get_hashfn (prefix);
+  const struct hashfn *h = get_hashfn (prefix);
   if (!h)
     {
       errno = EINVAL;
       return NULL;
     }
-  return h->gensalt (count, input, size, output, output_size);
+
+  return (char *)h->gensalt (count,
+                             (const unsigned char *)rbytes, (size_t)nrbytes,
+                             (unsigned char *)output, (size_t)output_size);
 }
 SYMVER_crypt_gensalt_rn;
 #endif
@@ -227,13 +304,13 @@ SYMVER_crypt_gensalt_rn;
 #if INCLUDE_crypt_gensalt_ra
 char *
 crypt_gensalt_ra (const char *prefix, unsigned long count,
-                  const char *input, int size)
+                  const char *rbytes, int nrbytes)
 {
   char *output = malloc (CRYPT_GENSALT_OUTPUT_SIZE);
   if (!output)
     return output;
 
-  return crypt_gensalt_rn (prefix, count, input, size, output,
+  return crypt_gensalt_rn (prefix, count, rbytes, nrbytes, output,
                            CRYPT_GENSALT_OUTPUT_SIZE);
 }
 SYMVER_crypt_gensalt_ra;
@@ -242,12 +319,12 @@ SYMVER_crypt_gensalt_ra;
 #if INCLUDE_crypt_gensalt
 char *
 crypt_gensalt (const char *prefix, unsigned long count,
-               const char *input, int size)
+               const char *rbytes, int nrbytes)
 {
   static char output[CRYPT_GENSALT_OUTPUT_SIZE];
 
   return crypt_gensalt_rn (prefix, count,
-                           input, size, output, sizeof (output));
+                           rbytes, nrbytes, output, sizeof (output));
 }
 SYMVER_crypt_gensalt;
 #endif

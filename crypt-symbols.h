@@ -6,6 +6,9 @@
 #undef NDEBUG
 #include <assert.h>
 
+#include <stddef.h>
+#include <stdint.h>
+
 #ifdef HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
 #endif
@@ -37,6 +40,27 @@
   extern int (*xcrypt_static_assert_fn (void)) \
   [!!sizeof (struct { int xcrypt_error_if_negative: (expr) ? 2 : -1; })]
 #endif
+
+/* max_align_t shim.  In the absence of official word from the
+   compiler, we guess that one of long double, uintmax_t, void *, and
+   void (*)(void) will have the maximum alignment.  This is probably
+   not true in the presence of vector types, but we currently don't
+   use vector types, and hopefully any compiler with extra-aligned
+   vector types will provide max_align_t.  */
+#ifndef HAVE_MAX_ALIGN_T
+typedef union
+{
+  long double ld;
+  uintmax_t ui;
+  void *vp;
+  void (*vpf)(void);
+} max_align_t;
+#endif
+
+/* Several files expect the traditional definitions of these macros.  */
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+
 
 /* Per-symbol version tagging.  Currently we only know how to do this
    using GCC extensions.  */

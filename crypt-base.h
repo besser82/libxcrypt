@@ -23,15 +23,24 @@
 /*HEADER*/
 
 /* The strings returned by crypt, crypt_r, crypt_rn, and crypt_ra will
-   be no longer than this.  This is NOT the appropriate size to use in
-   allocating the buffer supplied to crypt_rn -- see below.  */
-#define CRYPT_OUTPUT_SIZE (7 + 22 + 31 + 1)
+   be no longer than this, counting the terminating NUL.  (Existing
+   algorithms all produce much shorter strings, but we have reserved
+   generous space for future expansion.)  This is NOT the appropriate
+   size to use in allocating the buffer supplied to crypt_rn; use
+   sizeof (struct crypt_data) instead.  */
+#define CRYPT_OUTPUT_SIZE 384
+
+/* Passphrases longer than this (counting the terminating NUL) are not
+   supported.  Note that some hash algorithms have lower limits.  */
+#define CRYPT_MAX_PASSPHRASE_SIZE 512
 
 /* The strings returned by crypt_gensalt, crypt_gensalt_rn, and
    crypt_gensalt_ra will be no longer than this.  This IS the
    appropriate size to use when allocating the buffer supplied to
-   crypt_gensalt_rn.  */
-#define CRYPT_GENSALT_OUTPUT_SIZE       (7 + 22 + 1)
+   crypt_gensalt_rn.  (Again, existing algorithms all produce
+   much shorter strings, but we have reserved generous space for
+   future expansion.)  */
+#define CRYPT_GENSALT_OUTPUT_SIZE 192
 
 /* One-way hash the passphrase PHRASE as specified by SETTING, and
    return a string suitable for storage in a Unix-style "passwd" file.
@@ -53,22 +62,51 @@
 extern char *crypt (const char *__phrase, const char *__setting)
   __THROW __nonnull ((1, 2));
 
-/* Memory area used by crypt_r.
-
-   Older versions of this library expected applications to set the
-   'initialized' field of this structure to 0 before calling crypt_r
-   for the first time; this is no longer necessary, but the field is
-   preserved for compatibility's sake.  */
+/* Memory area used by crypt_r.  */
 struct crypt_data
 {
-  char opaque[16 * 8 + 32768 * 4 + 14 + 2 + sizeof(long int) + sizeof(int)];
-  int initialized;
+  /* crypt_r writes the hashed password to this field of its 'data'
+     argument.  crypt_rn and crypt_ra do the same, treating the
+     untyped data area they are supplied with as this struct.  */
+  char output[CRYPT_OUTPUT_SIZE];
+
+  /* Applications are encouraged, but not required, to use this field
+     to store the "setting" string that must be passed to crypt_*.
+     Future extensions to the API may make this more ergonomic.
+
+     A valid "setting" is either previously hashed password or the
+     string produced by one of the crypt_gensalt functions; see the
+     crypt_gensalt documentation for further details.  */
+  char setting[CRYPT_OUTPUT_SIZE];
+
+  /* Applications are encouraged, but not required, to use this field
+     to store the unhashed passphrase they will pass to crypt_*.
+     Future extensions to the API may make this more ergonomic.  */
+  char input[CRYPT_MAX_PASSPHRASE_SIZE];
+
+  /* This field should be set to 0 before calling crypt_r, crypt_rn,
+     or crypt_ra for the first time with a just-allocated
+     'struct crypt_data'.  This is not required if crypt_ra is allowed
+     to do the allocation itself (i.e. if the *DATA argument is a null
+     pointer).  Future extensions to the API may make this more ergonomic.  */
+  char initialized;
+
+  /* Reserved for future application-visible fields.  For maximum
+     forward compatibility, applications should set this field to all
+     bytes zero before calling crypt_r, crypt_rn, or crypt_ra for the
+     first time with a just-allocated 'struct crypt_data'.  Future
+     extensions to the API may make this more ergonomic.  */
+  char reserved[767];
+
+  /* Scratch space used internally.  Applications should not read or
+     write this field.  All data written to this area is erased before
+     returning from the library.  */
+  char internal[30720];
 };
 
 /* Thread-safe version of crypt.  Instead of writing to a static
-   storage area, the string returned by this function will be
-   somewhere within the crypt_data object supplied as an argument.
-   Otherwise, behaves exactly the same as crypt.  */
+   storage area, the string returned by this function will be within
+   DATA->output.  Otherwise, behaves exactly the same as crypt.  */
 extern char *crypt_r (const char *__phrase, const char *__setting,
                       struct crypt_data *restrict __data)
   __THROW __nonnull ((1, 2, 3));
@@ -103,36 +141,40 @@ extern char *crypt_ra (const char *__phrase, const char *__setting,
 /* Generate a string suitable for use as the setting when hashing a
    new passphrase.  PREFIX controls which hash function will be used,
    COUNT controls the computational cost of the hash (for functions
-   where this is tunable), and INPUT should point to SIZE bytes of
+   where this is tunable), and RBYTES should point to NRBYTES bytes of
    random data.
 
-   The string returned is stored in a statically-allocated buffer,
-   and will be overwritten if the function is called again.  It is not
+   The string returned is stored in a statically-allocated buffer, and
+   will be overwritten if the function is called again.  It is not
    safe to call this function from multiple threads concurrently.
-   However, it is safe to pass the string to crypt without copying it
-   first; the two functions use separate buffers.
+   However, within a single thread, it is safe to pass the string as
+   the SETTING argument to crypt without copying it first; the two
+   functions use separate buffers.
 
    If an error occurs (e.g. a prefix that does not correspond to a
    supported hash function, or an inadequate amount of random data),
    this function returns a null pointer.  */
 extern char *crypt_gensalt (const char *__prefix, unsigned long __count,
-                            const char *__input, int __size)
+                            const char *__rbytes, int __nrbytes)
   __THROW __nonnull ((1, 3));
 
 /* Thread-safe version of crypt_gensalt; instead of a
    statically-allocated buffer, the generated setting string is
    written to OUTPUT, which is OUTPUT_SIZE bytes long.  OUTPUT_SIZE
-   must be at least CRYPT_GENSALT_OUTPUT_SIZE (see above).  */
+   must be at least CRYPT_GENSALT_OUTPUT_SIZE (see above).
+
+   If an error occurs, this function returns a null pointer and writes
+   a string that does not correspond to any valid setting into OUTPUT.  */
 extern char *crypt_gensalt_rn (const char *__prefix, unsigned long __count,
-                               const char *__input, int __size,
+                               const char *__rbytes, int __nrbytes,
                                char *__output, int __output_size)
   __THROW __nonnull ((1, 5));
 
-/* Another thread-safe version of crypt_gensalt; the string returned
-   is in storage allocated by malloc, and should be deallocated with
-   free when it is no longer needed.  */
+/* Another thread-safe version of crypt_gensalt; the generated setting
+   string is in storage allocated by malloc, and should be deallocated
+   with free when it is no longer needed.  */
 extern char *crypt_gensalt_ra (const char *__prefix, unsigned long __count,
-                               const char *__input, int __size)
+                               const char *__rbytes, int __nrbytes)
   __THROW __nonnull ((1));
 
 /*TRAILER*/

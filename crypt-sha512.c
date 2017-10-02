@@ -28,9 +28,6 @@
 #include <string.h>
 
 
-#define MIN(a,b) (((a)<(b))?(a):(b))
-#define MAX(a,b) (((a)>(b))?(a):(b))
-
 /* Define our magic string to mark salt for SHA512 "encryption"
    replacement.  */
 static const char sha512_salt_prefix[] = "$6$";
@@ -58,37 +55,20 @@ static const char sha512_rounds_prefix[] = "rounds=";
   (sizeof (sha512_salt_prefix) + sizeof (sha512_rounds_prefix) + \
    LENGTH_OF_NUMBER (ROUNDS_MAX) + SALT_LEN_MAX + 1 + 86)
 
+static_assert (SHA512_HASH_LENGTH <= CRYPT_OUTPUT_SIZE,
+               "CRYPT_OUTPUT_SIZE is too small for SHA512");
 
-/* A sha512_buffer holds the output plus all of the sensitive intermediate
-   data.  It may have been allocated by application code, so it may not
-   be properly aligned, and besides which SHA512_HASH_LENGTH may be odd, so
-   we pad 'ctxbuf' enough to find a properly-aligned sha512_ctx within.  */
+/* A sha512_buffer holds all of the sensitive intermediate data.  */
 struct sha512_buffer
 {
-  char output[SHA512_HASH_LENGTH];
-  uint8_t ctxbuf[sizeof (struct sha512_ctx) + alignof (struct sha512_ctx)];
+  struct sha512_ctx ctx;
   uint8_t result[64];
   uint8_t p_bytes[64];
   uint8_t s_bytes[64];
 };
 
-static inline struct sha512_ctx *
-sha512_get_ctx (struct sha512_buffer *buf)
-{
-  uintptr_t ctxp = (uintptr_t) &buf->ctxbuf;
-  uintptr_t align = alignof (struct sha512_ctx);
-  ctxp = (ctxp + align - 1) & ~align;
-  return (struct sha512_ctx *)ctxp;
-}
-
-static inline void
-sha512_wipe_intermediate_data (struct sha512_buffer *buf)
-{
-  memset (((char *)buf) + offsetof (struct sha512_buffer, ctxbuf),
-          0,
-          sizeof (struct sha512_buffer) -
-          offsetof (struct sha512_buffer, ctxbuf));
-}
+static_assert (sizeof (struct sha512_buffer) <= ALG_SPECIFIC_SIZE,
+               "ALG_SPECIFIC_SIZE is too small for SHA512");
 
 
 /* Table with characters for base64 transformation.  */
@@ -108,26 +88,28 @@ sha512_process_recycled_bytes (unsigned char block[64], size_t len,
   sha512_process_bytes (block, cnt, ctx);
 }
 
-char *
-crypt_sha512_rn (const char *key, const char *salt,
-                 char *data, size_t size)
+uint8_t *
+crypt_sha512_rn (const char *phrase, const char *setting,
+                 uint8_t *output, size_t o_size,
+                 void *scratch, size_t s_size)
 {
-  /* Ensure we have enough space for a sha512_buffer in DATA.  */
-  if (size < sizeof (struct sha512_buffer))
+  /* This shouldn't ever happen, but...  */
+  if (o_size < SHA512_HASH_LENGTH || s_size < sizeof (struct sha512_buffer))
     {
       errno = ERANGE;
       return 0;
     }
 
-  struct sha512_buffer *buf = (struct sha512_buffer *)data;
-  struct sha512_ctx *ctx = sha512_get_ctx (buf);
+  struct sha512_buffer *buf = scratch;
+  struct sha512_ctx *ctx = &buf->ctx;
   uint8_t *result = buf->result;
   uint8_t *p_bytes = buf->p_bytes;
   uint8_t *s_bytes = buf->s_bytes;
-  char *cp = buf->output;
+  char *cp = (char *)output;
+  const char *salt = setting;
 
   size_t salt_len;
-  size_t key_len;
+  size_t phrase_len;
   size_t cnt;
   /* Default number of rounds.  */
   size_t rounds = ROUNDS_DEFAULT;
@@ -154,20 +136,20 @@ crypt_sha512_rn (const char *key, const char *salt,
     }
 
   salt_len = MIN (strcspn (salt, "$"), SALT_LEN_MAX);
-  key_len = strlen (key);
+  phrase_len = strlen (phrase);
 
-  /* Compute alternate SHA512 sum with input KEY, SALT, and KEY.  The
+  /* Compute alternate SHA512 sum with input PHRASE, SALT, and PHRASE.  The
      final result will be added to the first context.  */
   sha512_init_ctx (ctx);
 
-  /* Add key.  */
-  sha512_process_bytes (key, key_len, ctx);
+  /* Add phrase.  */
+  sha512_process_bytes (phrase, phrase_len, ctx);
 
   /* Add salt.  */
   sha512_process_bytes (salt, salt_len, ctx);
 
-  /* Add key again.  */
-  sha512_process_bytes (key, key_len, ctx);
+  /* Add phrase again.  */
+  sha512_process_bytes (phrase, phrase_len, ctx);
 
   /* Now get result of this (64 bytes) and add it to the other
      context.  */
@@ -176,26 +158,26 @@ crypt_sha512_rn (const char *key, const char *salt,
   /* Prepare for the real work.  */
   sha512_init_ctx (ctx);
 
-  /* Add the key string.  */
-  sha512_process_bytes (key, key_len, ctx);
+  /* Add the phrase string.  */
+  sha512_process_bytes (phrase, phrase_len, ctx);
 
   /* The last part is the salt string.  This must be at most 8
      characters and it ends at the first `$' character (for
      compatibility with existing implementations).  */
   sha512_process_bytes (salt, salt_len, ctx);
 
-  /* Add for any character in the key one byte of the alternate sum.  */
-  for (cnt = key_len; cnt > 64; cnt -= 64)
+  /* Add for any character in the phrase one byte of the alternate sum.  */
+  for (cnt = phrase_len; cnt > 64; cnt -= 64)
     sha512_process_bytes (result, 64, ctx);
   sha512_process_bytes (result, cnt, ctx);
 
-  /* Take the binary representation of the length of the key and for every
-     1 add the alternate sum, for every 0 the key.  */
-  for (cnt = key_len; cnt > 0; cnt >>= 1)
+  /* Take the binary representation of the length of the phrase and for every
+     1 add the alternate sum, for every 0 the phrase.  */
+  for (cnt = phrase_len; cnt > 0; cnt >>= 1)
     if ((cnt & 1) != 0)
       sha512_process_bytes (result, 64, ctx);
     else
-      sha512_process_bytes (key, key_len, ctx);
+      sha512_process_bytes (phrase, phrase_len, ctx);
 
   /* Create intermediate result.  */
   sha512_finish_ctx (ctx, result);
@@ -204,8 +186,8 @@ crypt_sha512_rn (const char *key, const char *salt,
   sha512_init_ctx (ctx);
 
   /* For every character in the password add the entire password.  */
-  for (cnt = 0; cnt < key_len; ++cnt)
-    sha512_process_bytes (key, key_len, ctx);
+  for (cnt = 0; cnt < phrase_len; ++cnt)
+    sha512_process_bytes (phrase, phrase_len, ctx);
 
   /* Finish the digest.  */
   sha512_finish_ctx (ctx, p_bytes);
@@ -227,9 +209,9 @@ crypt_sha512_rn (const char *key, const char *salt,
       /* New context.  */
       sha512_init_ctx (ctx);
 
-      /* Add key or last result.  */
+      /* Add phrase or last result.  */
       if ((cnt & 1) != 0)
-        sha512_process_recycled_bytes (p_bytes, key_len, ctx);
+        sha512_process_recycled_bytes (p_bytes, phrase_len, ctx);
       else
         sha512_process_bytes (result, 64, ctx);
 
@@ -237,15 +219,15 @@ crypt_sha512_rn (const char *key, const char *salt,
       if (cnt % 3 != 0)
         sha512_process_recycled_bytes (s_bytes, salt_len, ctx);
 
-      /* Add key for numbers not divisible by 7.  */
+      /* Add phrase for numbers not divisible by 7.  */
       if (cnt % 7 != 0)
-        sha512_process_recycled_bytes (p_bytes, key_len, ctx);
+        sha512_process_recycled_bytes (p_bytes, phrase_len, ctx);
 
-      /* Add key or last result.  */
+      /* Add phrase or last result.  */
       if ((cnt & 1) != 0)
         sha512_process_bytes (result, 64, ctx);
       else
-        sha512_process_recycled_bytes (p_bytes, key_len, ctx);
+        sha512_process_recycled_bytes (p_bytes, phrase_len, ctx);
 
       /* Create intermediate result.  */
       sha512_finish_ctx (ctx, result);
@@ -308,7 +290,5 @@ crypt_sha512_rn (const char *key, const char *salt,
   b64_from_24bit (0, 0, result[63], 2);
 
   *cp = '\0';
-
-  sha512_wipe_intermediate_data (buf);
-  return buf->output;
+  return output;
 }

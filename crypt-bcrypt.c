@@ -412,11 +412,11 @@ BF_decode (BF_word * dst, const char *src, int size)
 }
 
 static void
-BF_encode (char *dst, const BF_word * src, int size)
+BF_encode (unsigned char *dst, const BF_word * src, int size)
 {
   const unsigned char *sptr = (const unsigned char *) src;
   const unsigned char *end = sptr + size;
-  unsigned char *dptr = (unsigned char *) dst;
+  unsigned char *dptr = dst;
   unsigned int c1, c2;
 
   do
@@ -671,6 +671,9 @@ static const unsigned char flags_by_subtype[26] = {
    terminator: 1 char */
 #define BF_HASH_LENGTH (BF_SETTING_LENGTH + 31 + 1)
 
+static_assert (BF_HASH_LENGTH <= CRYPT_OUTPUT_SIZE,
+               "CRYPT_OUTPUT_SIZE is too small for bcrypt");
+
 /* BF_data holds all of the sensitive intermediate data used by
    BF_crypt.  */
 struct BF_data
@@ -684,47 +687,30 @@ struct BF_data
   } binary;
 };
 
-/* A BF_buffer holds the output plus all of the sensitive intermediate
-   data.  It may have been allocated by application code, so it may
-   not be properly aligned, and besides which BF_HASH_LENGTH may be
-   odd, so we pad 'databuf' enough to find a properly-aligned BF_data
-   object within.  The extra two characters' space in tmp_output are
-   used by the self-test -- see below.  */
+/* A BF_buffer holds a BF_data plus two extra output buffers used by
+   the self-test logic.  One of them is slightly overlength so the
+   self-test can verify that BF_crypt emits exactly BF_HASH_LENGTH
+   bytes and no more.  */
 struct BF_buffer
 {
-  char output[BF_HASH_LENGTH];
-  char tmp_output[BF_HASH_LENGTH + 2];
-  uint8_t databuf[sizeof (struct BF_data) + alignof (struct BF_data)];
+  struct BF_data data;
+  unsigned char re_output[BF_HASH_LENGTH];
+  unsigned char st_output[BF_HASH_LENGTH + 2];
 };
 
-static inline struct BF_data *
-BF_get_data (struct BF_buffer *buf)
-{
-  uintptr_t datp = (uintptr_t) &buf->databuf;
-  uintptr_t align = alignof (struct BF_data);
-  datp = (datp + align - 1) & ~align;
-  return (struct BF_data *)datp;
-}
+static_assert (sizeof (struct BF_buffer) <= ALG_SPECIFIC_SIZE,
+               "ALG_SPECIFIC_SIZE is too small for bcrypt");
 
-static inline void
-BF_wipe_intermediate_data (struct BF_buffer *buf)
-{
-  memset (((char *)buf) + offsetof (struct BF_buffer, tmp_output),
-          0,
-          sizeof (struct BF_buffer) - offsetof (struct BF_buffer, tmp_output));
-}
 
-static char *
-BF_crypt (const char *key, const char *setting,
-          struct BF_buffer *buffer, BF_word min)
+static unsigned char *
+BF_crypt (const char *key, const char *setting, unsigned char *output,
+          struct BF_data *data, BF_word min)
 {
-  struct BF_data *data = BF_get_data (buffer);
   BF_word L, R;
   BF_word tmp1, tmp2, tmp3, tmp4;
   BF_word *ptr;
   BF_word count;
   int i;
-  char *output = buffer->tmp_output;
 
   if (setting[0] != '$' ||
       setting[1] != '2' ||
@@ -835,9 +821,9 @@ BF_crypt (const char *key, const char *setting,
 
   memcpy (output, setting, BF_SETTING_LENGTH - 1);
   output[BF_SETTING_LENGTH - 1] =
-    (char)BF_itoa64[(int)
-                    BF_atoi64[(int) setting[BF_SETTING_LENGTH - 1] -
-                              0x20] & 0x30];
+    BF_itoa64[(int)
+              BF_atoi64[(int) setting[BF_SETTING_LENGTH - 1] -
+                        0x20] & 0x30];
 
 /* This has to be bug-compatible with the original implementation, so
  * only encode 23 of the 24 bytes. :-) */
@@ -868,28 +854,25 @@ BF_crypt (const char *key, const char *setting,
  * The performance cost of this quick self-test is around 0.6% at the "$2a$08"
  * setting.
  */
-char *
+uint8_t *
 crypt_bcrypt_rn (const char *key, const char *setting,
-                 char *data, size_t size)
+                 uint8_t *output, size_t o_size,
+                 void *scratch, size_t s_size)
 {
-  /* Ensure we have enough space for a BF_buffer in DATA.  */
-  if (size < sizeof (struct BF_buffer))
+  /* This shouldn't ever happen, but...  */
+  if (o_size < BF_HASH_LENGTH || s_size < sizeof (struct BF_buffer))
     {
       errno = ERANGE;
-      return NULL;
-    }
-  struct BF_buffer *buffer = (struct BF_buffer *)data;
-
-  /* Hash the supplied password */
-  char *rv = BF_crypt (key, setting, buffer, 16);
-  if (!rv)
-    {
-      BF_wipe_intermediate_data (buffer);
       return 0;
     }
+  struct BF_buffer *buffer = scratch;
 
-  /* Preserve the output and the current value of errno.  */
-  memcpy (buffer->output, buffer->tmp_output, BF_HASH_LENGTH);
+  /* Hash the supplied password */
+  uint8_t *rv = BF_crypt (key, setting, buffer->re_output, &buffer->data, 16);
+  if (!rv)
+    return 0; /* errno has already been set */
+
+  /* Save and restore the current value of errno around the self-test.  */
   int save_errno = errno;
 
   /* Do a quick self-test.  It is important that we make both calls to
@@ -908,20 +891,20 @@ crypt_bcrypt_rn (const char *key, const char *setting,
   char test_setting[BF_SETTING_LENGTH];
   unsigned int flags = flags_by_subtype[(unsigned int) (unsigned char)
                                         setting[2] - 'a'];
-  const char *p;
+  uint8_t *p;
   int ok;
 
   memcpy (test_setting, test_setting_init, BF_SETTING_LENGTH + 1);
   test_hash = test_hashes[flags & 1];
   test_setting[2] = setting[2];
 
-  memset (buffer->tmp_output, 0x55, sizeof buffer->tmp_output);
-  p = BF_crypt (test_key, test_setting, buffer, 1);
+  memset (buffer->st_output, 0x55, sizeof buffer->st_output);
+  p = BF_crypt (test_key, test_setting, buffer->st_output, &buffer->data, 1);
 
-  ok = (p == buffer->tmp_output &&
+  ok = (p == buffer->st_output &&
         !memcmp (p, test_setting, BF_SETTING_LENGTH) &&
         !memcmp (p + BF_SETTING_LENGTH, test_hash,
-                 sizeof buffer->tmp_output - (BF_SETTING_LENGTH + 1)));
+                 sizeof buffer->st_output - (BF_SETTING_LENGTH + 1)));
 
   /* Do a second self-test of the key-expansion "safety" logic.  */
   {
@@ -934,92 +917,85 @@ crypt_bcrypt_rn (const char *key, const char *setting,
       !memcmp (ae, ye, sizeof (ae)) && !memcmp (ai, yi, sizeof (ai));
   }
 
-  if (ok)
+  if (!ok)
     {
-      errno = save_errno;
-      rv = buffer->output;
-    }
-  else
-    {
-      /* self-test failed; pretend we don't support this hash type */
+      /* Self-test failed; pretend we don't support this hash type.  */
       errno = EINVAL;
       rv = 0;
     }
 
-  BF_wipe_intermediate_data (buffer);
-  return rv;
+  /* Self-test succeeded; copy the true output into the true output
+     buffer and return.  We already know there is enough space.  */
+  memcpy (output, buffer->re_output, BF_HASH_LENGTH);
+  errno = save_errno;
+  return output;
 }
 
-static char *
+static uint8_t *
 BF_gensalt (char subtype, unsigned long count,
-            const char *input, int size, char *output, int output_size)
+            const uint8_t *rbytes, size_t nrbytes,
+            uint8_t *output, size_t o_size)
 {
-  BF_word aligned_input[16 / sizeof(BF_word)];
-  memcpy(aligned_input, input, 16);
-
-  if (output_size < 7 + 22 + 1)
-    {
-      errno = ERANGE;
-      if (output_size > 0)
-        output[0] = '\0';
-      return NULL;
-    }
-
   if (!count)
     count = 5;
-
-  if (size < 16 ||
+  if (nrbytes < 16 ||
       count < 4 || count > 31 ||
       (subtype != 'a' && subtype != 'b' && subtype != 'x' && subtype != 'y'))
     {
       errno = EINVAL;
-      if (output_size > 0)
-        output[0] = '\0';
+      return NULL;
+    }
+  if (o_size < 7 + 22 + 1)
+    {
+      errno = ERANGE;
       return NULL;
     }
 
+  BF_word aligned_rbytes[16 / sizeof(BF_word)];
+  memcpy(aligned_rbytes, rbytes, 16);
+
   output[0] = '$';
   output[1] = '2';
-  output[2] = subtype;
+  output[2] = (uint8_t)subtype;
   output[3] = '$';
-  output[4] = (char)('0' + count / 10);
-  output[5] = (char)('0' + count % 10);
+  output[4] = (uint8_t)('0' + count / 10);
+  output[5] = (uint8_t)('0' + count % 10);
   output[6] = '$';
 
-  BF_encode (&output[7], aligned_input, 16);
+  BF_encode (&output[7], aligned_rbytes, 16);
   output[7 + 22] = '\0';
 
   return output;
 }
 
-char *
+uint8_t *
 gensalt_bcrypt_a_rn (unsigned long count,
-                     const char *input, int input_size,
-                     char *output, int output_size)
+                     const uint8_t *rbytes, size_t nrbytes,
+                     uint8_t *output, size_t o_size)
 {
-  return BF_gensalt ('a', count, input, input_size, output, output_size);
+  return BF_gensalt ('a', count, rbytes, nrbytes, output, o_size);
 }
 
-char *
+uint8_t *
 gensalt_bcrypt_b_rn (unsigned long count,
-                     const char *input, int input_size,
-                     char *output, int output_size)
+                     const uint8_t *rbytes, size_t nrbytes,
+                     uint8_t *output, size_t o_size)
 {
-  return BF_gensalt ('b', count, input, input_size, output, output_size);
+  return BF_gensalt ('b', count, rbytes, nrbytes, output, o_size);
 }
 
-char *
+uint8_t *
 gensalt_bcrypt_x_rn (unsigned long count,
-                     const char *input, int input_size,
-                     char *output, int output_size)
+                     const uint8_t *rbytes, size_t nrbytes,
+                     uint8_t *output, size_t o_size)
 {
-  return BF_gensalt ('x', count, input, input_size, output, output_size);
+  return BF_gensalt ('x', count, rbytes, nrbytes, output, o_size);
 }
 
-char *
+uint8_t *
 gensalt_bcrypt_y_rn (unsigned long count,
-                     const char *input, int input_size,
-                     char *output, int output_size)
+                     const uint8_t *rbytes, size_t nrbytes,
+                     uint8_t *output, size_t o_size)
 {
-  return BF_gensalt ('y', count, input, input_size, output, output_size);
+  return BF_gensalt ('y', count, rbytes, nrbytes, output, o_size);
 }

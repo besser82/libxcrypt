@@ -54,40 +54,25 @@
 #define DES_EXT_OUTPUT_LEN 21                /* _CCCCSSSShhhhhhhhhhh0 */
 #define DES_BIG_OUTPUT_LEN ((16*11) + 2 + 1) /* SS (hhhhhhhhhhh){1,16} 0 */
 
-#define MAX(x,y) ((x)>(y)?(x):(y))
-
 #define DES_MAX_OUTPUT_LEN \
   MAX (DES_TRD_OUTPUT_LEN, MAX (DES_EXT_OUTPUT_LEN, DES_BIG_OUTPUT_LEN))
 
-/* A des_buffer holds the output plus all of the sensitive intermediate
-   data.  It may have been allocated by application code, so it may not
-   be properly aligned, and besides which DES_MAX_OUTPUT_LEN may be odd,
-   so we pad 'ctxbuf' enough to find a properly-aligned des_ctx within.  */
+static_assert (DES_MAX_OUTPUT_LEN <= CRYPT_OUTPUT_SIZE,
+               "CRYPT_OUTPUT_SIZE is too small for DES");
+
+/* A des_buffer holds all of the sensitive intermediate data used by
+   crypt_des_*.  */
 
 struct des_buffer
 {
-  char output[DES_MAX_OUTPUT_LEN];
+  struct des_ctx ctx;
   uint8_t keybuf[8];
   uint8_t pkbuf[8];
-  uint8_t ctxbuf[sizeof (struct des_ctx) + alignof (struct des_ctx)];
 };
 
-static inline struct des_ctx *
-des_get_ctx (struct des_buffer *buf)
-{
-  uintptr_t ctxp = (uintptr_t) &buf->ctxbuf;
-  uintptr_t align = alignof (struct des_ctx);
-  ctxp = (ctxp + align - 1) & ~align;
-  return (struct des_ctx *)ctxp;
-}
+static_assert (sizeof (struct des_buffer) <= ALG_SPECIFIC_SIZE,
+               "ALG_SPECIFIC_SIZE is too small for DES");
 
-static inline void
-des_wipe_intermediate_data (struct des_buffer *buf)
-{
-  memset (((char *)buf) + offsetof (struct des_buffer, keybuf),
-          0,
-          sizeof (struct des_buffer) - offsetof (struct des_buffer, keybuf));
-}
 
 static const uint8_t ascii64[] =
   "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -117,7 +102,7 @@ ascii_to_bin(char ch)
    set.  The plaintext is 64 bits of zeroes, and the raw ciphertext is
    written to cbuf[].  */
 static void
-des_gen_hash (struct des_ctx *ctx, uint32_t count, unsigned char *output,
+des_gen_hash (struct des_ctx *ctx, uint32_t count, uint8_t *output,
               uint8_t cbuf[8])
 {
   uint8_t plaintext[8];
@@ -125,8 +110,8 @@ des_gen_hash (struct des_ctx *ctx, uint32_t count, unsigned char *output,
   des_crypt_block (ctx, cbuf, plaintext, count, false);
 
   /* Now encode the result.  */
-  const unsigned char *sptr = cbuf;
-  const unsigned char *end = sptr + 8;
+  const uint8_t *sptr = cbuf;
+  const uint8_t *end = sptr + 8;
   unsigned int c1, c2;
 
   do
@@ -160,25 +145,26 @@ des_gen_hash (struct des_ctx *ctx, uint32_t count, unsigned char *output,
 }
 
 /* The original UNIX DES-based password hash, no extensions.  */
-static char *
-crypt_des_trd_rn (const char *key, const char *setting,
-                  char *data, size_t size)
+static uint8_t *
+crypt_des_trd_rn (const char *phrase, const char *setting,
+                  uint8_t *output, size_t o_size,
+                  void *scratch, size_t s_size)
 {
-  /* Ensure we have enough space for a des_buffer in DATA.  */
-  if (size < sizeof (struct des_buffer))
+  /* This shouldn't ever happen, but...  */
+  if (o_size < DES_TRD_OUTPUT_LEN || s_size < sizeof (struct des_buffer))
     {
       errno = ERANGE;
       return 0;
     }
 
-  struct des_buffer *buf = (struct des_buffer *)data;
-  struct des_ctx *ctx = des_get_ctx (buf);
+  struct des_buffer *buf = scratch;
+  struct des_ctx *ctx = &buf->ctx;
   uint32_t salt = 0;
   uint8_t *keybuf = buf->keybuf, *pkbuf = buf->pkbuf;
-  unsigned char *output = (unsigned char *)buf->output;
+  uint8_t *cp = output;
   int i;
 
-  /* "old"-style: setting - 2 bytes of salt, key - up to 8 characters.
+  /* "old"-style: setting - 2 bytes of salt, phrase - up to 8 characters.
      Note: ascii_to_bin maps all byte values outside the ascii64
      alphabet to zero.  Do not read past the end of the string.  */
   salt = ascii_to_bin (setting[0]);
@@ -190,23 +176,22 @@ crypt_des_trd_rn (const char *key, const char *setting,
      might be catastrophically malformed (e.g. a 0- or 1-byte string;
      this could plausibly happen if e.g. login(8) doesn't special-case
      "*" or "!" in the password database).  */
-  *output++ = ascii64[salt & 0x3f];
-  *output++ = ascii64[(salt >> 6) & 0x3f];
+  *cp++ = ascii64[salt & 0x3f];
+  *cp++ = ascii64[(salt >> 6) & 0x3f];
 
   /* Copy the first 8 characters of the password into keybuf, shifting
      each character up by 1 bit and padding on the right with zeroes.  */
   for (i = 0; i < 8; i++)
     {
-      keybuf[i] = (uint8_t)(*key << 1);
-      if (*key)
-        key++;
+      keybuf[i] = (uint8_t)(*phrase << 1);
+      if (*phrase)
+        phrase++;
     }
 
   des_set_key (ctx, keybuf);
   des_set_salt (ctx, salt);
-  des_gen_hash (ctx, 25, output, pkbuf);
-  des_wipe_intermediate_data (buf);
-  return buf->output;
+  des_gen_hash (ctx, 25, cp, pkbuf);
+  return output;
 }
 
 /* This algorithm is algorithm 0 (default) shipped with the C2 secure
@@ -225,22 +210,23 @@ crypt_des_trd_rn (const char *key, const char *setting,
    (that is, the password can be no more than 128 characters long).
 
    Andy Phillips <atp@mssl.ucl.ac.uk>  */
-static char *
-crypt_des_big_rn (const char *key, const char *setting,
-                  char *data, size_t size)
+static uint8_t *
+crypt_des_big_rn (const char *phrase, const char *setting,
+                  uint8_t *output, size_t o_size,
+                  void *scratch, size_t s_size)
 {
-  /* Ensure we have enough space for a des_buffer in DATA.  */
-  if (size < sizeof (struct des_buffer))
+  /* This shouldn't ever happen, but...  */
+  if (o_size < DES_BIG_OUTPUT_LEN || s_size < sizeof (struct des_buffer))
     {
       errno = ERANGE;
       return 0;
     }
 
-  struct des_buffer *buf = (struct des_buffer *)data;
-  struct des_ctx *ctx = des_get_ctx (buf);
+  struct des_buffer *buf = scratch;
+  struct des_ctx *ctx = &buf->ctx;
   uint32_t salt = 0;
   uint8_t *keybuf = buf->keybuf, *pkbuf = buf->pkbuf;
-  unsigned char *output = (unsigned char *)buf->output;
+  uint8_t *cp = output;
   int i, seg;
 
   /* The setting string is exactly the same as for a traditional DES
@@ -249,59 +235,58 @@ crypt_des_big_rn (const char *key, const char *setting,
   if (setting[0])
     salt |= ascii_to_bin (setting[1]) << 6;
 
-  *output++ = ascii64[salt & 0x3f];
-  *output++ = ascii64[(salt >> 6) & 0x3f];
+  *cp++ = ascii64[salt & 0x3f];
+  *cp++ = ascii64[(salt >> 6) & 0x3f];
 
   for (seg = 0; seg < 16; seg++)
     {
       /* Copy and shift each block as for the traditional DES.  */
       for (i = 0; i < 8; i++)
         {
-          keybuf[i] = (uint8_t)(*key << 1);
-          if (*key)
-            key++;
+          keybuf[i] = (uint8_t)(*phrase << 1);
+          if (*phrase)
+            phrase++;
         }
 
       des_set_key (ctx, keybuf);
       des_set_salt (ctx, salt);
-      des_gen_hash (ctx, 25, output, pkbuf);
+      des_gen_hash (ctx, 25, cp, pkbuf);
 
-      if (*key == 0)
+      if (*phrase == 0)
         break;
 
       /* change the salt (1st 2 chars of previous block) - this was found
          by dowsing */
-      salt = ascii_to_bin ((char)output[0]);
-      salt |= ascii_to_bin ((char)output[1]) << 6;
-      output += 11;
+      salt = ascii_to_bin ((char)cp[0]);
+      salt |= ascii_to_bin ((char)cp[1]) << 6;
+      cp += 11;
     }
 
-  des_wipe_intermediate_data (buf);
-  return buf->output;
+  return output;
 }
 
 /* crypt_rn() entry point for both the original UNIX password hash,
    with its 8-character length limit, and the Digital UNIX "bigcrypt"
    extension to permit longer passwords.  */
-char *
-crypt_des_trd_or_big_rn (const char *key, const char *salt,
-                         char *data, size_t size)
+uint8_t *
+crypt_des_trd_or_big_rn (const char *phrase, const char *setting,
+                         uint8_t *output, size_t o_size,
+                         void *scratch, size_t s_size)
 {
-  if (strlen (salt) > 13)
-    return crypt_des_big_rn (key, salt, data, size);
-  else
-    return crypt_des_trd_rn (key, salt, data, size);
+  return (strlen (setting) > 13 ? crypt_des_big_rn : crypt_des_trd_rn)
+    (phrase, setting, output, o_size, scratch, s_size);
 }
 
 /* crypt_rn() entry point for BSD-style extended DES hashes.  These
    permit long passwords and have more salt and a controllable iteration
    count, but are still unacceptably weak by modern standards.  */
-char *
-crypt_des_xbsd_rn (const char *key, const char *setting,
-                   char *data, size_t size)
+uint8_t *
+crypt_des_xbsd_rn (const char *phrase, const char *setting,
+                   uint8_t *output, size_t o_size,
+                   void *scratch, size_t s_size)
 {
-  /* Ensure we have enough space for a des_buffer in DATA.  */
-  if (size < sizeof (struct des_buffer))
+  /* This shouldn't ever happen, but...  */
+  if (o_size < DES_EXT_OUTPUT_LEN || s_size < sizeof (struct des_buffer))
     {
       errno = ERANGE;
       return 0;
@@ -314,16 +299,16 @@ crypt_des_xbsd_rn (const char *key, const char *setting,
       return 0;
     }
 
-  struct des_buffer *buf = (struct des_buffer *)data;
-  struct des_ctx *ctx = des_get_ctx (buf);
+  struct des_buffer *buf = scratch;
+  struct des_ctx *ctx = &buf->ctx;
   uint32_t count = 0, salt = 0;
   uint8_t *keybuf = buf->keybuf, *pkbuf = buf->pkbuf;
-  unsigned char *output = (unsigned char *)buf->output;
+  uint8_t *cp = output;
   int i;
 
   /* "new"-style DES hash:
    	setting - underscore, 4 bytes of count, 4 bytes of salt
-   	key - unlimited characters
+   	phrase - unlimited characters
    */
   for (i = 1; i < 5; i++)
     count |= ascii_to_bin(setting[i]) << ((i - 1) * 6);
@@ -331,8 +316,8 @@ crypt_des_xbsd_rn (const char *key, const char *setting,
   for (i = 5; i < 9; i++)
     salt |= ascii_to_bin(setting[i]) << ((i - 5) * 6);
 
-  memcpy (output, setting, 9);
-  output += 9;
+  memcpy (cp, setting, 9);
+  cp += 9;
 
   /* Fold passwords longer than 8 bytes into a single DES key using a
      procedure similar to a Merkle-Dåmgard hash construction.  Each
@@ -346,19 +331,18 @@ crypt_des_xbsd_rn (const char *key, const char *setting,
     {
       for (i = 0; i < 8; i++)
         {
-          keybuf[i] = (uint8_t)(pkbuf[i] ^ (*key << 1));
-          if (*key)
-            key++;
+          keybuf[i] = (uint8_t)(pkbuf[i] ^ (*phrase << 1));
+          if (*phrase)
+            phrase++;
         }
       des_set_key (ctx, keybuf);
-      if (*key == 0)
+      if (*phrase == 0)
         break;
       des_crypt_block (ctx, pkbuf, keybuf, 1, false);
     }
 
   /* Proceed as for the traditional DES hash.  */
   des_set_salt (ctx, salt);
-  des_gen_hash (ctx, count, output, pkbuf);
-  des_wipe_intermediate_data (buf);
-  return buf->output;
+  des_gen_hash (ctx, count, cp, pkbuf);
+  return output;
 }

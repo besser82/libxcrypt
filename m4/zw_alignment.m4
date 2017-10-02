@@ -28,6 +28,7 @@ AC_DEFUN([zw_C_ALIGNAS],
    [Define as a type specifier which sets the alignment of a variable or type
     to N bytes.])
 ])
+
 AC_DEFUN([zw_C_ALIGNOF],
   [AC_REQUIRE([AC_PROG_CC])
    AC_CACHE_CHECK([how to query data alignment], [zw_cv_c_alignof],
@@ -54,4 +55,24 @@ AC_DEFUN([zw_C_ALIGNOF],
    AC_DEFINE_UNQUOTED([alignof(thing)], [$zw_c_alignof_expr],
    [Define as an expression which evaluates to the alignment of THING.
     Must be computed at compile time (an "integer constant expression").])
+])
+
+AC_DEFUN([zw_C_MAX_ALIGN_T],
+  [AC_REQUIRE([AC_PROG_CC])
+   AC_REQUIRE([zw_C_ALIGNOF])
+   AC_CACHE_CHECK([for max_align_t in stddef.h], [zw_cv_c_max_align_t],
+     [AC_COMPILE_IFELSE(
+        [AC_LANG_PROGRAM([[
+            #include <stddef.h>
+          ]], [[
+            max_align_t var;
+            return alignof(var);
+          ]])],
+        [zw_cv_c_max_align_t=yes],
+        [zw_cv_c_max_align_t=no])
+     ])
+   AS_IF([test x$zw_cv_c_max_align_t = xyes],
+     [AC_DEFINE([HAVE_MAX_ALIGN_T], 1,
+        [Define if stddef.h provides max_align_t.])
+   ])
 ])

@@ -28,9 +28,6 @@
 #include <string.h>
 
 
-#define MIN(a,b) (((a)<(b))?(a):(b))
-#define MAX(a,b) (((a)>(b))?(a):(b))
-
 /* Define our magic string to mark salt for SHA256 "encryption"
    replacement.  */
 static const char sha256_salt_prefix[] = "$5$";
@@ -58,37 +55,20 @@ static const char sha256_rounds_prefix[] = "rounds=";
   (sizeof (sha256_salt_prefix) + sizeof (sha256_rounds_prefix) + \
    LENGTH_OF_NUMBER (ROUNDS_MAX) + SALT_LEN_MAX + 1 + 43)
 
+static_assert (SHA256_HASH_LENGTH <= CRYPT_OUTPUT_SIZE,
+               "CRYPT_OUTPUT_SIZE is too small for SHA256");
 
-/* A sha256_buffer holds the output plus all of the sensitive intermediate
-   data.  It may have been allocated by application code, so it may not
-   be properly aligned, and besides which SHA256_HASH_LENGTH may be odd, so
-   we pad 'ctxbuf' enough to find a properly-aligned sha256_ctx within.  */
+/* A sha256_buffer holds all of the sensitive intermediate data.  */
 struct sha256_buffer
 {
-  char output[SHA256_HASH_LENGTH];
-  uint8_t ctxbuf[sizeof (struct sha256_ctx) + alignof (struct sha256_ctx)];
+  struct sha256_ctx ctx;
   uint8_t result[32];
   uint8_t p_bytes[32];
   uint8_t s_bytes[32];
 };
 
-static inline struct sha256_ctx *
-sha256_get_ctx (struct sha256_buffer *buf)
-{
-  uintptr_t ctxp = (uintptr_t) &buf->ctxbuf;
-  uintptr_t align = alignof (struct sha256_ctx);
-  ctxp = (ctxp + align - 1) & ~align;
-  return (struct sha256_ctx *)ctxp;
-}
-
-static inline void
-sha256_wipe_intermediate_data (struct sha256_buffer *buf)
-{
-  memset (((char *)buf) + offsetof (struct sha256_buffer, ctxbuf),
-          0,
-          sizeof (struct sha256_buffer) -
-          offsetof (struct sha256_buffer, ctxbuf));
-}
+static_assert (sizeof (struct sha256_buffer) <= ALG_SPECIFIC_SIZE,
+               "ALG_SPECIFIC_SIZE is too small for SHA256");
 
 
 /* Table with characters for base64 transformation.  */
@@ -108,26 +88,28 @@ sha256_process_recycled_bytes (unsigned char block[32], size_t len,
   sha256_process_bytes (block, cnt, ctx);
 }
 
-char *
-crypt_sha256_rn (const char *key, const char *salt,
-                 char *data, size_t size)
+uint8_t *
+crypt_sha256_rn (const char *phrase, const char *setting,
+                 uint8_t *output, size_t o_size,
+                 void *scratch, size_t s_size)
 {
-  /* Ensure we have enough space for a sha256_buffer in DATA.  */
-  if (size < sizeof (struct sha256_buffer))
+  /* This shouldn't ever happen, but...  */
+  if (o_size < SHA256_HASH_LENGTH || s_size < sizeof (struct sha256_buffer))
     {
       errno = ERANGE;
       return 0;
     }
 
-  struct sha256_buffer *buf = (struct sha256_buffer *)data;
-  struct sha256_ctx *ctx = sha256_get_ctx (buf);
+  struct sha256_buffer *buf = scratch;
+  struct sha256_ctx *ctx = &buf->ctx;
   uint8_t *result = buf->result;
   uint8_t *p_bytes = buf->p_bytes;
   uint8_t *s_bytes = buf->s_bytes;
-  char *cp = buf->output;
+  char *cp = (char *)output;
+  const char *salt = setting;
 
   size_t salt_len;
-  size_t key_len;
+  size_t phrase_len;
   size_t cnt;
   /* Default number of rounds.  */
   size_t rounds = ROUNDS_DEFAULT;
@@ -154,20 +136,20 @@ crypt_sha256_rn (const char *key, const char *salt,
     }
 
   salt_len = MIN (strcspn (salt, "$"), SALT_LEN_MAX);
-  key_len = strlen (key);
+  phrase_len = strlen (phrase);
 
-  /* Compute alternate SHA256 sum with input KEY, SALT, and KEY.  The
+  /* Compute alternate SHA256 sum with input PHRASE, SALT, and PHRASE.  The
      final result will be added to the first context.  */
   sha256_init_ctx (ctx);
 
-  /* Add key.  */
-  sha256_process_bytes (key, key_len, ctx);
+  /* Add phrase.  */
+  sha256_process_bytes (phrase, phrase_len, ctx);
 
   /* Add salt.  */
   sha256_process_bytes (salt, salt_len, ctx);
 
-  /* Add key again.  */
-  sha256_process_bytes (key, key_len, ctx);
+  /* Add phrase again.  */
+  sha256_process_bytes (phrase, phrase_len, ctx);
 
   /* Now get result of this (32 bytes).  */
   sha256_finish_ctx (ctx, result);
@@ -175,26 +157,26 @@ crypt_sha256_rn (const char *key, const char *salt,
   /* Prepare for the real work.  */
   sha256_init_ctx (ctx);
 
-  /* Add the key string.  */
-  sha256_process_bytes (key, key_len, ctx);
+  /* Add the phrase string.  */
+  sha256_process_bytes (phrase, phrase_len, ctx);
 
   /* The last part is the salt string.  This must be at most 8
      characters and it ends at the first `$' character (for
      compatibility with existing implementations).  */
   sha256_process_bytes (salt, salt_len, ctx);
 
-  /* Add for any character in the key one byte of the alternate sum.  */
-  for (cnt = key_len; cnt > 32; cnt -= 32)
+  /* Add for any character in the phrase one byte of the alternate sum.  */
+  for (cnt = phrase_len; cnt > 32; cnt -= 32)
     sha256_process_bytes (result, 32, ctx);
   sha256_process_bytes (result, cnt, ctx);
 
-  /* Take the binary representation of the length of the key and for every
-     1 add the alternate sum, for every 0 the key.  */
-  for (cnt = key_len; cnt > 0; cnt >>= 1)
+  /* Take the binary representation of the length of the phrase and for every
+     1 add the alternate sum, for every 0 the phrase.  */
+  for (cnt = phrase_len; cnt > 0; cnt >>= 1)
     if ((cnt & 1) != 0)
       sha256_process_bytes (result, 32, ctx);
     else
-      sha256_process_bytes (key, key_len, ctx);
+      sha256_process_bytes (phrase, phrase_len, ctx);
 
   /* Create intermediate result.  */
   sha256_finish_ctx (ctx, result);
@@ -203,8 +185,8 @@ crypt_sha256_rn (const char *key, const char *salt,
   sha256_init_ctx (ctx);
 
   /* For every character in the password add the entire password.  */
-  for (cnt = 0; cnt < key_len; ++cnt)
-    sha256_process_bytes (key, key_len, ctx);
+  for (cnt = 0; cnt < phrase_len; ++cnt)
+    sha256_process_bytes (phrase, phrase_len, ctx);
 
   /* Finish the digest.  */
   sha256_finish_ctx (ctx, p_bytes);
@@ -226,9 +208,9 @@ crypt_sha256_rn (const char *key, const char *salt,
       /* New context.  */
       sha256_init_ctx (ctx);
 
-      /* Add key or last result.  */
+      /* Add phrase or last result.  */
       if ((cnt & 1) != 0)
-        sha256_process_recycled_bytes (p_bytes, key_len, ctx);
+        sha256_process_recycled_bytes (p_bytes, phrase_len, ctx);
       else
         sha256_process_bytes (result, 32, ctx);
 
@@ -236,15 +218,15 @@ crypt_sha256_rn (const char *key, const char *salt,
       if (cnt % 3 != 0)
         sha256_process_recycled_bytes (s_bytes, salt_len, ctx);
 
-      /* Add key for numbers not divisible by 7.  */
+      /* Add phrase for numbers not divisible by 7.  */
       if (cnt % 7 != 0)
-        sha256_process_recycled_bytes (p_bytes, key_len, ctx);
+        sha256_process_recycled_bytes (p_bytes, phrase_len, ctx);
 
-      /* Add key or last result.  */
+      /* Add phrase or last result.  */
       if ((cnt & 1) != 0)
         sha256_process_bytes (result, 32, ctx);
       else
-        sha256_process_recycled_bytes (p_bytes, key_len, ctx);
+        sha256_process_recycled_bytes (p_bytes, phrase_len, ctx);
 
       /* Create intermediate result.  */
       sha256_finish_ctx (ctx, result);
@@ -294,7 +276,5 @@ crypt_sha256_rn (const char *key, const char *salt,
   b64_from_24bit (0, result[31], result[30], 3);
 
   *cp = '\0';
-
-  sha256_wipe_intermediate_data (buf);
-  return buf->output;
+  return output;
 }
