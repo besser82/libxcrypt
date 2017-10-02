@@ -16,10 +16,8 @@
 
 #include "crypt-port.h"
 #include "crypt-private.h"
-#include "crypt-obsolete.h"
 
 #include <errno.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 

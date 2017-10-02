@@ -15,8 +15,7 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
 #include "crypt-port.h"
-#include "crypt-private.h"
-#include "crypt-obsolete.h"
+#include "crypt-base.h"
 
 /* The functions that use a global state object are isolated in this
    file so that a statically-linked program that doesn't use them will
