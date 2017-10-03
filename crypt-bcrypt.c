@@ -701,7 +701,7 @@ static_assert (sizeof (struct BF_buffer) <= ALG_SPECIFIC_SIZE,
                "ALG_SPECIFIC_SIZE is too small for bcrypt");
 
 
-static unsigned char *
+static bool
 BF_crypt (const char *key, const char *setting, unsigned char *output,
           struct BF_data *data, BF_word min)
 {
@@ -721,14 +721,14 @@ BF_crypt (const char *key, const char *setting, unsigned char *output,
       (setting[4] == '3' && setting[5] > '1') || setting[6] != '$')
     {
       errno = EINVAL;
-      return 0;
+      return false;
     }
 
   count = (BF_word) 1 << ((setting[4] - '0') * 10 + (setting[5] - '0'));
   if (count < min || BF_decode (data->binary.salt, &setting[7], 16))
     {
       errno = EINVAL;
-      return 0;
+      return false;
     }
   BF_swap (data->binary.salt, 4);
 
@@ -830,7 +830,7 @@ BF_crypt (const char *key, const char *setting, unsigned char *output,
   BF_encode (&output[BF_SETTING_LENGTH], data->binary.output, 23);
   output[BF_HASH_LENGTH - 1] = '\0';
 
-  return output;
+  return true;
 }
 
 /*
@@ -867,8 +867,7 @@ crypt_bcrypt_rn (const char *key, const char *setting,
   struct BF_buffer *buffer = scratch;
 
   /* Hash the supplied password */
-  uint8_t *rv = BF_crypt (key, setting, buffer->re_output, &buffer->data, 16);
-  if (!rv)
+  if (!BF_crypt (key, setting, buffer->re_output, &buffer->data, 16))
     return; /* errno has already been set */
 
   /* Save and restore the current value of errno around the self-test.  */
@@ -890,20 +889,18 @@ crypt_bcrypt_rn (const char *key, const char *setting,
   char test_setting[BF_SETTING_LENGTH];
   unsigned int flags = flags_by_subtype[(unsigned int) (unsigned char)
                                         setting[2] - 'a'];
-  uint8_t *p;
-  int ok;
+  bool ok;
 
   memcpy (test_setting, test_setting_init, BF_SETTING_LENGTH + 1);
   test_hash = test_hashes[flags & 1];
   test_setting[2] = setting[2];
 
   memset (buffer->st_output, 0x55, sizeof buffer->st_output);
-  p = BF_crypt (test_key, test_setting, buffer->st_output, &buffer->data, 1);
 
-  ok = (p == buffer->st_output &&
-        !memcmp (p, test_setting, BF_SETTING_LENGTH) &&
-        !memcmp (p + BF_SETTING_LENGTH, test_hash,
-                 sizeof buffer->st_output - (BF_SETTING_LENGTH + 1)));
+  ok = (BF_crypt (test_key, test_setting, buffer->st_output, &buffer->data, 1)
+        && !memcmp (buffer->st_output, test_setting, BF_SETTING_LENGTH)
+        && !memcmp (buffer->st_output + BF_SETTING_LENGTH, test_hash,
+                    sizeof buffer->st_output - (BF_SETTING_LENGTH + 1)));
 
   /* Do a second self-test of the key-expansion "safety" logic.  */
   {
@@ -920,7 +917,7 @@ crypt_bcrypt_rn (const char *key, const char *setting,
     {
       /* Self-test failed; pretend we don't support this hash type.  */
       errno = EINVAL;
-      rv = 0;
+      return;
     }
 
   /* Self-test succeeded; copy the true output into the true output
