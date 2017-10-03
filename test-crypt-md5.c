@@ -12,7 +12,7 @@ main (void)
   int result = 0;
 
   cp = crypt_r ("Hello world!", salt, &output);
-  if (cp == NULL)
+  if (cp == 0)
     return 1;
 
   result |= strcmp ("$1$saltstri$YMyguxXMBpd2TEZ.vS/3q1", cp);

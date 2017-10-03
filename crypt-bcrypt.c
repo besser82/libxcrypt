@@ -721,14 +721,14 @@ BF_crypt (const char *key, const char *setting, unsigned char *output,
       (setting[4] == '3' && setting[5] > '1') || setting[6] != '$')
     {
       errno = EINVAL;
-      return NULL;
+      return 0;
     }
 
   count = (BF_word) 1 << ((setting[4] - '0') * 10 + (setting[5] - '0'));
   if (count < min || BF_decode (data->binary.salt, &setting[7], 16))
     {
       errno = EINVAL;
-      return NULL;
+      return 0;
     }
   BF_swap (data->binary.salt, 4);
 

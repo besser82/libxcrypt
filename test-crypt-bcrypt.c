@@ -110,7 +110,7 @@ static const char *tests[][3] = {
 int
 main (void)
 {
-  void *data = NULL;
+  void *data = 0;
   int size = 0x12345678;
   int i;
   int status = 0;

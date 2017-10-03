@@ -129,7 +129,7 @@ extern char *crypt_rn (const char *__phrase, const char *__setting,
   __THROW __nonnull ((1, 2, 3));
 
 /* Yet a third thread-safe version of crypt; this one works like
-   getline(3).  *DATA must be either NULL or a pointer to memory
+   getline(3).  *DATA must be either 0 or a pointer to memory
    allocated by malloc, and *SIZE must be the size of the allocation.
    This space will be allocated or reallocated as necessary and the
    values updated.  The string returned by this function will be

@@ -54,7 +54,7 @@ main (void)
                                          output, CRYPT_GENSALT_OUTPUT_SIZE);
           if (salt == 0)
             {
-              fprintf (stderr, "ERROR: %s/%u -> NULL\n", tcase->prefix, ent);
+              fprintf (stderr, "ERROR: %s/%u -> 0\n", tcase->prefix, ent);
               status = 1;
               continue;
             }
