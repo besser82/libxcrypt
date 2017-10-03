@@ -88,7 +88,7 @@ sha512_process_recycled_bytes (unsigned char block[64], size_t len,
   sha512_process_bytes (block, cnt, ctx);
 }
 
-uint8_t *
+void
 crypt_sha512_rn (const char *phrase, const char *setting,
                  uint8_t *output, size_t o_size,
                  void *scratch, size_t s_size)
@@ -97,7 +97,7 @@ crypt_sha512_rn (const char *phrase, const char *setting,
   if (o_size < SHA512_HASH_LENGTH || s_size < sizeof (struct sha512_buffer))
     {
       errno = ERANGE;
-      return 0;
+      return;
     }
 
   struct sha512_buffer *buf = scratch;
@@ -290,5 +290,4 @@ crypt_sha512_rn (const char *phrase, const char *setting,
   b64_from_24bit (0, 0, result[63], 2);
 
   *cp = '\0';
-  return output;
 }

@@ -17,7 +17,7 @@ static const unsigned char _xcrypt_itoa64[64 + 1] =
   "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 #if ENABLE_WEAK_HASHES
-uint8_t *
+void
 gensalt_des_trd_rn (unsigned long count,
                     const uint8_t *rbytes, size_t nrbytes,
                     uint8_t *output, size_t output_size)
@@ -25,23 +25,21 @@ gensalt_des_trd_rn (unsigned long count,
   if (output_size < 3)
     {
       errno = ERANGE;
-      return NULL;
+      return;
     }
 
   if (nrbytes < 2 || (count != 0 && count != 25))
     {
       errno = EINVAL;
-      return NULL;
+      return;
     }
 
   output[0] = _xcrypt_itoa64[(unsigned int) rbytes[0] & 0x3f];
   output[1] = _xcrypt_itoa64[(unsigned int) rbytes[1] & 0x3f];
   output[2] = '\0';
-
-  return output;
 }
 
-uint8_t *
+void
 gensalt_des_xbsd_rn (unsigned long count,
                     const uint8_t *rbytes, size_t nrbytes,
                     uint8_t *output, size_t output_size)
@@ -49,7 +47,7 @@ gensalt_des_xbsd_rn (unsigned long count,
   if (output_size < 1 + 4 + 4 + 1)
     {
       errno = ERANGE;
-      return NULL;
+      return;
     }
 
   if (count == 0)
@@ -60,7 +58,7 @@ gensalt_des_xbsd_rn (unsigned long count,
   if (nrbytes < 3 || count > 0xffffff || count % 2 == 0)
     {
       errno = EINVAL;
-      return NULL;
+      return;
     }
 
   unsigned long value =
@@ -81,11 +79,9 @@ gensalt_des_xbsd_rn (unsigned long count,
   output[8] = _xcrypt_itoa64[(value >> 18) & 0x3f];
 
   output[9] = '\0';
-
-  return output;
 }
 
-uint8_t *
+void
 gensalt_md5_rn (unsigned long count,
                 const uint8_t *rbytes, size_t nrbytes,
                 uint8_t *output, size_t output_size)
@@ -95,13 +91,13 @@ gensalt_md5_rn (unsigned long count,
   if (output_size < 3 + 4 + 1)
     {
       errno = ERANGE;
-      return NULL;
+      return;
     }
 
   if (nrbytes < 3 || (count != 0 && count != 1000))
     {
       errno = EINVAL;
-      return NULL;
+      return;
     }
 
   output[0] = '$';
@@ -128,12 +124,10 @@ gensalt_md5_rn (unsigned long count,
       output[10] = _xcrypt_itoa64[(value >> 18) & 0x3f];
       output[11] = '\0';
     }
-
-  return output;
 }
 #endif
 
-static uint8_t *
+static void
 gensalt_sha_rn (char tag, unsigned long count,
                 const uint8_t *rbytes, size_t nrbytes,
                 uint8_t *output, size_t output_size)
@@ -145,13 +139,13 @@ gensalt_sha_rn (char tag, unsigned long count,
   if (output_size < 3 + 4 + 1)
     {
       errno = ERANGE;
-      return NULL;
+      return;
     }
 
   if (nrbytes < 3 || count > 999999999)
     {
       errno = EINVAL;
-      return NULL;
+      return;
     }
 
   value = (unsigned long) (unsigned char) rbytes[0] |
@@ -181,7 +175,7 @@ gensalt_sha_rn (char tag, unsigned long count,
                           "$%c$rounds=%lu$%s",
                           tag, count, raw_salt);
       if (written > 0 && (size_t)written <= output_size)
-        return output;
+        return;
 
       if (raw_salt[4] != '\0')
         {
@@ -192,7 +186,7 @@ gensalt_sha_rn (char tag, unsigned long count,
                               "$%c$rounds=%lu$%s",
                               tag, count, raw_salt);
           if (written > 0 && (size_t)written <= output_size)
-            return output;
+            return;
         }
     }
   else
@@ -200,7 +194,7 @@ gensalt_sha_rn (char tag, unsigned long count,
       written = snprintf ((char *)output, (size_t)output_size,
                           "$%c$%s", tag, raw_salt);
       if (written > 0 && (size_t)written <= output_size)
-        return output;
+        return;
 
       if (raw_salt[4] != '\0')
         {
@@ -210,30 +204,31 @@ gensalt_sha_rn (char tag, unsigned long count,
           written = snprintf ((char *)output, (size_t)output_size,
                               "$%c$%s", tag, raw_salt);
           if (written > 0 && (size_t)written <= output_size)
-            return output;
+            return;
         }
     }
 
-  /* we know we do have enough space for this */
+  /* Recreate the failure token, since we clobbered it above.
+     We know we do have enough space for this. */
   output[0] = '*';
   output[1] = '0';
   output[2] = '\0';
+
   errno = ERANGE;
-  return NULL;
 }
 
-uint8_t *
+void
 gensalt_sha256_rn (unsigned long count,
                    const uint8_t *rbytes, size_t nrbytes,
                    uint8_t *output, size_t output_size)
 {
-  return gensalt_sha_rn ('5', count, rbytes, nrbytes, output, output_size);
+  gensalt_sha_rn ('5', count, rbytes, nrbytes, output, output_size);
 }
 
-uint8_t *
+void
 gensalt_sha512_rn (unsigned long count,
                    const uint8_t *rbytes, size_t nrbytes,
                    uint8_t *output, size_t output_size)
 {
-  return gensalt_sha_rn ('6', count, rbytes, nrbytes, output, output_size);
+  gensalt_sha_rn ('6', count, rbytes, nrbytes, output, output_size);
 }

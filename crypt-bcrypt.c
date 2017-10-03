@@ -853,7 +853,7 @@ BF_crypt (const char *key, const char *setting, unsigned char *output,
  * The performance cost of this quick self-test is around 0.6% at the "$2a$08"
  * setting.
  */
-uint8_t *
+void
 crypt_bcrypt_rn (const char *key, const char *setting,
                  uint8_t *output, size_t o_size,
                  void *scratch, size_t s_size)
@@ -862,14 +862,14 @@ crypt_bcrypt_rn (const char *key, const char *setting,
   if (o_size < BF_HASH_LENGTH || s_size < sizeof (struct BF_buffer))
     {
       errno = ERANGE;
-      return 0;
+      return;
     }
   struct BF_buffer *buffer = scratch;
 
   /* Hash the supplied password */
   uint8_t *rv = BF_crypt (key, setting, buffer->re_output, &buffer->data, 16);
   if (!rv)
-    return 0; /* errno has already been set */
+    return; /* errno has already been set */
 
   /* Save and restore the current value of errno around the self-test.  */
   int save_errno = errno;
@@ -927,10 +927,9 @@ crypt_bcrypt_rn (const char *key, const char *setting,
      buffer and return.  We already know there is enough space.  */
   memcpy (output, buffer->re_output, BF_HASH_LENGTH);
   errno = save_errno;
-  return output;
 }
 
-static uint8_t *
+static void
 BF_gensalt (char subtype, unsigned long count,
             const uint8_t *rbytes, size_t nrbytes,
             uint8_t *output, size_t o_size)
@@ -942,12 +941,12 @@ BF_gensalt (char subtype, unsigned long count,
       (subtype != 'a' && subtype != 'b' && subtype != 'x' && subtype != 'y'))
     {
       errno = EINVAL;
-      return NULL;
+      return;
     }
   if (o_size < 7 + 22 + 1)
     {
       errno = ERANGE;
-      return NULL;
+      return;
     }
 
   BF_word aligned_rbytes[16 / sizeof(BF_word)];
@@ -963,38 +962,36 @@ BF_gensalt (char subtype, unsigned long count,
 
   BF_encode (&output[7], aligned_rbytes, 16);
   output[7 + 22] = '\0';
-
-  return output;
 }
 
-uint8_t *
+void
 gensalt_bcrypt_a_rn (unsigned long count,
                      const uint8_t *rbytes, size_t nrbytes,
                      uint8_t *output, size_t o_size)
 {
-  return BF_gensalt ('a', count, rbytes, nrbytes, output, o_size);
+  BF_gensalt ('a', count, rbytes, nrbytes, output, o_size);
 }
 
-uint8_t *
+void
 gensalt_bcrypt_b_rn (unsigned long count,
                      const uint8_t *rbytes, size_t nrbytes,
                      uint8_t *output, size_t o_size)
 {
-  return BF_gensalt ('b', count, rbytes, nrbytes, output, o_size);
+  BF_gensalt ('b', count, rbytes, nrbytes, output, o_size);
 }
 
-uint8_t *
+void
 gensalt_bcrypt_x_rn (unsigned long count,
                      const uint8_t *rbytes, size_t nrbytes,
                      uint8_t *output, size_t o_size)
 {
-  return BF_gensalt ('x', count, rbytes, nrbytes, output, o_size);
+  BF_gensalt ('x', count, rbytes, nrbytes, output, o_size);
 }
 
-uint8_t *
+void
 gensalt_bcrypt_y_rn (unsigned long count,
                      const uint8_t *rbytes, size_t nrbytes,
                      uint8_t *output, size_t o_size)
 {
-  return BF_gensalt ('y', count, rbytes, nrbytes, output, o_size);
+  BF_gensalt ('y', count, rbytes, nrbytes, output, o_size);
 }

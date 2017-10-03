@@ -29,58 +29,57 @@
 /* Individual hash functions */
 
 #if ENABLE_WEAK_HASHES
-extern uint8_t *crypt_des_trd_or_big_rn (const char *phrase,
-                                         const char *setting,
-                                         uint8_t *output, size_t o_size,
-                                         void *scratch, size_t s_size);
-extern uint8_t *crypt_des_xbsd_rn (const char *phrase, const char *setting,
-                                   uint8_t *output, size_t o_size,
-                                   void *scratch, size_t s_size);
-extern uint8_t *crypt_md5_rn (const char *phrase, const char *setting,
-                              uint8_t *output, size_t o_size,
-                              void *scratch, size_t s_size);
+extern void crypt_des_trd_or_big_rn (const char *phrase, const char *setting,
+                                     uint8_t *output, size_t o_size,
+                                     void *scratch, size_t s_size);
+extern void crypt_des_xbsd_rn (const char *phrase, const char *setting,
+                               uint8_t *output, size_t o_size,
+                               void *scratch, size_t s_size);
+extern void crypt_md5_rn (const char *phrase, const char *setting,
+                          uint8_t *output, size_t o_size,
+                          void *scratch, size_t s_size);
 #endif
 
-extern uint8_t *crypt_sha256_rn (const char *phrase, const char *setting,
-                                 uint8_t *output, size_t o_size,
-                                 void *scratch, size_t s_size);
-extern uint8_t *crypt_sha512_rn (const char *phrase, const char *setting,
-                                 uint8_t *output, size_t o_size,
-                                 void *scratch, size_t s_size);
-extern uint8_t *crypt_bcrypt_rn (const char *phrase, const char *setting,
-                                 uint8_t *output, size_t o_size,
-                                 void *scratch, size_t s_size);
+extern void crypt_sha256_rn (const char *phrase, const char *setting,
+                             uint8_t *output, size_t o_size,
+                             void *scratch, size_t s_size);
+extern void crypt_sha512_rn (const char *phrase, const char *setting,
+                             uint8_t *output, size_t o_size,
+                             void *scratch, size_t s_size);
+extern void crypt_bcrypt_rn (const char *phrase, const char *setting,
+                             uint8_t *output, size_t o_size,
+                             void *scratch, size_t s_size);
 
 #if ENABLE_WEAK_HASHES
-extern uint8_t *gensalt_des_trd_rn (unsigned long count,
-                                    const uint8_t *rbytes, size_t nrbytes,
-                                    uint8_t *output, size_t o_size);
-extern uint8_t *gensalt_des_xbsd_rn (unsigned long count,
-                                     const uint8_t *rbytes, size_t nrbytes,
-                                     uint8_t *output, size_t o_size);
-extern uint8_t *gensalt_md5_rn (unsigned long count,
+extern void gensalt_des_trd_rn (unsigned long count,
                                 const uint8_t *rbytes, size_t nrbytes,
                                 uint8_t *output, size_t o_size);
+extern void gensalt_des_xbsd_rn (unsigned long count,
+                                 const uint8_t *rbytes, size_t nrbytes,
+                                 uint8_t *output, size_t o_size);
+extern void gensalt_md5_rn (unsigned long count,
+                            const uint8_t *rbytes, size_t nrbytes,
+                            uint8_t *output, size_t o_size);
 #endif
 
-extern uint8_t *gensalt_sha256_rn (unsigned long count,
-                                   const uint8_t *rbytes, size_t nrbytes,
-                                   uint8_t *output, size_t o_size);
-extern uint8_t *gensalt_sha512_rn (unsigned long count,
-                                   const uint8_t *rbytes, size_t nrbytes,
-                                   uint8_t *output, size_t o_size);
+extern void gensalt_sha256_rn (unsigned long count,
+                               const uint8_t *rbytes, size_t nrbytes,
+                               uint8_t *output, size_t o_size);
+extern void gensalt_sha512_rn (unsigned long count,
+                               const uint8_t *rbytes, size_t nrbytes,
+                               uint8_t *output, size_t o_size);
 
-extern uint8_t *gensalt_bcrypt_a_rn (unsigned long count,
-                                     const uint8_t *rbytes, size_t nrbytes,
-                                     uint8_t *output, size_t o_size);
-extern uint8_t *gensalt_bcrypt_b_rn (unsigned long count,
-                                     const uint8_t *rbytes, size_t nrbytes,
-                                     uint8_t *output, size_t o_size);
-extern uint8_t *gensalt_bcrypt_x_rn (unsigned long count,
-                                     const uint8_t *rbytes, size_t nrbytes,
-                                     uint8_t *output, size_t o_size);
-extern uint8_t *gensalt_bcrypt_y_rn (unsigned long count,
-                                     const uint8_t *rbytes, size_t nrbytes,
-                                     uint8_t *output, size_t o_size);
+extern void gensalt_bcrypt_a_rn (unsigned long count,
+                                 const uint8_t *rbytes, size_t nrbytes,
+                                 uint8_t *output, size_t o_size);
+extern void gensalt_bcrypt_b_rn (unsigned long count,
+                                 const uint8_t *rbytes, size_t nrbytes,
+                                 uint8_t *output, size_t o_size);
+extern void gensalt_bcrypt_x_rn (unsigned long count,
+                                 const uint8_t *rbytes, size_t nrbytes,
+                                 uint8_t *output, size_t o_size);
+extern void gensalt_bcrypt_y_rn (unsigned long count,
+                                 const uint8_t *rbytes, size_t nrbytes,
+                                 uint8_t *output, size_t o_size);
 
 #endif /* crypt-private.h */

@@ -88,7 +88,7 @@ sha256_process_recycled_bytes (unsigned char block[32], size_t len,
   sha256_process_bytes (block, cnt, ctx);
 }
 
-uint8_t *
+void
 crypt_sha256_rn (const char *phrase, const char *setting,
                  uint8_t *output, size_t o_size,
                  void *scratch, size_t s_size)
@@ -97,7 +97,7 @@ crypt_sha256_rn (const char *phrase, const char *setting,
   if (o_size < SHA256_HASH_LENGTH || s_size < sizeof (struct sha256_buffer))
     {
       errno = ERANGE;
-      return 0;
+      return;
     }
 
   struct sha256_buffer *buf = scratch;
@@ -276,5 +276,4 @@ crypt_sha256_rn (const char *phrase, const char *setting,
   b64_from_24bit (0, result[31], result[30], 3);
 
   *cp = '\0';
-  return output;
 }

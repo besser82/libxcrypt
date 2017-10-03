@@ -21,20 +21,15 @@
    own files so that a statically-linked program that doesn't use them
    will not have the state objects in its data segment.  */
 
-#if INCLUDE_crypt || INCLUDE_fcrypt
+#if INCLUDE_crypt_gensalt
 char *
-crypt (const char *key, const char *setting)
+crypt_gensalt (const char *prefix, unsigned long count,
+               const char *rbytes, int nrbytes)
 {
-  static struct crypt_data nr_crypt_ctx;
-  return crypt_r (key, setting, &nr_crypt_ctx);
+  static char output[CRYPT_GENSALT_OUTPUT_SIZE];
+
+  return crypt_gensalt_rn (prefix, count,
+                           rbytes, nrbytes, output, sizeof (output));
 }
-#endif
-
-#if INCLUDE_crypt
-SYMVER_crypt;
-#endif
-
-#if INCLUDE_fcrypt
-strong_alias (crypt, fcrypt);
-SYMVER_fcrypt;
+SYMVER_crypt_gensalt;
 #endif

@@ -63,7 +63,7 @@ static_assert (sizeof (struct md5_buffer) <= ALG_SPECIFIC_SIZE,
 
 /* This entry point is equivalent to the `crypt' function in Unix
    libcs.  */
-uint8_t *
+void
 crypt_md5_rn (const char *phrase, const char *setting,
               uint8_t *output, size_t o_size,
               void *scratch, size_t s_size)
@@ -72,7 +72,7 @@ crypt_md5_rn (const char *phrase, const char *setting,
   if (o_size < MD5_HASH_LENGTH || s_size < sizeof (struct md5_buffer))
     {
       errno = ERANGE;
-      return 0;
+      return;
     }
 
   struct md5_buffer *buf = scratch;
@@ -210,5 +210,4 @@ crypt_md5_rn (const char *phrase, const char *setting,
   b64_from_24bit (0, 0, result[11], 2);
 
   *cp = '\0';
-  return output;
 }

@@ -22,7 +22,7 @@ noinst_HEADERS = \
 
 lib_LTLIBRARIES = libcrypt.la
 libcrypt_la_SOURCES = \
-	crypt.c crypt-static.c crypt-gensalt.c \
+	crypt.c crypt-static.c crypt-gensalt.c crypt-gensalt-static.c \
 	crypt-bcrypt.c crypt-sha512.c crypt-sha256.c \
 	alg-sha512.c alg-sha256.c
 

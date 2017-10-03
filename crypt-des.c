@@ -145,7 +145,7 @@ des_gen_hash (struct des_ctx *ctx, uint32_t count, uint8_t *output,
 }
 
 /* The original UNIX DES-based password hash, no extensions.  */
-static uint8_t *
+static void
 crypt_des_trd_rn (const char *phrase, const char *setting,
                   uint8_t *output, size_t o_size,
                   void *scratch, size_t s_size)
@@ -154,7 +154,7 @@ crypt_des_trd_rn (const char *phrase, const char *setting,
   if (o_size < DES_TRD_OUTPUT_LEN || s_size < sizeof (struct des_buffer))
     {
       errno = ERANGE;
-      return 0;
+      return;
     }
 
   struct des_buffer *buf = scratch;
@@ -191,7 +191,6 @@ crypt_des_trd_rn (const char *phrase, const char *setting,
   des_set_key (ctx, keybuf);
   des_set_salt (ctx, salt);
   des_gen_hash (ctx, 25, cp, pkbuf);
-  return output;
 }
 
 /* This algorithm is algorithm 0 (default) shipped with the C2 secure
@@ -210,7 +209,7 @@ crypt_des_trd_rn (const char *phrase, const char *setting,
    (that is, the password can be no more than 128 characters long).
 
    Andy Phillips <atp@mssl.ucl.ac.uk>  */
-static uint8_t *
+static void
 crypt_des_big_rn (const char *phrase, const char *setting,
                   uint8_t *output, size_t o_size,
                   void *scratch, size_t s_size)
@@ -219,7 +218,7 @@ crypt_des_big_rn (const char *phrase, const char *setting,
   if (o_size < DES_BIG_OUTPUT_LEN || s_size < sizeof (struct des_buffer))
     {
       errno = ERANGE;
-      return 0;
+      return;
     }
 
   struct des_buffer *buf = scratch;
@@ -261,26 +260,24 @@ crypt_des_big_rn (const char *phrase, const char *setting,
       salt |= ascii_to_bin ((char)cp[1]) << 6;
       cp += 11;
     }
-
-  return output;
 }
 
 /* crypt_rn() entry point for both the original UNIX password hash,
    with its 8-character length limit, and the Digital UNIX "bigcrypt"
    extension to permit longer passwords.  */
-uint8_t *
+void
 crypt_des_trd_or_big_rn (const char *phrase, const char *setting,
                          uint8_t *output, size_t o_size,
                          void *scratch, size_t s_size)
 {
-  return (strlen (setting) > 13 ? crypt_des_big_rn : crypt_des_trd_rn)
+  (strlen (setting) > 13 ? crypt_des_big_rn : crypt_des_trd_rn)
     (phrase, setting, output, o_size, scratch, s_size);
 }
 
 /* crypt_rn() entry point for BSD-style extended DES hashes.  These
    permit long passwords and have more salt and a controllable iteration
    count, but are still unacceptably weak by modern standards.  */
-uint8_t *
+void
 crypt_des_xbsd_rn (const char *phrase, const char *setting,
                    uint8_t *output, size_t o_size,
                    void *scratch, size_t s_size)
@@ -289,14 +286,14 @@ crypt_des_xbsd_rn (const char *phrase, const char *setting,
   if (o_size < DES_EXT_OUTPUT_LEN || s_size < sizeof (struct des_buffer))
     {
       errno = ERANGE;
-      return 0;
+      return;
     }
 
   /* If this is true, this function shouldn't have been called.  */
   if (*setting != '_')
     {
       errno = EINVAL;
-      return 0;
+      return;
     }
 
   struct des_buffer *buf = scratch;
@@ -344,5 +341,4 @@ crypt_des_xbsd_rn (const char *phrase, const char *setting,
   /* Proceed as for the traditional DES hash.  */
   des_set_salt (ctx, salt);
   des_gen_hash (ctx, count, cp, pkbuf);
-  return output;
 }
