@@ -63,6 +63,43 @@ crypt.h: crypt-base.h gen-crypt-h.awk config.h
 	  > crypt.h.T
 	$(AM_V_at)mv -f crypt.h.T crypt.h
 
+# When we are being binary compatible, also install symbolic links to
+# mimic SuSE's libowcrypt; any program that uses -lowcrypt in its
+# build, or already has a NEEDED entry for libowcrypt.so.1, will be
+# redirected to libcrypt.  The OW_CRYPT_1.0 symbol versions are already
+# present in libcrypt.so.1.
+#
+# Caution: this hardwires the expected (so)names of the shared
+# libraries involved, libcrypt.so.1 and libowcrypt.so.1.  (We should
+# be able to get away with this because in any circumstance where the
+# soname of libcrypt isn't libcrypt.so.1, ENABLE_OBSOLETE_API should
+# be automatically turned off, and as best I can tell, SuSE only ever
+# shipped libowcrypt.so.1.)
+if ENABLE_OBSOLETE_API
+if ENABLE_STATIC
+.PHONY: install-exec-hook-libstatic uninstall-hook-libstatic
+install-exec-hook: install-exec-hook-libstatic
+uninstall-hook: uninstall-hook-libstatic
+install-exec-hook-libstatic:
+	cd $(DESTDIR)$(libdir) && \
+		$(LN_S) libcrypt.a libowcrypt.a
+uninstall-hook-libstatic:
+	-rm -f $(DESTDIR)$(libdir)/libowcrypt.a
+endif
+if ENABLE_SHARED
+.PHONY: install-exec-hook-libshared uninstall-hook-libshared
+install-exec-hook: install-exec-hook-libshared
+uninstall-hook: uninstall-hook-libshared
+install-exec-hook-libshared:
+	cd $(DESTDIR)$(libdir) && \
+		$(LN_S) libcrypt.so libowcrypt.so && \
+		$(LN_S) libcrypt.so.1 libowcrypt.so.1
+uninstall-hook-libshared:
+	-rm -f  $(DESTDIR)$(libdir)/libowcrypt.so \
+		$(DESTDIR)$(libdir)/libowcrypt.so.1
+endif
+endif
+
 check_PROGRAMS = \
 	test-alg-sha256 test-alg-sha512 \
 	test-crypt-sha256 test-crypt-sha512 test-crypt-bcrypt \

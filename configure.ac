@@ -31,6 +31,7 @@ esac
 AC_PROG_CPP
 AC_PROG_AWK
 AC_PROG_MAKE_SET
+AC_PROG_LN_S
 AC_USE_SYSTEM_EXTENSIONS
 AC_SYS_LARGEFILE
 zw_SIMPLE_ENABLE_WARNINGS
@@ -265,7 +266,8 @@ AC_DEFINE_UNQUOTED([ENABLE_WEAK_HASHES], [$enable_weak_hashes],
   If this is 0, ENABLE_OBSOLETE_API must also be 0.])
 AM_CONDITIONAL([ENABLE_WEAK_HASHES], [test $enable_weak_hashes = 1])
 
-# The Makefile needs to know if we are building the static library.
+# The Makefile needs to know which versions of the library we are building.
 AM_CONDITIONAL([ENABLE_STATIC], [test $enable_static = yes])
+AM_CONDITIONAL([ENABLE_SHARED], [test $enable_shared = yes])
 
 AC_OUTPUT
