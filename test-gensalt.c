@@ -25,8 +25,8 @@ static const struct testcase testcases[] = {
   { "_", 9 }, // BSDi extended DES
   { "$1$", 11 }, // MD5
 #endif
-  { "$5$", 11 }, // SHA-2-256
-  { "$6$", 11 }, // SHA-2-512
+  { "$5$", 19 }, // SHA-2-256
+  { "$6$", 19 }, // SHA-2-512
   { "$2a$", 29 }, // bcrypt mode A
   { "$2b$", 29 }, // bcrypt mode B
   { "$2x$", 29 }, // bcrypt mode X

@@ -342,3 +342,67 @@ crypt_des_xbsd_rn (const char *phrase, const char *setting,
   des_set_salt (ctx, salt);
   des_gen_hash (ctx, count, cp, pkbuf);
 }
+
+void
+gensalt_des_trd_rn (unsigned long count,
+                    const uint8_t *rbytes, size_t nrbytes,
+                    uint8_t *output, size_t output_size)
+{
+  if (output_size < 3)
+    {
+      errno = ERANGE;
+      return;
+    }
+
+  if (nrbytes < 2 || (count != 0 && count != 25))
+    {
+      errno = EINVAL;
+      return;
+    }
+
+  output[0] = ascii64[(unsigned int) rbytes[0] & 0x3f];
+  output[1] = ascii64[(unsigned int) rbytes[1] & 0x3f];
+  output[2] = '\0';
+}
+
+void
+gensalt_des_xbsd_rn (unsigned long count,
+                    const uint8_t *rbytes, size_t nrbytes,
+                    uint8_t *output, size_t output_size)
+{
+  if (output_size < 1 + 4 + 4 + 1)
+    {
+      errno = ERANGE;
+      return;
+    }
+
+  if (count == 0)
+    count = 725;
+
+  /* Even iteration counts make it easier to detect weak DES keys from a look
+     at the hash, so they should be avoided.  */
+  if (nrbytes < 3 || count > 0xffffff || count % 2 == 0)
+    {
+      errno = EINVAL;
+      return;
+    }
+
+  unsigned long value =
+    ((unsigned long) (unsigned char) rbytes[0] <<  0) |
+    ((unsigned long) (unsigned char) rbytes[1] <<  8) |
+    ((unsigned long) (unsigned char) rbytes[2] << 16);
+
+  output[0] = '_';
+
+  output[1] = ascii64[(count >>  0) & 0x3f];
+  output[2] = ascii64[(count >>  6) & 0x3f];
+  output[3] = ascii64[(count >> 12) & 0x3f];
+  output[4] = ascii64[(count >> 18) & 0x3f];
+
+  output[5] = ascii64[(value >>  0) & 0x3f];
+  output[6] = ascii64[(value >>  6) & 0x3f];
+  output[7] = ascii64[(value >> 12) & 0x3f];
+  output[8] = ascii64[(value >> 18) & 0x3f];
+
+  output[9] = '\0';
+}

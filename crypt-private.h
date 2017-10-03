@@ -22,6 +22,13 @@
 
 #include "crypt-base.h"
 
+/* Utility functions */
+extern void gensalt_sha_rn (char tag, size_t maxsalt, unsigned long defcount,
+                            unsigned long mincount, unsigned long maxcount,
+                            unsigned long count,
+                            const uint8_t *rbytes, size_t nrbytes,
+                            uint8_t *output, size_t output_size);
+
 /* The "scratch" area passed to each of the individual hash functions is
    this big.  */
 #define ALG_SPECIFIC_SIZE 8192

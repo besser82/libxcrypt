@@ -277,3 +277,12 @@ crypt_sha256_rn (const char *phrase, const char *setting,
 
   *cp = '\0';
 }
+
+void
+gensalt_sha256_rn (unsigned long count,
+                   const uint8_t *rbytes, size_t nrbytes,
+                   uint8_t *output, size_t output_size)
+{
+  gensalt_sha_rn ('5', SALT_LEN_MAX, ROUNDS_DEFAULT, ROUNDS_MIN, ROUNDS_MAX,
+                  count, rbytes, nrbytes, output, output_size);
+}

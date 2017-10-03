@@ -211,3 +211,12 @@ crypt_md5_rn (const char *phrase, const char *setting,
 
   *cp = '\0';
 }
+
+void
+gensalt_md5_rn (unsigned long count,
+                const uint8_t *rbytes, size_t nrbytes,
+                uint8_t *output, size_t output_size)
+{
+  gensalt_sha_rn ('1', 8, 1000, 1000, 1000,
+                  count, rbytes, nrbytes, output, output_size);
+}
