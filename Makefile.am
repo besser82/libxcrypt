@@ -14,6 +14,8 @@ EXTRA_DIST = \
 	libcrypt.map.in libcrypt.minver \
 	gen-map.awk gen-vers.awk gen-crypt-h.awk
 
+notrans_dist_man3_MANS = crypt_rn.3
+
 nodist_include_HEADERS = crypt.h
 noinst_HEADERS = \
 	alg-des.h alg-md5.h alg-sha256.h alg-sha512.h byteorder.h \
