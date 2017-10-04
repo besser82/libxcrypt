@@ -201,7 +201,7 @@ void *
 sha512_finish_ctx (struct sha512_ctx *ctx, void *resbuf)
 {
   /* Take yet unprocessed bytes into account.  */
-  uint64_t bytes = ctx->buflen;
+  uint32_t bytes = ctx->buflen;
   size_t pad;
   unsigned int i;
   unsigned char *rp = resbuf;
@@ -242,8 +242,8 @@ sha512_process_bytes (const void *buffer, size_t len, struct sha512_ctx *ctx)
      both inputs first.  */
   if (ctx->buflen != 0)
     {
-      size_t left_over = ctx->buflen;
-      size_t add = 256 - left_over > len ? len : 256 - left_over;
+      uint32_t left_over = ctx->buflen;
+      uint32_t add = 256 - left_over > len ? (uint32_t)len : 256 - left_over;
 
       memcpy (&ctx->buffer[left_over], buffer, add);
       ctx->buflen += add;
@@ -283,6 +283,6 @@ sha512_process_bytes (const void *buffer, size_t len, struct sha512_ctx *ctx)
           left_over -= 128;
           memcpy (ctx->buffer, &ctx->buffer[128], left_over);
         }
-      ctx->buflen = left_over;
+      ctx->buflen = (uint32_t)left_over;
     }
 }

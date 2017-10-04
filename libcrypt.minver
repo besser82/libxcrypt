@@ -32,7 +32,7 @@ nios2.*		GLIBC_2.21
 microblaze.*	GLIBC_2.18
 powerpc64le.*	GLIBC_2.17
 aarch64.*	GLIBC_2.17
-x86_64.*	GLIBC_2.16	/* x32 */ ULONG_MAX == UINT_MAX
+x86_64.*	GLIBC_2.16	/* x32 */ __x86_64__ && ULONG_MAX == UINT_MAX
 tilepro.*	GLIBC_2.12
 tilegx.*	GLIBC_2.12
 m68k.*		GLIBC_2.4	/* coldfire */ defined __mcoldfire__

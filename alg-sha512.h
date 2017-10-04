@@ -27,7 +27,7 @@ struct sha512_ctx
   uint64_t H[8];
 
   uint64_t total[2];
-  uint64_t buflen;
+  uint32_t buflen;
   unsigned char buffer[256];
 };
 

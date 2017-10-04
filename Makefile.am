@@ -39,6 +39,7 @@ libcrypt_la_LDFLAGS = \
 	-Wl,-z,defs -Wl,-z,text
 libcrypt_la_CPPFLAGS = $(AM_CPPFLAGS) -DIN_LIBCRYPT
 
+CONFIG_STATUS_DEPENDENCIES = libcrypt.minver
 EXTRA_libcrypt_la_DEPENDENCIES = libcrypt.map
 CLEANFILES = libcrypt.map libcrypt.map.T \
 	crypt-symbol-vers.h crypt-symbol-vers.h.T \
