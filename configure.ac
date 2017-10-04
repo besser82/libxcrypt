@@ -56,7 +56,8 @@ AM_CONDITIONAL([HAVE_CPP_dD], [test $ac_cv_prog_cc_dD = yes])
 # Checks for libraries.
 
 # Checks for header files.
-AC_CHECK_HEADERS_ONCE([stdbool.h sys/cdefs.h ucontext.h])
+AC_CHECK_HEADERS_ONCE(
+  [fcntl.h stdbool.h sys/cdefs.h sys/random.h sys/syscall.h ucontext.h])
 
 # stdint.h and inttypes.h were checked for by AC_INCLUDES_DEFAULT,
 # invoked implicitly by the above.
@@ -123,6 +124,8 @@ zw_C_MAX_ALIGN_T
 zw_C_STATIC_ASSERT
 
 # Checks for library functions.
+AC_CHECK_FUNCS_ONCE([arc4random_buf getentropy getrandom syscall])
+
 # The ucontext.h functions that we use were withdrawn from
 # POSIX.1-2008, so the existence of the header does not prove
 # we can use the functions.

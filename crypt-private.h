@@ -23,6 +23,9 @@
 #include "crypt-base.h"
 
 /* Utility functions */
+
+bool get_random_bytes (void *buf, size_t buflen);
+
 extern void gensalt_sha_rn (char tag, size_t maxsalt, unsigned long defcount,
                             unsigned long mincount, unsigned long maxcount,
                             unsigned long count,

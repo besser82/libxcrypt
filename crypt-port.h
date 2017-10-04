@@ -156,6 +156,7 @@ typedef union
 #define gensalt_sha_rn           _crypt_gensalt_sha_rn
 #define gensalt_sha256_rn        _crypt_gensalt_sha256_rn
 #define gensalt_sha512_rn        _crypt_gensalt_sha512_rn
+#define get_random_bytes         _crypt_get_random_bytes
 #define crypt_sha256_rn          _crypt_crypt_sha256_rn
 #define crypt_sha512_rn          _crypt_crypt_sha512_rn
 #define sha256_finish_ctx        _crypt_sha256_finish_ctx

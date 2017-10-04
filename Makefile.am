@@ -24,7 +24,7 @@ lib_LTLIBRARIES = libcrypt.la
 libcrypt_la_SOURCES = \
 	crypt.c crypt-static.c crypt-gensalt.c crypt-gensalt-static.c \
 	crypt-bcrypt.c crypt-sha512.c crypt-sha256.c \
-	alg-sha512.c alg-sha256.c
+	alg-sha512.c alg-sha256.c randombytes.c
 
 # Build libcrypt.so.2 if obsolete APIs are excluded, libcrypt.so.1 otherwise.
 if ENABLE_OBSOLETE_API

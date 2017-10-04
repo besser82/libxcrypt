@@ -1,6 +1,7 @@
 #include "crypt-port.h"
 #include "crypt-base.h"
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -46,7 +47,7 @@ main (void)
   for (tcase = testcases; tcase->prefix; tcase++)
     {
       memset (prev_output, 0, CRYPT_GENSALT_OUTPUT_SIZE);
-      for (ent = 0; entropy[ent]; ent++)
+      for (ent = 0; ent < (sizeof entropy / sizeof entropy[0]); ent++)
         {
           memset (output, 0, CRYPT_GENSALT_OUTPUT_SIZE);
           char *salt = crypt_gensalt_rn (tcase->prefix, 0,
@@ -54,8 +55,16 @@ main (void)
                                          output, CRYPT_GENSALT_OUTPUT_SIZE);
           if (salt == 0)
             {
-              fprintf (stderr, "ERROR: %s/%u -> 0\n", tcase->prefix, ent);
-              status = 1;
+              if (entropy[ent] == 0 && errno == ENOSYS)
+                {
+                  fprintf (stderr, "UNSUPPORTED: %s/auto-entropy -> ENOSYS\n",
+                           tcase->prefix);
+                }
+              else
+                {
+                  fprintf (stderr, "ERROR: %s/%u -> 0\n", tcase->prefix, ent);
+                  status = 1;
+                }
               continue;
             }
           size_t slen = strlen (salt);
@@ -87,6 +96,25 @@ main (void)
           strncpy (prev_output, salt, CRYPT_GENSALT_OUTPUT_SIZE);
         }
     }
+
+  /* Currently, passing a null pointer as the prefix argument to
+     crypt_gensalt is supposed to produce a bcrypt-mode-2a setting
+     string.  */
+  {
+    char *setting1, *setting2;
+    setting1 = crypt_gensalt_ra ("$2a$", 0, entropy[0], 16);
+    setting2 = crypt_gensalt_ra (0, 0, entropy[0], 16);
+    if (strcmp (setting1, setting2))
+      {
+        printf ("FAILED: crypt_gensalt defaulting to $2a$\n"
+                "  $2a$ -> %s\n"
+                "  null -> %s\n",
+                setting1, setting2);
+        status = 1;
+      }
+    free (setting1);
+    free (setting2);
+  }
 
   /* FIXME: This test is a little too specific.  It used to be in
      test-bcrypt.c and I'm not sure what it's meant to be testing.  */

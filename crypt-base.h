@@ -147,7 +147,11 @@ extern char *crypt_ra (const char *__phrase, const char *__setting,
    new passphrase.  PREFIX controls which hash function will be used,
    COUNT controls the computational cost of the hash (for functions
    where this is tunable), and RBYTES should point to NRBYTES bytes of
-   random data.
+   random data.  If PREFIX is a null pointer, the current best default
+   is used; if RBYTES is a null pointer, random data will be retrieved
+   from the operating system if possible.  (Caution: setting PREFIX to
+   an *empty string* selects the use of the oldest and least secure
+   hash in the library.  Don't do that.)
 
    The string returned is stored in a statically-allocated buffer, and
    will be overwritten if the function is called again.  It is not
@@ -161,7 +165,7 @@ extern char *crypt_ra (const char *__phrase, const char *__setting,
    this function returns a null pointer.  */
 extern char *crypt_gensalt (const char *__prefix, unsigned long __count,
                             const char *__rbytes, int __nrbytes)
-  __THROW __nonnull ((1, 3));
+  __THROW;
 
 /* Thread-safe version of crypt_gensalt; instead of a
    statically-allocated buffer, the generated setting string is
@@ -173,14 +177,14 @@ extern char *crypt_gensalt (const char *__prefix, unsigned long __count,
 extern char *crypt_gensalt_rn (const char *__prefix, unsigned long __count,
                                const char *__rbytes, int __nrbytes,
                                char *__output, int __output_size)
-  __THROW __nonnull ((1, 5));
+  __THROW __nonnull ((5));
 
 /* Another thread-safe version of crypt_gensalt; the generated setting
    string is in storage allocated by malloc, and should be deallocated
    with free when it is no longer needed.  */
 extern char *crypt_gensalt_ra (const char *__prefix, unsigned long __count,
                                const char *__rbytes, int __nrbytes)
-  __THROW __nonnull ((1));
+  __THROW;
 
 /*TRAILER*/
 

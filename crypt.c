@@ -353,6 +353,8 @@ crypt_gensalt_rn (const char *prefix, unsigned long count,
                   const char *rbytes, int nrbytes, char *output,
                   int output_size)
 {
+  char internal_rbytes[16];
+
   make_failure_token ("", output, output_size);
 
   /* Individual gensalt functions will check for adequate space for
@@ -365,18 +367,34 @@ crypt_gensalt_rn (const char *prefix, unsigned long count,
       return 0;
     }
 
-  /* Empty rbytes may be supported on some platforms in the future.
-     Individual gensalt functions will check for sufficient random bits
-     for their own breed of setting, but the shortest possible one has
-     64**2 = 4096 possibilities, which requires two bytes of input.  */
-  if (!rbytes || nrbytes < 2)
+  /* If the prefix is 0, that means to use the current best default.
+     Note that this is different from the behavior when the prefix is
+     "", which selects DES.  */
+  if (!prefix)
+    prefix = tagged_hashes[0].prefix;
+
+  const struct hashfn *h = get_hashfn (prefix);
+  if (!h)
     {
       errno = EINVAL;
       return 0;
     }
 
-  const struct hashfn *h = get_hashfn (prefix);
-  if (!h)
+  /* If rbytes is 0, read random bytes from the operating system if
+     possible.  */
+  if (!rbytes)
+    {
+      if (!get_random_bytes(internal_rbytes, sizeof internal_rbytes))
+        return 0;
+
+      rbytes = internal_rbytes;
+      nrbytes = sizeof internal_rbytes;
+    }
+
+  /* Individual gensalt functions will check for sufficient random bits
+     for their own breed of setting, but the shortest possible one has
+     64**2 = 4096 possibilities, which requires two bytes of input.  */
+  if (nrbytes < 2)
     {
       errno = EINVAL;
       return 0;
