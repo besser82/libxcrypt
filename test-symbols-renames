@@ -16,8 +16,9 @@ LC_ALL=C; export LC_ALL
 list_library_internals ()
 {
     eval $(grep old_library= "$1")
-    nm -o "${1%/*}/.libs/${old_library}" |
-        grep ' [A-TV-Z] ' | cut -d' ' -f3 | sort -u | grep '^_crypt_'
+    nm -og "${1%/*}/.libs/${old_library}" |
+        grep -v ' U ' | cut -d' ' -f3 | sort -u |
+        grep '^_crypt_'
     unset old_library
 }
 

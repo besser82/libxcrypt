@@ -14,8 +14,8 @@ LC_ALL=C; export LC_ALL
 
 get_symbols_with_versions ()
 {
-    nm --dynamic --with-symbol-versions "$1" |
-        grep ' [A-TV-Z] ' | cut -d' ' -f3 |
+    nm -gD --with-symbol-versions "$1" |
+        grep -v ' U ' | cut -d' ' -f3 |
         sed -e 's/@@*/ /; /^\([A-Z0-9_.]*\) \1$/d' |
         sort -u
 }
