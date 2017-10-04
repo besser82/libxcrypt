@@ -281,7 +281,7 @@ des_init(void)
 }
 
 static void
-write_table_u8(size_t m, size_t n, uint8_t tbl[m][n], const char *name)
+write_table_u8(size_t m, size_t n, const uint8_t *tbl, const char *name)
 {
   printf("\nconst uint8_t %s[%zu][%zu] = {\n", name, m, n);
   for (size_t i = 0; i < m; i++)
@@ -291,7 +291,7 @@ write_table_u8(size_t m, size_t n, uint8_t tbl[m][n], const char *name)
         {
           if (j % 12 == 0)
             fputs("\n   ", stdout);
-          printf(" 0x%02x,", (unsigned int)tbl[i][j]);
+          printf(" 0x%02x,", (unsigned int)tbl[i*n + j]);
         }
       puts("\n  },");
     }
@@ -299,7 +299,7 @@ write_table_u8(size_t m, size_t n, uint8_t tbl[m][n], const char *name)
 }
 
 static void
-write_table_u32(size_t m, size_t n, uint32_t tbl[m][n], const char *name)
+write_table_u32(size_t m, size_t n, const uint32_t *tbl, const char *name)
 {
   printf("\nconst uint32_t %s[%zu][%zu] = {\n", name, m, n);
   for (size_t i = 0; i < m; i++)
@@ -309,7 +309,7 @@ write_table_u32(size_t m, size_t n, uint32_t tbl[m][n], const char *name)
         {
           if (j % 6 == 0)
             fputs("\n   ", stdout);
-          printf(" 0x%08"PRIx32",", tbl[i][j]);
+          printf(" 0x%08"PRIx32",", tbl[i*n + j]);
         }
       puts("\n  },");
     }
@@ -326,17 +326,17 @@ main(void)
        "#include \"crypt-port.h\"\n"
        "#include \"alg-des.h\"");
 
-  write_table_u8(4, 4096, m_sbox_, "m_sbox");
+  write_table_u8(4, 4096, &m_sbox_[0][0], "m_sbox");
 
-  write_table_u32(8, 256, ip_maskl_, "ip_maskl");
-  write_table_u32(8, 256, ip_maskr_, "ip_maskr");
-  write_table_u32(8, 256, fp_maskl_, "fp_maskl");
-  write_table_u32(8, 256, fp_maskr_, "fp_maskr");
+  write_table_u32(8, 256, &ip_maskl_[0][0], "ip_maskl");
+  write_table_u32(8, 256, &ip_maskr_[0][0], "ip_maskr");
+  write_table_u32(8, 256, &fp_maskl_[0][0], "fp_maskl");
+  write_table_u32(8, 256, &fp_maskr_[0][0], "fp_maskr");
 
-  write_table_u32(8, 128, key_perm_maskl_, "key_perm_maskl");
-  write_table_u32(8, 128, key_perm_maskr_, "key_perm_maskr");
-  write_table_u32(8, 128, comp_maskl_, "comp_maskl");
-  write_table_u32(8, 128, comp_maskr_, "comp_maskr");
+  write_table_u32(8, 128, &key_perm_maskl_[0][0], "key_perm_maskl");
+  write_table_u32(8, 128, &key_perm_maskr_[0][0], "key_perm_maskr");
+  write_table_u32(8, 128, &comp_maskl_[0][0], "comp_maskl");
+  write_table_u32(8, 128, &comp_maskr_[0][0], "comp_maskr");
 
-  write_table_u32(4, 256, psbox_, "psbox");
+  write_table_u32(4, 256, &psbox_[0][0], "psbox");
 }

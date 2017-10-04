@@ -102,7 +102,7 @@ AC_ARG_ENABLE(
         -Wstrict-overflow=2 dnl
         -Wstrict-prototypes dnl
         -Wundef dnl
-        dnl -Wvla dnl used on purpose in des-mktables.c
+        -Wvla dnl
         -Wwrite-strings dnl
     "
     if test x$ac_prog_cc_stdc = xc11; then
