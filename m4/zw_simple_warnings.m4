@@ -1,12 +1,36 @@
 # serial 1
+dnl Copyright 2017 Zack Weinberg <zackw at panix.com>.
+dnl Partially based on Autoconf, copyright 1992-2017 Free Software Foundation.
+dnl
+dnl This program is free software; you can redistribute it and/or
+dnl modify it under the terms of the GNU General Public License as
+dnl published by the Free Software Foundation, either version 3 of the
+dnl License, or (at your option) any later version.
+dnl
+dnl This program is distributed in the hope that it will be useful,
+dnl but WITHOUT ANY WARRANTY; without even the implied warranty of
+dnl MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+dnl GNU General Public License for more details.
+dnl
+dnl Under Section 7 of GPL version 3, you are granted additional
+dnl permissions described in the Autoconf Configure Script Exception,
+dnl version 3.0, as published by the Free Software Foundation.
+dnl
+dnl Because only two files in this source tree are released
+dnl under GPLv3 with exceptions, neither the GPLv3 nor the exception are
+dnl distributed with this source tree.  Copies can be retrieved from
+dnl https://www.gnu.org/licenses/
+dnl
 dnl Autoconf core has no good way of enabling compiler warnings.
 dnl This is a cut-down version of the elaborate thing in the extras
 dnl archive, which we do not need nearly all of.
+dnl
 dnl Partly based on:
-dnl http://www.gnu.org/software/autoconf-archive/ax_append_flag.html
-dnl http://www.gnu.org/software/autoconf-archive/ax_check_compile_flag.html
-dnl http://www.gnu.org/software/autoconf-archive/ax_append_compile_flags.html
-dnl http://www.gnu.org/software/autoconf-archive/ax_compiler_flags_cflags.html
+dnl https://www.gnu.org/software/autoconf-archive/ax_append_flag.html
+dnl https://www.gnu.org/software/autoconf-archive/ax_check_compile_flag.html
+dnl https://www.gnu.org/software/autoconf-archive/ax_append_compile_flags.html
+dnl https://www.gnu.org/software/autoconf-archive/ax_compiler_flags_cflags.html
+
 AC_PREREQ(2.64)dnl for _AC_LANG_PREFIX and AS_VAR_IF
 
 AC_DEFUN([AX_CHECK_COMPILE_FLAG],

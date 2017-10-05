@@ -1,5 +1,23 @@
-#ifndef _CRYPT_SYMBOLS_H
-#define _CRYPT_SYMBOLS_H 1
+/* Portability glue for libcrypt.
+
+   Copyright 2007-2017 Thorsten Kukuk and Zack Weinberg
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public License
+   as published by the Free Software Foundation; either version 2.1 of
+   the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, see
+   <https://www.gnu.org/licenses/>.  */
+
+#ifndef _CRYPT_PORT_H
+#define _CRYPT_PORT_H 1
 
 #ifndef HAVE_CONFIG_H
 #error "Run configure before compiling; see INSTALL for instructions"

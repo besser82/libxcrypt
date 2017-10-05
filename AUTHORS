@@ -12,9 +12,10 @@ The DES hash module was originally FreeSec, written by David Burren
 <davidb at werj.com.au> for the NetBSD project, and since extensively
 modified by Geoffrey M. Rehmet, Mark R V Murray, and Zack Weinberg.
 
-The extended crypt_* interfaces also originated with crypt_blowfish,
-but their implementation in this library has been totally rewritten
-since then, mostly by Björn Esser and Zack Weinberg.
+The implementation of the public interface (crypt, crypt_r, etc) is a
+mashup of code from the GNU C Library with code from crypt_blowfish,
+originally put together by Thorsten Kukuk and since completely
+rewritten by Björn Esser and Zack Weinberg.
 
 The above components were assembled into this library by Thorsten Kukuk
 <kukuk at suse.de>, Björn Esser <besser72 at fedoraproject.org>, and

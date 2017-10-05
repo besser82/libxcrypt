@@ -1,13 +1,22 @@
-# Generate a version map file from a .map.in file.  The .map.in file
-# is the first input file, and we expect the Makefile to have set the
-# variables SYMVER_MIN and SYMVER_FLOOR.  All symbol versions lower
-# than SYMVER_MIN are discarded from the output.  All symbol versions
-# lower than SYMVER_FLOOR are replaced with SYMVER_FLOOR.
-# SYMVER_FLOOR must be greater than or equal to SYMVER_MIN.
+# Generate a version map file from a .map.in file.
+#
+# Written by Zack Weinberg <zackw at panix.com> in 2017.
+# To the extent possible under law, Zack Weinberg has waived all
+# copyright and related or neighboring rights to this work.
+#
+# See https://creativecommons.org/publicdomain/zero/1.0/ for further
+# details.
+
+# The .map.in file is the first input file, and we expect the Makefile
+# to have set the variables SYMVER_MIN and SYMVER_FLOOR.  All symbol
+# versions lower than SYMVER_MIN are discarded from the output.
+# All symbol versions lower than SYMVER_FLOOR are replaced with
+# SYMVER_FLOOR.  SYMVER_FLOOR must be greater than or equal to SYMVER_MIN.
+#
 # The ordering of symbol versions is entirely controlled by the %chain
-# directive, which must therefore list both all of the versions actually
-# used for symbols, and all of the versions that might be used as
-# SYMVER_MIN or SYMVER_FLOOR.
+# directive, which must therefore list both all of the versions
+# actually used for symbols, and all of the versions that might be
+# used as SYMVER_MIN or SYMVER_FLOOR.
 #
 # Note: if you change the format of .map.in files you probably need to
 # update gen-vers.awk too.

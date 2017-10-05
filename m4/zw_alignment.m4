@@ -1,3 +1,10 @@
+dnl Written by Zack Weinberg <zackw at panix.com> in 2017.
+dnl To the extent possible under law, Zack Weinberg has waived all
+dnl copyright and related or neighboring rights to this work.
+dnl
+dnl See https://creativecommons.org/publicdomain/zero/1.0/ for further
+dnl details.
+dnl
 dnl Find out how to query and set data alignment.
 dnl Currently knows about C11's _Alignas and _Alignof,
 dnl and GCC's __attribute__ ((aligned)) and __alignof.

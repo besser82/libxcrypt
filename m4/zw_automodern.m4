@@ -1,3 +1,25 @@
+dnl Copyright 2017 Zack Weinberg <zackw at panix.com>.
+dnl Partially based on Autoconf, copyright 1992-2017 Free Software Foundation.
+dnl
+dnl This program is free software; you can redistribute it and/or
+dnl modify it under the terms of the GNU General Public License as
+dnl published by the Free Software Foundation, either version 3 of the
+dnl License, or (at your option) any later version.
+dnl
+dnl This program is distributed in the hope that it will be useful,
+dnl but WITHOUT ANY WARRANTY; without even the implied warranty of
+dnl MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+dnl GNU General Public License for more details.
+dnl
+dnl Under Section 7 of GPL version 3, you are granted additional
+dnl permissions described in the Autoconf Configure Script Exception,
+dnl version 3.0, as published by the Free Software Foundation.
+dnl
+dnl Because only two files in this source tree are released
+dnl under GPLv3 with exceptions, neither the GPLv3 nor the exception are
+dnl distributed with this source tree.  Copies can be retrieved from
+dnl https://www.gnu.org/licenses/
+dnl
 dnl As of this writing (September 2017), Autoconf 2.70 is not yet released.
 dnl Backport some improvements:
 dnl  - switch AC_CHECK_HEADER to compile-only

@@ -1,6 +1,6 @@
 /*
  * Written by Solar Designer and placed in the public domain.
- * See bcrypt.c for more information.
+ * See crypt-bcrypt.c for more information.
  *
  * This file contains setting-string generation code shared among the
  * MD5, SHA256, and SHA512 hash algorithms, which use very similar

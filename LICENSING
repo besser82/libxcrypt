@@ -1,97 +1,42 @@
+# Detailed copyright and licensing information for libxcrypt
 
-blowfish:
-/*
- * This code comes from John the Ripper password cracker, with reentrant
- * and crypt(3) interfaces added, but optimizations specific to password
- * cracking removed.
- *
- * Written by Solar Designer <solar@openwall.com> in 1998-2002, and placed
- * in the public domain.
- *
- * There's absolutely no warranty.
- *
- * It is my intent that you should be able to use this on your system,
- * as a part of a software package, or anywhere else to improve security,
- * ensure compatibility, or for any other purpose. I would appreciate
- * it if you give credit where it is due and keep your modifications in
- * the public domain as well, but I don't require that in order to let
- * you place this code and any modifications you make under a license
- * of your choice.
- *
- * This implementation is compatible with OpenBSD bcrypt.c (version 2a)
- * by Niels Provos <provos@physnet.uni-hamburg.de>, and uses some of his
- * ideas. The password hashing algorithm was designed by David Mazieres
- * <dm@lcs.mit.edu>.
- *
- * There's a paper on the algorithm that explains its design decisions:
- *
- *      http://www.usenix.org/events/usenix99/provos.html
- *
- * Some of the tricks in BF_ROUND might be inspired by Eric Young's
- * Blowfish library (I can't be sure if I would think of something if I
- * hadn't seen his code).
- */
+The overall license for libxcrypt is the GNU Lesser General Public
+License, version 2.1 (or, at your option, any later version); see
+the file COPYING.LIB for the full terms of this license.
 
-SHA:
-/*
- * SHA-1 in C
- * By Steve Reid <steve@edmweb.com>
- * 100% Public Domain
- *
- * Test Vectors (from FIPS PUB 180-1)
- * "abc"
- *   A9993E36 4706816A BA3E2571 7850C26C 9CD0D89D
- * "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"
- *   84983E44 1C3BD26E BAAE4AA1 F95129E5 E54670F1
- * A million repetitions of "a"
- *   34AA973C D4C4DAA4 F61EEB2B DBAD2731 6534016F
-*/
+Many individual files are under other licenses.  This file provides an
+inventory of the copyright holders and licenses of all files in the
+source tree.  For specific licensing terms consult the files themselves.
 
-MD5/DES:
-/* Functions to compute MD5 message digest of files or memory blocks.
-   according to the definition of MD5 in RFC 1321 from April 1992.
-   Copyright (C) 1995,1996,1997,1999,2000,2001 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
+ * Copyright Thorsten Kukuk, Björn Esser, Zack Weinberg; LGPL (v2.1 or later):  
+   crypt.c, crypt-static.c, crypt-gensalt-static.c, crypt-port.h
 
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
+ * Copyright Free Software Foundation, Inc.; LGPL (v2.1 or later):  
+   crypt-base.h, crypt-obsolete.h, crypt-private.h
+   alg-md5.h, alg-md5.c, crypt-md5.c,
+   alg-sha256.h, alg-sha256.c, crypt-sha256.c,
+   alg-sha512.h, alg-sha512.c, crypt-sha256.c
 
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
+ * Copyright David Burren et al.; 3-clause BSD:  
+   alg-des.h, alg-des.c, crypt-des.c, crypt-des-obsolete.c, gen-des-tables.c
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-   02111-1307 USA.  */
+ * Public domain, written by Solar Designer et al.:  
+   crypt-bcrypt.c, crypt-gensalt.c, test-crypt-bcrypt.c
 
-UFC-crypt:
-/*
- * UFC-crypt: ultra fast crypt(3) implementation
- *
- * Copyright (C) 1991, 1992, 1993, 1996 Free Software Foundation, Inc.
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Library General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Library General Public License for more details.
- *
- * You should have received a copy of the GNU Library General Public
- * License along with this library; see the file COPYING.LIB.  If not,
- * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
- *
- * @(#)crypt.c  2.25 12/20/96
- *
- * Semiportable C version
- *
- */
+ * Public domain, written by Zack Weinberg et al.:  
+   byteorder.h, randombytes.c, test-byteorder.c
+   gen-crypt-h.awk, gen-map.awk, gen-vers.awk
+   test-symbols-compat, test-symbols-renames, test-symbols-static
+   m4/zw_alignment.m4, m4/zw_static_assert.m4
 
+ * Copyright Zack Weinberg and Free Software Foundation, Inc;
+   GPL (v3 or later), with Autoconf exception:  
+   m4/zw_automodern.m4, m4/zw_simple_warnings.m4
+
+ * Copyright holders unknown, no statement of license (all of these
+   files are part of the testsuite and do not contribute to the
+   installed library or its headers):  
+   test-alg-des.c, test-alg-md5.c, test-alg-sha256.c,
+   test-alg-sha512.c, test-crypt-des.c, test-crypt-md5.c,
+   test-crypt-sha256.c, test-crypt-sha512.c, test-des-cases.h,
+   test-des-obsolete.c, test-gensalt.c

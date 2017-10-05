@@ -1,3 +1,10 @@
+dnl Written by Zack Weinberg <zackw at panix.com> in 2017.
+dnl To the extent possible under law, Zack Weinberg has waived all
+dnl copyright and related or neighboring rights to this work.
+dnl
+dnl See https://creativecommons.org/publicdomain/zero/1.0/ for further
+dnl details.
+dnl
 dnl Check for static_assert in <assert.h>; failing that, check for intrinsic
 dnl support for C11 _Static_assert.
 dnl assert.h itself is in C89 and does not need to be probed for;

@@ -6,8 +6,6 @@ to-do list for libxcrypt
   * Yank the "DES Encryption and Password Handling" section from the
     GNU C Library manual and stick it in here as an independent Info
     doc (with rewrites ditto)
-  * Make sure all files have appropriate license boilerplate
-  * Make sure AUTHORS and LICENSING are comprehensive
   * Validate backward compatibility on as many Linux distributions as
     possible
 
@@ -21,6 +19,8 @@ to-do list for libxcrypt
   * Make the crypt and crypt_gensalt static state thread-specific?
     * if allocated on first use, this would also shave 32kB of
       data segment off the shared library
+  * Attempt to determine the copyright holders and intended licensing
+    of the test suite
 
 * Longer term:
   * Hash algorithms newer than bcrypt tend to want to allocate and

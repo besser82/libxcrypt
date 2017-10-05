@@ -1,3 +1,12 @@
+# Generation of crypt.h from crypt-base.h and config.h.
+#
+# Written by Zack Weinberg <zackw at panix.com> in 2017.
+# To the extent possible under law, Zack Weinberg has waived all
+# copyright and related or neighboring rights to this work.
+#
+# See https://creativecommons.org/publicdomain/zero/1.0/ for further
+# details.
+
 BEGIN {
     HAVE_SYS_CDEFS_H = 0
     HAVE_SYS_CDEFS_BEGIN_END_DECLS = 0

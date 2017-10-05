@@ -1,19 +1,12 @@
 /* Functions to copy data between possibly-unaligned byte buffers
- * and machine integers, fixing the endianness.
- *
- * Written by Zack Weinberg <zackw at panix.com> in 2017.
- *
- * No copyright is claimed, and the software is hereby placed in the public
- * domain.  In case this attempt to disclaim copyright and place the software
- * in the public domain is deemed null and void, then the software is
- * Copyright (c) 2017 Zack Weinberg and it is hereby released to the
- * general public under the following terms:
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted.
- *
- * There's ABSOLUTELY NO WARRANTY, express or implied.
- */
+   and machine integers, fixing the endianness.
+
+   Written by Zack Weinberg <zackw at panix.com> in 2017.
+   To the extent possible under law, Zack Weinberg has waived all
+   copyright and related or neighboring rights to this work.
+
+   See https://creativecommons.org/publicdomain/zero/1.0/ for further
+   details.  */
 
 #ifndef _CRYPT_BYTEORDER_H
 #define _CRYPT_BYTEORDER_H 1
