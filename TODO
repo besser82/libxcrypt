@@ -8,6 +8,10 @@ to-do list for libxcrypt
     doc (with rewrites ditto)
   * Validate backward compatibility on as many Linux distributions as
     possible
+  * Make sure the symbol versioning macros work with all of the compilers
+    that anyone needs (they use GCC extensions that clang also supports).
+  * Update NEWS
+  * Update or delete ChangeLog
 
 * Near future:
   * Update all of the default cost parameters

@@ -47,7 +47,11 @@ maintainers, so please be patient.
 Portability Notes
 -----------------
 
-libxcrypt should be buildable with any ISO C1999-compliant C compiler.
+libxcrypt should be buildable with any ISO C1999-compliant C compiler,
+with one critical exception: the symbol versioning macros in
+crypt-port.h only work with compilers that implement certain GCC/GNU
+Binutils extensions (.symver, __asm__, and __attribute__((alias))).
+
 A few C2011 features are used; the intention is not to use any of them
 without a fallback, but we do not currently test this.  A few POSIX
 and nonstandard-but-widespread Unix APIs are also used; again, the
