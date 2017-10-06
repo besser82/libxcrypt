@@ -23,6 +23,10 @@ to-do list for libxcrypt
   * Make the crypt and crypt_gensalt static state thread-specific?
     * if allocated on first use, this would also shave 32kB of
       data segment off the shared library
+  * Factor out all of the repetitive base64 code
+    * get rid of the de/serialization code in crypt-bcrypt.c that
+      still does dodgy things with type punning
+  * Fix cross compilation (need to use `CC_FOR_BUILD` for alg-des-mktables)
   * Attempt to determine the copyright holders and intended licensing
     of the test suite
 
