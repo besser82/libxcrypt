@@ -1,16 +1,60 @@
 libxcrypt NEWS -- history of user-visible changes.
 
-Copyright (C) 2002, 2003, 2004 SuSE Linux AG, Germany
-Copyright (C) 2005, 2008, 2009 2011 SUSE LINUX Products GmbH, Germany
-Copyright (C) 2015 Björn Esser <besser82@fedoraproject.org>
-
 Please send bug reports, questions and suggestions to
-<besser82@fedoraproject.org>.
+<https://github.com/besser82/libxcrypt/issues>.
 
-Version 3.2.0
-* UFC-crypt replaced with FreeSec
-* extensive code cleanup and portability work
-* more thoroughly tested
+Version 4.0.0
+* Full binary backward compatibility with glibc libcrypt; all programs
+  compiled with glibc libcrypt, including vendor-patched versions that
+  include the OpenWall extensions, should work with this libcrypt
+  (however, programs compiled against this libcrypt will NOT work with
+  glibc libcrypt).
+* struct crypt_data is now only 32kB (from 128kB), and divided into a
+  public-API section and a properly opaque internal section.
+
+* New feature: supplying a null pointer as the "prefix" argument to
+  any of the crypt_gencrypt functions will cause it to select the best
+  available hash function (in this release, bcrypt in mode 'a').
+  CAUTION: it must be a null pointer, not an empty string.  If you
+  supply an empty string, that selects DES, which is the *worst*
+  available hash function.
+* New feature: supplying a null pointer as the "rbytes" argument to
+  any of the crypt_gencrypt functions will cause it to acquire random
+  bytes from the operating system.
+
+* The legacy functions bigcrypt, fcrypt, encrypt, encrypt_r,
+  setkey, and setkey_r are no longer available for use by new programs.
+  All of these (except fcrypt, which was just another name for crypt)
+  force the use of DES, which is no longer safe for any application.
+* New configure option --disable-obsolete-api removes the above
+  functions from the library.  Since this breaks compatibility with
+  glibc's libcrypt, when this option is used the shared library will
+  be libcrypt.so.2 instead of libcrypt.so.1, and all of the
+  compatibility symbol versions for the crypt* functions will be
+  omitted.  This option is the default on all operating systems where
+  there is no GNU C Library to be compatible with.
+* New configure option --disable-weak-hashes removes all support for
+  DES and MD5 hashes from the library.  This option implies
+  --disable-obsolete-api, and will prevent DES and MD5 password hashes
+  from being *verified* -- accounts with such hashes are effectively
+  locked.  It is intended for use in high-security new installations.
+
+* Sensitive intermediate data is now thoroughly scrubbed from the
+  stack and CPU registers before the crypt functions return to their
+  callers.
+* UFC-crypt has been replaced with FreeSec; this enables the reduction in
+  size of crypt_data, and adds full support for BSD extended DES hashes.
+* Extensive code cleanup and portability work.  The static library
+  should now be buildable with any C99 compiler, although some
+  features may not be available (notably acquiring random bytes from
+  the operating system and scrubbing the stack).  The shared library
+  does still require some GNU extensions for symbol versioning.
+* The configure options --enable-Wno-cast-align and --enable-bootstrap
+  are no longer necessary and have been removed.
+* If building from a Git checkout instead of a tarball release, use
+  'autoreconf -i' to create the configure script; autogen.sh has been
+  removed.
+* More thoroughly tested.
 
 Version 3.1.1
 * add '--enable-Wno-cast-align' to silence 'cast increases required alignment'

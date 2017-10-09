@@ -1,7 +1,7 @@
 to-do list for libxcrypt
 ------------------------
 
-* Before releasing 3.2.0:
+* Before releasing 4.0.0:
   * Rewrite crypt_rn.3 to be consistent with the code
   * Yank the "DES Encryption and Password Handling" section from the
     GNU C Library manual and stick it in here as an independent Info
@@ -10,8 +10,6 @@ to-do list for libxcrypt
     possible
   * Make sure the symbol versioning macros work with all of the compilers
     that anyone needs (they use GCC extensions that clang also supports).
-  * Update NEWS
-  * Update or delete ChangeLog
 
 * Near future:
   * Update all of the default cost parameters
@@ -29,6 +27,7 @@ to-do list for libxcrypt
   * Fix cross compilation (need to use `CC_FOR_BUILD` for alg-des-mktables)
   * Attempt to determine the copyright holders and intended licensing
     of the test suite
+  * Moar tests
 
 * Longer term:
   * Hash algorithms newer than bcrypt tend to want to allocate and

@@ -1,8 +1,9 @@
 YYYY-MM-DD  Zack Weinberg <zackw@panix.com>
 
-	* version 3.2.0
-	* bootstrap.sh: removed (just use autoreconf -i)
-	* de-pluginified
+	* Version 4.0.0 released.
+
+	* This project no longer maintains a GNU-style ChangeLog file.
+	See the Git commit history for detailed changes since 3.1.1.
 
 2015-05-13  Björn Esser <besser82@fedoraproject.org>
 

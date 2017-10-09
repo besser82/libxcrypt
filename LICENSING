@@ -40,3 +40,12 @@ source tree.  For specific licensing terms consult the files themselves.
    test-alg-sha512.c, test-crypt-des.c, test-crypt-md5.c,
    test-crypt-sha256.c, test-crypt-sha512.c, test-des-cases.h,
    test-des-obsolete.c, test-gensalt.c
+
+ * The NEWS file formerly contained the following copyright assertions:
+
+     Copyright 2002, 2003, 2004 SuSE Linux AG, Germany
+     Copyright 2005, 2008, 2009 2011 SUSE LINUX Products GmbH, Germany
+     Copyright 2015 Björn Esser
+
+   We believe these apply to the library as a whole rather than
+   specific files or portions of files.
