@@ -1,0 +1,275 @@
+.\" Written and revised by Solar Designer <solar at openwall.com> in 2000-2011.
+.\" Revised by Zack Weinberg <zackw at panix.com> in 2017.
+.\"
+.\" No copyright is claimed, and this man page is hereby placed in the public
+.\" domain.  In case this attempt to disclaim copyright and place the man page
+.\" in the public domain is deemed null and void, then the man page is
+.\" Copyright 2000-2011 Solar Designer, 2017 Zack Weinberg, and it is
+ \" hereby released to the general public under the following terms:
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted.
+.\"
+.\" There's ABSOLUTELY NO WARRANTY, express or implied.
+.\"
+.\" This manual page in its current form is intended for use on systems
+.\" based on the GNU C Library with crypt_blowfish patched into libcrypt.
+.\"
+.TH CRYPT 5 "October 11, 2017" "Openwall Project" "File Formats and Conversions"
+.SH NAME
+crypt \- storage format for hashed passphrases and available hashing methods
+.SH DESCRIPTION
+The hashing methods implemented by
+.BR crypt (3)
+are designed only to process user passphrases for storage and authentication;
+they are not suitable for use as general-purpose cryptographic hashes.
+.PP
+Passphrase hashing is not a replacement for strong passphrases.
+It is always possible
+for an attacker with access to the hashed passphrases
+to guess and check possible cleartext passphrases.
+However, with a strong hashing method,
+guessing will be too slow for the attacker
+to discover a strong passphrase.
+.PP
+All of the hashing methods use a \(lqsalt\(rq to perturb the hash function,
+so that the same passphrase may produce many possible hashes.
+Newer methods accept longer salt strings.
+The salt should be chosen at random for each user.
+Salt defeats a number of attacks:
+.TP
+1.
+It is not possible to hash a passphrase once
+and then test it against each account's stored hash;
+the hash calculation must be repeated for each account.
+.TP
+2.
+Tables of precalculated hashes of commonly used passphrases
+must have an entry for each possible salt,
+which makes them impractically large.
+.TP
+3.
+It is not possible to tell whether two accounts use the same passphrase
+without successfully guessing one of the phrases.
+.PP
+All of the hashing methods are also deliberately engineered to be slow;
+they use many iterations of an underlying cryptographic primitive
+to increase the cost of each guess.
+The newer hashing methods allow the number of iterations to be adjusted,
+using the \(lqCPU time cost\(rq parameter to
+.BR crypt_gensalt (3).
+This makes it possible to keep the hash slow as hardware improves.
+.SH FORMAT OF HASHED PASSPHRASES
+All of the hashing methods supported by
+.I libcrypt
+produce a hashed passphrase which consists of four components:
+.IR prefix ", " options ", " salt ", and " hash.
+The prefix controls which hashing method is to be used, and is the
+appropriate string to pass to
+.B crypt_gensalt
+to select that method.
+The contents of
+.IR options ", " salt ", and " hash
+are up to the method.
+Depending on the method, the
+.IR prefix " and " options
+components may be empty.
+.PP
+The
+.I setting
+argument to
+.B crypt
+must begin with the first three components of a valid hashed passphrase,
+but anything after that is ignored.
+This makes authentication simple:
+hash the input passphrase using the stored passphrase as the setting,
+and then compare the result to the stored passphrase.
+.PP
+Hashed passphrases are always entirely printable ASCII,
+and do not contain any whitespace
+or the characters \(oq\fB:\fR\(cq,
+\(oq\fB;\fR\(cq,
+\(oq\fB*\fR\(cq,
+\(oq\fB!\fR\(cq, or
+\(oq\fB\e\fR\(cq.
+(These characters are used as delimiters and special markers in the
+.BR passwd (5)
+and
+.BR shadow (5)
+files.)
+.PP
+The syntax of each component of a hashed passphrase
+is up to the hashing method.
+\(oq\fB$\fR\(cq characters
+usually delimit components,
+and the salt and hash are usually encoded as numerals in base 64.
+However, the details of the base-64 encoding vary among hashing
+methods and are usually
+.I not
+compatible with the common \(lqbase64\(rq encoding.
+.SH AVAILABLE HASHING METHODS
+This is a list of
+.I all
+the hashing methods supported by
+.IR libcrypt ,
+in decreasing order of strength.
+Many of the older methods
+are now considered too weak to use for new passphrases.
+The encoded passphrase format is expressed
+with extended regular expressions (see
+.BR regex (7))
+and does not show the division into prefix, options, salt, and hash.
+.de hash
+.ad l
+.TP
+.B prefix
+.ie "\\$1"" \{\
+"" (empty string)
+.\}
+.el "\\$1"
+.TP
+.B Encoded passphrase format
+\\$2
+.TP
+.B Maximum password length
+.ie "\\$3"unlimited" unlimited
+.el \\$3 characters
+.ie "\\$4"7" (ignores 8th bit)
+.TP
+.TP
+.B Hash size
+\\$6 bits
+.ie "\\$5"\\$6"
+.el (effectively \\$5)
+.TP
+.B Salt size
+\\$7 bits
+.TP
+.B CPU time cost parameter
+\\$8
+.ad b
+..
+.\" FIXME: It is unclear to me whether one should use $2a$ or $2b$ for
+.\" new passwords.  The discussion in crypt-bcrypt.c makes it sound
+.\" like you should use $2a$, but the discussion in the original form
+.\" of this manpage says $2b$...
+.PP
+.ti -4
+.B bcrypt
+.br
+A hash based on the Blowfish block cipher,
+modified to have an extra-expensive key schedule.
+Originally developed by Niels Provos and David Mazieres for OpenBSD
+and also supported on recent versions of FreeBSD and NetBSD,
+on Solaris 10 and newer, and on several GNU/*/Linux distributions.
+Recommended for new password hashes.
+.hash "$2b$" "\e$2[abxy]\e$[0-9]{2}\e$[./A-Za-z0-9]{53}" 72 8 "" 184 128 "4 to 31 (logarithmic)"
+.PP
+bcrypt hashes originally used the "$2a$" prefix.
+However, in 2011 an implementation bug was discovered in crypt_blowfish
+(versions up to 1.0.4 inclusive) affecting handling of password characters with
+the 8th bit set.
+Besides fixing the bug,
+to provide for upgrade strategies for existing systems, two new prefixes were
+introduced: "$2x$", which fully re-introduces the bug, and "$2y$", which
+guarantees correct handling of both 7- and 8-bit characters.
+OpenBSD 5.5 introduced the "$2b$" prefix for behavior that exactly matches
+crypt_blowfish's "$2y$", and current crypt_blowfish supports it as well.
+Unfortunately, the behavior of "$2a$" on password characters with the 8th bit
+set has to be considered system-specific.
+When generating new password hashes, the "$2b$" or "$2y$" prefix should be used.
+(If such hashes ever need to be migrated to a system that does not yet support
+these new prefixes, the prefix in migrated copies of the already-generated
+hashes may be changed to "$2a$".)
+.PP
+.ti -4
+.B SHA-2-512
+.br
+A hash based on SHA-2 with 512-bit output, originally developed by
+Ulrich Drepper for GNU libc.
+Supported on Linux but not common elsewhere.
+Acceptable for new password hashes.
+The default CPU time cost parameter is 5000, which is too low for
+modern hardware.
+.br
+.hash "$6$" "\e$6\e$(rounds=[0-9]+\e$)?[^$]{1,16}\e$[./0-9A-Za-z]{86}" unlimited 8 512 512 "6 to 96" "1000 to 999,999,999"
+.PP
+.ti -4
+.B SHA-2-256
+.br
+A hash based on SHA-2 with 256-bit output, originally developed by
+Ulrich Drepper for GNU libc.
+Supported on Linux but not common elsewhere.
+Acceptable for new password hashes.
+The default CPU time cost parameter is 5000, which is too low for
+modern hardware.
+.br
+.hash "$5$" "\e$5\e$(rounds=[0-9]+\e$)?[^$]{1,16}\e$[./0-9A-Za-z]{43}" unlimited 8 256 256 "6 to 96" "1000 to 999,999,999"
+.PP
+.ti -4
+.B MD5
+.br
+A hash based on the MD5 algorithm, originally developed by
+Poul-Henning Kamp for FreeBSD.
+Supported on most free Unixes and newer versions of Solaris.
+Not as weak as the DES-based hashes below,
+but due to the weak cryptographic primitive at its heart
+and the fixed CPU time cost
+(which is already much too low)
+it should not be used for new hashes.
+.hash "$1$" "\e$1\e$[^$]{1,8}\e$[./0-9A-Za-z]{22}" unlimited 8 128 128 "6 to 48" 1000
+.PP
+.ti -4
+.B BSDI extended DES
+.br
+This is another weak extension of traditional DES,
+which eliminates the length limit,
+increases the salt size,
+and makes the time cost tunable.
+It originates with BSDI
+and is also available on at least NetBSD, OpenBSD, and FreeBSD
+due to the use of David Burren's FreeSec library.
+It is better than bigcrypt and traditional DES,
+but still should not be used for new hashes.
+.hash _ "_[./0-9A-Za-z]{19}" unlimited 7 56 64 24 "1 to 2**24-1 (must be odd)"
+.PP
+.ti -4
+.B bigcrypt
+.br
+This is a weak extension of traditional DES,
+available on some System V-derived Unixes.
+All it does is raise the length limit from 8 to 128 characters.
+It should not be used for new hashes.
+.hash "" "[./0-9A-Za-z]{13,178}" 128 7 "up to 896" "up to 1024" 12 25
+.PP
+.ti -4
+.B Traditional DES-based
+.br
+This method is supported by almost all implementations of
+.BR crypt .
+Because it is based on a weak cipher primitive,
+because there are only 4096 possible salts and 2**56 possible hashes,
+and especially because it truncates passphrases to 8 characters,
+it no longer offers adequate security for new passphrases.
+It should only be used if you absolutely have to generate hashes
+that will work on an old operating system that supports nothing else.
+.hash "" "[./0-9A-Za-z]{13}" 8 7 56 64 12 25
+
+.SH SEE ALSO
+.BR crypt (3),
+.BR crypt_rn (3),
+.BR crypt_gensalt (3),
+.BR getpwent (3),
+.BR passwd (5),
+.BR shadow (5),
+.BR pam (8)
+.sp
+Niels Provos and David Mazieres.  A Future-Adaptable Password Scheme.
+Proceedings of the 1999 USENIX Annual Technical Conference, June 1999.
+.br
+https://www.usenix.org/events/usenix99/provos.html
+.sp
+Robert Morris and Ken Thompson.  Password Security: A Case History.
+Communications of the ACM, Volume 22, Issue 11, 1979.
+.br
+http://wolfram.schneider.org/bsd/7thEdManVol2/password/password.pdf

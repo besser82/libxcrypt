@@ -1,0 +1,214 @@
+.\" Written and revised by Solar Designer <solar at openwall.com> in 2000-2011.
+.\" Revised by Zack Weinberg <zackw at panix.com> in 2017.
+.\"
+.\" No copyright is claimed, and this man page is hereby placed in the public
+.\" domain.  In case this attempt to disclaim copyright and place the man page
+.\" in the public domain is deemed null and void, then the man page is
+.\" Copyright 2000-2011 Solar Designer, 2017 Zack Weinberg, and it is
+.\" hereby released to the general public under the following terms:
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted.
+.\"
+.\" There's ABSOLUTELY NO WARRANTY, express or implied.
+.\"
+.\" This manual page in its current form is intended for use on systems
+.\" based on the GNU C Library with crypt_blowfish patched into libcrypt.
+.\"
+.TH CRYPT_GENSALT 3 "October 9, 2017" "Openwall Project" "Library Functions"
+.ad l
+.\" No macros in NAME to keep makewhatis happy.
+.SH NAME
+\fBcrypt_gensalt\fR, \fBcrypt_gensalt_rn\fR, \fBcrypt_gensalt_ra\fR
+\- encode settings for passphrase hashing
+.SH SYNOPSIS
+.B #include <crypt.h>
+.sp
+.in +8
+.ti -8
+.BI "char *crypt_gensalt(const char *" prefix ", unsigned long " count ", const char *" rbytes ", int " nrbytes );
+.ti -8
+.BI "char *crypt_gensalt_rn(const char *" prefix ", unsigned long " count ", const char *" rbytes ", int " nrbytes ", char *" output ", int " output_size );
+.ti -8
+.BI "char *crypt_gensalt_ra(const char *" prefix ", unsigned long " count ", const char *" rbytes ", int " nrbytes );
+.in -8
+.sp
+Link with
+.IR -lcrypt .
+.ad b
+.SH DESCRIPTION
+.BR crypt_gensalt ", " crypt_gensalt_rn ", and " crypt_gensalt_ra
+compile a string for use as the
+.I setting
+argument to
+.BR crypt ", " crypt_r ", " crypt_rn ", and " crypt_ra .
+.PP
+.I prefix
+selects the hashing method to use;
+.I count
+controls the CPU time cost of the hash;
+the valid range for
+.I count
+and the exact meaning of \(lqCPU time cost\(rq
+depends on the hashing method,
+but larger numbers correspond to more costly hashes.
+.I rbytes
+should point to
+.I nrbytes
+cryptographically random bytes for use as \(lqsalt.\(rq
+.PP
+If
+.I prefix
+is a null pointer, the best available hashing method will be selected.
+(CAUTION: if
+.I prefix
+is an empty string,
+the \(lqtraditional\(rq DES-based hashing method will be selected;
+this method is unacceptably weak by modern standards.)
+If
+.I count
+is 0, a low default cost will be selected.
+If
+.I rbytes
+is a null pointer, an appropriate number of random bytes will be
+obtained from the operating system, and
+.I nrbytes
+is ignored.
+.PP
+See
+.BR crypt (5)
+for other strings that can be used as
+.IR prefix ,
+and valid values of
+.IR count
+for each.
+.SH RETURN VALUE
+.BR crypt_gensalt ", " crypt_gensalt_rn ", and " crypt_gensalt_ra
+return a pointer to an encoded setting string.
+This string will be entirely printable ASCII,
+and will not contain whitespace
+or the characters \(oq\fB:\fR\(cq,
+\(oq\fB;\fR\(cq,
+\(oq\fB*\fR\(cq,
+\(oq\fB!\fR\(cq, or
+\(oq\fB\e\fR\(cq.
+See
+.BR crypt (5)
+for more detail on the format of this string.
+Upon error, they return a null pointer and set
+.I errno
+to an appropriate error code.
+.PP
+.B crypt_gensalt
+places its result in a static storage area,
+which will be overwritten by subsequent calls to
+.BR crypt_gensalt .
+It is not safe to call
+.B crypt_gensalt
+from multiple threads simultaneously.
+However, it
+.I is
+safe to pass the string returned by
+.B crypt_gensalt
+directly to
+.B crypt
+without copying it;
+each function has its own static storage area.
+.PP
+.B crypt_gensalt_rn
+places its result in the supplied
+.I output
+buffer, which has
+.I output_size
+bytes of storage available.
+.I output_size
+should be greater than or equal to
+.BR CRYPT_GENSALT_OUTPUT_SIZE .
+.PP
+.B crypt_gensalt_ra
+allocates memory for its result using
+.BR malloc (3).
+It should be freed with
+.BR free (3)
+after use.
+.PP
+Upon error, in addition to returning a null pointer,
+.BR crypt_gensalt " and " crypt_gensalt_rn
+will write an invalid setting string
+to their output buffer, if there is enough space;
+this string will begin with a \(oq\fB*\fR\(cq
+and will not be equal to
+.IR prefix .
+.SH ERRORS
+.ad l
+.nh
+.TP
+.B EINVAL
+.I prefix
+is invalid or not supported by this implementation;
+.I count
+is invalid for the requested
+.IR prefix ;
+the input
+.I nrbytes
+is insufficient for the smallest valid salt with the requested
+.IR prefix .
+.TP
+.B ERANGE
+.BR crypt_gensalt_rn
+only:
+.I output_size
+is too small to hold the compiled
+.I setting
+string.
+.TP
+.B ENOMEM
+Failed to allocate internal scratch memory.
+.br
+.BR crypt_gensalt_ra
+only:
+failed to allocate memory for the compiled
+.I setting
+string.
+.ad b
+.hy 1
+.SH PORTABILITY NOTES
+The functions
+.BR crypt_gensalt ", " crypt_gensalt_rn ", and " crypt_gensalt_ra
+are not part of any standard.
+They originate with the Openwall project.
+A function with the name
+.B crypt_gensalt
+also exists on Solaris 10 and newer, but its prototype and semantics differ.
+.PP
+The set of supported hashing methods varies considerably from system
+to system.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.B crypt_gensalt
+T}	Thread safety	MT-Unsafe race:crypt_gensalt
+T{
+.BR crypt_gensalt ", " crypt_gensalt_ra
+T}	Thread safety	MT-Safe
+.TE
+.sp
+.SH SEE ALSO
+.ad l
+.BR crypt (3),
+.BR crypt_rn (3),
+.BR getpass (3),
+.BR getpwent (3),
+.BR shadow (3),
+.BR login (1),
+.BR passwd (1),
+.BR crypt (5),
+.BR passwd (5),
+.BR shadow (5),
+.BR pam (8)
