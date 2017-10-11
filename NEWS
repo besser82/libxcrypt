@@ -6,7 +6,7 @@ Please send bug reports, questions and suggestions to
 Version 4.0.0
 * Full binary backward compatibility with glibc libcrypt; all programs
   compiled with glibc libcrypt, including vendor-patched versions that
-  include the OpenWall extensions, should work with this libcrypt
+  include the Openwall extensions, should work with this libcrypt
   (however, programs compiled against this libcrypt will NOT work with
   glibc libcrypt).
 * struct crypt_data is now only 32kB (from 128kB), and divided into a
