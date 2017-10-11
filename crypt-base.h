@@ -88,19 +88,19 @@ struct crypt_data
      Future extensions to the API may make this more ergonomic.  */
   char input[CRYPT_MAX_PASSPHRASE_SIZE];
 
-  /* This field should be set to 0 before calling crypt_r, crypt_rn,
-     or crypt_ra for the first time with a just-allocated
-     'struct crypt_data'.  This is not required if crypt_ra is allowed
-     to do the allocation itself (i.e. if the *DATA argument is a null
-     pointer).  Future extensions to the API may make this more ergonomic.  */
-  char initialized;
-
   /* Reserved for future application-visible fields.  For maximum
      forward compatibility, applications should set this field to all
      bytes zero before calling crypt_r, crypt_rn, or crypt_ra for the
      first time with a just-allocated 'struct crypt_data'.  Future
      extensions to the API may make this more ergonomic.  */
   char reserved[CRYPT_DATA_RESERVED_SIZE];
+
+  /* This field should be set to 0 before calling crypt_r, crypt_rn,
+     or crypt_ra for the first time with a just-allocated
+     'struct crypt_data'.  This is not required if crypt_ra is allowed
+     to do the allocation itself (i.e. if the *DATA argument is a null
+     pointer).  Future extensions to the API may make this more ergonomic.  */
+  char initialized;
 
   /* Scratch space used internally.  Applications should not read or
      write this field.  All data written to this area is erased before
