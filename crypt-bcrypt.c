@@ -891,7 +891,7 @@ crypt_bcrypt_rn (const char *key, const char *setting,
                                         setting[2] - 'a'];
   bool ok;
 
-  memcpy (test_setting, test_setting_init, BF_SETTING_LENGTH + 1);
+  memcpy (test_setting, test_setting_init, BF_SETTING_LENGTH);
   test_hash = test_hashes[flags & 1];
   test_setting[2] = setting[2];
 
