@@ -10,6 +10,7 @@ ACLOCAL_AMFLAGS = -I m4
 AM_CFLAGS = $(WARN_CFLAGS)
 
 EXTRA_DIST = \
+	LICENSING THANKS \
 	libcrypt.map.in libcrypt.minver \
 	gen-map.awk gen-vers.awk gen-crypt-h.awk
 
