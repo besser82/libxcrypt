@@ -484,7 +484,7 @@ BF_swap (BF_word * x, int count)
 #else
 /* Architectures with no complicated addressing modes supported */
 #define BF_INDEX(S, i) \
-        (*((BF_word *)(((unsigned char *)S) + (i))))
+        (*((BF_word *)((void *)(((unsigned char *)S) + (i)))))
 #define BF_ROUND(L, R, N) \
         tmp1 = L & 0xFF; \
         tmp1 <<= 2; \
