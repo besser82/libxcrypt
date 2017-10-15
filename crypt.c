@@ -251,7 +251,13 @@ call_crypt_fn (CCF_ARGDECL)
 static void
 do_crypt (const char *phrase, const char *setting, struct crypt_data *data)
 {
-  struct crypt_internal *cint = get_internal (data);
+  /* Copying the memory of the return value from the get_internal
+     function, fixes clobbering of 'cint' by executing 'longjmp'
+     or 'vfork' on POWER8 architectures.  This also fixes the
+     current function segfaulting on S390X and other
+     architectures.  */
+  struct crypt_internal *cint = malloc (sizeof (struct crypt_internal));
+  memcpy (cint, get_internal (data), sizeof (struct crypt_internal));
 
   const struct hashfn *h = get_hashfn (setting);
   if (!h)
@@ -290,6 +296,8 @@ do_crypt (const char *phrase, const char *setting, struct crypt_data *data)
     }
 
   memset (data->internal, 0, sizeof data->internal);
+  /* Don't leak */
+  free (cint);
 }
 
 #if INCLUDE_crypt_rn
