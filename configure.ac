@@ -213,7 +213,7 @@ if test $enable_obsolete_api = 1; then
         if test -z "$pattern" || test "x$pattern" = 'x#'; then
           continue
         fi
-        if expr "$pattern" : "$host_cpu" > /dev/null; then
+        if expr "$host_cpu" : "$pattern" > /dev/null; then
           if test -z "$cond"; then
             cond_matched=yes
           else
