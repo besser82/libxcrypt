@@ -111,6 +111,7 @@ before_script:
   - docker exec -t buildenv /bin/sh -c "cd /opt/libxcrypt && CFLAGS=\"$CFLAGS\" CXXFLAGS=\"$CXXFLAGS\" LDFLAGS=\"$LDFLAGS\" ./configure --prefix=/opt/libxcrypt --disable-silent-rules --enable-shared --enable-static $CONF"
 
 script:
+  - docker exec -t buildenv /bin/sh -c "cat /etc/redhat-release"
   - docker exec -t buildenv /bin/sh -c "cd /opt/libxcrypt && make"
   - docker exec -t buildenv /bin/sh -c "cd /opt/libxcrypt && make install"
   - docker exec -t buildenv /bin/sh -c "cd /opt/libxcrypt && make check"
