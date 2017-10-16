@@ -1,0 +1,95 @@
+language: C
+
+branches:
+  except:
+    - master
+
+sudo: true
+
+matrix:
+  fast_finish: true
+  include:
+    - compiler: gcc
+      os: linux
+      services: docker
+      env:
+        - CONF="--enable-obsolete-api --enable-weak-hashes"
+        - FCVER="rawhide"
+        - CODECOV=1
+    - compiler: gcc
+      os: linux
+      services: docker
+      env:
+        - CONF="--enable-obsolete-api --enable-weak-hashes"
+        - FCVER="rawhide"
+    - compiler: clang
+      os: linux
+      services: docker
+      env:
+        - CONF="--enable-obsolete-api --enable-weak-hashes"
+        - FCVER="rawhide"
+    - compiler: gcc
+      os: linux
+      services: docker
+      env:
+        - CONF="--enable-obsolete-api --enable-weak-hashes"
+        - FCVER="latest"
+    - compiler: clang
+      os: linux
+      services: docker
+      env:
+        - CONF="--enable-obsolete-api --enable-weak-hashes"
+        - FCVER="latest"
+    - compiler: gcc
+      os: linux
+      services: docker
+      env:
+        - CONF="--disable-obsolete-api --disable-weak-hashes"
+        - FCVER="rawhide"
+    - compiler: clang
+      os: linux
+      services: docker
+      env:
+        - CONF="--disable-obsolete-api --disable-weak-hashes"
+        - FCVER="rawhide"
+    - compiler: gcc
+      os: linux
+      services: docker
+      env:
+        - CONF="--disable-obsolete-api --disable-weak-hashes"
+        - FCVER="latest"
+    - compiler: clang
+      os: linux
+      services: docker
+      env:
+        - CONF="--disable-obsolete-api --disable-weak-hashes"
+        - FCVER="latest"
+
+before_install:
+  - docker pull fedora:$FCVER
+  - perl -pe 's/\$(\w+)/$ENV{$1}/g' .travis.env.in > travis.env
+  - docker run -t -d -P --env-file travis.env --name buildenv -v $HOME/.ccache:/root/.ccache -v $PWD:/opt/libxcrypt fedora:$FCVER /bin/sh -c "mkdir -p /opt/libxcrypt ; bash"
+  - docker exec -t buildenv /bin/sh -c "dnf makecache"
+  - docker exec -t buildenv /bin/sh -c "dnf -y upgrade"
+  - docker exec -t buildenv /bin/sh -c "dnf -y --setopt=install_weak_deps=0 groupinstall buildsys-build"
+  - docker exec -t buildenv /bin/sh -c "dnf -y --setopt=install_weak_deps=0 install libtool"
+  - if [[ "$CC" == "clang" ]]  ; then docker exec -t buildenv /bin/sh -c "dnf -y --setopt=install_weak_deps=0 install clang" ; fi
+  - if [[ "$CODECOV" == "1" ]] ; then docker exec -t buildenv /bin/sh -c "dnf -y --setopt=install_weak_deps=0 install '/usr/bin/git' '/usr/bin/lcov' '/usr/bin/pip3'" ; fi
+  - if [[ "$CODECOV" == "1" ]] ; then docker exec -t buildenv /bin/sh -c "pip3 install codecov" ; fi
+
+before_script:
+  - docker exec -t buildenv /bin/sh -c "rpm -E %optflags" > cflags.txt
+  - docker exec -t buildenv /bin/sh -c "rpm -E %__global_ldflags" > ldflags.txt
+  - export CFLAGS="`cat cflags.txt | tr -d '\012\015'` -Wno-unused-command-line-argument" ; export CXXFLAGS="$CFLAGS" ; echo $CFLAGS
+  - export LDFLAGS="`cat ldflags.txt| tr -d '\012\015'`" ; echo $LDFLAGS
+  - if [[ "$CODECOV" == "1" ]] ; then export CFLAGS="-O0 --coverage" ; export CXXFLAGS="$CFLAGS" ; export LDFLAGS="--coverage" ; fi
+  - docker exec -t buildenv /bin/sh -c "cd /opt/libxcrypt && autoreconf -fiv"
+  - docker exec -t buildenv /bin/sh -c "cd /opt/libxcrypt && CFLAGS=\"$CFLAGS\" CXXFLAGS=\"$CXXFLAGS\" LDFLAGS=\"$LDFLAGS\" ./configure --prefix=/opt/libxcrypt --disable-silent-rules --enable-shared --enable-static $CONF"
+
+script:
+  - docker exec -t buildenv /bin/sh -c "cd /opt/libxcrypt && make"
+  - docker exec -t buildenv /bin/sh -c "cd /opt/libxcrypt && make install"
+  - docker exec -t buildenv /bin/sh -c "cd /opt/libxcrypt && make check"
+
+after_success:
+ - if [[ "$CODECOV" == "1" ]] ; then docker exec -t buildenv /bin/sh -c "cd /opt/libxcrypt ; lcov --directory . --capture --output-file all_coverage.info ; lcov --remove all_coverage.info '/usr/*' > coverage.info ; rm -f all_coverage.info ; codecov -X gcov" ; fi

@@ -34,6 +34,8 @@
 
 # compiler output
 
+*.gcda
+*.gcno
 *.la
 *.lo
 *.log
