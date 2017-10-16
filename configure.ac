@@ -9,7 +9,10 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([m4])
 AC_CONFIG_SRCDIR([crypt.c])
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([
+  Makefile
+  libxcrypt.pc
+])
 AM_INIT_AUTOMAKE
 
 AH_TOP(
@@ -21,6 +24,10 @@ AH_BOTTOM(
 # Checks for programs.
 AC_CANONICAL_HOST
 AC_PROG_CC
+
+# Dependencies
+PKG_PROG_PKG_CONFIG
+PKG_INSTALLDIR
 
 # C99 language and library features are used unconditionally.
 # Don't even try to build with an older compiler.
