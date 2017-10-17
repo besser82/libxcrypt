@@ -6,12 +6,12 @@ README for libxcrypt
 
 libxcrypt is a modern library for one-way hashing of passwords.  It
 supports DES, MD5, SHA-2-256, SHA-2-512, and bcrypt-based password
-hashes, and provides the traditional Unix 'crypt' and 'crypt_r'
+hashes, and provides the traditional Unix `crypt` and `crypt_r`
 interfaces, as well as a set of extended interfaces pioneered by
-Openwall Linux, 'crypt_rn', 'crypt_ra', 'crypt_gensalt',
-'crypt_gensalt_rn', and 'crypt_gensalt_ra'.
+Openwall Linux, `crypt_rn`, `crypt_ra`, `crypt_gensalt`,
+`crypt_gensalt_rn`, and `crypt_gensalt_ra`.
 
-libxcrypt is intended to be used by login(1), passwd(1), and other
+libxcrypt is intended to be used by `login(1)`, `passwd(1)`, and other
 similar programs; that is, to hash a small number of passwords during
 an interactive authentication dialogue with a human.  It is not
 suitable for use in bulk password-cracking applications, or in any
@@ -52,8 +52,8 @@ Portability Notes
 
 libxcrypt should be buildable with any ISO C1999-compliant C compiler,
 with one critical exception: the symbol versioning macros in
-crypt-port.h only work with compilers that implement certain GCC/GNU
-Binutils extensions (.symver, __asm__, and __attribute__((alias))).
+`crypt-port.h` only work with compilers that implement certain GCC/GNU
+Binutils extensions (`.symver`, `__asm__`, and `__attribute__((alias)))`.
 
 A few C2011 features are used; the intention is not to use any of them
 without a fallback, but we do not currently test this.  A few POSIX
@@ -80,12 +80,12 @@ distributions.  (For instance, compatibility symlinks for SuSE's
 
 However, the converse is not true: programs linked against libxcrypt
 will not work with glibc's libcrypt.  Also, programs that use certain
-legacy APIs supplied by glibc's libcrypt ('encrypt', 'encrypt_r',
-'setkey', 'setkey_r', and 'fcrypt') cannot be *compiled* against
+legacy APIs supplied by glibc's libcrypt (`encrypt`, `encrypt_r`,
+`setkey`, `setkey_r`, and `fcrypt`) cannot be *compiled* against
 libxcrypt.
 
 Binary backward compatibility can be disabled by supplying the
---disable-obsolete-api switch to 'configure', in which case libxcrypt
+`--disable-obsolete-api` switch to `configure`, in which case libxcrypt
 will install libcrypt.so.2 instead of libcrypt.so.1.  This
 configuration is always used on all operating systems other than
 Linux.  We are willing to consider adding binary backward
@@ -93,8 +93,8 @@ compatibility for other operating systems' existing libcrypts, but we
 don't currently plan to do that work ourselves.
 
 It is also possible to remove support for DES and MD5 password hashes,
-by supplying the --disable-weak-hashes switch to 'configure'.  This
-option implies --disable-obsolete-api.  It should only be used in
+by supplying the `--disable-weak-hashes` switch to `configure`.  This
+option implies `--disable-obsolete-api`.  It should only be used in
 contexts where there are definitely no user accounts that are old
 enough to have stored their password with an old hash.
 
