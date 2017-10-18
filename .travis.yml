@@ -93,6 +93,8 @@ before_install:
   - docker pull fedora:$FCVER
   - perl -pe 's/\$(\w+)/$ENV{$1}/g' .travis.env.in > travis.env
   - docker run -t -d -P --env-file travis.env --name buildenv -v $HOME/.ccache:/root/.ccache -v $PWD:/opt/libxcrypt fedora:$FCVER /bin/sh -c "mkdir -p /opt/libxcrypt ; bash"
+  - docker exec -t buildenv /bin/sh -c "echo \"deltarpm=0\" >> /etc/dnf/dnf.conf"
+  - docker exec -t buildenv /bin/sh -c "echo \"max_parallel_downloads=20\" >> /etc/dnf/dnf.conf"
   - docker exec -t buildenv /bin/sh -c "dnf makecache"
   - docker exec -t buildenv /bin/sh -c "dnf -y upgrade"
   - docker exec -t buildenv /bin/sh -c "dnf -y --setopt=install_weak_deps=0 groupinstall buildsys-build"
