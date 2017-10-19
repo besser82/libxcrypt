@@ -251,11 +251,7 @@ call_crypt_fn (CCF_ARGDECL)
 static void
 do_crypt (const char *phrase, const char *setting, struct crypt_data *data)
 {
-  /* We need a pointer to the pointer returned by get_internal(data),
-     to fix the possible clobbering of cint by executing 'longjmp' or
-     'vfork' on POWER8 architectures.  */
-  struct crypt_internal **cint = malloc (sizeof (struct crypt_internal *));
-  *cint = get_internal (data);
+  struct crypt_internal *cint = get_internal (data);
 
   const struct hashfn *h = get_hashfn (setting);
   if (!h)
@@ -264,7 +260,7 @@ do_crypt (const char *phrase, const char *setting, struct crypt_data *data)
   else
     {
 #ifdef USE_SWAPCONTEXT
-      if (!getcontext (&(*cint)->inner_ctx))
+      if (!getcontext (&cint->inner_ctx))
         {
           ucontext_t outer_ctx;
           struct crypt_fn_args a;
@@ -274,27 +270,26 @@ do_crypt (const char *phrase, const char *setting, struct crypt_data *data)
           a.setting = setting;
           a.output  = (unsigned char *)data->output;
           a.o_size  = sizeof data->output;
-          a.scratch = (*cint)->alg_specific;
-          a.s_size  = sizeof (*cint)->alg_specific;
+          a.scratch = cint->alg_specific;
+          a.s_size  = sizeof cint->alg_specific;
 
-          (*cint)->inner_ctx.uc_stack.ss_sp   = (*cint)->inner_stack;
-          (*cint)->inner_ctx.uc_stack.ss_size = sizeof (*cint)->inner_stack;
-          (*cint)->inner_ctx.uc_link          = &outer_ctx;
+          cint->inner_ctx.uc_stack.ss_sp   = cint->inner_stack;
+          cint->inner_ctx.uc_stack.ss_size = sizeof cint->inner_stack;
+          cint->inner_ctx.uc_link          = &outer_ctx;
 
-          makecontext (&(*cint)->inner_ctx,
+          makecontext (&cint->inner_ctx,
                        (void (*) (void))call_crypt_fn,
                        SWIZZLE_PTR (&a));
-          swapcontext (&outer_ctx, &(*cint)->inner_ctx);
+          swapcontext (&outer_ctx, &cint->inner_ctx);
         }
 #else
       cfn (phrase, setting,
            (unsigned char *)data->output, sizeof data->output,
-           (*cint)->alg_specific, sizeof (*cint)->alg_specific);
+           cint->alg_specific, sizeof cint->alg_specific);
 #endif
     }
 
   memset (data->internal, 0, sizeof data->internal);
-  free (cint);
 }
 
 #if INCLUDE_crypt_rn
