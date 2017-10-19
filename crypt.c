@@ -55,7 +55,7 @@ static inline struct crypt_internal *
 get_internal (struct crypt_data *data)
 {
   uintptr_t internalp = (uintptr_t) data->internal;
-  uintptr_t align = alignof (struct crypt_internal);
+  const uintptr_t align = alignof (struct crypt_internal);
   internalp = (internalp + align) & ~(align - 1);
   return (struct crypt_internal *)internalp;
 }
