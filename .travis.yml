@@ -116,7 +116,7 @@ script:
   - docker exec -t buildenv /bin/sh -c "cat /etc/redhat-release"
   - docker exec -t buildenv /bin/sh -c "cd /opt/libxcrypt && make"
   - docker exec -t buildenv /bin/sh -c "cd /opt/libxcrypt && make install"
-  - docker exec -t buildenv /bin/sh -c "cd /opt/libxcrypt && make check"
+  - docker exec -t buildenv /bin/sh -c "cd /opt/libxcrypt && (make check || cat test-suite.log)"
 
 after_success:
  - if [[ "$CODECOV" == "1" ]] ; then docker exec -t buildenv /bin/sh -c "cd /opt/libxcrypt ; lcov --directory . --capture --output-file all_coverage.info ; lcov --remove all_coverage.info '/usr/*' '*test*' > coverage.info ; rm -f all_coverage.info ; codecov -X gcov" ; fi
