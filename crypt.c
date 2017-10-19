@@ -56,7 +56,7 @@ get_internal (struct crypt_data *data)
 {
   uintptr_t internalp = (uintptr_t) data->internal;
   const uintptr_t align = alignof (struct crypt_internal);
-  internalp = (internalp + align) & ~(align - 1);
+  internalp = (internalp + align - 1) & ~(align - 1);
   return (struct crypt_internal *)internalp;
 }
 
