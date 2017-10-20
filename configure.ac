@@ -44,6 +44,14 @@ AC_SYS_LARGEFILE
 zw_SIMPLE_ENABLE_WARNINGS
 LT_INIT
 
+# Check for system's endianness
+AC_C_BIGENDIAN(
+   AC_DEFINE([IS_BIGENDIAN], 1,
+    [Define to 1 if system's architecture is big-endian.]),
+   AC_DEFINE([IS_BIGENDIAN], 0,
+    [Define to 0 if system's architecture is little-endian.])
+)
+
 # One of the test scripts needs to use -dD.
 AC_CACHE_CHECK([whether the preprocessor ($CPP) supports -dD],
   [ac_cv_prog_cc_dD],
