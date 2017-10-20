@@ -45,6 +45,7 @@
 
 #include "crypt-port.h"
 #include "crypt-private.h"
+#include "byteorder.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -57,9 +58,15 @@
 #define BF_SCALE                        0
 #endif
 
-
 typedef uint32_t BF_word;
 typedef int32_t BF_word_signed;
+
+/* Set the int_to_cpu function according to the system's endianness */
+#if IS_BIGENDIAN
+#define BF_WORD_TO_CPU(x)               be32_to_cpu (x)
+#else
+#define BF_WORD_TO_CPU(x)               le32_to_cpu (x)
+#endif
 
 /* Number of Blowfish rounds, this is also hardcoded into a few places */
 #define BF_N                            16
@@ -484,7 +491,7 @@ BF_swap (BF_word * x, int count)
 #else
 /* Architectures with no complicated addressing modes supported */
 #define BF_INDEX(S, i) \
-        (*((BF_word *)((void *)(((unsigned char *)S) + (i)))))
+        BF_WORD_TO_CPU((((unsigned char *)S) + i))
 #define BF_ROUND(L, R, N) \
         tmp1 = L & 0xFF; \
         tmp1 <<= 2; \
