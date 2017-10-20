@@ -58,8 +58,8 @@
 #endif
 
 
-typedef unsigned int BF_word;
-typedef signed int BF_word_signed;
+typedef uint32_t BF_word;
+typedef int32_t BF_word_signed;
 
 /* Number of Blowfish rounds, this is also hardcoded into a few places */
 #define BF_N                            16
