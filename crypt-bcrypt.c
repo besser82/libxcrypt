@@ -454,22 +454,26 @@ BF_encode (unsigned char *dst, const BF_word * src, int size)
   while (sptr < end);
 }
 
+#if IS_BIGENDIAN
+static void
+BF_swap (ARG_UNUSED(BF_word * x), ARG_UNUSED(int count))
+{
+}
+#else
 static void
 BF_swap (BF_word * x, int count)
 {
-  static const int endianness_check = 1;
-  const char *is_little_endian = (const char *) &endianness_check;
   BF_word tmp;
 
-  if (*is_little_endian)
-    do
-      {
-        tmp = *x;
-        tmp = (tmp << 16) | (tmp >> 16);
-        *x++ = ((tmp & 0x00FF00FF) << 8) | ((tmp >> 8) & 0x00FF00FF);
-      }
-    while (--count);
+  do
+    {
+      tmp = *x;
+      tmp = (tmp << 16) | (tmp >> 16);
+      *x++ = ((tmp & 0x00FF00FF) << 8) | ((tmp >> 8) & 0x00FF00FF);
+    }
+  while (--count);
 }
+#endif
 
 #if BF_SCALE
 /* Architectures which can shift addresses left by 2 bits with no extra cost */
