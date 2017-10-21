@@ -27,11 +27,14 @@ source tree.  For specific licensing terms consult the files themselves.
    byteorder.h, randombytes.c, test-byteorder.c
    gen-crypt-h.awk, gen-map.awk, gen-vers.awk
    test-symbols-compat, test-symbols-renames, test-symbols-static
-   m4/zw_alignment.m4, m4/zw_static_assert.m4
+   m4/zw_alignment.m4, m4/zw_static_assert.m4, m4/skip-if-exec-format-error
 
  * Copyright Zack Weinberg and Free Software Foundation, Inc;
    GPL (v3 or later), with Autoconf exception:  
    m4/zw_automodern.m4, m4/zw_simple_warnings.m4
+
+ * Copyright Paolo Bonzini; FSF all-permissive license for short files:  
+   m4/ax_prog_cc_for_build.m4
 
  * Copyright holders unknown, no statement of license (all of these
    files are part of the testsuite and do not contribute to the
@@ -47,5 +50,5 @@ source tree.  For specific licensing terms consult the files themselves.
      Copyright 2005, 2008, 2009 2011 SUSE LINUX Products GmbH, Germany
      Copyright 2015 Björn Esser
 
-   We believe these apply to the library as a whole rather than
+   These were meant to apply to the library as a whole rather than
    specific files or portions of files.

@@ -24,6 +24,7 @@ AH_BOTTOM(
 # Checks for programs.
 AC_CANONICAL_HOST
 AC_PROG_CC
+AX_PROG_CC_FOR_BUILD
 
 # Dependencies
 PKG_PROG_PKG_CONFIG
@@ -287,5 +288,8 @@ AM_CONDITIONAL([ENABLE_WEAK_HASHES], [test $enable_weak_hashes = 1])
 # The Makefile needs to know which versions of the library we are building.
 AM_CONDITIONAL([ENABLE_STATIC], [test $enable_static = yes])
 AM_CONDITIONAL([ENABLE_SHARED], [test $enable_shared = yes])
+
+# The Makefile needs to know if we are cross-compiling.
+AM_CONDITIONAL([CROSS_COMPILING], [test $cross_compiling = yes])
 
 AC_OUTPUT

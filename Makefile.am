@@ -117,11 +117,26 @@ libcrypt_la_SOURCES += \
 
 nodist_libcrypt_la_SOURCES = \
 	alg-des-tables.c
-noinst_PROGRAMS = gen-des-tables
 CLEANFILES += alg-des-tables.c alg-des-tables.c.T
 
+noinst_PROGRAMS = gen-des-tables
+
+LINK_FOR_BUILD = $(CC_FOR_BUILD) $(CFLAGS_FOR_BUILD) $(CPPFLAGS_FOR_BUILD) \
+	$(LDFLAGS_FOR_BUILD) $(TARGET_ARCH_FOR_BUILD) -o $@
+
+gen-des-tables$(BUILD_EXEEXT): $(gen_des_tables_OBJECTS)
+	@rm -f gen-des-tables$(BUILD_EXEEXT)
+	$(AM_V_CCLD)$(LINK_FOR_BUILD) $(gen_des_tables_OBJECTS) $(gen_des_tables_LDADD) $(LIBS)
+# suppress the built-in rule for
+gen-des-tables$(EXEEXT):
+
+$(gen_des_tables_OBJECTS) : CC=$(CC_FOR_BUILD)
+$(gen_des_tables_OBJECTS) : CFLAGS=$(CFLAGS_FOR_BUILD)
+$(gen_des_tables_OBJECTS) : CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
+$(gen_des_tables_OBJECTS) : AM_CFLAGS=$(WARN_CFLAGS_FOR_BUILD)
+
 alg-des-tables.c: gen-des-tables
-	$(AM_V_GEN)./gen-des-tables > alg-des-tables.c.T
+	$(AM_V_GEN)./gen-des-tables$(BUILD_EXEEXT) > alg-des-tables.c.T
 	$(AM_V_at)mv -f alg-des-tables.c.T alg-des-tables.c
 
 check_PROGRAMS += test-alg-des test-alg-md5 test-crypt-des test-crypt-md5
@@ -146,10 +161,15 @@ EXTRA_DIST += test-symbols-static test-symbols-compat test-symbols-renames
 
 AM_TESTS_ENVIRONMENT = \
     lib_la="./libcrypt.la"; lib_map="$(srcdir)/libcrypt.map.in"; \
-    CPP="$(CPP)"; \
+    CC="$(CC)"; CPP="$(CPP)"; \
     CPPFLAGS="$(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES)"; \
     CPPFLAGS="$${CPPFLAGS} $(AM_CPPFLAGS) $(CPPFLAGS)"; \
-    export lib_la lib_map CPP CPPFLAGS;
+    export lib_la lib_map CC CPP CPPFLAGS;
+
+if CROSS_COMPILING
+LOG_COMPILER = m4/skip-if-exec-format-error
+endif
+EXTRA_DIST += m4/skip-if-exec-format-error
 
 test_crypt_bcrypt_LDADD = libcrypt.la
 test_crypt_des_LDADD = libcrypt.la

@@ -1,0 +1,28 @@
+#! /bin/sh
+# Run a test given as "$@" and then munge its exit code to 77 if it
+# failed because of an "exec format error."
+#
+# Written by Zack Weinberg <zackw at panix.com> in 2017.
+# To the extent possible under law, Zack Weinberg has waived all
+# copyright and related or neighboring rights to this work.
+#
+# See https://creativecommons.org/publicdomain/zero/1.0/ for further
+# details.
+
+set -u
+
+tmplog=`mktemp -p "${TMPDIR:-/tmp}" tmplog.XXXXXXXXXX` || exit 99
+trap "rm -f '$tmplog'" 0
+
+"$@" > "$tmplog" 2>&1
+status="$?"
+cat "$tmplog" || exit 99
+
+case "$status" in
+  0|77|99) exit "$status";;
+esac
+
+if grep -q '[eE]xec format error' "$tmplog"
+then exit 77
+else exit "$status"
+fi

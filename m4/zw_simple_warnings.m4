@@ -34,7 +34,7 @@ dnl https://www.gnu.org/software/autoconf-archive/ax_compiler_flags_cflags.html
 AC_PREREQ(2.64)dnl for _AC_LANG_PREFIX and AS_VAR_IF
 
 AC_DEFUN([AX_CHECK_COMPILE_FLAG],
-[AS_VAR_PUSHDEF([CACHEVAR],[ax_cv_check_[]_AC_LANG_ABBREV[]flags_$4_$1])dnl
+[AS_VAR_PUSHDEF([CACHEVAR],[ax_cv_[]_AC_LANG_ABBREV[]_flags_$4_$1])dnl
 AC_CACHE_CHECK([whether _AC_LANG compiler accepts $1], CACHEVAR, [
   ax_check_save_flags=$[]_AC_LANG_PREFIX[]FLAGS
   _AC_LANG_PREFIX[]FLAGS="$[]_AC_LANG_PREFIX[]FLAGS $4 $1"
@@ -141,4 +141,43 @@ AC_ARG_ENABLE(
         [$ax_compiler_flags_test])
 
     AC_SUBST(WARN_CFLAGS)
+
+   if test $cross_compiling = yes; then
+       # Repeat the above logic for the build compiler.
+
+       save_cross_compiling=$cross_compiling
+       save_ac_tool_prefix=$ac_tool_prefix
+       save_CC="$CC"
+       save_CFLAGS="$CFLAGS"
+       save_CPPFLAGS="$CPPFLAGS"
+       save_LDFLAGS="$LDFLAGS"
+
+       cross_compiling=no
+       ac_tool_prefix=
+       CC="$CC_FOR_BUILD"
+       CFLAGS="$CFLAGS_FOR_BUILD"
+       CPPFLAGS="$CPPFLAGS_FOR_BUILD"
+       LDFLAGS="$LDFLAGS_FOR_BUILD"
+
+       pushdef([_AC_LANG_ABBREV],[build_c])
+
+       AX_CHECK_COMPILE_FLAG([-Werror=unknown-warning-option],[
+           ax_compiler_flags_test="-Werror=unknown-warning-option"
+       ],[
+           ax_compiler_flags_test=""
+       ])
+       AX_APPEND_COMPILE_FLAGS(
+           [$ax_candidate_warnings], [WARN_CFLAGS_FOR_BUILD],
+           [$ax_compiler_flags_test])
+
+
+       popdef([_AC_LANG_ABBREV])
+
+       cross_compiling=$save_cross_compiling
+       ac_tool_prefix=$save_ac_tool_prefix
+       CC="$save_CC"
+       CFLAGS="$save_CFLAGS"
+       CPPFLAGS="$save_CPPFLAGS"
+       LDFLAGS="$save_LDFLAGS"
+    fi # cross_compiling
 ])
