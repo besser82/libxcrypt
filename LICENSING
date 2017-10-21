@@ -8,37 +8,37 @@ Many individual files are under other licenses.  This file provides an
 inventory of the copyright holders and licenses of all files in the
 source tree.  For specific licensing terms consult the files themselves.
 
- * Copyright Thorsten Kukuk, Björn Esser, Zack Weinberg; LGPL (v2.1 or later):  
+ * Copyright Thorsten Kukuk, Björn Esser, Zack Weinberg; LGPL (v2.1 or later):
    crypt.c, crypt-static.c, crypt-gensalt-static.c, crypt-port.h
 
- * Copyright Free Software Foundation, Inc.; LGPL (v2.1 or later):  
+ * Copyright Free Software Foundation, Inc.; LGPL (v2.1 or later):
    crypt-base.h, crypt-obsolete.h, crypt-private.h
    alg-md5.h, alg-md5.c, crypt-md5.c,
    alg-sha256.h, alg-sha256.c, crypt-sha256.c,
    alg-sha512.h, alg-sha512.c, crypt-sha256.c
 
- * Copyright David Burren et al.; 3-clause BSD:  
+ * Copyright David Burren et al.; 3-clause BSD:
    alg-des.h, alg-des.c, crypt-des.c, crypt-des-obsolete.c, gen-des-tables.c
 
- * Public domain, written by Solar Designer et al.:  
+ * Public domain, written by Solar Designer et al.:
    crypt-bcrypt.c, crypt-gensalt.c, test-crypt-bcrypt.c
 
- * Public domain, written by Zack Weinberg et al.:  
+ * Public domain, written by Zack Weinberg et al.:
    byteorder.h, randombytes.c, test-byteorder.c
    gen-crypt-h.awk, gen-map.awk, gen-vers.awk
    test-symbols-compat, test-symbols-renames, test-symbols-static
    m4/zw_alignment.m4, m4/zw_static_assert.m4, m4/skip-if-exec-format-error
 
  * Copyright Zack Weinberg and Free Software Foundation, Inc;
-   GPL (v3 or later), with Autoconf exception:  
+   GPL (v3 or later), with Autoconf exception:
    m4/zw_automodern.m4, m4/zw_simple_warnings.m4
 
- * Copyright Paolo Bonzini; FSF all-permissive license for short files:  
+ * Copyright Paolo Bonzini; FSF all-permissive license for short files:
    m4/ax_prog_cc_for_build.m4
 
  * Copyright holders unknown, no statement of license (all of these
    files are part of the testsuite and do not contribute to the
-   installed library or its headers):  
+   installed library or its headers):
    test-alg-des.c, test-alg-md5.c, test-alg-sha256.c,
    test-alg-sha512.c, test-crypt-des.c, test-crypt-md5.c,
    test-crypt-sha256.c, test-crypt-sha512.c, test-des-cases.h,
