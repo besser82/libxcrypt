@@ -202,6 +202,9 @@ typedef union
 #define ip_maskr                 _crypt_ip_maskr
 #define key_perm_maskl           _crypt_key_perm_maskl
 #define key_perm_maskr           _crypt_key_perm_maskr
+#define md4_finish_ctx           _crypt_md4_finish_ctx
+#define md4_init_ctx             _crypt_md4_init_ctx
+#define md4_process_bytes        _crypt_md4_process_bytes
 #define md5_finish_ctx           _crypt_md5_finish_ctx
 #define md5_init_ctx             _crypt_md5_init_ctx
 #define md5_process_bytes        _crypt_md5_process_bytes

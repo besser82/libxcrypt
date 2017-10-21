@@ -21,7 +21,7 @@ source tree.  For specific licensing terms consult the files themselves.
    alg-des.h, alg-des.c, crypt-des.c, crypt-des-obsolete.c, gen-des-tables.c
 
  * Public domain, written by Solar Designer et al.:
-   crypt-bcrypt.c, crypt-gensalt.c, test-crypt-bcrypt.c
+   alg-md4.h, alg-md4.c, crypt-bcrypt.c, crypt-gensalt.c, test-crypt-bcrypt.c
 
  * Public domain, written by Zack Weinberg et al.:
    byteorder.h, randombytes.c, test-byteorder.c
@@ -39,10 +39,10 @@ source tree.  For specific licensing terms consult the files themselves.
  * Copyright holders unknown, no statement of license (all of these
    files are part of the testsuite and do not contribute to the
    installed library or its headers):
-   test-alg-des.c, test-alg-md5.c, test-alg-sha256.c,
-   test-alg-sha512.c, test-crypt-des.c, test-crypt-md5.c,
-   test-crypt-sha256.c, test-crypt-sha512.c, test-des-cases.h,
-   test-des-obsolete.c, test-gensalt.c
+   test-alg-des.c, test-alg-md4.c (adaption of test-alg-md5.c),
+   test-alg-md5.c, test-alg-sha256.c, test-alg-sha512.c, test-crypt-des.c,
+   test-crypt-md5.c, test-crypt-sha256.c, test-crypt-sha512.c,
+   test-des-cases.h, test-des-obsolete.c, test-gensalt.c
 
  * The NEWS file formerly contained the following copyright assertions:
 

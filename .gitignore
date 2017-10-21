@@ -48,6 +48,7 @@
 /crypt-symbol-vers.h
 /libcrypt.map
 /test-alg-des
+/test-alg-md4
 /test-alg-md5
 /test-alg-sha256
 /test-alg-sha512
