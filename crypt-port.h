@@ -190,6 +190,7 @@ typedef union
 #define crypt_des_trd_or_big_rn  _crypt_crypt_des_trd_or_big_rn
 #define crypt_des_xbsd_rn        _crypt_crypt_des_xbsd_rn
 #define crypt_md5_rn             _crypt_crypt_md5_rn
+#define crypt_nthash_rn          _crypt_crypt_nthash_rn
 #define des_crypt_block          _crypt_des_crypt_block
 #define des_set_key              _crypt_des_set_key
 #define des_set_salt             _crypt_des_set_salt
@@ -198,6 +199,7 @@ typedef union
 #define gensalt_des_trd_rn       _crypt_gensalt_des_trd_rn
 #define gensalt_des_xbsd_rn      _crypt_gensalt_des_xbsd_rn
 #define gensalt_md5_rn           _crypt_gensalt_md5_rn
+#define gensalt_nthash_rn        _crypt_gensalt_nthash_rn
 #define ip_maskl                 _crypt_ip_maskl
 #define ip_maskr                 _crypt_ip_maskr
 #define key_perm_maskl           _crypt_key_perm_maskl

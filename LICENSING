@@ -23,6 +23,9 @@ source tree.  For specific licensing terms consult the files themselves.
  * Public domain, written by Solar Designer et al.:
    alg-md4.h, alg-md4.c, crypt-bcrypt.c, crypt-gensalt.c, test-crypt-bcrypt.c
 
+ * Copyright Michael Bretterklieber et al.; 2-clause BSD:
+   crypt-nthash.c
+
  * Public domain, written by Zack Weinberg et al.:
    byteorder.h, randombytes.c, test-byteorder.c
    gen-crypt-h.awk, gen-map.awk, gen-vers.awk
@@ -42,7 +45,8 @@ source tree.  For specific licensing terms consult the files themselves.
    test-alg-des.c, test-alg-md4.c (adaption of test-alg-md5.c),
    test-alg-md5.c, test-alg-sha256.c, test-alg-sha512.c, test-crypt-des.c,
    test-crypt-md5.c, test-crypt-sha256.c, test-crypt-sha512.c,
-   test-des-cases.h, test-des-obsolete.c, test-gensalt.c
+   test-des-cases.h, test-des-obsolete.c, test-gensalt.c,
+   test-crypt-nthash.c (adaption of test-crypt-des.c)
 
  * The NEWS file formerly contained the following copyright assertions:
 

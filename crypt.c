@@ -86,7 +86,8 @@ static const struct hashfn tagged_hashes[] = {
 
   /* legacy hashes */
 #if ENABLE_WEAK_HASHES
-  { "$1$", crypt_md5_rn, gensalt_md5_rn },
+  { "$1$", crypt_md5_rn,    gensalt_md5_rn },
+  { "$3$", crypt_nthash_rn, gensalt_nthash_rn },
 #endif
   { "$5$", crypt_sha256_rn, gensalt_sha256_rn },
   { "$6$", crypt_sha512_rn, gensalt_sha512_rn },

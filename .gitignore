@@ -57,6 +57,7 @@
 /test-crypt-bcrypt
 /test-crypt-des
 /test-crypt-md5
+/test-crypt-nthash
 /test-crypt-sha256
 /test-crypt-sha512
 /test-des-obsolete

@@ -12,11 +12,16 @@ The DES hash module was originally FreeSec, written by David Burren
 <davidb at werj.com.au> for the NetBSD project, and since extensively
 modified by Geoffrey M. Rehmet, Mark R V Murray, and Zack Weinberg.
 
+The NTHASH module comes from FreeBSD, originally written by Michael
+Bretterklieber and based on the password hashing algorithm used by
+the Windows NT LAN Manager (NTLM) from Microsoft Corporation to
+provide easier compatibility with NT accounts.
+
 The implementation of the public interface (crypt, crypt_r, etc) is a
 mashup of code from the GNU C Library with code from crypt_blowfish,
 originally put together by Thorsten Kukuk and since completely
 rewritten by Björn Esser and Zack Weinberg.
 
 The above components were assembled into this library by Thorsten Kukuk
-<kukuk at suse.de>, Björn Esser <besser72 at fedoraproject.org>, and
+<kukuk at suse.de>, Björn Esser <besser82 at fedoraproject.org>, and
 Zack Weinberg <zackw at panix.com>.
