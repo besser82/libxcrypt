@@ -28,6 +28,9 @@
 #include "alg-md4.h"
 #include "crypt-private.h"
 
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <netinet/in.h>
 
@@ -39,9 +42,9 @@ void
 crypt_nthash_rn (const char *phrase,
                  ARG_UNUSED(const char *setting),
                  uint8_t *output,
-                 ARG_UNUSED(size_t o_size),
-                 ARG_UNUSED(void *scratch),
-                 ARG_UNUSED(size_t s_size))
+                 size_t o_size,
+                 void *scratch,
+                 size_t s_size)
 {
   size_t unipwLen;
   int i;
@@ -50,7 +53,15 @@ crypt_nthash_rn (const char *phrase,
   uint16_t unipw[128];
   unsigned char hash[16];
   const char *s;
-  struct md4_ctx ctx;
+
+  if ((o_size < 4 + 32) ||
+      (s_size < sizeof (struct md4_ctx)))
+  {
+    errno = ERANGE;
+    return;
+  }
+
+  struct md4_ctx *ctx = scratch;
 
   memset (unipw, 0, sizeof(unipw));
   /* convert to unicode (thanx Archie) */
@@ -59,9 +70,9 @@ crypt_nthash_rn (const char *phrase,
     unipw[unipwLen++] = htons((uint16_t)(*s << 8));
 
   /* Compute MD4 of Unicode password */
-  md4_init_ctx (&ctx);
-  md4_process_bytes ((unsigned char *)unipw, &ctx, unipwLen*sizeof(uint16_t));
-  md4_finish_ctx (&ctx, hash);
+  md4_init_ctx (ctx);
+  md4_process_bytes ((unsigned char *)unipw, ctx, unipwLen*sizeof(uint16_t));
+  md4_finish_ctx (ctx, hash);
 
   output = (uint8_t *)stpcpy ((char *)output, magic);
   *output++ = '$';
@@ -73,12 +84,44 @@ crypt_nthash_rn (const char *phrase,
 }
 
 void
-gensalt_nthash_rn (ARG_UNUSED(unsigned long count),
-                   ARG_UNUSED(const uint8_t *rbytes),
-                   ARG_UNUSED(size_t nrbytes),
+gensalt_nthash_rn (unsigned long count,
+                   const uint8_t *rbytes,
+                   size_t nrbytes,
                    uint8_t *output,
-                   ARG_UNUSED(size_t o_size))
+                   size_t o_size)
 {
-  static const char *salt = "$3$__salt_not_used__";
-  output = (uint8_t *)stpcpy ((char *)output, salt);
+  static const char *salt = "$3$__not_used__";
+  struct md4_ctx ctx;
+  unsigned char hashbuf[16];
+  char hashstr[14];
+  unsigned long i;
+
+  /* Minimal O_SIZE to store the fake salt.
+     At least 1 byte of RBYTES is needed
+     to calculate the MD4 hash used in the
+     fake salt.  */
+  if ((o_size < 29) || (nrbytes < 1))
+  {
+    errno = ERANGE;
+    return;
+  }
+
+  if (count < 20)
+    count = 20;
+
+  md4_init_ctx (&ctx);
+  for (i = 0; i < count; i++)
+  {
+    md4_process_bytes (salt, &ctx, (i % 15) + 1);
+    md4_process_bytes (rbytes, &ctx, nrbytes);
+    md4_process_bytes (salt, &ctx, 15);
+    md4_process_bytes (salt, &ctx, 15 - (i % 15));
+  }
+  md4_finish_ctx (&ctx, &hashbuf);
+
+  for (i = 0; i < 7; i++)
+    sprintf (&(hashstr[i * 2]), "%02x", hashbuf[i]);
+
+  memcpy (output, salt, 15);
+  memcpy (output + 15, hashstr, 14);
 }

@@ -81,7 +81,7 @@ main (void)
   struct crypt_data output;
   int result = 0;
   unsigned int i;
-  char prevhash[37];
+  char prevhash[4 + 32 + 1];
 
   for (i = 0; i < ntests; ++i)
     {

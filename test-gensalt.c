@@ -25,7 +25,7 @@ static const struct testcase testcases[] = {
   { "", 2 }, // DES
   { "_", 9 }, // BSDi extended DES
   { "$1$", 11 }, // MD5
-  { "$3$", 20 }, // NTHASH
+  { "$3$", 29 }, // NTHASH
 #endif
   { "$5$", 19 }, // SHA-2-256
   { "$6$", 19 }, // SHA-2-512
@@ -82,7 +82,7 @@ main (void)
                        tcase->prefix, ent, salt);
               status = 1;
             }
-          else if (!strcmp (salt, prev_output) && (strcmp (tcase->prefix, "$3$") != 0))
+          else if (!strcmp (salt, prev_output))
             {
               fprintf (stderr, "ERROR: %s/%u -> %s (same as prev)\n",
                        tcase->prefix, ent, salt);
