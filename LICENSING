@@ -46,7 +46,7 @@ source tree.  For specific licensing terms consult the files themselves.
    test-alg-des.c, test-alg-md4.c (adaption of test-alg-md5.c),
    test-alg-md5.c, test-alg-sha256.c, test-alg-sha512.c, test-crypt-des.c,
    test-crypt-md5.c, test-crypt-sha256.c, test-crypt-sha512.c,
-   test-des-cases.h, test-des-obsolete.c, test-gensalt.c,
+   test-des-cases.h, test-des-obsolete{,_r}.c, test-gensalt.c,
    test-crypt-nthash.c (adaption of test-crypt-des.c)
 
  * The NEWS file formerly contained the following copyright assertions:

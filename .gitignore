@@ -63,6 +63,7 @@
 /test-crypt-sha256
 /test-crypt-sha512
 /test-des-obsolete
+/test-des-obsolete_r
 /test-gensalt
 
 # backup-files
