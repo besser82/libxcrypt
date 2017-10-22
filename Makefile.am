@@ -109,7 +109,7 @@ endif
 check_PROGRAMS = \
 	test-alg-sha256 test-alg-sha512 \
 	test-crypt-sha256 test-crypt-sha512 test-crypt-bcrypt \
-	test-byteorder test-gensalt
+	test-crypt-nonnull test-byteorder test-gensalt
 
 if ENABLE_WEAK_HASHES
 libcrypt_la_SOURCES += \
@@ -179,6 +179,7 @@ test_crypt_badsalt_LDADD = libcrypt.la
 test_crypt_bcrypt_LDADD = libcrypt.la
 test_crypt_des_LDADD = libcrypt.la
 test_crypt_md5_LDADD = libcrypt.la
+test_crypt_nonnull_LDADD = libcrypt.la
 test_crypt_nthash_LDADD = libcrypt.la
 test_crypt_sha256_LDADD = libcrypt.la
 test_crypt_sha512_LDADD = libcrypt.la

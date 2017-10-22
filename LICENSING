@@ -16,7 +16,7 @@ source tree.  For specific licensing terms consult the files themselves.
    alg-md5.h, alg-md5.c, crypt-md5.c,
    alg-sha256.h, alg-sha256.c, crypt-sha256.c,
    alg-sha512.h, alg-sha512.c, crypt-sha256.c,
-   test-crypt-badsalt
+   test-crypt-badsalt, test-crypt-nonnull
 
  * Copyright David Burren et al.; 3-clause BSD:
    alg-des.h, alg-des.c, crypt-des.c, crypt-des-obsolete.c, gen-des-tables.c
