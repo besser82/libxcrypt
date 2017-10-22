@@ -93,7 +93,7 @@ gensalt_nthash_rn (unsigned long count,
   static const char *salt = "$3$__not_used__";
   struct md4_ctx ctx;
   unsigned char hashbuf[16];
-  char hashstr[14];
+  char hashstr[14 + 1];
   unsigned long i;
 
   /* Minimal O_SIZE to store the fake salt.
