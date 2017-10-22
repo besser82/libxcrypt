@@ -22,6 +22,15 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * The bogus 'gensalt_nthash_rn' function and all modifications to the other
+ * parts of this file are
+ *
+ * Copyright (c) 2017 Björn Esser <besser82@fedoraproject.org>
+ * All rights reserved.
+ *
+ * and is provided under the same licensing terms and conditions as the
+ * other parts of this file.
  */
 
 #include "crypt-port.h"
@@ -83,6 +92,12 @@ crypt_nthash_rn (const char *phrase,
   *output = '\0';
 }
 
+/* This function does not return any valid salt,
+   since the NTHASH crypt function simply ignores
+   any setting passed to it.  Anyways, the string
+   returned in OUTPUT will start with the correct
+   magic string '$3$', so it can be used as
+   SETTING for the crypt function.  */
 void
 gensalt_nthash_rn (unsigned long count,
                    const uint8_t *rbytes,

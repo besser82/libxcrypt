@@ -23,7 +23,7 @@ source tree.  For specific licensing terms consult the files themselves.
  * Public domain, written by Solar Designer et al.:
    alg-md4.h, alg-md4.c, crypt-bcrypt.c, crypt-gensalt.c, test-crypt-bcrypt.c
 
- * Copyright Michael Bretterklieber et al.; 2-clause BSD:
+ * Copyright Michael Bretterklieber, Björn Esser et al.; 2-clause BSD:
    crypt-nthash.c
 
  * Public domain, written by Zack Weinberg et al.:
