@@ -85,8 +85,7 @@ main (void)
 
   for (i = 0; i < ntests; ++i)
     {
-      char *cp = crypt_r (tests[i].input, "$3$__salt_not_used__", &output);
-
+      char *cp = crypt_r (tests[i].input, "$3$", &output);
       if (strcmp (cp, tests[i].expected) != 0)
         {
           printf ("test %u.0: expected \"%s\", got \"%s\"\n",
@@ -100,6 +99,14 @@ main (void)
         {
           printf ("test %u.1: expected \"%s\", got \"%s\"\n",
                   i, prevhash, cp);
+          result = 1;
+        }
+
+      cp = crypt_r (tests[i].input, "$3$__not_used__1234567890abcd", &output);
+      if (strcmp (cp, tests[i].expected) != 0)
+        {
+          printf ("test %u.2: expected \"%s\", got \"%s\"\n",
+                  i, tests[i].expected, cp);
           result = 1;
         }
     }

@@ -71,7 +71,7 @@ crypt_nthash_rn (const char *phrase,
     return;
   }
 
-  if (!strcmp (setting, "$3$"))
+  if (strncmp (setting, magic, strlen (magic)))
   {
     errno = EINVAL;
     return;
