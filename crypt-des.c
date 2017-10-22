@@ -289,8 +289,9 @@ crypt_des_xbsd_rn (const char *phrase, const char *setting,
       return;
     }
 
-  /* If this is true, this function shouldn't have been called.  */
-  if (*setting != '_')
+  /* If this is true, this function shouldn't have been called.
+     Setting must be at least 9 bytes long, byte 10+ is ignored.  */
+  if (*setting != '_' || strlen (setting) < 9)
     {
       errno = EINVAL;
       return;
