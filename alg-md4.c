@@ -155,13 +155,14 @@ body (struct md4_ctx *ctx, const unsigned char *data, size_t size)
 /* Put result from CTX in first 16 bytes following RESBUF.  The result
    will be in little endian byte order.  */
 static void *
-md4_read_ctx (const struct md4_ctx *ctx, void *resbuf)
+md4_read_ctx (struct md4_ctx *ctx, void *resbuf)
 {
   unsigned char *buf = resbuf;
   cpu_to_le32 (buf +  0, ctx->a);
   cpu_to_le32 (buf +  4, ctx->b);
   cpu_to_le32 (buf +  8, ctx->c);
   cpu_to_le32 (buf + 12, ctx->d);
+  memset(ctx, 0, sizeof(*ctx));
   return resbuf;
 }
 
@@ -212,7 +213,7 @@ md4_process_bytes (const void *buffer, struct md4_ctx *ctx, size_t size)
   memcpy(ctx->buffer, buffer, size);
 }
 
-void
+void *
 md4_finish_ctx (struct md4_ctx *ctx, void *resbuf)
 {
   size_t used, free;
@@ -244,7 +245,5 @@ md4_finish_ctx (struct md4_ctx *ctx, void *resbuf)
 
   body(ctx, ctx->buffer, 64);
 
-  md4_read_ctx (ctx, resbuf);
-
-  memset(ctx, 0, sizeof(*ctx));
+  return md4_read_ctx (ctx, resbuf);
 }

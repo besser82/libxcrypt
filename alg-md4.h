@@ -31,7 +31,8 @@ extern void md4_init_ctx (struct md4_ctx *ctx);
 extern void md4_process_bytes (const void *buffer, struct md4_ctx *ctx, size_t size);
 
 /* Process the remaining bytes in the buffer and write the finalized
-   hash to RESBUF, which should point to 16 bytes of storage.  */
-extern void md4_finish_ctx (struct md4_ctx *ctx, void *resbuf);
+   hash to RESBUF, which should point to 16 bytes of storage.  All
+   data written to CTX is erased before returning from the function.  */
+extern void *md4_finish_ctx (struct md4_ctx *ctx, void *resbuf);
 
 #endif
