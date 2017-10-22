@@ -45,7 +45,8 @@ extern void md5_process_bytes (const void *buffer, size_t len,
                                struct md5_ctx *ctx);
 
 /* Process the remaining bytes in the buffer and write the finalized
-   hash to RESBUF, which should point to 16 bytes of storage.  */
+   hash to RESBUF, which should point to 16 bytes of storage.  All
+   data written to CTX is erased before returning from the function.  */
 extern void *md5_finish_ctx (struct md5_ctx *ctx, void *resbuf);
 
 #endif /* alg-md5.h */

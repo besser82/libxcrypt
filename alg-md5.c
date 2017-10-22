@@ -46,13 +46,14 @@ md5_init_ctx (struct md5_ctx *ctx)
 /* Put result from CTX in first 16 bytes following RESBUF.  The result
    will be in little endian byte order.  */
 static void *
-md5_read_ctx (const struct md5_ctx *ctx, void *resbuf)
+md5_read_ctx (struct md5_ctx *ctx, void *resbuf)
 {
   unsigned char *buf = resbuf;
   cpu_to_le32 (buf +  0, ctx->A);
   cpu_to_le32 (buf +  4, ctx->B);
   cpu_to_le32 (buf +  8, ctx->C);
   cpu_to_le32 (buf + 12, ctx->D);
+  memset(ctx, 0, sizeof(*ctx));
   return resbuf;
 }
 
