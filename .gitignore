@@ -54,6 +54,7 @@
 /test-alg-sha512
 /test-bigcrypt
 /test-byteorder
+/test-crypt-badsalt
 /test-crypt-bcrypt
 /test-crypt-des
 /test-crypt-md5
@@ -70,3 +71,6 @@
 # archives
 
 *.tar*
+
+# Valgrind
+vgcore.*

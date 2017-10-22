@@ -142,7 +142,8 @@ alg-des-tables.c: gen-des-tables
 
 check_PROGRAMS += \
 	test-alg-des test-alg-md4 test-alg-md5 \
-	test-crypt-des test-crypt-md5 test-crypt-nthash
+	test-crypt-badsalt test-crypt-des test-crypt-md5 \
+	test-crypt-nthash
 endif
 
 if ENABLE_OBSOLETE_API
@@ -174,6 +175,7 @@ LOG_COMPILER = m4/skip-if-exec-format-error
 endif
 EXTRA_DIST += m4/skip-if-exec-format-error
 
+test_crypt_badsalt_LDADD = libcrypt.la
 test_crypt_bcrypt_LDADD = libcrypt.la
 test_crypt_des_LDADD = libcrypt.la
 test_crypt_md5_LDADD = libcrypt.la
