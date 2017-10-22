@@ -49,7 +49,7 @@
 
 void
 crypt_nthash_rn (const char *phrase,
-                 ARG_UNUSED(const char *setting),
+                 const char *setting,
                  uint8_t *output,
                  size_t o_size,
                  void *scratch,
@@ -62,6 +62,7 @@ crypt_nthash_rn (const char *phrase,
   uint16_t unipw[128];
   unsigned char hash[16];
   const char *s;
+  struct md4_ctx *ctx = scratch;
 
   if ((o_size < 4 + 32) ||
       (s_size < sizeof (struct md4_ctx)))
@@ -70,7 +71,11 @@ crypt_nthash_rn (const char *phrase,
     return;
   }
 
-  struct md4_ctx *ctx = scratch;
+  if (!strcmp (setting, "$3$"))
+  {
+    errno = EINVAL;
+    return;
+  }
 
   memset (unipw, 0, sizeof(unipw));
   /* convert to unicode (thanx Archie) */
