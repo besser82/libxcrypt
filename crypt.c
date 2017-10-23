@@ -77,7 +77,8 @@ struct hashfn
 
 /* This table should always begin with the algorithm that should be used
    for new encryptions.  */
-static const struct hashfn tagged_hashes[] = {
+static const struct hashfn tagged_hashes[] =
+{
   /* bcrypt */
   { "$2a$", crypt_bcrypt_rn, gensalt_bcrypt_a_rn },
   { "$2b$", crypt_bcrypt_rn, gensalt_bcrypt_b_rn },
@@ -96,12 +97,14 @@ static const struct hashfn tagged_hashes[] = {
 
 #if ENABLE_WEAK_HASHES
 /* BSD-style extended DES */
-static const struct hashfn bsdi_extended_hash = {
+static const struct hashfn bsdi_extended_hash =
+{
   "_", crypt_des_xbsd_rn, gensalt_des_xbsd_rn
 };
 
 /* Traditional DES or bigcrypt-style extended DES */
-static const struct hashfn traditional_hash = {
+static const struct hashfn traditional_hash =
+{
   "", crypt_des_trd_or_big_rn, gensalt_des_trd_rn
 };
 
@@ -206,10 +209,10 @@ struct crypt_fn_args
 
 #if UINTPTR_MAX == UINT_MAX
 static_assert (sizeof (uintptr_t) == sizeof (int),
-  "UINTPTR_MAX matches UINT_MAX but sizeof (uintptr_t) != sizeof (int)");
+               "UINTPTR_MAX matches UINT_MAX but sizeof (uintptr_t) != sizeof (int)");
 
 static_assert (sizeof (struct crypt_fn_args *) == sizeof (int),
-  "UINTPTR_MAX matches UINT_MAX but sizeof (crypt_fn_args *) != sizeof (int)");
+               "UINTPTR_MAX matches UINT_MAX but sizeof (crypt_fn_args *) != sizeof (int)");
 
 #define SWIZZLE_PTR(ptr) 1, ((int)(uintptr_t)(ptr))
 #define UNSWIZZLE_PTR(val) ((struct crypt_fn_args *)(uintptr_t)(val))
@@ -218,10 +221,10 @@ static_assert (sizeof (struct crypt_fn_args *) == sizeof (int),
 
 #elif UINTPTR_MAX == ULONG_MAX
 static_assert (sizeof (uintptr_t) == 2*sizeof (int),
-  "UINTPTR_MAX matches ULONG_MAX but sizeof (uintptr_t) != 2*sizeof (int)");
+               "UINTPTR_MAX matches ULONG_MAX but sizeof (uintptr_t) != 2*sizeof (int)");
 
 static_assert (sizeof (struct crypt_fn_args *) == 2*sizeof (int),
-"UINTPTR_MAX matches ULONG_MAX but sizeof (crypt_fn_args *) != 2*sizeof (int)");
+               "UINTPTR_MAX matches ULONG_MAX but sizeof (crypt_fn_args *) != 2*sizeof (int)");
 
 #define SWIZZLE_PTR(ptr) 2,                                             \
     (int)((((uintptr_t)ptr) >> (sizeof(int)*CHAR_BIT)) & UINT_MAX),     \

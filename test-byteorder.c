@@ -38,7 +38,8 @@ struct test_64
 static int
 test_le32 (void)
 {
-  static const struct test_32 cases[] = {
+  static const struct test_32 cases[] =
+  {
     { 0x00000000, "\x00\x00\x00\x00" },
     { 0xFF000000, "\x00\x00\x00\xFF" },
     { 0x00FF0000, "\x00\x00\xFF\x00" },
@@ -84,7 +85,8 @@ test_le32 (void)
 static int
 test_be32 (void)
 {
-  static const struct test_32 cases[] = {
+  static const struct test_32 cases[] =
+  {
     { 0x00000000, "\x00\x00\x00\x00" },
     { 0xFF000000, "\xFF\x00\x00\x00" },
     { 0x00FF0000, "\x00\xFF\x00\x00" },
@@ -130,7 +132,8 @@ test_be32 (void)
 static int
 test_le64 (void)
 {
-  static const struct test_64 cases[] = {
+  static const struct test_64 cases[] =
+  {
     { 0x0000000000000000ull, "\x00\x00\x00\x00\x00\x00\x00\x00" },
     { 0x00000000000000FFull, "\xFF\x00\x00\x00\x00\x00\x00\x00" },
     { 0x000000000000FF00ull, "\x00\xFF\x00\x00\x00\x00\x00\x00" },
@@ -186,7 +189,8 @@ test_le64 (void)
 static int
 test_be64 (void)
 {
-  static const struct test_64 cases[] = {
+  static const struct test_64 cases[] =
+  {
     { 0x0000000000000000ull, "\x00\x00\x00\x00\x00\x00\x00\x00" },
     { 0x00000000000000FFull, "\x00\x00\x00\x00\x00\x00\x00\xFF" },
     { 0x000000000000FF00ull, "\x00\x00\x00\x00\x00\x00\xFF\x00" },

@@ -271,7 +271,7 @@ crypt_des_trd_or_big_rn (const char *phrase, const char *setting,
                          void *scratch, size_t s_size)
 {
   (strlen (setting) > 13 ? crypt_des_big_rn : crypt_des_trd_rn)
-    (phrase, setting, output, o_size, scratch, s_size);
+  (phrase, setting, output, o_size, scratch, s_size);
 }
 
 /* crypt_rn() entry point for BSD-style extended DES hashes.  These
@@ -368,8 +368,8 @@ gensalt_des_trd_rn (unsigned long count,
 
 void
 gensalt_des_xbsd_rn (unsigned long count,
-                    const uint8_t *rbytes, size_t nrbytes,
-                    uint8_t *output, size_t output_size)
+                     const uint8_t *rbytes, size_t nrbytes,
+                     uint8_t *output, size_t output_size)
 {
   if (output_size < 1 + 4 + 4 + 1)
     {

@@ -29,8 +29,10 @@ static const struct
   { "_J9..XXXX", "_J9..XXXXsqM/YSSP..Y", "*U*U*U*U*" },
   { "_J9..XXXX", "_J9..XXXXVL7qJCnku0I", "*U*U*U*U*U*U*U*U" },
   { "_J9..XXXX", "_J9..XXXXAj8cFbP5scI", "*U*U*U*U*U*U*U*U*" },
-  { "_J9..XXXX", "_J9..XXXXAj8cFbP5scI", "\xaa\xd5\xaa\xd5\xaa\xd5\xaa\xd5\xaa"
-                                         "\xd5\xaa\xd5\xaa\xd5\xaa\xd5\xaa" },
+  {
+    "_J9..XXXX", "_J9..XXXXAj8cFbP5scI", "\xaa\xd5\xaa\xd5\xaa\xd5\xaa\xd5\xaa"
+    "\xd5\xaa\xd5\xaa\xd5\xaa\xd5\xaa"
+  },
   { "_J9..SDiz", "_J9..SDizh.vll5VED9g", "ab1234567" },
   { "_J9..SDiz", "_J9..SDizRjWQ/zePPHc", "cr1234567" },
   { "_J9..SDiz", "_J9..SDizxmRI1GjnQuE", "zxyDPWgydbQjgq" },
@@ -54,10 +56,14 @@ static const struct
   { "Xh..............", "XhWbBsxo8cYpYvYwQItwv0qc", "challenge" },
 
   /* bigcrypt still discards the 8th bit of every character.  */
-  { "Cx..............", "CxcR5MY6TS58EVRba0DA/cW.",
-    "\xe1\xec\xe5\xf8\xe1\xee\xe4\xe5\xf2" /* alexander */ },
-  { "6M..............", "6MvZdspyAL4QEId8ugLUEeDs",
-    "\xf3\xf4\xe5\xf0\xe8\xe1\xee\xe9\xe5" /* stephanie */ },
+  {
+    "Cx..............", "CxcR5MY6TS58EVRba0DA/cW.",
+    "\xe1\xec\xe5\xf8\xe1\xee\xe4\xe5\xf2" /* alexander */
+  },
+  {
+    "6M..............", "6MvZdspyAL4QEId8ugLUEeDs",
+    "\xf3\xf4\xe5\xf0\xe8\xe1\xee\xe9\xe5" /* stephanie */
+  },
 };
 
 #define ntests (sizeof (tests) / sizeof (tests[0]))

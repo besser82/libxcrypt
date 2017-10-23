@@ -66,16 +66,16 @@ crypt_nthash_rn (const char *phrase,
 
   if ((o_size < 4 + 32) ||
       (s_size < sizeof (struct md4_ctx)))
-  {
-    errno = ERANGE;
-    return;
-  }
+    {
+      errno = ERANGE;
+      return;
+    }
 
   if (strncmp (setting, magic, strlen (magic)))
-  {
-    errno = EINVAL;
-    return;
-  }
+    {
+      errno = EINVAL;
+      return;
+    }
 
   memset (unipw, 0, sizeof(unipw));
   /* convert to unicode (thanx Archie) */
@@ -90,10 +90,11 @@ crypt_nthash_rn (const char *phrase,
 
   output = (uint8_t *)stpcpy ((char *)output, magic);
   *output++ = '$';
-  for (i = 0; i < 16; i++) {
-    *output++ = (uint8_t)hexconvtab[hash[i] >> 4];
-    *output++ = (uint8_t)hexconvtab[hash[i] & 0xf];
-  }
+  for (i = 0; i < 16; i++)
+    {
+      *output++ = (uint8_t)hexconvtab[hash[i] >> 4];
+      *output++ = (uint8_t)hexconvtab[hash[i] & 0xf];
+    }
   *output = '\0';
 }
 
@@ -121,22 +122,22 @@ gensalt_nthash_rn (unsigned long count,
      to calculate the MD4 hash used in the
      fake salt.  */
   if ((o_size < 29) || (nrbytes < 1))
-  {
-    errno = ERANGE;
-    return;
-  }
+    {
+      errno = ERANGE;
+      return;
+    }
 
   if (count < 20)
     count = 20;
 
   md4_init_ctx (&ctx);
   for (i = 0; i < count; i++)
-  {
-    md4_process_bytes (salt, &ctx, (i % 15) + 1);
-    md4_process_bytes (rbytes, &ctx, nrbytes);
-    md4_process_bytes (salt, &ctx, 15);
-    md4_process_bytes (salt, &ctx, 15 - (i % 15));
-  }
+    {
+      md4_process_bytes (salt, &ctx, (i % 15) + 1);
+      md4_process_bytes (rbytes, &ctx, nrbytes);
+      md4_process_bytes (salt, &ctx, 15);
+      md4_process_bytes (salt, &ctx, 15 - (i % 15));
+    }
   md4_finish_ctx (&ctx, &hashbuf);
 
   for (i = 0; i < 7; i++)

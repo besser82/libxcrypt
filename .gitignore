@@ -76,3 +76,7 @@
 
 # Valgrind
 vgcore.*
+
+# Patch
+*.orig
+*.rej

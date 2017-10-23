@@ -27,9 +27,9 @@ report_failure (size_t n, bool decrypt,
   v_print (tc->key);
   fputs ("  exp ", stdout);
   if (decrypt)
-      v_print (tc->plain);
+    v_print (tc->plain);
   else
-      v_print (tc->answer);
+    v_print (tc->answer);
   fputs ("  got ", stdout);
   v_print (got);
   putchar ('\n');

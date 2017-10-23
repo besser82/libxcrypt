@@ -26,19 +26,19 @@
 
 /* Setup DES tables according KEY.  */
 extern void setkey (const char *__key)
-  __nonnull ((1));
+__nonnull ((1));
 
 extern void setkey_r (const char *__key,
                       struct crypt_data *restrict __data)
-  __nonnull ((1, 2));
+__nonnull ((1, 2));
 
 /* Encrypt data in BLOCK in place if EDFLAG is zero; otherwise decrypt
    block in place.  */
 extern void encrypt (char *__block, int __edflag)
-  __nonnull ((1));
+__nonnull ((1));
 
 extern void encrypt_r (char *__block, int __edflag,
                        struct crypt_data *restrict __data)
-  __nonnull ((1, 3));
+__nonnull ((1, 3));
 
 #endif /* crypt-obsolete.h */

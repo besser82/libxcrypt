@@ -6,7 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-static const char *const entropy[] = {
+static const char *const entropy[] =
+{
   "\x58\x35\xcd\x26\x03\xab\x2c\x14\x92\x13\x1e\x59\xb0\xbc\xfe\xd5",
   "\x9b\x35\xa2\x45\xeb\x68\x9e\x8f\xd9\xa9\x09\x71\xcc\x4d\x21\x44",
   "\x25\x13\xc5\x94\xc3\x93\x1d\xf4\xfd\xd4\x4f\xbd\x10\xe5\x28\x08",
@@ -20,7 +21,8 @@ struct testcase
   unsigned int expected_len;
 };
 
-static const struct testcase testcases[] = {
+static const struct testcase testcases[] =
+{
 #if ENABLE_WEAK_HASHES
   { "", 2 }, // DES
   { "_", 9 }, // BSDi extended DES

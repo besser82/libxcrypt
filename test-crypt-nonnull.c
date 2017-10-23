@@ -23,18 +23,18 @@
 #include <crypt.h>
 
 static const char *tests[][3] =
-  {
-    { "single char",           "/"    },
-    { "first char bad",        "!x"   },
-    { "second char bad",       "Z%"   },
-    { "both chars bad",        ":@"   },
-    { "un$upported algorithm", "$2$"  },
-    { "un$upported $etting",   "$2a$" },
-    { "un$upported $etting",   "$2b$" },
-    { "un$upported $etting",   "$2x$" },
-    { "bad salt for BSDi",     "_1"   },
-    { "end of page",           NULL   }
-  };
+{
+  { "single char",           "/"    },
+  { "first char bad",        "!x"   },
+  { "second char bad",       "Z%"   },
+  { "both chars bad",        ":@"   },
+  { "un$upported algorithm", "$2$"  },
+  { "un$upported $etting",   "$2a$" },
+  { "un$upported $etting",   "$2b$" },
+  { "un$upported $etting",   "$2x$" },
+  { "bad salt for BSDi",     "_1"   },
+  { "end of page",           NULL   }
+};
 
 int
 main (void)
@@ -51,7 +51,7 @@ main (void)
   /* Check that crypt won't look at the second character if the first
      one is invalid.  */
   page = mmap (NULL, pagesize * 2, PROT_READ | PROT_WRITE,
-	       MAP_PRIVATE | MAP_ANON, -1, 0);
+               MAP_PRIVATE | MAP_ANON, -1, 0);
   if (page == MAP_FAILED)
     {
       perror ("mmap");
@@ -60,9 +60,9 @@ main (void)
   else
     {
       if (mmap (page + pagesize, pagesize, 0,
-		MAP_PRIVATE | MAP_ANON | MAP_FIXED,
-		-1, 0) != page + pagesize)
-	perror ("mmap 2");
+                MAP_PRIVATE | MAP_ANON | MAP_FIXED,
+                -1, 0) != page + pagesize)
+        perror ("mmap 2");
       page[pagesize - 1] = special[0];
       tests[n - 1][1] = &page[pagesize - 1];
     }
@@ -70,26 +70,26 @@ main (void)
   for (size_t i = 0; i < n; i++)
     {
       if (crypt_rn (tests[i][0], tests[i][1], cdptr, cdsize))
-	{
-	  result++;
+        {
+          result++;
           if (memcmp (&page[pagesize - 1], tests[i][1], 1) != 0)
             saltstr = tests[i][1];
           else
             saltstr = special;
           printf ("%s: crypt_rn returned non-NULL with salt \"%s\"\n",
                   tests[i][0], saltstr);
-	}
+        }
 
       if (crypt_ra (tests[i][0], tests[i][1], (void **)&cdptr, &cdsize))
-	{
-	  result++;
+        {
+          result++;
           if (memcmp (&page[pagesize - 1], tests[i][1], 1) != 0)
             saltstr = tests[i][1];
           else
             saltstr = special;
           printf ("%s: crypt_ra returned non-NULL with salt \"%s\"\n",
                   tests[i][0], saltstr);
-	}
+        }
     }
 
   return result;

@@ -26,7 +26,8 @@
 
 
 /* Constants for SHA256 from FIPS 180-2:4.2.2.  */
-static const uint32_t K[64] = {
+static const uint32_t K[64] =
+{
   0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
   0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
   0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
@@ -228,7 +229,7 @@ sha256_process_bytes (const void *buffer, size_t len, struct sha256_ctx *ctx)
     }
 
   /* Process available complete blocks.  */
-   if (len > 64)
+  if (len > 64)
     {
       sha256_process_block (buffer, len & ~63u, ctx);
       buffer = (const char *) buffer + (len & ~63u);

@@ -61,9 +61,9 @@ report_failure (size_t n, bool decrypt,
   pk_print (tc->key);
   fputs ("  exp ", stdout);
   if (decrypt)
-      pk_print (tc->plain);
+    pk_print (tc->plain);
   else
-      pk_print (tc->answer);
+    pk_print (tc->answer);
   fputs ("  got ", stdout);
   ex_print (got);
   putchar ('\n');

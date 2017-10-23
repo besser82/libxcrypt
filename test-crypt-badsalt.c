@@ -23,19 +23,19 @@
 #include <crypt.h>
 
 static const char *tests[][3] =
-  {
-    { "no salt",               "",     "..ogcgXxFhnjI" /*  valid setting  */ },
-    { "single char",           "/",    "*0"            /* invalid setting */ },
-    { "first char bad",        "!x",   "*0"            /* invalid setting */ },
-    { "second char bad",       "Z%",   "*0"            /* invalid setting */ },
-    { "both chars bad",        ":@",   "*0"            /* invalid setting */ },
-    { "un$upported algorithm", "$2$",  "*0"            /* invalid setting */ },
-    { "un$upported $etting",   "$2a$", "*0"            /* invalid setting */ },
-    { "un$upported $etting",   "$2b$", "*0"            /* invalid setting */ },
-    { "un$upported $etting",   "$2x$", "*0"            /* invalid setting */ },
-    { "bad salt for BSDi",     "_1",   "*0"            /* invalid setting */ },
-    { "end of page",           NULL,   "*0"            /* invalid setting */ }
-  };
+{
+  { "no salt",               "",     "..ogcgXxFhnjI" /*  valid setting  */ },
+  { "single char",           "/",    "*0"            /* invalid setting */ },
+  { "first char bad",        "!x",   "*0"            /* invalid setting */ },
+  { "second char bad",       "Z%",   "*0"            /* invalid setting */ },
+  { "both chars bad",        ":@",   "*0"            /* invalid setting */ },
+  { "un$upported algorithm", "$2$",  "*0"            /* invalid setting */ },
+  { "un$upported $etting",   "$2a$", "*0"            /* invalid setting */ },
+  { "un$upported $etting",   "$2b$", "*0"            /* invalid setting */ },
+  { "un$upported $etting",   "$2x$", "*0"            /* invalid setting */ },
+  { "bad salt for BSDi",     "_1",   "*0"            /* invalid setting */ },
+  { "end of page",           NULL,   "*0"            /* invalid setting */ }
+};
 
 int
 main (void)
@@ -52,7 +52,7 @@ main (void)
   /* Check that crypt won't look at the second character if the first
      one is invalid.  */
   page = mmap (NULL, pagesize * 2, PROT_READ | PROT_WRITE,
-	       MAP_PRIVATE | MAP_ANON, -1, 0);
+               MAP_PRIVATE | MAP_ANON, -1, 0);
   if (page == MAP_FAILED)
     {
       perror ("mmap");
@@ -61,9 +61,9 @@ main (void)
   else
     {
       if (mmap (page + pagesize, pagesize, 0,
-		MAP_PRIVATE | MAP_ANON | MAP_FIXED,
-		-1, 0) != page + pagesize)
-	perror ("mmap 2");
+                MAP_PRIVATE | MAP_ANON | MAP_FIXED,
+                -1, 0) != page + pagesize)
+        perror ("mmap 2");
       page[pagesize - 1] = special[0];
       tests[n - 1][1] = &page[pagesize - 1];
     }
@@ -72,8 +72,8 @@ main (void)
     {
       retval = crypt (tests[i][0], tests[i][1]);
       if (strcmp (tests[i][2], retval))
-	{
-	  result++;
+        {
+          result++;
           if (memcmp (&page[pagesize - 1], tests[i][1], 1) != 0)
             saltstr = tests[i][1];
           else
@@ -82,12 +82,12 @@ main (void)
                   tests[i][0], saltstr);
           printf ("  expected: \"%s\"\n  got:      \"%s\"\n\n",
                   tests[i][2], retval);
-	}
+        }
 
       retval = crypt_r (tests[i][0], tests[i][1], &cd);
       if (strcmp (tests[i][2], retval))
-	{
-	  result++;
+        {
+          result++;
           if (memcmp (&page[pagesize - 1], tests[i][1], 1) != 0)
             saltstr = tests[i][1];
           else
@@ -96,13 +96,13 @@ main (void)
                   tests[i][0], saltstr);
           printf ("  expected: \"%s\"\n  got:      \"%s\"\n\n",
                   tests[i][2], retval);
-	}
+        }
 
       crypt_rn (tests[i][0], tests[i][1], cdptr, cdsize);
       retval = cd.output;
       if (strcmp (tests[i][2], retval))
-	{
-	  result++;
+        {
+          result++;
           if (memcmp (&page[pagesize - 1], tests[i][1], 1) != 0)
             saltstr = tests[i][1];
           else
@@ -111,13 +111,13 @@ main (void)
                   tests[i][0], saltstr);
           printf ("  expected: \"%s\"\n  got:      \"%s\"\n\n",
                   tests[i][2], retval);
-	}
+        }
 
       crypt_ra (tests[i][0], tests[i][1], (void **)&cdptr, &cdsize);
       retval = cd.output;
       if (strcmp (tests[i][2], retval))
-	{
-	  result++;
+        {
+          result++;
           if (memcmp (&page[pagesize - 1], tests[i][1], 1) != 0)
             saltstr = tests[i][1];
           else
@@ -126,7 +126,7 @@ main (void)
                   tests[i][0], saltstr);
           printf ("  expected: \"%s\"\n  got:      \"%s\"\n\n",
                   tests[i][2], retval);
-	}
+        }
     }
 
   return result;

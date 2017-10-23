@@ -62,7 +62,8 @@
 #include "alg-des.h"
 #include "byteorder.h"
 
-static const uint8_t key_shifts[16] = {
+static const uint8_t key_shifts[16] =
+{
   1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1
 };
 
@@ -77,21 +78,21 @@ des_set_key (struct des_ctx *restrict ctx, const unsigned char *key)
 
   /* Do key permutation and split into two 28-bit subkeys.  */
   k0 = key_perm_maskl[0][rawkey0 >> 25]
-     | key_perm_maskl[1][(rawkey0 >> 17) & 0x7f]
-     | key_perm_maskl[2][(rawkey0 >> 9) & 0x7f]
-     | key_perm_maskl[3][(rawkey0 >> 1) & 0x7f]
-     | key_perm_maskl[4][rawkey1 >> 25]
-     | key_perm_maskl[5][(rawkey1 >> 17) & 0x7f]
-     | key_perm_maskl[6][(rawkey1 >> 9) & 0x7f]
-     | key_perm_maskl[7][(rawkey1 >> 1) & 0x7f];
+       | key_perm_maskl[1][(rawkey0 >> 17) & 0x7f]
+       | key_perm_maskl[2][(rawkey0 >> 9) & 0x7f]
+       | key_perm_maskl[3][(rawkey0 >> 1) & 0x7f]
+       | key_perm_maskl[4][rawkey1 >> 25]
+       | key_perm_maskl[5][(rawkey1 >> 17) & 0x7f]
+       | key_perm_maskl[6][(rawkey1 >> 9) & 0x7f]
+       | key_perm_maskl[7][(rawkey1 >> 1) & 0x7f];
   k1 = key_perm_maskr[0][rawkey0 >> 25]
-     | key_perm_maskr[1][(rawkey0 >> 17) & 0x7f]
-     | key_perm_maskr[2][(rawkey0 >> 9) & 0x7f]
-     | key_perm_maskr[3][(rawkey0 >> 1) & 0x7f]
-     | key_perm_maskr[4][rawkey1 >> 25]
-     | key_perm_maskr[5][(rawkey1 >> 17) & 0x7f]
-     | key_perm_maskr[6][(rawkey1 >> 9) & 0x7f]
-     | key_perm_maskr[7][(rawkey1 >> 1) & 0x7f];
+       | key_perm_maskr[1][(rawkey0 >> 17) & 0x7f]
+       | key_perm_maskr[2][(rawkey0 >> 9) & 0x7f]
+       | key_perm_maskr[3][(rawkey0 >> 1) & 0x7f]
+       | key_perm_maskr[4][rawkey1 >> 25]
+       | key_perm_maskr[5][(rawkey1 >> 17) & 0x7f]
+       | key_perm_maskr[6][(rawkey1 >> 9) & 0x7f]
+       | key_perm_maskr[7][(rawkey1 >> 1) & 0x7f];
 
   /* Rotate subkeys and do compression permutation.  */
   shifts = 0;
@@ -103,7 +104,7 @@ des_set_key (struct des_ctx *restrict ctx, const unsigned char *key)
       t1 = (k1 << shifts) | (k1 >> (28 - shifts));
 
       ctx->keysl[round] =
-          comp_maskl[0][(t0 >> 21) & 0x7f]
+        comp_maskl[0][(t0 >> 21) & 0x7f]
         | comp_maskl[1][(t0 >> 14) & 0x7f]
         | comp_maskl[2][(t0 >>  7) & 0x7f]
         | comp_maskl[3][(t0 >>  0) & 0x7f]
@@ -113,7 +114,7 @@ des_set_key (struct des_ctx *restrict ctx, const unsigned char *key)
         | comp_maskl[7][(t1 >>  0) & 0x7f];
 
       ctx->keysr[round] =
-          comp_maskr[0][(t0 >> 21) & 0x7f]
+        comp_maskr[0][(t0 >> 21) & 0x7f]
         | comp_maskr[1][(t0 >> 14) & 0x7f]
         | comp_maskr[2][(t0 >>  7) & 0x7f]
         | comp_maskr[3][(t0 >>  0) & 0x7f]
@@ -176,21 +177,21 @@ des_crypt_block (struct des_ctx *restrict ctx,
 
   /* Do initial permutation.  */
   l = ip_maskl[0][(l_in >> 24) & 0xff]
-    | ip_maskl[1][(l_in >> 16) & 0xff]
-    | ip_maskl[2][(l_in >>  8) & 0xff]
-    | ip_maskl[3][(l_in >>  0) & 0xff]
-    | ip_maskl[4][(r_in >> 24) & 0xff]
-    | ip_maskl[5][(r_in >> 16) & 0xff]
-    | ip_maskl[6][(r_in >>  8) & 0xff]
-    | ip_maskl[7][(r_in >>  0) & 0xff];
+      | ip_maskl[1][(l_in >> 16) & 0xff]
+      | ip_maskl[2][(l_in >>  8) & 0xff]
+      | ip_maskl[3][(l_in >>  0) & 0xff]
+      | ip_maskl[4][(r_in >> 24) & 0xff]
+      | ip_maskl[5][(r_in >> 16) & 0xff]
+      | ip_maskl[6][(r_in >>  8) & 0xff]
+      | ip_maskl[7][(r_in >>  0) & 0xff];
   r = ip_maskr[0][(l_in >> 24) & 0xff]
-    | ip_maskr[1][(l_in >> 16) & 0xff]
-    | ip_maskr[2][(l_in >>  8) & 0xff]
-    | ip_maskr[3][(l_in >>  0) & 0xff]
-    | ip_maskr[4][(r_in >> 24) & 0xff]
-    | ip_maskr[5][(r_in >> 16) & 0xff]
-    | ip_maskr[6][(r_in >>  8) & 0xff]
-    | ip_maskr[7][(r_in >>  0) & 0xff];
+      | ip_maskr[1][(l_in >> 16) & 0xff]
+      | ip_maskr[2][(l_in >>  8) & 0xff]
+      | ip_maskr[3][(l_in >>  0) & 0xff]
+      | ip_maskr[4][(r_in >> 24) & 0xff]
+      | ip_maskr[5][(r_in >> 16) & 0xff]
+      | ip_maskr[6][(r_in >>  8) & 0xff]
+      | ip_maskr[7][(r_in >>  0) & 0xff];
 
   do
     {
@@ -201,15 +202,15 @@ des_crypt_block (struct des_ctx *restrict ctx,
         {
           /* Expand R to 48 bits (simulate the E-box).  */
           r48l = ((r & 0x00000001) << 23)
-               | ((r & 0xf8000000) >>  9)
-               | ((r & 0x1f800000) >> 11)
-               | ((r & 0x01f80000) >> 13)
-               | ((r & 0x001f8000) >> 15);
+                 | ((r & 0xf8000000) >>  9)
+                 | ((r & 0x1f800000) >> 11)
+                 | ((r & 0x01f80000) >> 13)
+                 | ((r & 0x001f8000) >> 15);
           r48r = ((r & 0x0001f800) <<  7)
-               | ((r & 0x00001f80) <<  5)
-               | ((r & 0x000001f8) <<  3)
-               | ((r & 0x0000001f) <<  1)
-               | ((r & 0x80000000) >> 31);
+                 | ((r & 0x00001f80) <<  5)
+                 | ((r & 0x000001f8) <<  3)
+                 | ((r & 0x0000001f) <<  1)
+                 | ((r & 0x80000000) >> 31);
 
           /* Apply salt and permuted round key.  */
           f = (r48l ^ r48r) & saltbits;
@@ -221,9 +222,9 @@ des_crypt_block (struct des_ctx *restrict ctx,
           /* Do sbox lookups (which shrink it back to 32 bits)
              and the pbox permutation at the same time.  */
           f = psbox[0][m_sbox[0][r48l >> 12]]
-            | psbox[1][m_sbox[1][r48l & 0xfff]]
-            | psbox[2][m_sbox[2][r48r >> 12]]
-            | psbox[3][m_sbox[3][r48r & 0xfff]];
+              | psbox[1][m_sbox[1][r48l & 0xfff]]
+              | psbox[2][m_sbox[2][r48r >> 12]]
+              | psbox[3][m_sbox[3][r48r & 0xfff]];
 
           /* Now that we've permuted things, complete f().  */
           f ^= l;
@@ -239,7 +240,7 @@ des_crypt_block (struct des_ctx *restrict ctx,
 
   /* Do final permutation (inverse of IP).  */
   l_out =
-      fp_maskl[0][(l >> 24) & 0xff]
+    fp_maskl[0][(l >> 24) & 0xff]
     | fp_maskl[1][(l >> 16) & 0xff]
     | fp_maskl[2][(l >>  8) & 0xff]
     | fp_maskl[3][(l >>  0) & 0xff]
@@ -248,7 +249,7 @@ des_crypt_block (struct des_ctx *restrict ctx,
     | fp_maskl[6][(r >>  8) & 0xff]
     | fp_maskl[7][(r >>  0) & 0xff];
   r_out =
-      fp_maskr[0][(l >> 24) & 0xff]
+    fp_maskr[0][(l >> 24) & 0xff]
     | fp_maskr[1][(l >> 16) & 0xff]
     | fp_maskr[2][(l >>  8) & 0xff]
     | fp_maskr[3][(l >>  0) & 0xff]

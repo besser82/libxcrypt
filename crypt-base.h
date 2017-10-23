@@ -59,7 +59,7 @@
    SETTING nor to any valid hashed passphrase.  Otherwise, the string
    will not begin with '*'.  */
 extern char *crypt (const char *__phrase, const char *__setting)
-  __THROW __nonnull ((1, 2));
+__THROW __nonnull ((1, 2));
 
 /* These sizes are chosen to make sizeof (struct crypt_data) add up to
    exactly 32768 bytes.  */
@@ -113,7 +113,7 @@ struct crypt_data
    DATA->output.  Otherwise, behaves exactly the same as crypt.  */
 extern char *crypt_r (const char *__phrase, const char *__setting,
                       struct crypt_data *restrict __data)
-  __THROW __nonnull ((1, 2, 3));
+__THROW __nonnull ((1, 2, 3));
 
 /* Another thread-safe version of crypt.  Instead of writing to a
    static storage area, the string returned by this function will be
@@ -125,7 +125,7 @@ extern char *crypt_r (const char *__phrase, const char *__setting,
    still will never begin with '*'.)  */
 extern char *crypt_rn (const char *__phrase, const char *__setting,
                        void *__data, int __size)
-  __THROW __nonnull ((1, 2, 3));
+__THROW __nonnull ((1, 2, 3));
 
 /* Yet a third thread-safe version of crypt; this one works like
    getline(3).  *DATA must be either 0 or a pointer to memory
@@ -139,7 +139,7 @@ extern char *crypt_rn (const char *__phrase, const char *__setting,
    a special string.  */
 extern char *crypt_ra (const char *__phrase, const char *__setting,
                        void **__data, int *__size)
-  __THROW __nonnull ((1, 2, 3, 4));
+__THROW __nonnull ((1, 2, 3, 4));
 
 
 /* Generate a string suitable for use as the setting when hashing a
@@ -164,7 +164,7 @@ extern char *crypt_ra (const char *__phrase, const char *__setting,
    this function returns a null pointer.  */
 extern char *crypt_gensalt (const char *__prefix, unsigned long __count,
                             const char *__rbytes, int __nrbytes)
-  __THROW;
+__THROW;
 
 /* Thread-safe version of crypt_gensalt; instead of a
    statically-allocated buffer, the generated setting string is
@@ -176,14 +176,14 @@ extern char *crypt_gensalt (const char *__prefix, unsigned long __count,
 extern char *crypt_gensalt_rn (const char *__prefix, unsigned long __count,
                                const char *__rbytes, int __nrbytes,
                                char *__output, int __output_size)
-  __THROW __nonnull ((5));
+__THROW __nonnull ((5));
 
 /* Another thread-safe version of crypt_gensalt; the generated setting
    string is in storage allocated by malloc, and should be deallocated
    with free when it is no longer needed.  */
 extern char *crypt_gensalt_ra (const char *__prefix, unsigned long __count,
                                const char *__rbytes, int __nrbytes)
-  __THROW;
+__THROW;
 
 /*TRAILER*/
 

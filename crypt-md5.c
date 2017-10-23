@@ -139,7 +139,7 @@ crypt_md5_rn (const char *phrase, const char *setting,
      what was intended but we have to follow this to be compatible.  */
   for (cnt = phrase_len; cnt > 0; cnt >>= 1)
     md5_process_bytes ((cnt & 1) != 0 ? (const char *) result : phrase, 1,
-                         ctx);
+                       ctx);
 
   /* Create intermediate result.  */
   md5_finish_ctx (ctx, result);
