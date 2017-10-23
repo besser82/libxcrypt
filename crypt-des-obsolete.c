@@ -64,7 +64,7 @@ static inline struct des_ctx *
 get_des_ctx (struct crypt_data *data)
 {
   uintptr_t internalp = (uintptr_t) data->internal;
-  uintptr_t align = alignof (struct des_ctx);
+  const uintptr_t align = alignof (struct des_ctx);
   internalp = (internalp + align - 1) & ~(align - 1);
   return (struct des_ctx *)internalp;
 }
