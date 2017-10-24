@@ -5,9 +5,9 @@ README for libxcrypt
 ====================
 
 libxcrypt is a modern library for one-way hashing of passwords.  It
-supports DES, MD5, NTHASH, SHA-2-256, SHA-2-512, and bcrypt-based
-password hashes, and provides the traditional Unix `crypt` and
-`crypt_r` interfaces, as well as a set of extended interfaces
+supports DES, MD5, NTHASH, SUNMD5, SHA-2-256, SHA-2-512, and
+bcrypt-based password hashes, and provides the traditional Unix `crypt`
+and `crypt_r` interfaces, as well as a set of extended interfaces
 pioneered by Openwall Linux, `crypt_rn`, `crypt_ra`, `crypt_gensalt`,
 `crypt_gensalt_rn`, and `crypt_gensalt_ra`.
 

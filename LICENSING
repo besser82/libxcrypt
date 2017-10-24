@@ -27,6 +27,9 @@ source tree.  For specific licensing terms consult the files themselves.
  * Copyright Michael Bretterklieber, Björn Esser et al.; 2-clause BSD:
    crypt-nthash.c
 
+ * Copyright Sun Microsystems, Inc., Björn Esser; CDDL-1.0:
+   crypt-sunmd5.c
+
  * Public domain, written by Zack Weinberg et al.:
    byteorder.h, randombytes.c, test-byteorder.c
    gen-crypt-h.awk, gen-map.awk, gen-vers.awk
@@ -47,7 +50,8 @@ source tree.  For specific licensing terms consult the files themselves.
    test-alg-md5.c, test-alg-sha256.c, test-alg-sha512.c, test-crypt-des.c,
    test-crypt-md5.c, test-crypt-sha256.c, test-crypt-sha512.c,
    test-des-cases.h, test-des-obsolete{,_r}.c, test-gensalt.c,
-   test-crypt-nthash.c (adaption of test-crypt-des.c)
+   test-crypt-nthash.c (adaption of test-crypt-des.c),
+   test-crypt-sunmd5.c (adaption of test-crypt-des.c)
 
  * The NEWS file formerly contained the following copyright assertions:
 

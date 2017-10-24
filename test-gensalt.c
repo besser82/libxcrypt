@@ -28,6 +28,7 @@ static const struct testcase testcases[] =
   { "_", 9 }, // BSDi extended DES
   { "$1$", 11 }, // MD5
   { "$3$", 29 }, // NTHASH
+  { "$md5", 27 }, // SUNMD5
 #endif
   { "$5$", 19 }, // SHA-2-256
   { "$6$", 19 }, // SHA-2-512

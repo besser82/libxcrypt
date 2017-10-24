@@ -17,6 +17,12 @@ Bretterklieber and based on the password hashing algorithm used by
 the Windows NT LAN Manager (NTLM) from Microsoft Corporation to
 provide easier compatibility with NT accounts.
 
+The SUNMD5 hash module comes from (Open)Solaris, originally written
+by Alec Muffett, Copyright Sun Microsystems, Inc. and was released
+under the terms of the Common Development and Distribution License,
+Version 1.0 only.  It has been slightly modified for portability
+and use inside of libxcrypt by Björn Esser.
+
 The implementation of the public interface (crypt, crypt_r, etc) is a
 mashup of code from the GNU C Library with code from crypt_blowfish,
 originally put together by Thorsten Kukuk and since completely
