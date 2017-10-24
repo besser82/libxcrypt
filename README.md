@@ -119,12 +119,12 @@ e.g. `$md5[,rounds=%u]$<salt>$x`.
 
 The NTHASH algorithm, in its original implementation, never came with
 any `gensalt` function, because the algorithm does not use any.
-libxcrypt ships a bogus ``gensalt` function for the NTHASH algorithm,
-which simply returns `$3$__not_used__XXXXXXXXXXXXXX` (where the `X`s
+libxcrypt ships a bogus `gensalt` function for the NTHASH algorithm,
+which simply returns `$3$__not_used__XXXXXXXXXXXXXX`, where the `X`s
 stand for some more or less random salt.  There is no difference in
 the resulting hash returned by the `crypt` function, whether using
 one of the hashes returned by `gensalt` or simply using `$3$` as a
-setting for NTHASH.
+setting for hashing a password with NTHASH.
 
 As a final compatibility note, glibc's libcrypt could optionally be
 configured to use Mozilla's NSS library's implementations of the
