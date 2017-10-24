@@ -92,11 +92,39 @@ Linux.  We are willing to consider adding binary backward
 compatibility for other operating systems' existing libcrypts, but we
 don't currently plan to do that work ourselves.
 
-It is also possible to remove support for DES and MD5 password hashes,
-by supplying the `--disable-weak-hashes` switch to `configure`.  This
-option implies `--disable-obsolete-api`.  It should only be used in
-contexts where there are definitely no user accounts that are old
-enough to have stored their password with an old hash.
+It is also possible to remove support for DES, MD5, NTHASH and SUNMD5
+password hashes, by supplying the `--disable-weak-hashes` switch to
+`configure`.  This option implies `--disable-obsolete-api`.  It should
+only be used in contexts where there are definitely no user accounts
+that are old enough to have stored their password with an old hash.
+
+The original implementation of the SUNMD5 hashing algorithm has a bug,
+which is mimicked by libxcrypt to be fully compatible with hashes
+generated on (Open)Solaris: According to the only existing
+[documentation of this algorithm](https://dropsafe.crypticide.com/article/1389),
+its hashes were supposed to have the format
+`$md5[,rounds=%u]$<salt>$<checksum>`, and include only the bare
+string `$md5[,rounds=%u]$<salt>` in the salt digest step. However,
+almost all hashes encountered in production environments have the
+format `$md5[,rounds=%u]$<salt>$$<checksum>` (note the double $$).
+Unfortunately, it is not merely a cosmetic difference: hashes of this
+format incorporate the first $ after the salt within the salt digest
+step, so the resulting checksum is different.
+The documentation hints that this stems from a bug within the
+production implementation’s parser.  This bug causes the
+implementation to return `$$`-format hashes when passed a configuration
+string that ends with `$`.  It returns the intended original format
+and checksum only if there is at least one letter after the `$`,
+e.g. `$md5[,rounds=%u]$<salt>$x`.
+
+The NTHASH algorithm, in its original implementation, never came with
+any `gensalt` function, because the algorithm does not use any.
+libxcrypt ships a bogus ``gensalt` function for the NTHASH algorithm,
+which simply returns `$3$__not_used__XXXXXXXXXXXXXX` (where the `X`s
+stand for some more or less random salt.  There is no difference in
+the resulting hash returned by the `crypt` function, whether using
+one of the hashes returned by `gensalt` or simply using `$3$` as a
+setting for NTHASH.
 
 As a final compatibility note, glibc's libcrypt could optionally be
 configured to use Mozilla's NSS library's implementations of the
