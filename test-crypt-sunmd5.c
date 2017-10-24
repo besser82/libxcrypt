@@ -5,7 +5,7 @@
 #include <string.h>
 
 const char *password   = "abcdefg";
-const char *tests[][2] =
+const char *tests[][3] =
 {
   /* Hashes have been computed with the following program:
 
@@ -34,42 +34,52 @@ const char *tests[][2] =
 
   {
     "$md5,rounds=5619$9ZLwtuT0$$mLoRQuWY/qcxCRWhD1C2M.",
+    "$md5,rounds=5619$9ZLwtuT0$",
     "$md5,rounds=5619$9ZLwtuT0$mLoRQuWY/qcxCRWhD1C2M."
   },
   {
     "$md5,rounds=963$er0EceI7$$SdWKu/EgaVvya0m3T4Ml61",
+    "$md5,rounds=963$er0EceI7$",
     "$md5,rounds=963$er0EceI7$SdWKu/EgaVvya0m3T4Ml61"
   },
   {
     "$md5$1xMeE.at$$qRpVD46c.sEWM/48tNk191",
+    "$md5$1xMeE.at$",
     "$md5$1xMeE.at$qRpVD46c.sEWM/48tNk191"
   },
   {
     "$md5,rounds=9748$2kkhnoZI$$HzOCKmX2sus/1S9CmohBY/",
+    "$md5,rounds=9748$2kkhnoZI$",
     "$md5,rounds=9748$2kkhnoZI$HzOCKmX2sus/1S9CmohBY/"
   },
   {
     "$md5$9ZLwtuT0$$ZRfjIfcFjDekvFzC6wCa2/",
+    "$md5$9ZLwtuT0$",
     "$md5$9ZLwtuT0$ZRfjIfcFjDekvFzC6wCa2/"
   },
   {
     "$md5,rounds=5619$9ZLwtuT0$5.D2mO0RKrZtrrBh3fduf.",
+    "$md5,rounds=5619$9ZLwtuT0$",
     "$md5,rounds=5619$9ZLwtuT0$$5.D2mO0RKrZtrrBh3fduf."
   },
   {
     "$md5,rounds=963$er0EceI7$Pt3h1M5TiSImJ4jk663aR/",
+    "$md5,rounds=963$er0EceI7$",
     "$md5,rounds=963$er0EceI7$$Pt3h1M5TiSImJ4jk663aR/"
   },
   {
     "$md5$1xMeE.at$I566aJ9IitIdjKKjZJ8Zo0",
+    "$md5$1xMeE.at$",
     "$md5$1xMeE.at$$I566aJ9IitIdjKKjZJ8Zo0"
   },
   {
     "$md5,rounds=9748$2kkhnoZI$suo2yEVmCZnnnz6ZZHYit0",
+    "$md5,rounds=9748$2kkhnoZI$",
     "$md5,rounds=9748$2kkhnoZI$$suo2yEVmCZnnnz6ZZHYit0"
   },
   {
     "$md5$9ZLwtuT0$UvTt17ajkoa7kwpCrtMeb1",
+    "$md5$9ZLwtuT0$",
     "$md5$9ZLwtuT0$$UvTt17ajkoa7kwpCrtMeb1"
   },
 };
@@ -82,10 +92,11 @@ main (void)
   struct crypt_data output;
   int result = 0;
   unsigned int i, j;
+  char *previous;
 
   for (i = 0; i < ntests; ++i)
     {
-      for (j = 0; j < 2; ++j)
+      for (j = 0; j < 3; ++j)
         {
           char *cp = crypt_r (password, tests[i][j], &output);
           if ((j == 0) && (strcmp (cp, tests[i][j]) != 0))
@@ -94,12 +105,19 @@ main (void)
                       i, j, tests[i][j], cp);
               result = 1;
             }
-          if ((j == 1) && (strcmp (cp, tests[i][j]) == 0))
+          if ((j == 1) && (strcmp (cp, previous) != 0))
+            {
+              printf ("test %u.%u: expected \"%s\", got \"%s\"\n",
+                      i, j, previous, cp);
+              result = 1;
+            }
+          if ((j == 2) && (strcmp (cp, tests[i][j]) == 0))
             {
               printf ("test %u.%u: \"%s\" was not different from returned hash.\n",
                       i, j, tests[i][j]);
               result = 1;
             }
+          previous = cp;
         }
     }
 
