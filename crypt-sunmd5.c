@@ -171,7 +171,7 @@ gensalt_sunmd5_rn (unsigned long count,
   /* Set count to a reasonable random value,
      if count was not set high enough by the
      caller.  */
-  if (count < (1 << minrounds))
+  if (count < (unsigned long)(1 << minrounds))
     {
       uint64_t rand1, rand2;
       get_random_bytes(&rand1, sizeof (uint64_t));
