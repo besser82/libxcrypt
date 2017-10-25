@@ -177,9 +177,6 @@ typedef union
 #define get_random_bytes         _crypt_get_random_bytes
 #define crypt_sha256_rn          _crypt_crypt_sha256_rn
 #define crypt_sha512_rn          _crypt_crypt_sha512_rn
-#define sha1_finish_ctx          _crypt_sha1_finish_ctx
-#define sha1_init_ctx            _crypt_sha1_init_ctx
-#define sha1_process_bytes       _crypt_sha1_process_bytes
 #define sha256_finish_ctx        _crypt_sha256_finish_ctx
 #define sha256_init_ctx          _crypt_sha256_init_ctx
 #define sha256_process_bytes     _crypt_sha256_process_bytes
@@ -217,6 +214,9 @@ typedef union
 #define md5_process_bytes        _crypt_md5_process_bytes
 #define m_sbox                   _crypt_m_sbox
 #define psbox                    _crypt_psbox
+#define sha1_finish_ctx          _crypt_sha1_finish_ctx
+#define sha1_init_ctx            _crypt_sha1_init_ctx
+#define sha1_process_bytes       _crypt_sha1_process_bytes
 #endif
 
 #endif /* crypt-port.h */
