@@ -30,6 +30,9 @@ source tree.  For specific licensing terms consult the files themselves.
  * Copyright Sun Microsystems, Inc., Björn Esser; CDDL-1.0:
    crypt-sunmd5.c
 
+ * Public domain, written by Steve Reid et al.:
+   alg-sha1.c, alg-sha1.h, test-alg-sha1.c
+
  * Public domain, written by Zack Weinberg et al.:
    byteorder.h, randombytes.c, test-byteorder.c
    gen-crypt-h.awk, gen-map.awk, gen-vers.awk
