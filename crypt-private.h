@@ -51,6 +51,9 @@ extern void crypt_md5_rn (const char *phrase, const char *setting,
 extern void crypt_nthash_rn (const char *phrase, const char *setting,
                              uint8_t *output, size_t o_size,
                              void *scratch, size_t s_size);
+extern void crypt_sha1_rn (const char *phrase, const char *setting,
+                           uint8_t *output, size_t o_size,
+                           void *scratch, size_t s_size);
 extern void crypt_sunmd5_rn (const char *phrase, const char *setting,
                              uint8_t *output, size_t o_size,
                              void *scratch, size_t s_size);
@@ -79,6 +82,9 @@ extern void gensalt_md5_rn (unsigned long count,
 extern void gensalt_nthash_rn (unsigned long count,
                                const uint8_t *rbytes, size_t nrbytes,
                                uint8_t *output, size_t o_size);
+extern void gensalt_sha1_rn (unsigned long count,
+                             const uint8_t *rbytes, size_t nrbytes,
+                             uint8_t *output, size_t o_size);
 extern void gensalt_sunmd5_rn (unsigned long count,
                                const uint8_t *rbytes, size_t nrbytes,
                                uint8_t *output, size_t o_size);

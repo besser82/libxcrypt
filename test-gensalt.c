@@ -24,18 +24,19 @@ struct testcase
 static const struct testcase testcases[] =
 {
 #if ENABLE_WEAK_HASHES
-  { "", 2 }, // DES
-  { "_", 9 }, // BSDi extended DES
-  { "$1$", 11 }, // MD5
-  { "$3$", 29 }, // NTHASH
-  { "$md5", 27 }, // SUNMD5
+  { "",       2 }, // DES
+  { "_",      9 }, // BSDi extended DES
+  { "$1$",   11 }, // MD5
+  { "$3$",   29 }, // NTHASH
+  { "$md5",  27 }, // SUNMD5
+  { "$sha1", 30 }, // PBKDF with SHA1
 #endif
-  { "$5$", 19 }, // SHA-2-256
-  { "$6$", 19 }, // SHA-2-512
-  { "$2a$", 29 }, // bcrypt mode A
-  { "$2b$", 29 }, // bcrypt mode B
-  { "$2x$", 29 }, // bcrypt mode X
-  { "$2y$", 29 }, // bcrypt mode Y
+  { "$5$",   19 }, // SHA-2-256
+  { "$6$",   19 }, // SHA-2-512
+  { "$2a$",  29 }, // bcrypt mode A
+  { "$2b$",  29 }, // bcrypt mode B
+  { "$2x$",  29 }, // bcrypt mode X
+  { "$2y$",  29 }, // bcrypt mode Y
   { 0, 0 }
 };
 

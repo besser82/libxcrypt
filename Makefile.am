@@ -113,7 +113,8 @@ check_PROGRAMS = \
 
 if ENABLE_WEAK_HASHES
 libcrypt_la_SOURCES += \
-	crypt-md5.c crypt-des.c crypt-nthash.c crypt-sunmd5.c \
+	crypt-md5.c crypt-des.c crypt-nthash.c crypt-pbkdf1-sha1.c \
+	crypt-sunmd5.c \
 	alg-des.c alg-hmac-sha1.c alg-md4.c alg-md5.c alg-sha1.c
 
 nodist_libcrypt_la_SOURCES = \
@@ -144,7 +145,7 @@ check_PROGRAMS += \
 	test-alg-des test-alg-hmac-sha1 test-alg-md4 \
         test-alg-md5 test-alg-sha1 \
 	test-crypt-badsalt test-crypt-des test-crypt-md5 \
-	test-crypt-nthash test-crypt-sunmd5
+	test-crypt-nthash test-crypt-sunmd5 test-crypt-pbkdf1-sha1
 endif
 
 if ENABLE_OBSOLETE_API
@@ -182,6 +183,7 @@ test_crypt_des_LDADD = libcrypt.la
 test_crypt_md5_LDADD = libcrypt.la
 test_crypt_nonnull_LDADD = libcrypt.la
 test_crypt_nthash_LDADD = libcrypt.la
+test_crypt_pbkdf1_sha1_LDADD = libcrypt.la
 test_crypt_sha256_LDADD = libcrypt.la
 test_crypt_sha512_LDADD = libcrypt.la
 test_crypt_sunmd5_LDADD = libcrypt.la

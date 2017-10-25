@@ -80,19 +80,20 @@ struct hashfn
 static const struct hashfn tagged_hashes[] =
 {
   /* bcrypt */
-  { "$2a$", crypt_bcrypt_rn, gensalt_bcrypt_a_rn },
-  { "$2b$", crypt_bcrypt_rn, gensalt_bcrypt_b_rn },
-  { "$2x$", crypt_bcrypt_rn, gensalt_bcrypt_x_rn },
-  { "$2y$", crypt_bcrypt_rn, gensalt_bcrypt_y_rn },
+  { "$2a$",   crypt_bcrypt_rn, gensalt_bcrypt_a_rn },
+  { "$2b$",   crypt_bcrypt_rn, gensalt_bcrypt_b_rn },
+  { "$2x$",   crypt_bcrypt_rn, gensalt_bcrypt_x_rn },
+  { "$2y$",   crypt_bcrypt_rn, gensalt_bcrypt_y_rn },
 
   /* legacy hashes */
 #if ENABLE_WEAK_HASHES
-  { "$1$",  crypt_md5_rn,    gensalt_md5_rn },
-  { "$3$",  crypt_nthash_rn, gensalt_nthash_rn },
-  { "$md5", crypt_sunmd5_rn, gensalt_sunmd5_rn },
+  { "$1$",    crypt_md5_rn,    gensalt_md5_rn      },
+  { "$3$",    crypt_nthash_rn, gensalt_nthash_rn   },
+  { "$md5",   crypt_sunmd5_rn, gensalt_sunmd5_rn   },
+  { "$sha1",  crypt_sha1_rn,   gensalt_sha1_rn     },
 #endif
-  { "$5$",  crypt_sha256_rn, gensalt_sha256_rn },
-  { "$6$",  crypt_sha512_rn, gensalt_sha512_rn },
+  { "$5$",    crypt_sha256_rn, gensalt_sha256_rn   },
+  { "$6$",    crypt_sha512_rn, gensalt_sha512_rn   },
   { 0, 0, 0 }
 };
 

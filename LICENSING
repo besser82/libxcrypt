@@ -33,14 +33,17 @@ source tree.  For specific licensing terms consult the files themselves.
  * Public domain, written by Steve Reid et al.:
    alg-sha1.c, alg-sha1.h, test-alg-sha1.c
 
+ * Copyright Juniper Networks, Inc.; 3-clause BSD:
+   crypt-pbkdf1-sha1.c, crypt-pbkdf1-sha1.c
+
+ * Copyright Björn Esser; 2-clause BSD:
+   alg-hmac-sha1.c, alg-hmac-sha1.h, test-alg-hmac-sha1.c
+
  * Public domain, written by Zack Weinberg et al.:
    byteorder.h, randombytes.c, test-byteorder.c
    gen-crypt-h.awk, gen-map.awk, gen-vers.awk
    test-symbols-compat, test-symbols-renames, test-symbols-static
    m4/zw_alignment.m4, m4/zw_static_assert.m4, m4/skip-if-exec-format-error
-
- * Copyright Björn Esser; 2-clause BSD:
-   alg-hmac-sha1.c, alg-hmac-sha1.h, test-alg-hmac-sha1.c
 
  * Copyright Zack Weinberg and Free Software Foundation, Inc;
    GPL (v3 or later), with Autoconf exception:
@@ -57,7 +60,8 @@ source tree.  For specific licensing terms consult the files themselves.
    test-crypt-md5.c, test-crypt-sha256.c, test-crypt-sha512.c,
    test-des-cases.h, test-des-obsolete{,_r}.c, test-gensalt.c,
    test-crypt-nthash.c (adaption of test-crypt-des.c),
-   test-crypt-sunmd5.c (adaption of test-crypt-des.c)
+   test-crypt-sunmd5.c (adaption of test-crypt-des.c),
+   test-crypt-pbkdf1-sha1.c (adaption of test-crypt-des.c)
 
  * The NEWS file formerly contained the following copyright assertions:
 
