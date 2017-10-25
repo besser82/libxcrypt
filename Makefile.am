@@ -114,7 +114,7 @@ check_PROGRAMS = \
 if ENABLE_WEAK_HASHES
 libcrypt_la_SOURCES += \
 	crypt-md5.c crypt-des.c crypt-nthash.c crypt-sunmd5.c \
-	alg-md4.c alg-md5.c alg-des.c alg-sha1.c
+	alg-des.c alg-hmac-sha1.c alg-md4.c alg-md5.c alg-sha1.c
 
 nodist_libcrypt_la_SOURCES = \
 	alg-des-tables.c
@@ -141,7 +141,8 @@ alg-des-tables.c: gen-des-tables
 	$(AM_V_at)mv -f alg-des-tables.c.T alg-des-tables.c
 
 check_PROGRAMS += \
-	test-alg-des test-alg-md4 test-alg-md5 test-alg-sha1 \
+	test-alg-des test-alg-hmac-sha1 test-alg-md4 \
+        test-alg-md5 test-alg-sha1 \
 	test-crypt-badsalt test-crypt-des test-crypt-md5 \
 	test-crypt-nthash test-crypt-sunmd5
 endif
@@ -191,6 +192,7 @@ test_des_obsolete_r_LDADD = libcrypt.la
 # These tests call internal APIs that may not be accessible from the
 # fully linked shared library.
 test_alg_des_LDADD = alg-des.lo alg-des-tables.lo
+test_alg_hmac_sha1_LDADD = alg-sha1.lo alg-hmac-sha1.lo
 test_alg_md4_LDADD = alg-md4.lo
 test_alg_md5_LDADD = alg-md5.lo
 test_alg_sha1_LDADD = alg-sha1.lo

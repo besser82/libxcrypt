@@ -39,6 +39,9 @@ source tree.  For specific licensing terms consult the files themselves.
    test-symbols-compat, test-symbols-renames, test-symbols-static
    m4/zw_alignment.m4, m4/zw_static_assert.m4, m4/skip-if-exec-format-error
 
+ * Copyright Björn Esser; 2-clause BSD:
+   alg-hmac-sha1.c, alg-hmac-sha1.h, test-alg-hmac-sha1.c
+
  * Copyright Zack Weinberg and Free Software Foundation, Inc;
    GPL (v3 or later), with Autoconf exception:
    m4/zw_automodern.m4, m4/zw_simple_warnings.m4
