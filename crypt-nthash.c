@@ -77,7 +77,7 @@ crypt_nthash_rn (const char *phrase,
       return;
     }
 
-  memset (unipw, 0, sizeof(unipw));
+  MEMSET_S (unipw, sizeof unipw)
   /* convert to unicode (thanx Archie) */
   unipwLen = 0;
   for (s = phrase; unipwLen < sizeof(unipw) / 2 && *s; s++)

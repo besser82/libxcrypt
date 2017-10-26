@@ -108,7 +108,7 @@ pack_bits (unsigned char bitv[8], const char bytev[64])
 static void
 do_setkey_r (const char *key, struct des_ctx *ctx)
 {
-  memset (ctx, 0, sizeof *ctx);
+  MEMSET_S (ctx, sizeof (struct des_ctx))
   des_set_salt (ctx, 0);
 
   unsigned char bkey[8];

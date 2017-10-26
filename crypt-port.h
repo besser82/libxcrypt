@@ -31,6 +31,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
@@ -86,6 +87,32 @@ typedef union
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
+/* Provide a guaranteed way to erase sensitive memory at the best we
+   can, given the possibilities of the system.  */
+#if defined HAVE_MEMSET_S
+/* Will never be optimized out.  */
+#define MEMSET_S(s, len) \
+  memset_s (s, len, 0x00, len);
+#elif defined HAVE_EXPLICIT_BZERO
+/* explicit_bzero() should give us enough guarantees.  */
+#define MEMSET_S(s, len) \
+  explicit_bzero(s, len);
+#elif defined HAVE_EXPLICIT_MEMSET
+/* Same guarantee goes for explicit_memset().  */
+#define MEMSET_S(s, len) \
+  explicit_memset (s, 0x00, len);
+#else
+/* The best hope we have in this case.  */
+static inline
+void _crypt_secure_erase (void *s, size_t len)
+{
+  volatile unsigned char *c = (void *)s;
+  while (len--)
+    *c++ = 0x00;
+}
+#define MEMSET_S(s, len) \
+  _crypt_secure_erase (s, len);
+#endif
 
 /* Per-symbol version tagging.  Currently we only know how to do this
    using GCC extensions.  */

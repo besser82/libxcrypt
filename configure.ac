@@ -140,7 +140,15 @@ zw_C_MAX_ALIGN_T
 zw_C_STATIC_ASSERT
 
 # Checks for library functions.
-AC_CHECK_FUNCS_ONCE([arc4random_buf getentropy getrandom syscall])
+AC_CHECK_FUNCS_ONCE([
+  arc4random_buf
+  explicit_bzero
+  explicit_memset
+  getentropy
+  getrandom
+  memset_s
+  syscall
+])
 
 # The ucontext.h functions that we use were withdrawn from
 # POSIX.1-2008, so the existence of the header does not prove

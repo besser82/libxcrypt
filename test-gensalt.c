@@ -51,10 +51,10 @@ main (void)
 
   for (tcase = testcases; tcase->prefix; tcase++)
     {
-      memset (prev_output, 0, CRYPT_GENSALT_OUTPUT_SIZE);
+      MEMSET_S (prev_output, CRYPT_GENSALT_OUTPUT_SIZE);
       for (ent = 0; ent < (sizeof entropy / sizeof entropy[0]); ent++)
         {
-          memset (output, 0, CRYPT_GENSALT_OUTPUT_SIZE);
+          MEMSET_S (output, CRYPT_GENSALT_OUTPUT_SIZE);
           char *salt = crypt_gensalt_rn (tcase->prefix, 0,
                                          entropy[ent], 16,
                                          output, CRYPT_GENSALT_OUTPUT_SIZE);

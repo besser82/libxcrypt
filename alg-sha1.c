@@ -275,8 +275,8 @@ sha1_finish_ctx (struct sha1_ctx *ctx, void *resbuf)
 
   /* Wipe variables */
   i = 0;
-  memset(ctx, 0, sizeof (struct sha1_ctx));
-  memset(finalcount, 0, 8);  /* SWR */
+  MEMSET_S (ctx, sizeof (struct sha1_ctx))
+  MEMSET_S (finalcount, 8)  /* SWR */
 
   return resbuf;
 }

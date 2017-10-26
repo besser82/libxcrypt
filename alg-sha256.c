@@ -184,7 +184,7 @@ sha256_finish_ctx (struct sha256_ctx *ctx, void *resbuf)
   /* The first byte of padding should be 0x80 and the rest should be
      zero.  (FIPS 180-2:5.1.1) */
   ctx->buffer[bytes] = 0x80u;
-  memset (&ctx->buffer[bytes+1], 0x00, pad-1);
+  MEMSET_S (&ctx->buffer[bytes+1], pad-1)
 
   /* Put the 64-bit file length in big-endian *bits* at the end of the
      buffer.  */
@@ -197,6 +197,7 @@ sha256_finish_ctx (struct sha256_ctx *ctx, void *resbuf)
   for (i = 0; i < 8; i++)
     cpu_to_be32 (rp + i*4, ctx->H[i]);
 
+  MEMSET_S (ctx, sizeof (struct sha256_ctx))
   return resbuf;
 }
 
