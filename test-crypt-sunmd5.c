@@ -116,13 +116,13 @@ main (void)
                       i, j, previous, cp);
               result = 1;
             }
-          strcpy (previous, output.output);
           if ((j == 2) && (strcmp (cp, tests[i][j]) == 0))
             {
               printf ("test %u.%u: \"%s\" was not different from returned hash.\n",
                       i, j, tests[i][j]);
               result = 1;
             }
+          strcpy (previous, tests[i][j]);
         }
     }
 
