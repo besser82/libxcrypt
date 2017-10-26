@@ -48,7 +48,6 @@
 #include "alg-des.h"
 
 #include <errno.h>
-#include <string.h>
 
 #define DES_TRD_OUTPUT_LEN 14                /* SShhhhhhhhhhh0 */
 #define DES_EXT_OUTPUT_LEN 21                /* _CCCCSSSShhhhhhhhhhh0 */

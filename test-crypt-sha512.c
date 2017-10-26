@@ -2,7 +2,6 @@
 #include "crypt-base.h"
 
 #include <stdio.h>
-#include <string.h>
 
 static const struct
 {

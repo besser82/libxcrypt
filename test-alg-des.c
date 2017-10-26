@@ -10,7 +10,6 @@
 #include "test-des-cases.h"
 
 #include <stdio.h>
-#include <string.h>
 
 static void
 v_print (const unsigned char v[8])

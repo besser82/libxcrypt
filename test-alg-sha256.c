@@ -2,7 +2,6 @@
 #include "alg-sha256.h"
 
 #include <stdio.h>
-#include <string.h>
 
 static const struct
 {

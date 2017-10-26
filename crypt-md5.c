@@ -22,7 +22,6 @@
 #include "alg-md5.h"
 
 #include <errno.h>
-#include <string.h>
 
 
 /* Define our magic string to mark salt for MD5 "encryption"

@@ -22,8 +22,6 @@
 #include "alg-sha512.h"
 #include "byteorder.h"
 
-#include <string.h>
-
 
 /* Constants for SHA512 from FIPS 180-2:4.2.3.  */
 static const uint64_t K[80] =

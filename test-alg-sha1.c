@@ -8,7 +8,6 @@
 #include "alg-sha1.h"
 
 #include <stdio.h>
-#include <string.h>
 
 /* Test Vectors (from FIPS PUB 180-1) */
 const char *test_data[3] =

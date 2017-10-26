@@ -19,8 +19,6 @@
 #include "alg-md4.h"
 #include "byteorder.h"
 
-#include <string.h>
-
 /*
  * The basic MD4 functions.
  */

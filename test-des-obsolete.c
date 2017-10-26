@@ -12,7 +12,6 @@
 #include "test-des-cases.h"
 
 #include <stdio.h>
-#include <string.h>
 
 symver_ref(encrypt, encrypt, SYMVER_FLOOR);
 symver_ref(setkey, setkey, SYMVER_FLOOR);

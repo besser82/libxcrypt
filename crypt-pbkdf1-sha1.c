@@ -34,7 +34,6 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 /*
  * The default iterations - should take >0s on a fast CPU

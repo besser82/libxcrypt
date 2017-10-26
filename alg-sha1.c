@@ -72,8 +72,6 @@ modified for use with libxcrypt
 #include "crypt-port.h"
 #include "alg-sha1.h"
 
-#include <string.h>
-
 
 #define SHA1_DIGEST_SIZE 20
 

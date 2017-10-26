@@ -23,8 +23,6 @@
 #include "alg-md5.h"
 #include "byteorder.h"
 
-#include <string.h>
-
 
 static void md5_process_block (const void *buffer, size_t len,
                                struct md5_ctx *ctx);

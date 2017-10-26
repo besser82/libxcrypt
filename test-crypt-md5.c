@@ -1,8 +1,6 @@
 #include "crypt-port.h"
 #include "crypt-base.h"
 
-#include <string.h>
-
 int
 main (void)
 {

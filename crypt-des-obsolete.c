@@ -49,8 +49,6 @@
 #include "crypt-obsolete.h"
 #include "alg-des.h"
 
-#include <string.h>
-
 #if INCLUDE_encrypt || INCLUDE_encrypt_r || INCLUDE_setkey || INCLUDE_setkey_r
 
 static_assert(sizeof (struct des_ctx) + alignof (struct des_ctx)

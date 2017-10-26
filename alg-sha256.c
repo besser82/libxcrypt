@@ -22,8 +22,6 @@
 #include "alg-sha256.h"
 #include "byteorder.h"
 
-#include <string.h>
-
 
 /* Constants for SHA256 from FIPS 180-2:4.2.2.  */
 static const uint32_t K[64] =

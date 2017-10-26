@@ -23,7 +23,6 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 
 /* Define our magic string to mark salt for SHA512 "encryption"

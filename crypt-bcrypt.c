@@ -49,7 +49,6 @@
 
 #include <errno.h>
 #include <stdio.h>
-#include <string.h>
 
 #if defined(__i386__) || defined(__x86_64__) || \
     defined(__alpha__) || defined(__hppa__)

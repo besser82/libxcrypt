@@ -36,7 +36,6 @@
 #include "alg-sha1.h"
 
 #include <stdlib.h>
-#include <string.h>
 
 /* Don't change these */
 #define HMAC_IPAD 0x36

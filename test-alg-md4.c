@@ -2,7 +2,6 @@
 #include "alg-md4.h"
 
 #include <stdio.h>
-#include <string.h>
 
 static const struct
 {

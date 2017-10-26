@@ -21,7 +21,6 @@
 
 #include <errno.h>
 #include <stdlib.h>
-#include <string.h>
 
 #ifdef USE_SWAPCONTEXT
 #include <limits.h>

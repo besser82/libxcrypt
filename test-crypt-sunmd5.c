@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 const char *password   = "abcdefg";
 const char *tests[][3] =
