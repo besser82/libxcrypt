@@ -51,7 +51,7 @@ md5_read_ctx (struct md5_ctx *ctx, void *resbuf)
   cpu_to_le32 (buf +  4, ctx->B);
   cpu_to_le32 (buf +  8, ctx->C);
   cpu_to_le32 (buf + 12, ctx->D);
-  MEMSET_S (ctx, sizeof(*ctx))
+  XCRYPT_SECURE_MEMSET (ctx, sizeof(*ctx))
   return resbuf;
 }
 
@@ -73,7 +73,7 @@ md5_finish_ctx (struct md5_ctx *ctx, void *resbuf)
   /* The first byte of padding should be 0x80 and the rest should be
      zero.  (RFC 1321, 3.1: Step 1) */
   ctx->buffer[bytes] = 0x80u;
-  MEMSET_S (&ctx->buffer[bytes+1], pad-1)
+  XCRYPT_SECURE_MEMSET (&ctx->buffer[bytes+1], pad-1)
 
   /* Put the 64-bit file length in little-endian *bits* at the end of
      the buffer.  */

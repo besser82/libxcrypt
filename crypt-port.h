@@ -91,27 +91,27 @@ typedef union
    can, given the possibilities of the system.  */
 #if defined HAVE_MEMSET_S
 /* Will never be optimized out.  */
-#define MEMSET_S(s, len) \
+#define XCRYPT_SECURE_MEMSET(s, len) \
   memset_s (s, len, 0x00, len);
 #elif defined HAVE_EXPLICIT_BZERO
 /* explicit_bzero() should give us enough guarantees.  */
-#define MEMSET_S(s, len) \
+#define XCRYPT_SECURE_MEMSET(s, len) \
   explicit_bzero(s, len);
 #elif defined HAVE_EXPLICIT_MEMSET
 /* Same guarantee goes for explicit_memset().  */
-#define MEMSET_S(s, len) \
+#define XCRYPT_SECURE_MEMSET(s, len) \
   explicit_memset (s, 0x00, len);
 #else
 /* The best hope we have in this case.  */
 static inline
-void _crypt_secure_erase (void *s, size_t len)
+void _xcrypt_secure_memset (void *s, size_t len)
 {
-  volatile unsigned char *c = (void *)s;
+  volatile unsigned char *c = s;
   while (len--)
     *c++ = 0x00;
 }
-#define MEMSET_S(s, len) \
-  _crypt_secure_erase (s, len);
+#define XCRYPT_SECURE_MEMSET(s, len) \
+  _xcrypt_secure_memset (s, len);
 #endif
 
 /* Per-symbol version tagging.  Currently we only know how to do this

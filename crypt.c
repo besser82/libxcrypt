@@ -294,7 +294,7 @@ do_crypt (const char *phrase, const char *setting, struct crypt_data *data)
 #endif
     }
 
-  MEMSET_S (data->internal, sizeof data->internal)
+  XCRYPT_SECURE_MEMSET (data->internal, sizeof data->internal)
 }
 
 #if INCLUDE_crypt_rn

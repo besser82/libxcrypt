@@ -68,7 +68,7 @@ get_random_bytes(void *buf, size_t buflen)
     }
   /* To eliminate the possibility of one of the primitives below failing
      with EFAULT, force a crash now if the buffer is unwritable.  */
-  MEMSET_S (buf, buflen)
+  XCRYPT_SECURE_MEMSET (buf, buflen)
 
 #ifdef HAVE_ARC4RANDOM_BUF
   /* arc4random_buf, if it exists, can never fail.  */
