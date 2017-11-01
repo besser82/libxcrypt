@@ -4,6 +4,10 @@ branches:
   except:
     - master
 
+notifications:
+  irc:
+    - "ircs://chat.freenode.net:6697/#libxcrypt"
+
 sudo: true
 
 matrix:
