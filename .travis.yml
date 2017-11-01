@@ -7,7 +7,7 @@ branches:
 notifications:
   irc:
     channels:
-      - "ircs://chat.freenode.net:6697/#libxcrypt"
+      - "chat.freenode.net#libxcrypt"
     nick: xcrypt_bot
     skip_join: true
 
