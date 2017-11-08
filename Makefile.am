@@ -19,9 +19,10 @@ notrans_dist_man5_MANS = crypt.5
 
 nodist_include_HEADERS = crypt.h
 noinst_HEADERS = \
-	alg-des.h alg-md5.h alg-sha256.h alg-sha512.h byteorder.h \
-	crypt-base.h crypt-obsolete.h crypt-private.h crypt-port.h \
-	test-des-cases.h
+	alg-des.h alg-hmac-sha1.h alg-md4.h alg-md5.h \
+	alg-sha1.h alg-sha256.h alg-sha512.h byteorder.h \
+	crypt-base.h crypt-obsolete.h crypt-private.h \
+	crypt-port.h test-des-cases.h
 
 lib_LTLIBRARIES = libcrypt.la
 libcrypt_la_SOURCES = \
