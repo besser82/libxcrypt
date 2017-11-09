@@ -124,11 +124,11 @@ END {
                 printf("    %s;\n", osyms[s]);
             }
             if (vp == "") {
+                vp = v
                 printf("  local:\n    *;\n};\n");
             } else {
                 printf("} %s;\n", vp);
             }
-            vp = v
         }
     }
 }
