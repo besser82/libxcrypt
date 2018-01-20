@@ -360,7 +360,9 @@ crypt_gensalt_rn (const char *prefix, unsigned long count,
                   const char *rbytes, int nrbytes, char *output,
                   int output_size)
 {
-  char internal_rbytes[16];
+  /* Always add two padding bytes to make sure the whole string
+     will be random on Base64 encoding.  */
+  char internal_rbytes[16 + 2];
 
   make_failure_token ("", output, output_size);
 
