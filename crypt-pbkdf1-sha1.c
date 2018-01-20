@@ -55,7 +55,7 @@ static const uint8_t itoa64[] =
   "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 static inline void
-to64 (uint8_t *s, long unsigned v, int n)
+to64 (uint8_t *s, unsigned long v, int n)
 {
   while (--n >= 0)
     {
@@ -231,18 +231,23 @@ gensalt_sha1_rn (unsigned long count,
      is considered enough for now.  */
   const uint8_t saltlen = 16;
 
+  const size_t  enclen  = sizeof (unsigned long)*4/3;
+
   if ((o_size < (size_t)(6 + CRYPT_SHA1_SALT_LENGTH + 2)) ||
-      (nrbytes < saltlen))
+      ((nrbytes*4/3) < saltlen))
     {
       errno = ERANGE;
       return;
     }
 
-  int n = snprintf((char *)output, o_size, "$sha1$%u$",
+  unsigned long c;
+
+  unsigned int n = (unsigned int) snprintf((char *)output, o_size, "$sha1$%u$",
                    (unsigned int)crypt_sha1_iterations(count));
 
-  for (uint32_t c = 0; c < saltlen; ++c)
-    to64 (output + n + c, (unsigned long)*(rbytes + c), 1);
-  output[n + saltlen]     = '$';
-  output[n + saltlen + 1] = '\0';
+  for (c = 0; (c * sizeof (unsigned long)) + sizeof (unsigned long) <= nrbytes  &&
+       (c * enclen) +enclen <= CRYPT_SHA1_SALT_LENGTH; ++c)
+    to64 (output + n + (c * enclen), *((const unsigned long *)(rbytes + (c * enclen))), (int)enclen);
+  output[n + (c * enclen)]     = '$';
+  output[n + (c * enclen) + 1] = '\0';
 }

@@ -28,7 +28,7 @@ static const struct testcase testcases[] =
   { "$1$",   11 }, // MD5
   { "$3$",   29 }, // NTHASH
   { "$md5",  27 }, // SUNMD5
-  { "$sha1", 30 }, // PBKDF with SHA1
+  { "$sha1", 34 }, // PBKDF with SHA1
 #endif
   { "$5$",   19 }, // SHA-2-256
   { "$6$",   19 }, // SHA-2-512
