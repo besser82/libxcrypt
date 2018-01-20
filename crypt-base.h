@@ -112,7 +112,7 @@ struct crypt_data
    storage area, the string returned by this function will be within
    DATA->output.  Otherwise, behaves exactly the same as crypt.  */
 extern char *crypt_r (const char *__phrase, const char *__setting,
-                      struct crypt_data *restrict __data)
+                      struct crypt_data *__restrict __data)
 __THROW __nonnull ((1, 2, 3));
 
 /* Another thread-safe version of crypt.  Instead of writing to a
