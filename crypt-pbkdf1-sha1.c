@@ -240,14 +240,18 @@ gensalt_sha1_rn (unsigned long count,
       return;
     }
 
-  unsigned long c;
+  unsigned long c, encbuf;
 
   unsigned int n = (unsigned int) snprintf((char *)output, o_size, "$sha1$%u$",
                    (unsigned int)crypt_sha1_iterations(count));
 
-  for (c = 0; (c * sizeof (unsigned long)) + sizeof (unsigned long) <= nrbytes  &&
-       (c * enclen) +enclen <= CRYPT_SHA1_SALT_LENGTH; ++c)
-    to64 (output + n + (c * enclen), *((const unsigned long *)(rbytes + (c * enclen))), (int)enclen);
+  for (c = 0; (c * sizeof (unsigned long)) + sizeof (unsigned long) <= nrbytes &&
+       (c * enclen) + enclen <= CRYPT_SHA1_SALT_LENGTH; ++c)
+    {
+      memcpy (&encbuf, rbytes + (c * enclen), sizeof (unsigned long));
+      to64 (output + n + (c * enclen), encbuf, (int)enclen);
+    }
+
   output[n + (c * enclen)]     = '$';
   output[n + (c * enclen) + 1] = '\0';
 }
