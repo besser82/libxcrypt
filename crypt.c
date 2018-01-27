@@ -79,8 +79,8 @@ struct hashfn
 static const struct hashfn tagged_hashes[] =
 {
   /* bcrypt */
-  { "$2a$",   crypt_bcrypt_rn, gensalt_bcrypt_a_rn },
   { "$2b$",   crypt_bcrypt_rn, gensalt_bcrypt_b_rn },
+  { "$2a$",   crypt_bcrypt_rn, gensalt_bcrypt_a_rn },
   { "$2x$",   crypt_bcrypt_rn, gensalt_bcrypt_x_rn },
   { "$2y$",   crypt_bcrypt_rn, gensalt_bcrypt_y_rn },
 

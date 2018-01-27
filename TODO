@@ -6,9 +6,6 @@ to-do list for libxcrypt
     possible
   * Make sure the symbol versioning macros work with all of the compilers
     that anyone needs (they use GCC extensions that clang also supports).
-  * Find out which of $2a$ or $2b$ you are _really_ supposed to use for
-    new hashes and make sure all the documentation, code comments, and
-    behavior of crypt_gensalt with null prefix argument agree.
 
 * Near future:
   * Update all of the default cost parameters
