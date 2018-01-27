@@ -1,12 +1,6 @@
 to-do list for libxcrypt
 ------------------------
 
-* Before releasing 4.0.0:
-  * Validate backward compatibility on as many Linux distributions as
-    possible
-  * Make sure the symbol versioning macros work with all of the compilers
-    that anyone needs (they use GCC extensions that clang also supports).
-
 * Near future:
   * Update all of the default cost parameters
     * relevant benchmarking at
@@ -23,6 +17,8 @@ to-do list for libxcrypt
   * Attempt to determine the copyright holders and intended licensing
     of the test suite
   * Moar tests
+  * Make sure the symbol versioning macros work with all of the compilers
+    that anyone needs (they use GCC extensions that clang also supports).
 
 * Longer term:
   * Hash algorithms newer than bcrypt tend to want to allocate and
