@@ -117,7 +117,6 @@ before_script:
 
 script:
   - export CFLAGS="`cat cflags.txt | tr -d '\012\015'` -Wno-unused-command-line-argument" ; export CXXFLAGS="$CFLAGS" ; echo $CFLAGS
-  - if [[ "$CC" == "clang" ]] ; then export CFLAGS="`echo $CFLAGS | sed -e 's![ \t]*-fstack-clash-protection[ \t]*! !g'`" ; export CXXFLAGS="$CFLAGS" ; echo $CFLAGS ; fi
   - export LDFLAGS="`cat ldflags.txt | tr -d '\012\015'`" ; echo $LDFLAGS
   - if [[ "$CODECOV" == "1" ]] ; then export CFLAGS="-O0 -g --coverage" ; export CXXFLAGS="$CFLAGS" ; export LDFLAGS="--coverage" ; fi
   - docker exec -t buildenv /bin/sh -c "cat /etc/redhat-release"
