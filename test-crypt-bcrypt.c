@@ -177,7 +177,7 @@ main (void)
       const char *key = tests[i][1];
       const char *setting = tests[i][2];
       const char *p;
-      int ok = !setting || strlen (hash) >= 30;
+      int ok = !setting || hash[0] != '*';
       char s_buf[30];
       char o_buf[sizeof (struct crypt_data)];
       int errnm, match;
