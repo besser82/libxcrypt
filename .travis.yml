@@ -100,15 +100,16 @@ before_install:
   - perl -pe 's/\$(\w+)/$ENV{$1}/g' .travis.env.in > travis.env
   - docker run -t -d -P --env-file travis.env --name buildenv -v $HOME/.ccache:/root/.ccache -v $PWD:/opt/libxcrypt fedora:$FCVER /bin/sh -c "mkdir -p /opt/libxcrypt ; bash"
   - docker exec -t buildenv /bin/sh -c "echo \"deltarpm=0\" >> /etc/dnf/dnf.conf"
+  - docker exec -t buildenv /bin/sh -c "echo \"install_weak_deps=0\" >> /etc/dnf/dnf.conf"
   - docker exec -t buildenv /bin/sh -c "echo \"max_parallel_downloads=20\" >> /etc/dnf/dnf.conf"
   - docker exec -t buildenv /bin/sh -c "echo \"\" >> /etc/dnf/dnf.conf"
   - if [[ "$FCVER" == "rawhide" ]] ; then docker exec -t buildenv /bin/sh -c "cat /opt/libxcrypt/.travis.dnf.conf.rawhide_latest >> /etc/dnf/dnf.conf" ; fi
   - docker exec -t buildenv /bin/sh -c "dnf makecache"
   - docker exec -t buildenv /bin/sh -c "dnf -y upgrade"
-  - docker exec -t buildenv /bin/sh -c "dnf -y --setopt=install_weak_deps=0 groups install buildsys-build"
-  - docker exec -t buildenv /bin/sh -c "dnf -y --setopt=install_weak_deps=0 install libtool"
-  - if [[ "$CC" == "clang" ]]  ; then docker exec -t buildenv /bin/sh -c "dnf -y --setopt=install_weak_deps=0 install clang" ; fi
-  - if [[ "$CODECOV" == "1" ]] ; then docker exec -t buildenv /bin/sh -c "dnf -y --setopt=install_weak_deps=0 install '/usr/bin/git' '/usr/bin/lcov' '/usr/bin/pip3'" ; fi
+  - docker exec -t buildenv /bin/sh -c "dnf -y groups install buildsys-build"
+  - docker exec -t buildenv /bin/sh -c "dnf -y install libtool"
+  - if [[ "$CC" == "clang" ]]  ; then docker exec -t buildenv /bin/sh -c "dnf -y install clang" ; fi
+  - if [[ "$CODECOV" == "1" ]] ; then docker exec -t buildenv /bin/sh -c "dnf -y install '/usr/bin/git' '/usr/bin/lcov' '/usr/bin/pip3'" ; fi
   - if [[ "$CODECOV" == "1" ]] ; then docker exec -t buildenv /bin/sh -c "pip3 install codecov" ; fi
 
 before_script:
