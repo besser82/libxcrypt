@@ -68,6 +68,9 @@ main (void)
       tests[n - 1][1] = &page[pagesize - 1];
     }
 
+  /* Mark cd as initialized before first call to crypt_r.  */
+  cd.initialized = 0;
+
   for (size_t i = 0; i < n; i++)
     {
       retval = crypt (tests[i][0], tests[i][1]);
