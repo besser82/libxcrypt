@@ -28,6 +28,7 @@
 # subarchitectures that do not change $host_cpu (I wish they wouldn't
 # do that...)
 
+riscv64.*	GLIBC_2.27
 nios2.*		GLIBC_2.21
 microblaze.*	GLIBC_2.18
 powerpc64le.*	GLIBC_2.17
