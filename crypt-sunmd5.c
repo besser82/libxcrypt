@@ -157,7 +157,7 @@ gensalt_sunmd5_rn (unsigned long count,
                    uint8_t *output, size_t o_size)
 {
   /* This should not happen, but.  */
-  if ((nrbytes < sizeof (uint64_t)) || (o_size < 32))
+  if ((nrbytes < sizeof (uint64_t)) || (o_size < 33))
     {
       errno = ERANGE;
       return;
