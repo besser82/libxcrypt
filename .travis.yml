@@ -115,10 +115,14 @@ before_install:
 before_script:
   - docker exec -t buildenv /bin/sh -c "rpm -E %optflags" > cflags.txt
   - docker exec -t buildenv /bin/sh -c "rpm -E %__global_ldflags" > ldflags.txt
+  - cat cflags.txt  | tr -d '\012\015' > cflags.txt.new  && mv -f cflags.txt.new cflags.txt
+  - cat ldflags.txt | tr -d '\012\015' > ldflags.txt.new && mv -f ldflags.txt.new ldflags.txt
+  - if [[ "$CC" == "clang" ]]     ; then sed -i -e 's![ \t]*-fcf-protection[ \t]*! -Wno-unused-command-line-argument!g' cflags.txt ; fi
+  - if [[ "$FCVER" == "latest" ]] ; then sed -i -e 's![ \t]*-mcet[ \t]*! !g' cflags.txt ; fi
 
 script:
-  - export CFLAGS="`cat cflags.txt | tr -d '\012\015'` -Wno-unused-command-line-argument" ; export CXXFLAGS="$CFLAGS" ; echo $CFLAGS
-  - export LDFLAGS="`cat ldflags.txt | tr -d '\012\015'`" ; echo $LDFLAGS
+  - export CFLAGS="`cat cflags.txt`" ; export CXXFLAGS="$CFLAGS" ; echo $CFLAGS
+  - export LDFLAGS="`cat ldflags.txt`" ; echo $LDFLAGS
   - if [[ "$CODECOV" == "1" ]] ; then export CFLAGS="-O0 -g --coverage" ; export CXXFLAGS="$CFLAGS" ; export LDFLAGS="--coverage" ; fi
   - docker exec -t buildenv /bin/sh -c "cat /etc/redhat-release"
   - docker exec -t buildenv /bin/sh -c "cd /opt/libxcrypt && autoreconf -fiv"
