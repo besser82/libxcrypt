@@ -71,7 +71,7 @@ crypt.h: crypt-base.h gen-crypt-h.awk config.h
 	$(AM_V_at)mv -f crypt.h.T crypt.h
 
 # When we are being binary compatible, also install symbolic links to
-# mimic SuSE's libowcrypt; any program that uses -lowcrypt in its
+# mimic SUSE's libowcrypt; any program that uses -lowcrypt in its
 # build, or already has a NEEDED entry for libowcrypt.so.1, will be
 # redirected to libcrypt.  The OW_CRYPT_1.0 symbol versions are already
 # present in libcrypt.so.1.
@@ -80,7 +80,7 @@ crypt.h: crypt-base.h gen-crypt-h.awk config.h
 # libraries involved, libcrypt.so.1 and libowcrypt.so.1.  (We should
 # be able to get away with this because in any circumstance where the
 # soname of libcrypt isn't libcrypt.so.1, ENABLE_OBSOLETE_API should
-# be automatically turned off, and as best I can tell, SuSE only ever
+# be automatically turned off, and as best I can tell, SUSE only ever
 # shipped libowcrypt.so.1.)
 if ENABLE_OBSOLETE_API
 if ENABLE_STATIC
