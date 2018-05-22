@@ -7,7 +7,7 @@ crypt			XCRYPT_2.0	GLIBC_2.0
 crypt_r			XCRYPT_2.0	GLIBC_2.0
 
 # Actively supported Openwall extensions; never actually added to
-# upstream GNU libc, but present in at least Openwall, ALT, and SuSE
+# upstream GNU libc, but present in at least Openwall, ALT, and SUSE
 # Linux distributions with one or more of these symbol versions
 crypt_rn		XCRYPT_2.0	GLIBC_2.0	GLIBC_2.2.1
 crypt_gensalt		XCRYPT_2.0	GLIBC_2.0	GLIBC_2.2.1     OW_CRYPT_1.0

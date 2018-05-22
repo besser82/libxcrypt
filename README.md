@@ -75,7 +75,7 @@ libcrypt.so.1.  We have taken pains to provide exactly the same
 "symbol versions" as were used by glibc on various CPU architectures,
 and to account for the variety of ways in which the Openwall
 extensions were patched into glibc's libcrypt by some Linux
-distributions.  (For instance, compatibility symlinks for SuSE's
+distributions.  (For instance, compatibility symlinks for SUSE's
 "libowcrypt" are provided.)
 
 However, the converse is not true: programs linked against libxcrypt
