@@ -144,7 +144,10 @@ des_gen_hash (struct des_ctx *ctx, uint32_t count, uint8_t *output,
 }
 
 /* The original UNIX DES-based password hash, no extensions.  */
-static void
+#if ENABLE_WEAK_NON_GLIBC_HASHES
+static
+#endif
+void
 crypt_des_trd_rn (const char *phrase, const char *setting,
                   uint8_t *output, size_t o_size,
                   void *scratch, size_t s_size)
@@ -192,6 +195,7 @@ crypt_des_trd_rn (const char *phrase, const char *setting,
   des_gen_hash (ctx, 25, cp, pkbuf);
 }
 
+#if ENABLE_WEAK_NON_GLIBC_HASHES
 /* This algorithm is algorithm 0 (default) shipped with the C2 secure
    implementation of Digital UNIX.
 
@@ -342,6 +346,7 @@ crypt_des_xbsd_rn (const char *phrase, const char *setting,
   des_set_salt (ctx, salt);
   des_gen_hash (ctx, count, cp, pkbuf);
 }
+#endif /* ENABLE_WEAK_NON_GLIBC_HASHES */
 
 void
 gensalt_des_trd_rn (unsigned long count,
@@ -365,6 +370,7 @@ gensalt_des_trd_rn (unsigned long count,
   output[2] = '\0';
 }
 
+#if ENABLE_WEAK_NON_GLIBC_HASHES
 void
 gensalt_des_xbsd_rn (unsigned long count,
                      const uint8_t *rbytes, size_t nrbytes,
@@ -406,3 +412,4 @@ gensalt_des_xbsd_rn (unsigned long count,
 
   output[9] = '\0';
 }
+#endif /* ENABLE_WEAK_NON_GLIBC_HASHES */
