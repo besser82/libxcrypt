@@ -11,7 +11,7 @@ AC_CONFIG_SRCDIR([crypt.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
   Makefile
-  libxcrypt.pc
+  libcrypt.pc
 ])
 AM_INIT_AUTOMAKE
 

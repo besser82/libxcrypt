@@ -30,7 +30,7 @@ libcrypt_la_SOURCES = \
 	crypt-bcrypt.c crypt-sha512.c crypt-sha256.c \
 	alg-sha512.c alg-sha256.c randombytes.c
 
-pkgconfig_DATA = libxcrypt.pc
+pkgconfig_DATA = libcrypt.pc
 
 # Build libcrypt.so.2 if obsolete APIs are excluded, libcrypt.so.1 otherwise.
 if ENABLE_OBSOLETE_API
