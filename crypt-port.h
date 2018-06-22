@@ -217,7 +217,11 @@ void _xcrypt_secure_memset (void *s, size_t len)
 #if ENABLE_WEAK_HASHES
 #define comp_maskl               _crypt_comp_maskl
 #define comp_maskr               _crypt_comp_maskr
+#if ENABLE_WEAK_NON_GLIBC_HASHES
 #define crypt_des_trd_or_big_rn  _crypt_crypt_des_trd_or_big_rn
+#else
+#define crypt_des_trd_rn         _crypt_crypt_des_trd_rn
+#endif
 #define crypt_des_xbsd_rn        _crypt_crypt_des_xbsd_rn
 #define crypt_md5_rn             _crypt_crypt_md5_rn
 #define crypt_nthash_rn          _crypt_crypt_nthash_rn

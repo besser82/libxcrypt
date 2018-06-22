@@ -39,15 +39,16 @@ extern void gensalt_sha_rn (char tag, size_t maxsalt, unsigned long defcount,
 /* Individual hash functions */
 
 #if ENABLE_WEAK_HASHES
+extern void crypt_md5_rn (const char *phrase, const char *setting,
+                          uint8_t *output, size_t o_size,
+                          void *scratch, size_t s_size);
+#if ENABLE_WEAK_NON_GLIBC_HASHES
 extern void crypt_des_trd_or_big_rn (const char *phrase, const char *setting,
                                      uint8_t *output, size_t o_size,
                                      void *scratch, size_t s_size);
 extern void crypt_des_xbsd_rn (const char *phrase, const char *setting,
                                uint8_t *output, size_t o_size,
                                void *scratch, size_t s_size);
-extern void crypt_md5_rn (const char *phrase, const char *setting,
-                          uint8_t *output, size_t o_size,
-                          void *scratch, size_t s_size);
 extern void crypt_nthash_rn (const char *phrase, const char *setting,
                              uint8_t *output, size_t o_size,
                              void *scratch, size_t s_size);
@@ -57,6 +58,11 @@ extern void crypt_sha1_rn (const char *phrase, const char *setting,
 extern void crypt_sunmd5_rn (const char *phrase, const char *setting,
                              uint8_t *output, size_t o_size,
                              void *scratch, size_t s_size);
+#else
+extern void crypt_des_trd_rn (const char *phrase, const char *setting,
+                              uint8_t *output, size_t o_size,
+                              void *scratch, size_t s_size);
+#endif
 #endif
 
 extern void crypt_sha256_rn (const char *phrase, const char *setting,
@@ -73,12 +79,13 @@ extern void crypt_bcrypt_rn (const char *phrase, const char *setting,
 extern void gensalt_des_trd_rn (unsigned long count,
                                 const uint8_t *rbytes, size_t nrbytes,
                                 uint8_t *output, size_t o_size);
-extern void gensalt_des_xbsd_rn (unsigned long count,
-                                 const uint8_t *rbytes, size_t nrbytes,
-                                 uint8_t *output, size_t o_size);
 extern void gensalt_md5_rn (unsigned long count,
                             const uint8_t *rbytes, size_t nrbytes,
                             uint8_t *output, size_t o_size);
+#if ENABLE_WEAK_NON_GLIBC_HASHES
+extern void gensalt_des_xbsd_rn (unsigned long count,
+                                 const uint8_t *rbytes, size_t nrbytes,
+                                 uint8_t *output, size_t o_size);
 extern void gensalt_nthash_rn (unsigned long count,
                                const uint8_t *rbytes, size_t nrbytes,
                                uint8_t *output, size_t o_size);
@@ -88,6 +95,7 @@ extern void gensalt_sha1_rn (unsigned long count,
 extern void gensalt_sunmd5_rn (unsigned long count,
                                const uint8_t *rbytes, size_t nrbytes,
                                uint8_t *output, size_t o_size);
+#endif
 #endif
 
 extern void gensalt_sha256_rn (unsigned long count,

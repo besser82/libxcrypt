@@ -204,17 +204,28 @@ AC_ARG_ENABLE([obsolete-api],
 
 AC_ARG_ENABLE([weak-hashes],
     AS_HELP_STRING(
-        [--disable-weak-hashes],
-        [do not include any support for weak hashes (DES, MD5).
-         Implies --disable-obsolete-api, and breaks binary compatibility
-         with glibc's libcrypt.]
+        [--enable-weak-hashes[=ARG]],
+        [When set to "yes", all of the hashing methods documented in crypt(5)
+         are supported for authenticating existing password hashes, including
+         several that are too weak to use for new passwords.
+
+         When set to "glibc", only the weak hashes supported by historic
+         versions of GNU libc are supported: traditional DES and FreeBSD-style
+         MD5, but not bigcrypt-DES, BSDi extended DES, SHA1, SUNMD5, or NTHASH.
+
+         When set to "no", only bcrypt, SHA512, and SHA256 are supported.
+         This mode implies --disable-obsolete-api and breaks binary
+         compatibility with glibc's libcrypt.
+
+         [default=yes]]
     ),
     [case "${enableval}" in
-        yes) enable_weak_hashes=1 ;;
-         no) enable_weak_hashes=0 ;;
+        yes) enable_weak_hashes=1; enable_weak_non_glibc_hashes=1 ;;
+      glibc) enable_weak_hashes=1; enable_weak_non_glibc_hashes=0 ;;
+         no) enable_weak_hashes=0; enable_weak_non_glibc_hashes=0 ;;
           *) AC_MSG_ERROR([bad value ${enableval} for --enable-weak-hashes]) ;;
      esac],
-     [enable_weak_hashes=1]
+     [enable_weak_hashes=1; enable_weak_non_glibc_hashes=1]
 )
 
 # If weak hashes are disabled, then the obsolete APIs won't work anyway
@@ -292,6 +303,10 @@ AC_DEFINE_UNQUOTED([ENABLE_WEAK_HASHES], [$enable_weak_hashes],
  [Define as 1 if weak hashes (DES, MD5) should be included, 0 otherwise.
   If this is 0, ENABLE_OBSOLETE_API must also be 0.])
 AM_CONDITIONAL([ENABLE_WEAK_HASHES], [test $enable_weak_hashes = 1])
+
+AC_DEFINE_UNQUOTED([ENABLE_WEAK_NON_GLIBC_HASHES], [$enable_weak_non_glibc_hashes],
+ [Define as 1 if weak hashes not supported by glibc should be included, 0 otherwise.])
+AM_CONDITIONAL([ENABLE_WEAK_NON_GLIBC_HASHES], [test $enable_weak_non_glibc_hashes = 1])
 
 # The Makefile needs to know which versions of the library we are building.
 AM_CONDITIONAL([ENABLE_STATIC], [test $enable_static = yes])

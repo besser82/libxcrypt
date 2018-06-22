@@ -20,6 +20,7 @@ static const struct
   { "XX", "XXxzOu6maQKqQ", "*U*U*U*U" },
   { "SD", "SDbsugeBiC58A", "" },
 
+#if ENABLE_WEAK_NON_GLIBC_HASHES
   /* BSDI-extended-DES, ditto */
   { "_J9..CCCC", "_J9..CCCCXBrJUJV154M", "U*U*U*U*" },
   { "_J9..CCCC", "_J9..CCCCXUhOBTXzaiE", "U*U***U" },
@@ -63,6 +64,7 @@ static const struct
     "6M..............", "6MvZdspyAL4QEId8ugLUEeDs",
     "\xf3\xf4\xe5\xf0\xe8\xe1\xee\xe9\xe5" /* stephanie */
   },
+#endif
 };
 
 #define ntests ARRAY_SIZE (tests)
