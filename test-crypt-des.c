@@ -20,6 +20,7 @@ static const struct
   { "XX", "XXxzOu6maQKqQ", "*U*U*U*U" },
   { "SD", "SDbsugeBiC58A", "" },
 
+#if ENABLE_WEAK_NON_GLIBC_HASHES
   /* BSDI-extended-DES, ditto */
   { "_J9..CCCC", "_J9..CCCCXBrJUJV154M", "U*U*U*U*" },
   { "_J9..CCCC", "_J9..CCCCXUhOBTXzaiE", "U*U***U" },
@@ -37,6 +38,7 @@ static const struct
   { "_J9..SDiz", "_J9..SDizxmRI1GjnQuE", "zxyDPWgydbQjgq" },
   { "_K9..Salt", "_K9..SaltNrQgIYUAeoY", "726 even" },
   { "_J9..SDSD", "_J9..SDSD5YGyRCr4W4c", "" },
+#endif
 
   /* 10 bigcrypt test vectors from pw-fake-unix.gz from the openwall
      wiki.  All have two blocks.  The salt is padded with dots because

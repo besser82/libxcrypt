@@ -87,9 +87,11 @@ static const struct hashfn tagged_hashes[] =
   /* legacy hashes */
 #if ENABLE_WEAK_HASHES
   { "$1$",    crypt_md5_rn,    gensalt_md5_rn      },
+#if ENABLE_WEAK_NON_GLIBC_HASHES
   { "$3$",    crypt_nthash_rn, gensalt_nthash_rn   },
   { "$md5",   crypt_sunmd5_rn, gensalt_sunmd5_rn   },
   { "$sha1",  crypt_sha1_rn,   gensalt_sha1_rn     },
+#endif
 #endif
   { "$5$",    crypt_sha256_rn, gensalt_sha256_rn   },
   { "$6$",    crypt_sha512_rn, gensalt_sha512_rn   },
@@ -97,11 +99,13 @@ static const struct hashfn tagged_hashes[] =
 };
 
 #if ENABLE_WEAK_HASHES
+#if ENABLE_WEAK_NON_GLIBC_HASHES
 /* BSD-style extended DES */
 static const struct hashfn bsdi_extended_hash =
 {
   "_", crypt_des_xbsd_rn, gensalt_des_xbsd_rn
 };
+#endif
 
 /* Traditional DES or bigcrypt-style extended DES */
 static const struct hashfn traditional_hash =
@@ -131,8 +135,10 @@ get_hashfn (const char *setting)
       return 0;
     }
 #if ENABLE_WEAK_HASHES
+#if ENABLE_WEAK_NON_GLIBC_HASHES
   else if (setting[0] == '_')
     return &bsdi_extended_hash;
+#endif
   else if (setting[0] == '\0' ||
            (is_des_salt_char (setting[0]) && is_des_salt_char (setting[1])))
     return &traditional_hash;
