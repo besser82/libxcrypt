@@ -68,13 +68,17 @@ CLEANFILES = libcrypt.map libcrypt.map.T \
 
 libcrypt.map: libcrypt.map.in gen-map.awk Makefile
 	$(AM_V_GEN)LC_ALL=C $(AWK) \
-	  -v SYMVER_MIN=$(SYMVER_MIN) -v SYMVER_FLOOR=$(SYMVER_FLOOR) \
+	  -v SYMVER_MIN=$(SYMVER_MIN) \
+	  -v SYMVER_FLOOR=$(SYMVER_FLOOR) \
+	  -v COMPAT_ABI=$(COMPAT_ABI) \
 	  -f $(srcdir)/gen-map.awk $(srcdir)/libcrypt.map.in > libcrypt.map.T
 	$(AM_V_at)mv -f libcrypt.map.T libcrypt.map
 
 crypt-symbol-vers.h: libcrypt.map.in gen-vers.awk Makefile
 	$(AM_V_GEN)LC_ALL=C $(AWK) \
-	  -v SYMVER_MIN=$(SYMVER_MIN) -v SYMVER_FLOOR=$(SYMVER_FLOOR) \
+	  -v SYMVER_MIN=$(SYMVER_MIN) \
+	  -v SYMVER_FLOOR=$(SYMVER_FLOOR) \
+	  -v COMPAT_ABI=$(COMPAT_ABI) \
 	  -f $(srcdir)/gen-vers.awk \
 	     $(srcdir)/libcrypt.map.in > crypt-symbol-vers.h.T
 	$(AM_V_at)mv -f crypt-symbol-vers.h.T crypt-symbol-vers.h
@@ -91,6 +95,7 @@ crypt-hashes.h: hashes.lst gen-hashes.awk Makefile
 	  $(srcdir)/hashes.lst > crypt-hashes.h.T
 	$(AM_V_at)mv -f crypt-hashes.h.T crypt-hashes.h
 
+if ENABLE_COMPAT_SUSE
 # When we are being binary compatible, also install symbolic links to
 # mimic SUSE's libowcrypt; any program that uses -lowcrypt in its
 # build, or already has a NEEDED entry for libowcrypt.so.1, will be
@@ -125,6 +130,7 @@ install-exec-hook-libshared:
 uninstall-hook-libshared:
 	-rm -f  $(DESTDIR)$(libdir)/libowcrypt.so \
 		$(DESTDIR)$(libdir)/libowcrypt.so.1
+endif
 endif
 endif
 

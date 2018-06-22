@@ -186,20 +186,38 @@ fi
 
 AC_ARG_ENABLE([obsolete-api],
     AS_HELP_STRING(
-        [--disable-obsolete-api],
-        [do not include compatibility definitions of obsolete APIs
-         (fcrypt, encrypt, setkey) in the shared library.
-         Breaks binary compatibility with glibc's libcrypt.
-         Only affects existing binaries; new programs cannot be
-         linked against these functions in any case.]
+        [--enable-obsolete-api[=ARG]],
+        [When set to "yes", include all compatibility interfaces.
+         When set to "alt", include interfaces for compatibility with ALT.
+         When set to "glibc", include interfaces for compatibility with glibc.
+         When set to "owl", include interfaces for compatibility with Owl.
+         When set to "suse", include interfaces for compatibility with SUSE.
+         When set to "no", do not include compatibility definitions of obsolete
+         APIs (fcrypt, encrypt, setkey) in the shared library, which breaks
+         binary compatibility with glibc's libcrypt.  Only affects existing
+         binaries; new programs cannot be linked against these compatibility
+         functions in any case. [default=yes]]
     ),
     [case "${enableval}" in
-        yes) enable_obsolete_api=1 ;;
-         no) enable_obsolete_api=0 ;;
+        alt|glibc|owl)
+            enable_obsolete_api=1
+            enable_compat_suse=0
+            COMPAT_ABI=${enableval} ;;
+        yes|suse)
+            enable_obsolete_api=1
+            enable_compat_suse=1
+            COMPAT_ABI=${enableval} ;;
+         no)
+            enable_obsolete_api=0
+            enable_compat_suse=0
+            COMPAT_ABI=${enableval} ;;
           *) AC_MSG_ERROR([bad value ${enableval} for --enable-obsolete-api]) ;;
      esac],
-     [enable_obsolete_api=1]
+     [enable_obsolete_api=1
+      enable_compat_suse=1
+      COMPAT_ABI=yes]
 )
+AC_SUBST(COMPAT_ABI)
 
 AC_ARG_ENABLE([hashes],
     AS_HELP_STRING(
@@ -297,6 +315,7 @@ AC_DEFINE_UNQUOTED([ENABLE_OBSOLETE_API], [$enable_obsolete_api],
  [Define as 1 if the obsolete APIs (fcrypt, encrypt, setkey)
   should be included, 0 otherwise.])
 AM_CONDITIONAL([ENABLE_OBSOLETE_API], [test $enable_obsolete_api = 1])
+AM_CONDITIONAL([ENABLE_COMPAT_SUSE], [test $enable_compat_suse = 1])
 
 # The Makefile needs to know which versions of the library we are building.
 AM_CONDITIONAL([ENABLE_STATIC], [test $enable_static = yes])
