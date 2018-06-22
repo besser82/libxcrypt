@@ -4,7 +4,7 @@
 # Author: Thorsten Kukuk <kukuk@suse.de>
 #
 
-AUTOMAKE_OPTIONS = 1.15 gnits
+AUTOMAKE_OPTIONS = 1.14 gnits
 ACLOCAL_AMFLAGS = -I m4
 
 AM_CFLAGS = $(WARN_CFLAGS)
