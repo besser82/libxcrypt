@@ -1,3 +1,6 @@
+The yescrypt code comes from yescrypt by Solar Designer <solar at
+openwall.com>. It builds upon Colin Percival's scrypt.
+
 The bcrypt hash module comes from crypt_blowfish, originally written
 by Solar Designer <solar at openwall.com> and based on algorithms and
 ideas by Niels Provos <provos at citi.umich.edu> and David Mazieres

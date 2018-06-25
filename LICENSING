@@ -28,6 +28,11 @@ source tree.  For specific licensing terms consult the files themselves.
  * Public domain, written by Solar Designer et al.:
    alg-md4.h, alg-md4.c, crypt-bcrypt.c, crypt-gensalt.c, test-crypt-bcrypt.c
 
+ * Copyright Solar Designer, Colin Percival; 0- and 2-clause BSD, where
+   appropriate: yescrypt-common.c, yescrypt.h, yescrypt-opt.c,
+   yescrypt-platform.c, yescrypt-sha256.c, yescrypt-sha256.h,
+   yescrypt-sysendian.h
+
  * Copyright Michael Bretterklieber, Björn Esser et al.; 2-clause BSD:
    crypt-nthash.c
 
