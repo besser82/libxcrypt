@@ -58,6 +58,9 @@ source tree.  For specific licensing terms consult the files themselves.
    GPL (v3 or later), with Autoconf exception:
    m4/zw_automodern.m4, m4/zw_simple_warnings.m4
 
+ * Copyright <vt at altlinux.org>; 0-clause BSD:
+   crypt-yescrypt.c, test-crypt-yescrypt.c
+
  * Copyright holders unknown, no statement of license (all of these
    files are part of the testsuite and do not contribute to the
    installed library or its headers):

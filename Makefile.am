@@ -28,7 +28,8 @@ noinst_HEADERS = \
 	alg-des.h alg-hmac-sha1.h alg-md4.h alg-md5.h \
 	alg-sha1.h alg-sha256.h alg-sha512.h byteorder.h \
 	crypt-base.h crypt-obsolete.h crypt-private.h \
-	crypt-port.h test-des-cases.h
+	crypt-port.h test-des-cases.h yescrypt-sha256.h \
+	yescrypt.h yescrypt-sysendian.h
 
 lib_LTLIBRARIES = libcrypt.la
 libcrypt_la_SOURCES = \
@@ -37,7 +38,8 @@ libcrypt_la_SOURCES = \
 	crypt.c crypt-bcrypt.c crypt-des.c crypt-gensalt-static.c \
 	crypt-gensalt.c crypt-md5.c crypt-nthash.c crypt-pbkdf1-sha1.c \
 	crypt-sha256.c crypt-sha512.c crypt-static.c crypt-sunmd5.c \
-	randombytes.c
+	randombytes.c yescrypt-opt.c yescrypt-sha256.c \
+	yescrypt-common.c crypt-yescrypt.c
 
 pkgconfig_DATA = libxcrypt.pc
 # Install libcrypt.pc symlink to libxcrypt.pc file.
@@ -153,7 +155,8 @@ check_PROGRAMS = \
 	test-crypt-sunmd5 \
 	test-byteorder test-badsalt test-badsetting test-gensalt \
 	test-crypt-badargs test-short-outbuf \
-        test-getrandom-interface test-getrandom-fallbacks
+        test-getrandom-interface test-getrandom-fallbacks \
+	test-crypt-yescrypt
 
 if ENABLE_OBSOLETE_API
 libcrypt_la_SOURCES += crypt-des-obsolete.c
@@ -184,6 +187,7 @@ LOG_COMPILER = m4/skip-if-exec-format-error
 endif
 EXTRA_DIST += m4/skip-if-exec-format-error
 
+test_crypt_yescrypt_LDADD = libcrypt.la
 test_crypt_bcrypt_LDADD = libcrypt.la
 test_crypt_des_LDADD = libcrypt.la
 test_crypt_md5_LDADD = libcrypt.la

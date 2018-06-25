@@ -150,6 +150,15 @@ and does not show the division into prefix, options, salt, and hash.
 ..
 .PP
 .ti -4
+.B yescrypt
+.br
+yescrypt is a scalable password hashing scheme designed by Solar
+Designer, which is based on Colin Percival's scrypt.
+.hash "$y$" "\e$y\e$[./A-Za-z0-9]+\e$[./A-Za-z0-9]*\e$[./A-Za-z0-9]{43}" unlimited 8 "" 256 "up to 512" "0 (default), 1 to 11 (logarithmic)"
+.PP
+scrypt hashes previously used the "$7$" prefix, yescrypt is backward-compatible with them.
+.PP
+.ti -4
 .B bcrypt
 .br
 A hash based on the Blowfish block cipher,

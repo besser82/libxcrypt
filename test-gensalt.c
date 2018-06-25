@@ -216,6 +216,14 @@ static const char *const bcrypt_y_expected_output[] =
   "$2y$05$mAyzaIeJu41dWUkxEbn8hO"
 };
 #endif
+#if INCLUDE_yescrypt
+static const char *yescrypt_expected_output[] = {
+  "$y$j9T$MJHnaAkegEVYHsFKkmfzJ1",
+  "$y$j9T$PKXc3hCOSyMqdaEQArI62/",
+  "$y$j9T$ZAFlICwYRETzIzIjEIC86.",
+  "$y$j9T$UqGBkVu01rurVZqgNchTB0"
+};
+#endif
 
 struct testcase
 {
@@ -294,6 +302,9 @@ static const struct testcase testcases[] =
   { "$2a$",  bcrypt_a_expected_output, 29,  0, 0 },
   { "$2x$",  bcrypt_x_expected_output, 29,  0, 0 },
   { "$2y$",  bcrypt_y_expected_output, 29,  0, 0 },
+#endif
+#if INCLUDE_yescrypt
+  { "$y$",   yescrypt_expected_output, 29, 29, 0 },
 #endif
   { 0, 0, 0, 0, 0 }
 };
