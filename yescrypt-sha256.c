@@ -25,14 +25,16 @@
  * SUCH DAMAGE.
  */
 
+#include "crypt-port.h"
+
 #include <assert.h>
 #include <stdint.h>
 #include <string.h>
 
-#include "insecure_memzero.h"
-#include "sysendian.h"
+#define insecure_memzero XCRYPT_SECURE_MEMSET
+#include "yescrypt-sysendian.h"
 
-#include "sha256.h"
+#include "yescrypt-sha256.h"
 
 #ifdef __ICC
 /* Miscompile with icc 14.0.0 (at least), so don't use restrict there */

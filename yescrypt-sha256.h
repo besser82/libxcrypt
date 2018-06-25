@@ -27,6 +27,8 @@
 #ifndef _SHA256_H_
 #define _SHA256_H_
 
+#include "crypt-port.h"
+
 #include <stddef.h>
 #include <stdint.h>
 

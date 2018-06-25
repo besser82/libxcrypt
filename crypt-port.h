@@ -256,4 +256,21 @@ void _xcrypt_secure_memset (void *s, size_t len)
 #define gensalt_sha_rn           _crypt_gensalt_sha_rn
 #endif
 
+#if INCLUDE_yescrypt
+#define PBKDF2_SHA256            _crypt_PBKDF2_SHA256
+#define yescrypt_encode_params_r _crypt_yescrypt_encode_params_r
+#define yescrypt_free_local      _crypt_yescrypt_free_local
+#define yescrypt_init_local      _crypt_yescrypt_init_local
+#define yescrypt_kdf             _crypt_yescrypt_kdf
+#define yescrypt_r               _crypt_yescrypt_r
+#define libcperciva_SHA256_Init  _crypt_SHA256_Init
+#define libcperciva_SHA256_Update _crypt_SHA256_Update
+#define libcperciva_SHA256_Final _crypt_SHA256_Final
+#define libcperciva_SHA256_Buf   _crypt_SHA256_Buf
+#define libcperciva_HMAC_SHA256_Init _crypt_HMAC_SHA256_Init
+#define libcperciva_HMAC_SHA256_Update _crypt_HMAC_SHA256_Update
+#define libcperciva_HMAC_SHA256_Final _crypt_HMAC_SHA256_Final
+#define libcperciva_HMAC_SHA256_Buf _crypt_HMAC_SHA256_Buf
+#endif
+
 #endif /* crypt-port.h */
