@@ -18,27 +18,28 @@ struct testcase
 {
   const char *prefix;
   unsigned int expected_len;
+  unsigned int expected_auto_len;
 };
 
 static const struct testcase testcases[] =
 {
 #if ENABLE_WEAK_HASHES
-  { "",       2 }, // DES
-  { "$1$",   11 }, // MD5
+  { "",       2,  0 }, // DES
+  { "$1$",   11,  0 }, // MD5
 #if ENABLE_WEAK_NON_GLIBC_HASHES
-  { "_",      9 }, // BSDi extended DES
-  { "$3$",   29 }, // NTHASH
-  { "$md5",  27 }, // SUNMD5
-  { "$sha1", 34 }, // PBKDF with SHA1
+  { "_",      9,  0 }, // BSDi extended DES
+  { "$3$",   29,  0 }, // NTHASH
+  { "$md5",  27,  0 }, // SUNMD5
+  { "$sha1", 34, 74 }, // PBKDF with SHA1
 #endif
 #endif
-  { "$5$",   19 }, // SHA-2-256
-  { "$6$",   19 }, // SHA-2-512
-  { "$2a$",  29 }, // bcrypt mode A
-  { "$2b$",  29 }, // bcrypt mode B
-  { "$2x$",  29 }, // bcrypt mode X
-  { "$2y$",  29 }, // bcrypt mode Y
-  { 0, 0 }
+  { "$5$",   19,  0 }, // SHA-2-256
+  { "$6$",   19,  0 }, // SHA-2-512
+  { "$2a$",  29,  0 }, // bcrypt mode A
+  { "$2b$",  29,  0 }, // bcrypt mode B
+  { "$2x$",  29,  0 }, // bcrypt mode X
+  { "$2y$",  29,  0 }, // bcrypt mode Y
+  { 0, 0, 0 }
 };
 
 int
@@ -74,11 +75,14 @@ main (void)
               continue;
             }
           size_t slen = strlen (salt);
-          if (slen != tcase->expected_len)
+          unsigned int expected_len =
+                  (!entropy[ent] && tcase->expected_auto_len) ?
+                  tcase->expected_auto_len : tcase->expected_len;
+          if (slen != expected_len)
             {
               fprintf (stderr,
                        "ERROR: %s/%u -> %s (expected len=%u got %zu)\n",
-                       tcase->prefix, ent, salt, tcase->expected_len, slen);
+                       tcase->prefix, ent, salt, expected_len, slen);
               status = 1;
             }
           else if (strncmp (salt, tcase->prefix, strlen (tcase->prefix)))
