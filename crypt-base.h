@@ -185,6 +185,12 @@ extern char *crypt_gensalt_ra (const char *__prefix, unsigned long __count,
                                const char *__rbytes, int __nrbytes)
 __THROW;
 
+/* These macros could be checked by portable users of crypt_gensalt*
+   functions to find out whether null pointers could be specified
+   as PREFIX and RBYTES arguments.  */
+#define CRYPT_GENSALT_IMPLEMENTS_DEFAULT_PREFIX 1
+#define CRYPT_GENSALT_IMPLEMENTS_AUTO_ENTROPY 1
+
 /*TRAILER*/
 
 #endif /* crypt.h */
