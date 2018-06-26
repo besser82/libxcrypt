@@ -172,6 +172,19 @@ failed to allocate memory for the compiled
 string.
 .ad b
 .hy 1
+.SH FEATURE TEST MACROS
+The following macros are defined by
+.BR crypt.h :
+.TP
+.B CRYPT_GENSALT_IMPLEMENTS_DEFAULT_PREFIX
+A null pointer can be specified as
+.I prefix
+argument.
+.TP
+.B CRYPT_GENSALT_IMPLEMENTS_AUTO_ENTROPY
+A null pointer can be specified as
+.I rbytes
+argument.
 .SH PORTABILITY NOTES
 The functions
 .BR crypt_gensalt ", " crypt_gensalt_rn ", and " crypt_gensalt_ra
@@ -180,6 +193,14 @@ They originate with the Openwall project.
 A function with the name
 .B crypt_gensalt
 also exists on Solaris 10 and newer, but its prototype and semantics differ.
+.PP
+The default prefix and auto entropy features are available since libxcrypt
+version 4.0.0.  Portable software can use feature test macros to find out
+whether null pointers could be specified as
+.I prefix
+and
+.I rbytes
+arguments.
 .PP
 The set of supported hashing methods varies considerably from system
 to system.
