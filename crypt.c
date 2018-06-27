@@ -404,6 +404,8 @@ crypt_gensalt_rn (const char *prefix, unsigned long count,
     }
 
   char internal_rbytes[UCHAR_MAX];
+  /* typeof (internal_nrbytes) == typeof (h->nrbytes).  */
+  unsigned char internal_nrbytes = 0;
 
   /* If rbytes is 0, read random bytes from the operating system if
      possible.  */
@@ -413,7 +415,7 @@ crypt_gensalt_rn (const char *prefix, unsigned long count,
         return 0;
 
       rbytes = internal_rbytes;
-      nrbytes = h->nrbytes;
+      nrbytes = internal_nrbytes = h->nrbytes;
     }
 
   /* Individual gensalt functions will check for sufficient random bits
@@ -428,6 +430,9 @@ crypt_gensalt_rn (const char *prefix, unsigned long count,
   h->gensalt (count,
               (const unsigned char *)rbytes, (size_t)nrbytes,
               (unsigned char *)output, (size_t)output_size);
+
+  if (internal_nrbytes)
+    XCRYPT_SECURE_MEMSET (internal_rbytes, internal_nrbytes);
 
   return output[0] == '*' ? 0 : output;
 }
