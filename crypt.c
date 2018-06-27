@@ -295,7 +295,7 @@ do_crypt (const char *phrase, const char *setting, struct crypt_data *data)
           swapcontext (&outer_ctx, &cint->inner_ctx);
         }
 #else
-      cfn (phrase, setting,
+      h->crypt (phrase, setting,
            (unsigned char *)data->output, sizeof data->output,
            cint->alg_specific, sizeof cint->alg_specific);
 #endif
