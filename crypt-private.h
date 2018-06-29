@@ -38,76 +38,48 @@ extern void gensalt_sha_rn (char tag, size_t maxsalt, unsigned long defcount,
 
 /* Individual hash functions */
 
-#if ENABLE_WEAK_HASHES
-extern void crypt_des_trd_or_big_rn (const char *phrase, const char *setting,
-                                     uint8_t *output, size_t o_size,
-                                     void *scratch, size_t s_size);
-extern void crypt_des_xbsd_rn (const char *phrase, const char *setting,
-                               uint8_t *output, size_t o_size,
-                               void *scratch, size_t s_size);
-extern void crypt_md5_rn (const char *phrase, const char *setting,
-                          uint8_t *output, size_t o_size,
-                          void *scratch, size_t s_size);
-extern void crypt_nthash_rn (const char *phrase, const char *setting,
-                             uint8_t *output, size_t o_size,
-                             void *scratch, size_t s_size);
-extern void crypt_sha1_rn (const char *phrase, const char *setting,
-                           uint8_t *output, size_t o_size,
-                           void *scratch, size_t s_size);
-extern void crypt_sunmd5_rn (const char *phrase, const char *setting,
-                             uint8_t *output, size_t o_size,
-                             void *scratch, size_t s_size);
-#endif
+#define CRYPT_RN_PROTOTYPE(name) \
+        void crypt_ ## name ## _rn (const char *phrase, const char *setting, \
+                                    uint8_t *output, size_t o_size, \
+                                    void *scratch, size_t s_size)
 
-extern void crypt_sha256_rn (const char *phrase, const char *setting,
-                             uint8_t *output, size_t o_size,
-                             void *scratch, size_t s_size);
-extern void crypt_sha512_rn (const char *phrase, const char *setting,
-                             uint8_t *output, size_t o_size,
-                             void *scratch, size_t s_size);
-extern void crypt_bcrypt_rn (const char *phrase, const char *setting,
-                             uint8_t *output, size_t o_size,
-                             void *scratch, size_t s_size);
+#define GENSALT_RN_PROTOTYPE(name) \
+        void gensalt_ ## name ## _rn (unsigned long count,\
+                                      const uint8_t *rbytes, size_t nrbytes, \
+                                      uint8_t *output, size_t o_size)
 
 #if ENABLE_WEAK_HASHES
-extern void gensalt_des_trd_rn (unsigned long count,
-                                const uint8_t *rbytes, size_t nrbytes,
-                                uint8_t *output, size_t o_size);
-extern void gensalt_des_xbsd_rn (unsigned long count,
-                                 const uint8_t *rbytes, size_t nrbytes,
-                                 uint8_t *output, size_t o_size);
-extern void gensalt_md5_rn (unsigned long count,
-                            const uint8_t *rbytes, size_t nrbytes,
-                            uint8_t *output, size_t o_size);
-extern void gensalt_nthash_rn (unsigned long count,
-                               const uint8_t *rbytes, size_t nrbytes,
-                               uint8_t *output, size_t o_size);
-extern void gensalt_sha1_rn (unsigned long count,
-                             const uint8_t *rbytes, size_t nrbytes,
-                             uint8_t *output, size_t o_size);
-extern void gensalt_sunmd5_rn (unsigned long count,
-                               const uint8_t *rbytes, size_t nrbytes,
-                               uint8_t *output, size_t o_size);
+CRYPT_RN_PROTOTYPE(des_trd_or_big);
+CRYPT_RN_PROTOTYPE(md5);
+#if ENABLE_WEAK_NON_GLIBC_HASHES
+CRYPT_RN_PROTOTYPE(des_xbsd);
+CRYPT_RN_PROTOTYPE(nthash);
+CRYPT_RN_PROTOTYPE(sha1);
+CRYPT_RN_PROTOTYPE(sunmd5);
+#endif
 #endif
 
-extern void gensalt_sha256_rn (unsigned long count,
-                               const uint8_t *rbytes, size_t nrbytes,
-                               uint8_t *output, size_t o_size);
-extern void gensalt_sha512_rn (unsigned long count,
-                               const uint8_t *rbytes, size_t nrbytes,
-                               uint8_t *output, size_t o_size);
+CRYPT_RN_PROTOTYPE(sha256);
+CRYPT_RN_PROTOTYPE(sha512);
+CRYPT_RN_PROTOTYPE(bcrypt);
 
-extern void gensalt_bcrypt_a_rn (unsigned long count,
-                                 const uint8_t *rbytes, size_t nrbytes,
-                                 uint8_t *output, size_t o_size);
-extern void gensalt_bcrypt_b_rn (unsigned long count,
-                                 const uint8_t *rbytes, size_t nrbytes,
-                                 uint8_t *output, size_t o_size);
-extern void gensalt_bcrypt_x_rn (unsigned long count,
-                                 const uint8_t *rbytes, size_t nrbytes,
-                                 uint8_t *output, size_t o_size);
-extern void gensalt_bcrypt_y_rn (unsigned long count,
-                                 const uint8_t *rbytes, size_t nrbytes,
-                                 uint8_t *output, size_t o_size);
+#if ENABLE_WEAK_HASHES
+GENSALT_RN_PROTOTYPE(des_trd);
+GENSALT_RN_PROTOTYPE(md5);
+#if ENABLE_WEAK_NON_GLIBC_HASHES
+GENSALT_RN_PROTOTYPE(des_xbsd);
+GENSALT_RN_PROTOTYPE(nthash);
+GENSALT_RN_PROTOTYPE(sha1);
+GENSALT_RN_PROTOTYPE(sunmd5);
+#endif
+#endif
+
+GENSALT_RN_PROTOTYPE(sha256);
+GENSALT_RN_PROTOTYPE(sha512);
+
+GENSALT_RN_PROTOTYPE(bcrypt_a);
+GENSALT_RN_PROTOTYPE(bcrypt_b);
+GENSALT_RN_PROTOTYPE(bcrypt_x);
+GENSALT_RN_PROTOTYPE(bcrypt_y);
 
 #endif /* crypt-private.h */
