@@ -191,6 +191,6 @@ static const struct des_testcase des_testcases[] =
   { "\x01\x83\x10\xdc\x40\x9b\x26\xd6", "\x1d\x9d\x5c\x50\x18\xf7\x28\xc2", "\x5f\x4c\x03\x8e\xd1\x2b\x2e\x41" },
   { "\x1c\x58\x7f\x1c\x13\x92\x4f\xef", "\x30\x55\x32\x28\x6d\x6f\x29\x5a", "\x63\xfa\xc0\xd0\x34\xd9\xf7\x93" },
 };
-static const size_t N_DES_TESTCASES = sizeof des_testcases / sizeof des_testcases[0];
+static const size_t N_DES_TESTCASES = ARRAY_SIZE (des_testcases);
 
 #endif /* test-des-cases.h */
