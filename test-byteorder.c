@@ -46,7 +46,7 @@ test_le32 (void)
     { 0x000000FF, "\xFF\x00\x00\x00" },
     { 0x01234567, "\x67\x45\x23\x01" },
   };
-  size_t n_cases = sizeof cases / sizeof cases[0];
+  size_t n_cases = ARRAY_SIZE (cases);
   size_t i;
   uint32_t v;
   unsigned char x[4];
@@ -93,7 +93,7 @@ test_be32 (void)
     { 0x000000FF, "\x00\x00\x00\xFF" },
     { 0x01234567, "\x01\x23\x45\x67" },
   };
-  size_t n_cases = sizeof cases / sizeof cases[0];
+  size_t n_cases = ARRAY_SIZE (cases);
   size_t i;
   uint32_t v;
   unsigned char x[4];
@@ -144,7 +144,7 @@ test_le64 (void)
     { 0xFF00000000000000ull, "\x00\x00\x00\x00\x00\x00\x00\xFF" },
     { 0x0123456789ABCDEFull, "\xEF\xCD\xAB\x89\x67\x45\x23\x01" },
   };
-  size_t n_cases = sizeof cases / sizeof cases[0];
+  size_t n_cases = ARRAY_SIZE (cases);
   size_t i;
   uint64_t v;
   unsigned char x[8];
@@ -201,7 +201,7 @@ test_be64 (void)
     { 0xFF00000000000000ull, "\xFF\x00\x00\x00\x00\x00\x00\x00" },
     { 0x0123456789ABCDEFull, "\x01\x23\x45\x67\x89\xAB\xCD\xEF" },
   };
-  size_t n_cases = sizeof cases / sizeof cases[0];
+  size_t n_cases = ARRAY_SIZE (cases);
   size_t i;
   uint64_t v;
   unsigned char x[8];
