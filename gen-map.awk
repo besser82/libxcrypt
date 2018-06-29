@@ -8,10 +8,11 @@
 # details.
 
 # The .map.in file is the first input file, and we expect the Makefile
-# to have set the variables SYMVER_MIN and SYMVER_FLOOR.  All symbol
-# versions lower than SYMVER_MIN are discarded from the output.
-# All symbol versions lower than SYMVER_FLOOR are replaced with
-# SYMVER_FLOOR.  SYMVER_FLOOR must be greater than or equal to SYMVER_MIN.
+# to have set the variables SYMVER_MIN, SYMVER_FLOOR, and COMPAT_ABI.
+# All compat symbol versions that do not match COMPAT_ABI are ignored.
+# All symbol versions lower than SYMVER_MIN are discarded from the output.
+# All symbol versions lower than SYMVER_FLOOR are replaced with SYMVER_FLOOR.
+# SYMVER_FLOOR must be greater than or equal to SYMVER_MIN.
 #
 # The ordering of symbol versions is entirely controlled by the %chain
 # directive, which must therefore list both all of the versions
@@ -42,11 +43,23 @@ $1 == "%chain" {
 
 {
     for (i = 2; i <= NF; i++) {
-        if ($i != "-") {
-            if ($i in SYMBOLS) {
-                SYMBOLS[$i] = SYMBOLS[$i] SUBSEP $1
+        sym=$i
+        if (sym != "-") {
+            n=split(sym, a, ":")
+            if (n > 1) {
+                sym="-"
+                for (j = 2; j <= n; j++) {
+                    if (COMPAT_ABI == "yes" || COMPAT_ABI == a[j]) {
+                        sym=a[1]
+                    }
+                }
+            }
+        }
+        if (sym != "-") {
+            if (sym in SYMBOLS) {
+                SYMBOLS[sym] = SYMBOLS[sym] SUBSEP $1
             } else {
-                SYMBOLS[$i] = $1
+                SYMBOLS[sym] = $1
             }
         }
     }

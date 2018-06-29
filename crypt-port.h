@@ -87,6 +87,9 @@ typedef union
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
+/* ARRAY_SIZE is used in tests.  */
+#define ARRAY_SIZE(a_)  (sizeof (a_) / sizeof ((a_)[0]))
+
 /* Provide a guaranteed way to erase sensitive memory at the best we
    can, given the possibilities of the system.  */
 #if defined HAVE_MEMSET_S

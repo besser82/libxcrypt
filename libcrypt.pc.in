@@ -1,0 +1,15 @@
+############################################
+#####   Pkg-Config file for libcrypt   #####
+############################################
+
+prefix=@prefix@
+exec_prefix=${prefix}
+
+libdir=@libdir@
+includedir=@includedir@
+
+Name: @PACKAGE@
+Version: @VERSION@
+Description: Modern password hashing library
+Libs: -L${libdir} -lcrypt
+Cflags: -I${includedir}

@@ -21,9 +21,9 @@
 
 #include <errno.h>
 #include <stdlib.h>
+#include <limits.h>
 
 #ifdef USE_SWAPCONTEXT
-#include <limits.h>
 #include <ucontext.h>
 #endif
 
@@ -72,6 +72,7 @@ struct hashfn
   const char *prefix;
   crypt_fn crypt;
   gensalt_fn gensalt;
+  unsigned char nrbytes;
 };
 
 /* This table should always begin with the algorithm that should be used
@@ -79,34 +80,38 @@ struct hashfn
 static const struct hashfn tagged_hashes[] =
 {
   /* bcrypt */
-  { "$2b$",   crypt_bcrypt_rn, gensalt_bcrypt_b_rn },
-  { "$2a$",   crypt_bcrypt_rn, gensalt_bcrypt_a_rn },
-  { "$2x$",   crypt_bcrypt_rn, gensalt_bcrypt_x_rn },
-  { "$2y$",   crypt_bcrypt_rn, gensalt_bcrypt_y_rn },
+  { "$2b$",   crypt_bcrypt_rn, gensalt_bcrypt_b_rn, 16 },
+  { "$2a$",   crypt_bcrypt_rn, gensalt_bcrypt_a_rn, 16 },
+  { "$2x$",   crypt_bcrypt_rn, gensalt_bcrypt_x_rn, 16 },
+  { "$2y$",   crypt_bcrypt_rn, gensalt_bcrypt_y_rn, 16 },
 
   /* legacy hashes */
 #if ENABLE_WEAK_HASHES
-  { "$1$",    crypt_md5_rn,    gensalt_md5_rn      },
-  { "$3$",    crypt_nthash_rn, gensalt_nthash_rn   },
-  { "$md5",   crypt_sunmd5_rn, gensalt_sunmd5_rn   },
-  { "$sha1",  crypt_sha1_rn,   gensalt_sha1_rn     },
+  { "$1$",    crypt_md5_rn,    gensalt_md5_rn,      9  },
+#if ENABLE_WEAK_NON_GLIBC_HASHES
+  { "$3$",    crypt_nthash_rn, gensalt_nthash_rn,   16 },
+  { "$md5",   crypt_sunmd5_rn, gensalt_sunmd5_rn,   8  },
+  { "$sha1",  crypt_sha1_rn,   gensalt_sha1_rn,     48 },
 #endif
-  { "$5$",    crypt_sha256_rn, gensalt_sha256_rn   },
-  { "$6$",    crypt_sha512_rn, gensalt_sha512_rn   },
-  { 0, 0, 0 }
+#endif
+  { "$5$",    crypt_sha256_rn, gensalt_sha256_rn,   15 },
+  { "$6$",    crypt_sha512_rn, gensalt_sha512_rn,   15 },
+  { 0, 0, 0, 0 }
 };
 
 #if ENABLE_WEAK_HASHES
+#if ENABLE_WEAK_NON_GLIBC_HASHES
 /* BSD-style extended DES */
 static const struct hashfn bsdi_extended_hash =
 {
-  "_", crypt_des_xbsd_rn, gensalt_des_xbsd_rn
+  "_", crypt_des_xbsd_rn, gensalt_des_xbsd_rn, 3
 };
+#endif
 
 /* Traditional DES or bigcrypt-style extended DES */
 static const struct hashfn traditional_hash =
 {
-  "", crypt_des_trd_or_big_rn, gensalt_des_trd_rn
+  "", crypt_des_trd_or_big_rn, gensalt_des_trd_rn, 2
 };
 
 static int
@@ -131,8 +136,10 @@ get_hashfn (const char *setting)
       return 0;
     }
 #if ENABLE_WEAK_HASHES
+#if ENABLE_WEAK_NON_GLIBC_HASHES
   else if (setting[0] == '_')
     return &bsdi_extended_hash;
+#endif
   else if (setting[0] == '\0' ||
            (is_des_salt_char (setting[0]) && is_des_salt_char (setting[1])))
     return &traditional_hash;
@@ -288,7 +295,7 @@ do_crypt (const char *phrase, const char *setting, struct crypt_data *data)
           swapcontext (&outer_ctx, &cint->inner_ctx);
         }
 #else
-      cfn (phrase, setting,
+      h->crypt (phrase, setting,
            (unsigned char *)data->output, sizeof data->output,
            cint->alg_specific, sizeof cint->alg_specific);
 #endif
@@ -360,10 +367,6 @@ crypt_gensalt_rn (const char *prefix, unsigned long count,
                   const char *rbytes, int nrbytes, char *output,
                   int output_size)
 {
-  /* Always add two padding bytes to make sure the whole string
-     will be random on Base64 encoding.  */
-  char internal_rbytes[16 + 2];
-
   make_failure_token ("", output, output_size);
 
   /* Individual gensalt functions will check for adequate space for
@@ -389,15 +392,18 @@ crypt_gensalt_rn (const char *prefix, unsigned long count,
       return 0;
     }
 
+  char internal_rbytes[UCHAR_MAX];
+  unsigned char internal_nrbytes = 0;
+
   /* If rbytes is 0, read random bytes from the operating system if
      possible.  */
   if (!rbytes)
     {
-      if (!get_random_bytes(internal_rbytes, sizeof internal_rbytes))
+      if (!get_random_bytes (internal_rbytes, h->nrbytes))
         return 0;
 
       rbytes = internal_rbytes;
-      nrbytes = sizeof internal_rbytes;
+      nrbytes = internal_nrbytes = h->nrbytes;
     }
 
   /* Individual gensalt functions will check for sufficient random bits
@@ -412,6 +418,9 @@ crypt_gensalt_rn (const char *prefix, unsigned long count,
   h->gensalt (count,
               (const unsigned char *)rbytes, (size_t)nrbytes,
               (unsigned char *)output, (size_t)output_size);
+
+  if (internal_nrbytes)
+    XCRYPT_SECURE_MEMSET (internal_rbytes, internal_nrbytes);
 
   return output[0] == '*' ? 0 : output;
 }

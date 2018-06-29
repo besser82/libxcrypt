@@ -273,6 +273,7 @@ crypt_des_trd_or_big_rn (const char *phrase, const char *setting,
   (phrase, setting, output, o_size, scratch, s_size);
 }
 
+#if ENABLE_WEAK_NON_GLIBC_HASHES
 /* crypt_rn() entry point for BSD-style extended DES hashes.  These
    permit long passwords and have more salt and a controllable iteration
    count, but are still unacceptably weak by modern standards.  */
@@ -342,6 +343,7 @@ crypt_des_xbsd_rn (const char *phrase, const char *setting,
   des_set_salt (ctx, salt);
   des_gen_hash (ctx, count, cp, pkbuf);
 }
+#endif /* ENABLE_WEAK_NON_GLIBC_HASHES */
 
 void
 gensalt_des_trd_rn (unsigned long count,
@@ -365,6 +367,7 @@ gensalt_des_trd_rn (unsigned long count,
   output[2] = '\0';
 }
 
+#if ENABLE_WEAK_NON_GLIBC_HASHES
 void
 gensalt_des_xbsd_rn (unsigned long count,
                      const uint8_t *rbytes, size_t nrbytes,
@@ -406,3 +409,4 @@ gensalt_des_xbsd_rn (unsigned long count,
 
   output[9] = '\0';
 }
+#endif /* ENABLE_WEAK_NON_GLIBC_HASHES */

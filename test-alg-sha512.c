@@ -116,7 +116,7 @@ main (void)
   int cnt;
   int i;
 
-  for (cnt = 0; cnt < (int) (sizeof (tests) / sizeof (tests[0])); ++cnt)
+  for (cnt = 0; cnt < (int) ARRAY_SIZE (tests); ++cnt)
     {
       sha512_init_ctx (&ctx);
       sha512_process_bytes (tests[cnt].input, strlen (tests[cnt].input),

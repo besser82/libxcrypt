@@ -4,7 +4,7 @@
 # Author: Thorsten Kukuk <kukuk@suse.de>
 #
 
-AUTOMAKE_OPTIONS = 1.15 gnits
+AUTOMAKE_OPTIONS = 1.14 gnits
 ACLOCAL_AMFLAGS = -I m4
 
 AM_CFLAGS = $(WARN_CFLAGS)
@@ -30,7 +30,7 @@ libcrypt_la_SOURCES = \
 	crypt-bcrypt.c crypt-sha512.c crypt-sha256.c \
 	alg-sha512.c alg-sha256.c randombytes.c
 
-pkgconfig_DATA = libxcrypt.pc
+pkgconfig_DATA = libcrypt.pc
 
 # Build libcrypt.so.2 if obsolete APIs are excluded, libcrypt.so.1 otherwise.
 if ENABLE_OBSOLETE_API
@@ -53,13 +53,17 @@ CLEANFILES = libcrypt.map libcrypt.map.T \
 
 libcrypt.map: libcrypt.map.in gen-map.awk Makefile
 	$(AM_V_GEN)LC_ALL=C $(AWK) \
-	  -v SYMVER_MIN=$(SYMVER_MIN) -v SYMVER_FLOOR=$(SYMVER_FLOOR) \
+	  -v SYMVER_MIN=$(SYMVER_MIN) \
+	  -v SYMVER_FLOOR=$(SYMVER_FLOOR) \
+	  -v COMPAT_ABI=$(COMPAT_ABI) \
 	  -f $(srcdir)/gen-map.awk $(srcdir)/libcrypt.map.in > libcrypt.map.T
 	$(AM_V_at)mv -f libcrypt.map.T libcrypt.map
 
 crypt-symbol-vers.h: libcrypt.map.in gen-vers.awk Makefile
 	$(AM_V_GEN)LC_ALL=C $(AWK) \
-	  -v SYMVER_MIN=$(SYMVER_MIN) -v SYMVER_FLOOR=$(SYMVER_FLOOR) \
+	  -v SYMVER_MIN=$(SYMVER_MIN) \
+	  -v SYMVER_FLOOR=$(SYMVER_FLOOR) \
+	  -v COMPAT_ABI=$(COMPAT_ABI) \
 	  -f $(srcdir)/gen-vers.awk \
 	     $(srcdir)/libcrypt.map.in > crypt-symbol-vers.h.T
 	$(AM_V_at)mv -f crypt-symbol-vers.h.T crypt-symbol-vers.h
@@ -70,6 +74,7 @@ crypt.h: crypt-base.h gen-crypt-h.awk config.h
 	  > crypt.h.T
 	$(AM_V_at)mv -f crypt.h.T crypt.h
 
+if ENABLE_COMPAT_SUSE
 # When we are being binary compatible, also install symbolic links to
 # mimic SUSE's libowcrypt; any program that uses -lowcrypt in its
 # build, or already has a NEEDED entry for libowcrypt.so.1, will be
@@ -106,6 +111,7 @@ uninstall-hook-libshared:
 		$(DESTDIR)$(libdir)/libowcrypt.so.1
 endif
 endif
+endif
 
 check_PROGRAMS = \
 	test-alg-sha256 test-alg-sha512 \
@@ -114,9 +120,13 @@ check_PROGRAMS = \
 
 if ENABLE_WEAK_HASHES
 libcrypt_la_SOURCES += \
-	crypt-md5.c crypt-des.c crypt-nthash.c crypt-pbkdf1-sha1.c \
-	crypt-sunmd5.c \
-	alg-des.c alg-hmac-sha1.c alg-md4.c alg-md5.c alg-sha1.c
+	crypt-des.c crypt-md5.c alg-des.c alg-md5.c
+
+if ENABLE_WEAK_NON_GLIBC_HASHES
+libcrypt_la_SOURCES += \
+	crypt-nthash.c crypt-pbkdf1-sha1.c crypt-sunmd5.c \
+	alg-hmac-sha1.c alg-md4.c alg-sha1.c
+endif
 
 nodist_libcrypt_la_SOURCES = \
 	alg-des-tables.c
@@ -143,10 +153,14 @@ alg-des-tables.c: gen-des-tables
 	$(AM_V_at)mv -f alg-des-tables.c.T alg-des-tables.c
 
 check_PROGRAMS += \
-	test-alg-des test-alg-hmac-sha1 test-alg-md4 \
-        test-alg-md5 test-alg-sha1 \
-	test-crypt-badsalt test-crypt-des test-crypt-md5 \
+	test-alg-des test-alg-md5 test-crypt-des test-crypt-md5 \
+	test-crypt-badsalt
+
+if ENABLE_WEAK_NON_GLIBC_HASHES
+check_PROGRAMS += \
+	test-alg-hmac-sha1 test-alg-md4 test-alg-sha1 \
 	test-crypt-nthash test-crypt-sunmd5 test-crypt-pbkdf1-sha1
+endif
 endif
 
 if ENABLE_OBSOLETE_API

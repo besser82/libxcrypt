@@ -16,6 +16,7 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
+#include "crypt-port.h"
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -44,7 +45,7 @@ main (void)
   int result = 0;
   struct crypt_data cd;
   struct crypt_data *cdptr = &cd;
-  size_t n = sizeof (tests) / sizeof (*tests);
+  size_t n = ARRAY_SIZE (tests);
   size_t pagesize = (size_t) sysconf (_SC_PAGESIZE);
   char *page, *retval;
   const char *saltstr, *special = "%";

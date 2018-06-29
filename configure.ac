@@ -11,7 +11,7 @@ AC_CONFIG_SRCDIR([crypt.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
   Makefile
-  libxcrypt.pc
+  libcrypt.pc
 ])
 AM_INIT_AUTOMAKE
 
@@ -187,34 +187,55 @@ fi
 
 AC_ARG_ENABLE([obsolete-api],
     AS_HELP_STRING(
-        [--disable-obsolete-api],
-        [do not include compatibility definitions of obsolete APIs
-         (fcrypt, encrypt, setkey) in the shared library.
-         Breaks binary compatibility with glibc's libcrypt.
-         Only affects existing binaries; new programs cannot be
-         linked against these functions in any case.]
+        [--enable-obsolete-api[=ARG]],
+        [When set to "yes", include all compatibility interfaces.
+         When set to "alt", include interfaces for compatibility with ALT.
+         When set to "glibc", include interfaces for compatibility with glibc.
+         When set to "owl", include interfaces for compatibility with Owl.
+         When set to "suse", include interfaces for compatibility with SUSE.
+         When set to "no", do not include compatibility definitions of obsolete
+         APIs (fcrypt, encrypt, setkey) in the shared library, which breaks
+         binary compatibility with glibc's libcrypt.  Only affects existing
+         binaries; new programs cannot be linked against these compatibility
+         functions in any case. [default=yes]]
     ),
     [case "${enableval}" in
-        yes) enable_obsolete_api=1 ;;
-         no) enable_obsolete_api=0 ;;
+        alt|glibc|owl)
+            enable_obsolete_api=1
+            enable_compat_suse=0
+            COMPAT_ABI=${enableval} ;;
+        yes|suse)
+            enable_obsolete_api=1
+            enable_compat_suse=1
+            COMPAT_ABI=${enableval} ;;
+         no)
+            enable_obsolete_api=0
+            enable_compat_suse=0
+            COMPAT_ABI=${enableval} ;;
           *) AC_MSG_ERROR([bad value ${enableval} for --enable-obsolete-api]) ;;
      esac],
-     [enable_obsolete_api=1]
+     [enable_obsolete_api=1
+      enable_compat_suse=1
+      COMPAT_ABI=yes]
 )
+AC_SUBST(COMPAT_ABI)
 
 AC_ARG_ENABLE([weak-hashes],
     AS_HELP_STRING(
-        [--disable-weak-hashes],
-        [do not include any support for weak hashes (DES, MD5).
-         Implies --disable-obsolete-api, and breaks binary compatibility
-         with glibc's libcrypt.]
+        [--enable-weak-hashes[=ARG]],
+        [When set to "yes", enable full support for weak hashes (DES, MD5).
+         When set to "glibc", enable support for those weak hashes supported
+         by glibc.  When set to "no", do not include any support for weak
+         hashes, which implies --disable-obsolete-api and breaks binary
+         compatibility with glibc's libcrypt. [default=yes]]
     ),
     [case "${enableval}" in
-        yes) enable_weak_hashes=1 ;;
-         no) enable_weak_hashes=0 ;;
+        yes) enable_weak_hashes=1; enable_weak_non_glibc_hashes=1 ;;
+      glibc) enable_weak_hashes=1; enable_weak_non_glibc_hashes=0 ;;
+         no) enable_weak_hashes=0; enable_weak_non_glibc_hashes=0 ;;
           *) AC_MSG_ERROR([bad value ${enableval} for --enable-weak-hashes]) ;;
      esac],
-     [enable_weak_hashes=1]
+     [enable_weak_hashes=1; enable_weak_non_glibc_hashes=1]
 )
 
 # If weak hashes are disabled, then the obsolete APIs won't work anyway
@@ -287,11 +308,16 @@ AC_DEFINE_UNQUOTED([ENABLE_OBSOLETE_API], [$enable_obsolete_api],
  [Define as 1 if the obsolete APIs (fcrypt, encrypt, setkey)
   should be included, 0 otherwise.])
 AM_CONDITIONAL([ENABLE_OBSOLETE_API], [test $enable_obsolete_api = 1])
+AM_CONDITIONAL([ENABLE_COMPAT_SUSE], [test $enable_compat_suse = 1])
 
 AC_DEFINE_UNQUOTED([ENABLE_WEAK_HASHES], [$enable_weak_hashes],
  [Define as 1 if weak hashes (DES, MD5) should be included, 0 otherwise.
   If this is 0, ENABLE_OBSOLETE_API must also be 0.])
 AM_CONDITIONAL([ENABLE_WEAK_HASHES], [test $enable_weak_hashes = 1])
+
+AC_DEFINE_UNQUOTED([ENABLE_WEAK_NON_GLIBC_HASHES], [$enable_weak_non_glibc_hashes],
+ [Define as 1 if weak hashes not supported by glibc should be included, 0 otherwise.])
+AM_CONDITIONAL([ENABLE_WEAK_NON_GLIBC_HASHES], [test $enable_weak_non_glibc_hashes = 1])
 
 # The Makefile needs to know which versions of the library we are building.
 AM_CONDITIONAL([ENABLE_STATIC], [test $enable_static = yes])

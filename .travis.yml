@@ -96,7 +96,7 @@ matrix:
         - FCVER="latest"
 
 before_install:
-  - docker pull fedora:$FCVER
+  - while ! docker pull fedora:$FCVER; do sleep 1; done
   - perl -pe 's/\$(\w+)/$ENV{$1}/g' .travis.env.in > travis.env
   - docker run -t -d -P --env-file travis.env --name buildenv -v $HOME/.ccache:/root/.ccache -v $PWD:/opt/libxcrypt fedora:$FCVER /bin/sh -c "mkdir -p /opt/libxcrypt ; bash"
   - docker exec -t buildenv /bin/sh -c "echo \"deltarpm=0\" >> /etc/dnf/dnf.conf"
@@ -104,12 +104,12 @@ before_install:
   - docker exec -t buildenv /bin/sh -c "echo \"max_parallel_downloads=20\" >> /etc/dnf/dnf.conf"
   - docker exec -t buildenv /bin/sh -c "echo \"\" >> /etc/dnf/dnf.conf"
   - if [[ "$FCVER" == "rawhide" ]] ; then docker exec -t buildenv /bin/sh -c "cat /opt/libxcrypt/.travis.dnf.conf.rawhide_latest >> /etc/dnf/dnf.conf" ; fi
-  - docker exec -t buildenv /bin/sh -c "dnf makecache"
-  - docker exec -t buildenv /bin/sh -c "dnf -y upgrade"
-  - docker exec -t buildenv /bin/sh -c "dnf -y groups install buildsys-build"
-  - docker exec -t buildenv /bin/sh -c "dnf -y install libtool"
-  - if [[ "$CC" == "clang" ]]  ; then docker exec -t buildenv /bin/sh -c "dnf -y install clang" ; fi
-  - if [[ "$CODECOV" == "1" ]] ; then docker exec -t buildenv /bin/sh -c "dnf -y install '/usr/bin/git' '/usr/bin/lcov' '/usr/bin/pip3'" ; fi
+  - docker exec -t buildenv /bin/sh -c "while ! dnf makecache; do sleep 1; done"
+  - docker exec -t buildenv /bin/sh -c "while ! dnf -y upgrade; do sleep 1; done"
+  - docker exec -t buildenv /bin/sh -c "while ! dnf -y groups install buildsys-build; do sleep 1; done"
+  - docker exec -t buildenv /bin/sh -c "while ! dnf -y install libtool; do sleep 1; done"
+  - if [[ "$CC" == "clang" ]]  ; then docker exec -t buildenv /bin/sh -c "while ! dnf -y install clang; do sleep 1; done" ; fi
+  - if [[ "$CODECOV" == "1" ]] ; then docker exec -t buildenv /bin/sh -c "while ! dnf -y install '/usr/bin/git' '/usr/bin/lcov' '/usr/bin/pip3'; do sleep 1; done" ; fi
   - if [[ "$CODECOV" == "1" ]] ; then docker exec -t buildenv /bin/sh -c "pip3 install codecov" ; fi
 
 before_script:

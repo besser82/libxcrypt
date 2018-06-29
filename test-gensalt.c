@@ -14,29 +14,95 @@ static const char *const entropy[] =
   0
 };
 
+#if ENABLE_WEAK_HASHES
+static const char *const des_expected_output[] = { "Mp", "Pp", "ZH", "Uh"};
+static const char *const md5_expected_output[] = {
+  "$1$MJHnaAke",
+  "$1$PKXc3hCO",
+  "$1$ZAFlICwY",
+  "$1$UqGBkVu0"
+};
+#if ENABLE_WEAK_NON_GLIBC_HASHES
+static const char *const bsdi_expected_output[] = {
+  "_J9..MJHn",
+  "_J9..PKXc",
+  "_J9..ZAFl",
+  "_J9..UqGB"
+};
+static const char *const nthash_expected_output[] = {
+  "$3$__not_used__c809a450df09a3",
+  "$3$__not_used__30d0d6f834c0c3",
+  "$3$__not_used__0eeeebb83d6fe4",
+  "$3$__not_used__1c690d6a9ef88c"
+};
+#define sunmd5_expected_output 0 /* output is not deterministic */
+#define pbkdf_expected_output 0  /* output is not deterministic */
+#endif
+#endif
+static const char *const sha256_expected_output[] = {
+  "$5$MJHnaAkegEVYHsFK",
+  "$5$PKXc3hCOSyMqdaEQ",
+  "$5$ZAFlICwYRETzIzIj",
+  "$5$UqGBkVu01rurVZqg"
+};
+static const char *const sha512_expected_output[] = {
+  "$6$MJHnaAkegEVYHsFK",
+  "$6$PKXc3hCOSyMqdaEQ",
+  "$6$ZAFlICwYRETzIzIj",
+  "$6$UqGBkVu01rurVZqg"
+};
+static const char *const bcrypt_a_expected_output[] = {
+  "$2a$05$UBVLHeMpJ/QQCv3XqJx8zO",
+  "$2a$05$kxUgPcrmlm9XoOjvxCyfP.",
+  "$2a$05$HPNDjKMRFdR7zC87CMSmA.",
+  "$2a$05$mAyzaIeJu41dWUkxEbn8hO"
+};
+static const char *const bcrypt_b_expected_output[] = {
+  "$2b$05$UBVLHeMpJ/QQCv3XqJx8zO",
+  "$2b$05$kxUgPcrmlm9XoOjvxCyfP.",
+  "$2b$05$HPNDjKMRFdR7zC87CMSmA.",
+  "$2b$05$mAyzaIeJu41dWUkxEbn8hO"
+};
+static const char *const bcrypt_x_expected_output[] = {
+  "$2x$05$UBVLHeMpJ/QQCv3XqJx8zO",
+  "$2x$05$kxUgPcrmlm9XoOjvxCyfP.",
+  "$2x$05$HPNDjKMRFdR7zC87CMSmA.",
+  "$2x$05$mAyzaIeJu41dWUkxEbn8hO"
+};
+static const char *const bcrypt_y_expected_output[] = {
+  "$2y$05$UBVLHeMpJ/QQCv3XqJx8zO",
+  "$2y$05$kxUgPcrmlm9XoOjvxCyfP.",
+  "$2y$05$HPNDjKMRFdR7zC87CMSmA.",
+  "$2y$05$mAyzaIeJu41dWUkxEbn8hO"
+};
+
 struct testcase
 {
   const char *prefix;
+  const char *const *expected_output;
   unsigned int expected_len;
+  unsigned int expected_auto_len;
 };
 
 static const struct testcase testcases[] =
 {
 #if ENABLE_WEAK_HASHES
-  { "",       2 }, // DES
-  { "_",      9 }, // BSDi extended DES
-  { "$1$",   11 }, // MD5
-  { "$3$",   29 }, // NTHASH
-  { "$md5",  27 }, // SUNMD5
-  { "$sha1", 34 }, // PBKDF with SHA1
+  { "",      des_expected_output,       2,  0 }, // DES
+  { "$1$",   md5_expected_output,      11,  0 }, // MD5
+#if ENABLE_WEAK_NON_GLIBC_HASHES
+  { "_",     bsdi_expected_output,      9,  0 }, // BSDi extended DES
+  { "$3$",   nthash_expected_output,   29,  0 }, // NTHASH
+  { "$md5",  sunmd5_expected_output,   27,  0 }, // SUNMD5
+  { "$sha1", pbkdf_expected_output,    34, 74 }, // PBKDF with SHA1
 #endif
-  { "$5$",   19 }, // SHA-2-256
-  { "$6$",   19 }, // SHA-2-512
-  { "$2a$",  29 }, // bcrypt mode A
-  { "$2b$",  29 }, // bcrypt mode B
-  { "$2x$",  29 }, // bcrypt mode X
-  { "$2y$",  29 }, // bcrypt mode Y
-  { 0, 0 }
+#endif
+  { "$5$",   sha256_expected_output,   19,  0 }, // SHA-2-256
+  { "$6$",   sha512_expected_output,   19,  0 }, // SHA-2-512
+  { "$2a$",  bcrypt_a_expected_output, 29,  0 }, // bcrypt mode A
+  { "$2b$",  bcrypt_b_expected_output, 29,  0 }, // bcrypt mode B
+  { "$2x$",  bcrypt_x_expected_output, 29,  0 }, // bcrypt mode X
+  { "$2y$",  bcrypt_y_expected_output, 29,  0 }, // bcrypt mode Y
+  { 0, 0, 0, 0 }
 };
 
 int
@@ -51,7 +117,7 @@ main (void)
   for (tcase = testcases; tcase->prefix; tcase++)
     {
       XCRYPT_SECURE_MEMSET (prev_output, CRYPT_GENSALT_OUTPUT_SIZE);
-      for (ent = 0; ent < (sizeof entropy / sizeof entropy[0]); ent++)
+      for (ent = 0; ent < ARRAY_SIZE (entropy); ent++)
         {
           XCRYPT_SECURE_MEMSET (output, CRYPT_GENSALT_OUTPUT_SIZE);
           char *salt = crypt_gensalt_rn (tcase->prefix, 0,
@@ -72,11 +138,14 @@ main (void)
               continue;
             }
           size_t slen = strlen (salt);
-          if (slen != tcase->expected_len)
+          unsigned int expected_len =
+                  (!entropy[ent] && tcase->expected_auto_len) ?
+                  tcase->expected_auto_len : tcase->expected_len;
+          if (slen != expected_len)
             {
               fprintf (stderr,
                        "ERROR: %s/%u -> %s (expected len=%u got %zu)\n",
-                       tcase->prefix, ent, salt, tcase->expected_len, slen);
+                       tcase->prefix, ent, salt, expected_len, slen);
               status = 1;
             }
           else if (strncmp (salt, tcase->prefix, strlen (tcase->prefix)))
@@ -89,6 +158,13 @@ main (void)
             {
               fprintf (stderr, "ERROR: %s/%u -> %s (same as prev)\n",
                        tcase->prefix, ent, salt);
+              status = 1;
+            }
+          else if (entropy[ent] && tcase->expected_output &&
+                   strcmp (salt, tcase->expected_output[ent]))
+            {
+              fprintf (stderr, "ERROR: %s/%u -> %s (expected %s)\n",
+                       tcase->prefix, ent, salt, tcase->expected_output[ent]);
               status = 1;
             }
           else
