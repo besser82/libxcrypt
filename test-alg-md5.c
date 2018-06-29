@@ -80,7 +80,7 @@ main (void)
   int cnt;
   int i;
 
-  for (cnt = 0; cnt < (int) (sizeof (tests) / sizeof (tests[0])); ++cnt)
+  for (cnt = 0; cnt < (int) ARRAY_SIZE (tests); ++cnt)
     {
       md5_init_ctx (&ctx);
       md5_process_bytes (tests[cnt].input, strlen (tests[cnt].input), &ctx);

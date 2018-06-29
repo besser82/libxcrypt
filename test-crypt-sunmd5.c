@@ -88,7 +88,7 @@ const char *tests[][3] =
   },
 };
 
-#define ntests (sizeof (tests) / sizeof (tests[0]))
+#define ntests ARRAY_SIZE (tests)
 
 int
 main (void)

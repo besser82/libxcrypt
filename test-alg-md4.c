@@ -73,7 +73,7 @@ main (void)
   int cnt;
   int i;
 
-  for (cnt = 0; cnt < (int) (sizeof (tests) / sizeof (tests[0])); ++cnt)
+  for (cnt = 0; cnt < (int) ARRAY_SIZE (tests); ++cnt)
     {
       md4_init_ctx (&ctx);
       md4_process_bytes ((const unsigned char*)tests[cnt].input, &ctx, strlen (tests[cnt].input));
