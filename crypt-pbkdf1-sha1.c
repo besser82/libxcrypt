@@ -250,7 +250,8 @@ gensalt_sha1_rn (unsigned long count,
   for (c = 0; (c * sizeof (unsigned long)) + sizeof (unsigned long) <= nrbytes &&
        (c * enclen) + enclen <= CRYPT_SHA1_SALT_LENGTH; ++c)
     {
-      memcpy (&encbuf, rbytes + (c * enclen), sizeof (unsigned long));
+      memcpy (&encbuf, rbytes + (c * sizeof (unsigned long)),
+              sizeof (unsigned long));
       to64 (output + n + (c * enclen), encbuf, (int)enclen);
     }
 
