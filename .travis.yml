@@ -50,6 +50,30 @@ matrix:
       os: linux
       services: docker
       env:
+        - CONF="--enable-obsolete-api --enable-weak-hashes=glibc"
+        - FCVER="rawhide"
+    - compiler: clang
+      os: linux
+      services: docker
+      env:
+        - CONF="--enable-obsolete-api --enable-weak-hashes=glibc"
+        - FCVER="rawhide"
+    - compiler: gcc
+      os: linux
+      services: docker
+      env:
+        - CONF="--enable-obsolete-api --enable-weak-hashes=glibc"
+        - FCVER="latest"
+    - compiler: clang
+      os: linux
+      services: docker
+      env:
+        - CONF="--enable-obsolete-api --enable-weak-hashes=glibc"
+        - FCVER="latest"
+    - compiler: gcc
+      os: linux
+      services: docker
+      env:
         - CONF="--disable-obsolete-api --enable-weak-hashes"
         - FCVER="rawhide"
     - compiler: clang

@@ -219,41 +219,41 @@ void _xcrypt_secure_memset (void *s, size_t len)
 #define comp_maskr               _crypt_comp_maskr
 #if ENABLE_WEAK_NON_GLIBC_HASHES
 #define crypt_des_trd_or_big_rn  _crypt_crypt_des_trd_or_big_rn
-#else
-#define crypt_des_trd_rn         _crypt_crypt_des_trd_rn
-#endif
 #define crypt_des_xbsd_rn        _crypt_crypt_des_xbsd_rn
-#define crypt_md5_rn             _crypt_crypt_md5_rn
 #define crypt_nthash_rn          _crypt_crypt_nthash_rn
 #define crypt_sha1_rn            _crypt_crypt_sha1_rn
 #define crypt_sunmd5_rn          _crypt_crypt_sunmd5_rn
+#define gensalt_des_xbsd_rn      _crypt_gensalt_des_xbsd_rn
+#define gensalt_nthash_rn        _crypt_gensalt_nthash_rn
+#define gensalt_sha1_rn          _crypt_gensalt_sha1_rn
+#define gensalt_sunmd5_rn        _crypt_gensalt_sunmd5_rn
+#define hmac_sha1_process_data   _crypt_hmac_sha1_process_data
+#define md4_finish_ctx           _crypt_md4_finish_ctx
+#define md4_init_ctx             _crypt_md4_init_ctx
+#define md4_process_bytes        _crypt_md4_process_bytes
+#define sha1_finish_ctx          _crypt_sha1_finish_ctx
+#define sha1_init_ctx            _crypt_sha1_init_ctx
+#define sha1_process_bytes       _crypt_sha1_process_bytes
+#else
+#define crypt_des_trd_rn         _crypt_crypt_des_trd_rn
+#endif
+#define crypt_md5_rn             _crypt_crypt_md5_rn
 #define des_crypt_block          _crypt_des_crypt_block
 #define des_set_key              _crypt_des_set_key
 #define des_set_salt             _crypt_des_set_salt
 #define fp_maskl                 _crypt_fp_maskl
 #define fp_maskr                 _crypt_fp_maskr
 #define gensalt_des_trd_rn       _crypt_gensalt_des_trd_rn
-#define gensalt_des_xbsd_rn      _crypt_gensalt_des_xbsd_rn
 #define gensalt_md5_rn           _crypt_gensalt_md5_rn
-#define gensalt_nthash_rn        _crypt_gensalt_nthash_rn
-#define gensalt_sha1_rn          _crypt_gensalt_sha1_rn
-#define gensalt_sunmd5_rn        _crypt_gensalt_sunmd5_rn
 #define ip_maskl                 _crypt_ip_maskl
 #define ip_maskr                 _crypt_ip_maskr
 #define key_perm_maskl           _crypt_key_perm_maskl
 #define key_perm_maskr           _crypt_key_perm_maskr
-#define hmac_sha1_process_data   _crypt_hmac_sha1_process_data
-#define md4_finish_ctx           _crypt_md4_finish_ctx
-#define md4_init_ctx             _crypt_md4_init_ctx
-#define md4_process_bytes        _crypt_md4_process_bytes
 #define md5_finish_ctx           _crypt_md5_finish_ctx
 #define md5_init_ctx             _crypt_md5_init_ctx
 #define md5_process_bytes        _crypt_md5_process_bytes
 #define m_sbox                   _crypt_m_sbox
 #define psbox                    _crypt_psbox
-#define sha1_finish_ctx          _crypt_sha1_finish_ctx
-#define sha1_init_ctx            _crypt_sha1_init_ctx
-#define sha1_process_bytes       _crypt_sha1_process_bytes
 #endif
 
 #endif /* crypt-port.h */
