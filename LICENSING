@@ -19,7 +19,8 @@ source tree.  For specific licensing terms consult the files themselves.
    test-crypt-badsalt, test-crypt-nonnull
 
  * Copyright David Burren et al.; 3-clause BSD:
-   alg-des.h, alg-des.c, crypt-des.c, crypt-des-obsolete.c, gen-des-tables.c
+   alg-des.h, alg-des.c, alg-des-tables.c,
+   crypt-des.c, crypt-des-obsolete.c, gen-des-tables.c
 
  * Public domain, written by Solar Designer et al.:
    alg-md4.h, alg-md4.c, crypt-bcrypt.c, crypt-gensalt.c, test-crypt-bcrypt.c
@@ -48,9 +49,6 @@ source tree.  For specific licensing terms consult the files themselves.
  * Copyright Zack Weinberg and Free Software Foundation, Inc;
    GPL (v3 or later), with Autoconf exception:
    m4/zw_automodern.m4, m4/zw_simple_warnings.m4
-
- * Copyright Paolo Bonzini; FSF all-permissive license for short files:
-   m4/ax_prog_cc_for_build.m4
 
  * Copyright holders unknown, no statement of license (all of these
    files are part of the testsuite and do not contribute to the

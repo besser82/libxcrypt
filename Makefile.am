@@ -114,37 +114,13 @@ check_PROGRAMS = \
 
 if ENABLE_WEAK_HASHES
 libcrypt_la_SOURCES += \
-	crypt-des.c crypt-md5.c alg-des.c alg-md5.c
+	crypt-des.c crypt-md5.c alg-des.c alg-des-tables.c alg-md5.c
 
 if ENABLE_WEAK_NON_GLIBC_HASHES
 libcrypt_la_SOURCES += \
 	crypt-nthash.c crypt-pbkdf1-sha1.c crypt-sunmd5.c \
 	alg-hmac-sha1.c alg-md4.c alg-sha1.c
 endif
-
-nodist_libcrypt_la_SOURCES = \
-	alg-des-tables.c
-CLEANFILES += alg-des-tables.c alg-des-tables.c.T
-
-noinst_PROGRAMS = gen-des-tables
-
-LINK_FOR_BUILD = $(CC_FOR_BUILD) $(CFLAGS_FOR_BUILD) $(CPPFLAGS_FOR_BUILD) \
-	$(LDFLAGS_FOR_BUILD) $(TARGET_ARCH_FOR_BUILD) -o $@
-
-gen-des-tables$(BUILD_EXEEXT): $(gen_des_tables_OBJECTS)
-	@rm -f gen-des-tables$(BUILD_EXEEXT)
-	$(AM_V_CCLD)$(LINK_FOR_BUILD) $(gen_des_tables_OBJECTS) $(gen_des_tables_LDADD) $(LIBS)
-# suppress the built-in rule for
-gen-des-tables$(EXEEXT):
-
-$(gen_des_tables_OBJECTS) : CC=$(CC_FOR_BUILD)
-$(gen_des_tables_OBJECTS) : CFLAGS=$(CFLAGS_FOR_BUILD)
-$(gen_des_tables_OBJECTS) : CPPFLAGS=$(CPPFLAGS_FOR_BUILD)
-$(gen_des_tables_OBJECTS) : AM_CFLAGS=$(WARN_CFLAGS_FOR_BUILD)
-
-alg-des-tables.c: gen-des-tables
-	$(AM_V_GEN)./gen-des-tables$(BUILD_EXEEXT) > alg-des-tables.c.T
-	$(AM_V_at)mv -f alg-des-tables.c.T alg-des-tables.c
 
 check_PROGRAMS += \
 	test-alg-des test-alg-md5 test-crypt-des test-crypt-md5 \

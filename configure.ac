@@ -24,7 +24,6 @@ AH_BOTTOM(
 # Checks for programs.
 AC_CANONICAL_HOST
 AC_PROG_CC
-AX_PROG_CC_FOR_BUILD
 
 # Dependencies
 PKG_PROG_PKG_CONFIG
