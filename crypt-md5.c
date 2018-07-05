@@ -31,7 +31,7 @@
 static const char md5_salt_prefix[] = "$1$";
 
 /* Table with characters for base64 transformation.  */
-static const char b64t[64] =
+static const char b64t[] =
   "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 /* The maximum length of an MD5 salt string (just the actual salt, not
@@ -88,7 +88,12 @@ crypt_md5_rn (const char *phrase, const char *setting,
     /* Skip salt prefix.  */
     salt += sizeof (md5_salt_prefix) - 1;
 
-  salt_len = strcspn (salt, "$");
+  salt_len = strspn (salt, b64t);
+  if (salt[salt_len] && salt[salt_len] != '$')
+    {
+      errno = EINVAL;
+      return;
+    }
   if (salt_len > SALT_LEN_MAX)
     salt_len = SALT_LEN_MAX;
   phrase_len = strlen (phrase);

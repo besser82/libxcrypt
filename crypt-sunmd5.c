@@ -115,41 +115,51 @@ to64 (char *s, uint64_t v, int n)
     }
 }
 
-#define ROUNDS             "rounds="
+#define ROUNDS             ",rounds="
 #define ROUNDSLEN          (sizeof (ROUNDS) - 1)
 
 /*
- * get the integer value after rounds= where ever it occurs in the string.
- * if the last char after the int is a , or $ that is fine anything else is an
- * error.
+ * get the integer value after ,rounds= if present
+ * s should point immediately after $md5
+ * set *puresalt one character after the dollar sign after
+ * the number of rounds (if present) or to NULL if the syntax
+ * is invalid
  */
 static uint32_t
-getrounds (const char *s)
+getrounds (const char *s, const char **puresalt)
 {
-  char *r, *p, *e;
+  const char *p;
+  char *e;
   long val;
+
+  *puresalt = 0;
 
   if (s == NULL)
     return (0);
 
-  if ((r = strstr (s, ROUNDS)) == NULL)
+  if (*s == '$')
+    {
+      *puresalt = s + 1;
+      return (0);
+    }
+
+  if (strncmp (s, ROUNDS, ROUNDSLEN) != 0)
     return (0);
 
-  if (strncmp (r, ROUNDS, ROUNDSLEN) != 0)
-    return (0);
-
-  p = r + ROUNDSLEN;
+  p = s + ROUNDSLEN;
   errno = 0;
   val = strtol (p, &e, 10);
   /*
    * An error occured or there is non-numeric stuff at the end
    * which isn't one of the crypt(3c) special chars ',' or '$'
    */
-  if (errno != 0 || val < 0 ||
-      !(*e == '\0' || *e == ',' || *e == '$'))
-    {
-      return (0);
-    }
+  if (errno != 0 || val < 0 || p == e || (*e != '\0' && *e != '$'))
+    return (0);
+
+  if (*e == '$')
+    *puresalt = e + 1;
+  else
+    *puresalt = e;
 
   return ((uint32_t)val);
 }
@@ -189,7 +199,7 @@ gensalt_sunmd5_rn (unsigned long count,
   /* Generated salt is at least 27 bytes
      and a maximum of 32 bytes long.  */
   snprintf ((char *)output, o_size,
-            "$" CRYPT_ALGNAME "," ROUNDS "%u$%s$",
+            "$" CRYPT_ALGNAME ROUNDS "%u$%s$",
             (unsigned int)count, rndstr);
 }
 
@@ -245,22 +255,27 @@ crypt_sunmd5_rn (const char *phrase, const char *setting,
   int round;
   uint32_t maxrounds = BASIC_ROUND_COUNT;
   uint32_t l;
-  char *puresalt;
-  char *saltend;
-  char *p;
+  const char *ps = 0;
+  const char *saltend = 0;
+  char *p, *puresalt;
   struct sunmd5_ctx *data = scratch;
 
   /*
-   * Extract the puresalt (if it exists) from the existing salt string
+   * Extract the rounds (if it exists) and puresalt from the salt string
    * $md5[,rounds=%d]$<puresalt>$<optional existing encoding>
    */
-  saltend = strrchr (setting, '$');
-
-  if (saltend == NULL || saltend == setting)
+  maxrounds += getrounds (setting + sizeof ("$" CRYPT_ALGNAME) - 1, &ps);
+  if (ps)
+    saltend = ps + strspn (ps, (char *)itoa64);
+  if (!saltend || saltend == ps || saltend[0] != '$')
     {
       errno = EINVAL;
       return;
     }
+  /* For bug-compatibility with the original implementation, if saltend
+     points at "$$", advance it to point at the second dollar sign.  */
+  if (saltend[0] == '$' && saltend[1] == '$')
+    saltend += 1;
 
   if (saltend[1] != '\0')
     {
@@ -288,17 +303,6 @@ crypt_sunmd5_rn (const char *phrase, const char *setting,
           return;
         }
     }
-
-  /* There must not be any dollar sign '$', but
-     the last character before the terminating
-     '\0' in the string containing the salt.  */
-  if (puresalt[strlen (puresalt) - 2] == '$')
-    {
-      errno = EINVAL;
-      return;
-    }
-
-  maxrounds += getrounds (setting);
 
   /* initialise the context */
   md5_init_ctx (&(data->context));

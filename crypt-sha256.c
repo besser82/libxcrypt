@@ -70,7 +70,7 @@ static_assert (sizeof (struct sha256_buffer) <= ALG_SPECIFIC_SIZE,
 
 
 /* Table with characters for base64 transformation.  */
-static const char b64t[64] =
+static const char b64t[] =
   "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 /* Subroutine of _xcrypt_crypt_sha256_rn: Feed CTX with LEN bytes of a
@@ -133,7 +133,14 @@ crypt_sha256_rn (const char *phrase, const char *setting,
         }
     }
 
-  salt_len = MIN (strcspn (salt, "$"), SALT_LEN_MAX);
+  salt_len = strspn (salt, b64t);
+  if (salt[salt_len] && salt[salt_len] != '$')
+    {
+      errno = EINVAL;
+      return;
+    }
+  if (salt_len > SALT_LEN_MAX)
+    salt_len = SALT_LEN_MAX;
   phrase_len = strlen (phrase);
 
   /* Compute alternate SHA256 sum with input PHRASE, SALT, and PHRASE.  The

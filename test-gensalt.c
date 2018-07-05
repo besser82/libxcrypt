@@ -18,7 +18,8 @@ static const char *const entropy[] =
 static const char *const des_expected_output[] = { "Mp", "Pp", "ZH", "Uh"};
 #endif
 #if INCLUDE_des_xbsd
-static const char *const bsdi_expected_output[] = {
+static const char *const bsdi_expected_output[] =
+{
   "_J9..MJHn",
   "_J9..PKXc",
   "_J9..ZAFl",
@@ -26,7 +27,8 @@ static const char *const bsdi_expected_output[] = {
 };
 #endif
 #if INCLUDE_md5
-static const char *const md5_expected_output[] = {
+static const char *const md5_expected_output[] =
+{
   "$1$MJHnaAke",
   "$1$PKXc3hCO",
   "$1$ZAFlICwY",
@@ -34,7 +36,8 @@ static const char *const md5_expected_output[] = {
 };
 #endif
 #if INCLUDE_nthash
-static const char *const nthash_expected_output[] = {
+static const char *const nthash_expected_output[] =
+{
   "$3$__not_used__c809a450df09a3",
   "$3$__not_used__30d0d6f834c0c3",
   "$3$__not_used__0eeeebb83d6fe4",
@@ -48,7 +51,8 @@ static const char *const nthash_expected_output[] = {
 #define pbkdf_expected_output 0  /* output is not deterministic */
 #endif
 #if INCLUDE_sha256
-static const char *const sha256_expected_output[] = {
+static const char *const sha256_expected_output[] =
+{
   "$5$MJHnaAkegEVYHsFK",
   "$5$PKXc3hCOSyMqdaEQ",
   "$5$ZAFlICwYRETzIzIj",
@@ -56,7 +60,8 @@ static const char *const sha256_expected_output[] = {
 };
 #endif
 #if INCLUDE_sha512
-static const char *const sha512_expected_output[] = {
+static const char *const sha512_expected_output[] =
+{
   "$6$MJHnaAkegEVYHsFK",
   "$6$PKXc3hCOSyMqdaEQ",
   "$6$ZAFlICwYRETzIzIj",
@@ -64,25 +69,29 @@ static const char *const sha512_expected_output[] = {
 };
 #endif
 #if INCLUDE_bcrypt
-static const char *const bcrypt_a_expected_output[] = {
+static const char *const bcrypt_a_expected_output[] =
+{
   "$2a$05$UBVLHeMpJ/QQCv3XqJx8zO",
   "$2a$05$kxUgPcrmlm9XoOjvxCyfP.",
   "$2a$05$HPNDjKMRFdR7zC87CMSmA.",
   "$2a$05$mAyzaIeJu41dWUkxEbn8hO"
 };
-static const char *const bcrypt_b_expected_output[] = {
+static const char *const bcrypt_b_expected_output[] =
+{
   "$2b$05$UBVLHeMpJ/QQCv3XqJx8zO",
   "$2b$05$kxUgPcrmlm9XoOjvxCyfP.",
   "$2b$05$HPNDjKMRFdR7zC87CMSmA.",
   "$2b$05$mAyzaIeJu41dWUkxEbn8hO"
 };
-static const char *const bcrypt_x_expected_output[] = {
+static const char *const bcrypt_x_expected_output[] =
+{
   "$2x$05$UBVLHeMpJ/QQCv3XqJx8zO",
   "$2x$05$kxUgPcrmlm9XoOjvxCyfP.",
   "$2x$05$HPNDjKMRFdR7zC87CMSmA.",
   "$2x$05$mAyzaIeJu41dWUkxEbn8hO"
 };
-static const char *const bcrypt_y_expected_output[] = {
+static const char *const bcrypt_y_expected_output[] =
+{
   "$2y$05$UBVLHeMpJ/QQCv3XqJx8zO",
   "$2y$05$kxUgPcrmlm9XoOjvxCyfP.",
   "$2y$05$HPNDjKMRFdR7zC87CMSmA.",
@@ -167,8 +176,8 @@ main (void)
             }
           size_t slen = strlen (salt);
           unsigned int expected_len =
-                  (!entropy[ent] && tcase->expected_auto_len) ?
-                  tcase->expected_auto_len : tcase->expected_len;
+            (!entropy[ent] && tcase->expected_auto_len) ?
+            tcase->expected_auto_len : tcase->expected_len;
           if (slen != expected_len)
             {
               fprintf (stderr,
