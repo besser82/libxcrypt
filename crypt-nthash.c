@@ -42,6 +42,8 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 
+#if INCLUDE_nthash
+
 /*
  * NT HASH = md4(str2unicode(phrase))
  */
@@ -145,3 +147,5 @@ gensalt_nthash_rn (unsigned long count,
   memcpy (output, salt, 15);
   memcpy (output + 15, hashstr, 14);
 }
+
+#endif

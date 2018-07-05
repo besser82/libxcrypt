@@ -19,6 +19,8 @@
 #include "alg-md4.h"
 #include "byteorder.h"
 
+#if INCLUDE_nthash
+
 /*
  * The basic MD4 functions.
  */
@@ -250,3 +252,5 @@ md4_finish_ctx (struct md4_ctx *ctx, void *resbuf)
 
   return md4_read_ctx (ctx, resbuf);
 }
+
+#endif

@@ -22,6 +22,7 @@
 #include "alg-sha512.h"
 #include "byteorder.h"
 
+#if INCLUDE_sha512
 
 /* Constants for SHA512 from FIPS 180-2:4.2.3.  */
 static const uint64_t K[80] =
@@ -284,3 +285,5 @@ sha512_process_bytes (const void *buffer, size_t len, struct sha512_ctx *ctx)
       ctx->buflen = (uint32_t)left_over;
     }
 }
+
+#endif

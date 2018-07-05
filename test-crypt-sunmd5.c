@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#if INCLUDE_sunmd5
+
 const char *password   = "abcdefg";
 const char *tests[][3] =
 {
@@ -128,3 +130,13 @@ main (void)
   free (previous);
   return result;
 }
+
+#else
+
+int
+main (void)
+{
+  return 77; /* UNSUPPORTED */
+}
+
+#endif

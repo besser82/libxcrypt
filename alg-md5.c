@@ -23,6 +23,7 @@
 #include "alg-md5.h"
 #include "byteorder.h"
 
+#if INCLUDE_md5 || INCLUDE_sunmd5
 
 static void md5_process_block (const void *buffer, size_t len,
                                struct md5_ctx *ctx);
@@ -303,3 +304,5 @@ md5_process_block (const void *buffer, size_t len, struct md5_ctx *ctx)
   ctx->C = C;
   ctx->D = D;
 }
+
+#endif

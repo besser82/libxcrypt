@@ -22,6 +22,7 @@
 #include "alg-sha256.h"
 #include "byteorder.h"
 
+#if INCLUDE_sha256
 
 /* Constants for SHA256 from FIPS 180-2:4.2.2.  */
 static const uint32_t K[64] =
@@ -251,3 +252,5 @@ sha256_process_bytes (const void *buffer, size_t len, struct sha256_ctx *ctx)
       ctx->buflen = (uint32_t)left_over;
     }
 }
+
+#endif

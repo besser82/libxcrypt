@@ -14,43 +14,56 @@ static const char *const entropy[] =
   0
 };
 
-#if ENABLE_WEAK_HASHES
+#if INCLUDE_des || INCLUDE_des_big
 static const char *const des_expected_output[] = { "Mp", "Pp", "ZH", "Uh"};
-static const char *const md5_expected_output[] = {
-  "$1$MJHnaAke",
-  "$1$PKXc3hCO",
-  "$1$ZAFlICwY",
-  "$1$UqGBkVu0"
-};
-#if ENABLE_WEAK_NON_GLIBC_HASHES
+#endif
+#if INCLUDE_des_xbsd
 static const char *const bsdi_expected_output[] = {
   "_J9..MJHn",
   "_J9..PKXc",
   "_J9..ZAFl",
   "_J9..UqGB"
 };
+#endif
+#if INCLUDE_md5
+static const char *const md5_expected_output[] = {
+  "$1$MJHnaAke",
+  "$1$PKXc3hCO",
+  "$1$ZAFlICwY",
+  "$1$UqGBkVu0"
+};
+#endif
+#if INCLUDE_nthash
 static const char *const nthash_expected_output[] = {
   "$3$__not_used__c809a450df09a3",
   "$3$__not_used__30d0d6f834c0c3",
   "$3$__not_used__0eeeebb83d6fe4",
   "$3$__not_used__1c690d6a9ef88c"
 };
+#endif
+#if INCLUDE_sunmd5
 #define sunmd5_expected_output 0 /* output is not deterministic */
+#endif
+#if INCLUDE_sha1
 #define pbkdf_expected_output 0  /* output is not deterministic */
 #endif
-#endif
+#if INCLUDE_sha256
 static const char *const sha256_expected_output[] = {
   "$5$MJHnaAkegEVYHsFK",
   "$5$PKXc3hCOSyMqdaEQ",
   "$5$ZAFlICwYRETzIzIj",
   "$5$UqGBkVu01rurVZqg"
 };
+#endif
+#if INCLUDE_sha512
 static const char *const sha512_expected_output[] = {
   "$6$MJHnaAkegEVYHsFK",
   "$6$PKXc3hCOSyMqdaEQ",
   "$6$ZAFlICwYRETzIzIj",
   "$6$UqGBkVu01rurVZqg"
 };
+#endif
+#if INCLUDE_bcrypt
 static const char *const bcrypt_a_expected_output[] = {
   "$2a$05$UBVLHeMpJ/QQCv3XqJx8zO",
   "$2a$05$kxUgPcrmlm9XoOjvxCyfP.",
@@ -75,6 +88,7 @@ static const char *const bcrypt_y_expected_output[] = {
   "$2y$05$HPNDjKMRFdR7zC87CMSmA.",
   "$2y$05$mAyzaIeJu41dWUkxEbn8hO"
 };
+#endif
 
 struct testcase
 {
@@ -86,22 +100,36 @@ struct testcase
 
 static const struct testcase testcases[] =
 {
-#if ENABLE_WEAK_HASHES
+#if INCLUDE_des || INCLUDE_des_big
   { "",      des_expected_output,       2,  0 }, // DES
-  { "$1$",   md5_expected_output,      11,  0 }, // MD5
-#if ENABLE_WEAK_NON_GLIBC_HASHES
+#endif
+#if INCLUDE_des_xbsd
   { "_",     bsdi_expected_output,      9,  0 }, // BSDi extended DES
+#endif
+#if INCLUDE_md5
+  { "$1$",   md5_expected_output,      11,  0 }, // MD5
+#endif
+#if INCLUDE_nthash
   { "$3$",   nthash_expected_output,   29,  0 }, // NTHASH
+#endif
+#if INCLUDE_sunmd5
   { "$md5",  sunmd5_expected_output,   27,  0 }, // SUNMD5
+#endif
+#if INCLUDE_sha1
   { "$sha1", pbkdf_expected_output,    34, 74 }, // PBKDF with SHA1
 #endif
-#endif
+#if INCLUDE_sha256
   { "$5$",   sha256_expected_output,   19,  0 }, // SHA-2-256
+#endif
+#if INCLUDE_sha512
   { "$6$",   sha512_expected_output,   19,  0 }, // SHA-2-512
+#endif
+#if INCLUDE_bcrypt
   { "$2a$",  bcrypt_a_expected_output, 29,  0 }, // bcrypt mode A
   { "$2b$",  bcrypt_b_expected_output, 29,  0 }, // bcrypt mode B
   { "$2x$",  bcrypt_x_expected_output, 29,  0 }, // bcrypt mode X
   { "$2y$",  bcrypt_y_expected_output, 29,  0 }, // bcrypt mode Y
+#endif
   { 0, 0, 0, 0 }
 };
 
@@ -184,7 +212,9 @@ main (void)
     char *setting1, *setting2;
     setting1 = crypt_gensalt_ra ("$2b$", 0, entropy[0], 16);
     setting2 = crypt_gensalt_ra (0, 0, entropy[0], 16);
-    if (strcmp (setting1, setting2))
+    if ((setting1 == 0 && setting2 != 0) ||
+        (setting1 != 0 && setting2 == 0) ||
+        (setting1 != 0 && setting2 != 0 && strcmp (setting1, setting2)))
       {
         printf ("FAILED: crypt_gensalt defaulting to $2b$\n"
                 "  $2b$ -> %s\n"
@@ -196,6 +226,7 @@ main (void)
     free (setting2);
   }
 
+#if INCLUDE_bcrypt
   /* FIXME: This test is a little too specific.  It used to be in
      test-bcrypt.c and I'm not sure what it's meant to be testing.  */
   {
@@ -225,6 +256,6 @@ main (void)
     free (setting1);
     free (setting2);
   }
-
+#endif
   return status;
 }

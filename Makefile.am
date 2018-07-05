@@ -12,12 +12,14 @@ AM_CFLAGS = $(WARN_CFLAGS)
 EXTRA_DIST = \
 	LICENSING THANKS \
 	libcrypt.map.in libcrypt.minver \
-	gen-map.awk gen-vers.awk gen-crypt-h.awk
+	gen-map.awk gen-vers.awk gen-crypt-h.awk \
+	gen-hashes.awk sel-hashes.awk hashes.lst
 
 notrans_dist_man3_MANS = crypt_rn.3 crypt_gensalt.3
 notrans_dist_man5_MANS = crypt.5
 
 nodist_include_HEADERS = crypt.h
+nodist_noinst_HEADERS = crypt-hashes.h
 noinst_HEADERS = \
 	alg-des.h alg-hmac-sha1.h alg-md4.h alg-md5.h \
 	alg-sha1.h alg-sha256.h alg-sha512.h byteorder.h \
@@ -26,9 +28,12 @@ noinst_HEADERS = \
 
 lib_LTLIBRARIES = libcrypt.la
 libcrypt_la_SOURCES = \
-	crypt.c crypt-static.c crypt-gensalt.c crypt-gensalt-static.c \
-	crypt-bcrypt.c crypt-sha512.c crypt-sha256.c \
-	alg-sha512.c alg-sha256.c randombytes.c
+	alg-des.c alg-des-tables.c alg-hmac-sha1.c alg-md4.c alg-md5.c \
+	alg-sha1.c alg-sha256.c alg-sha512.c \
+	crypt.c crypt-bcrypt.c crypt-des.c crypt-gensalt-static.c \
+	crypt-gensalt.c crypt-md5.c crypt-nthash.c crypt-pbkdf1-sha1.c \
+	crypt-sha256.c crypt-sha512.c crypt-static.c crypt-sunmd5.c \
+	randombytes.c
 
 pkgconfig_DATA = libxcrypt.pc
 
@@ -49,6 +54,7 @@ CONFIG_STATUS_DEPENDENCIES = libcrypt.minver
 EXTRA_libcrypt_la_DEPENDENCIES = libcrypt.map
 CLEANFILES = libcrypt.map libcrypt.map.T \
 	crypt-symbol-vers.h crypt-symbol-vers.h.T \
+	crypt-hashes.h crypt-hashes.h.T \
 	crypt.h crypt.h.T
 
 libcrypt.map: libcrypt.map.in gen-map.awk Makefile
@@ -69,6 +75,12 @@ crypt.h: crypt-base.h gen-crypt-h.awk config.h
 	  -f $(srcdir)/gen-crypt-h.awk config.h $(srcdir)/crypt-base.h \
 	  > crypt.h.T
 	$(AM_V_at)mv -f crypt.h.T crypt.h
+
+crypt-hashes.h: hashes.lst gen-hashes.awk Makefile
+	$(AM_V_GEN)LC_ALL=C $(AWK) -f $(srcdir)/gen-hashes.awk \
+	  -v ENABLED_HASHES=$(hashes_enabled) \
+	  $(srcdir)/hashes.lst > crypt-hashes.h.T
+	$(AM_V_at)mv -f crypt-hashes.h.T crypt-hashes.h
 
 # When we are being binary compatible, also install symbolic links to
 # mimic SUSE's libowcrypt; any program that uses -lowcrypt in its
@@ -108,30 +120,13 @@ endif
 endif
 
 check_PROGRAMS = \
-	test-alg-sha256 test-alg-sha512 \
-	test-crypt-sha256 test-crypt-sha512 test-crypt-bcrypt \
-	test-crypt-nonnull test-byteorder test-gensalt
-
-if ENABLE_WEAK_HASHES
-libcrypt_la_SOURCES += \
-	crypt-des.c crypt-md5.c alg-des.c alg-des-tables.c alg-md5.c
-
-if ENABLE_WEAK_NON_GLIBC_HASHES
-libcrypt_la_SOURCES += \
-	crypt-nthash.c crypt-pbkdf1-sha1.c crypt-sunmd5.c \
-	alg-hmac-sha1.c alg-md4.c alg-sha1.c
-endif
-
-check_PROGRAMS += \
-	test-alg-des test-alg-md5 test-crypt-des test-crypt-md5 \
-	test-crypt-badsalt
-
-if ENABLE_WEAK_NON_GLIBC_HASHES
-check_PROGRAMS += \
-	test-alg-hmac-sha1 test-alg-md4 test-alg-sha1 \
-	test-crypt-nthash test-crypt-sunmd5 test-crypt-pbkdf1-sha1
-endif
-endif
+	test-alg-des test-alg-hmac-sha1 test-alg-md4 test-alg-md5 \
+	test-alg-sha1 test-alg-sha256 test-alg-sha512 \
+	test-crypt-badsalt test-crypt-bcrypt test-crypt-des \
+	test-crypt-md5 test-crypt-nonnull test-crypt-nthash \
+	test-crypt-pbkdf1-sha1 test-crypt-sha256 test-crypt-sha512 \
+	test-crypt-sunmd5 \
+	test-byteorder test-gensalt
 
 if ENABLE_OBSOLETE_API
 libcrypt_la_SOURCES += crypt-des-obsolete.c
@@ -187,7 +182,11 @@ test_alg_sha256_LDADD = alg-sha256.lo
 test_alg_sha512_LDADD = alg-sha512.lo
 
 
-# Every object file in the library depends on crypt-symbol-vers.h,
-# which is a generated file, so automatic dependency generation will
-# not detect it.
-$(libcrypt_la_OBJECTS): crypt-symbol-vers.h
+# Every object file depends on crypt-symbol-vers.h and crypt-hashes.h,
+# which are generated files, so automatic dependency generation is not
+# sufficient.  Most of the test programs depend on either libcrypt.la
+# or one of its components, so they do not need an explicit dependency
+# (after the first *successful* build, automatic dependency generation
+# will reveal the direct dependency) but a few don't.
+$(libcrypt_la_OBJECTS): crypt-symbol-vers.h crypt-hashes.h
+$(test_byteorder_OBJECTS): crypt-symbol-vers.h crypt-hashes.h

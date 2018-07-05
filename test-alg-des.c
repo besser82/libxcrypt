@@ -11,6 +11,8 @@
 
 #include <stdio.h>
 
+#if INCLUDE_des || INCLUDE_des_xbsd || INCLUDE_des_big
+
 static void
 v_print (const unsigned char v[8])
 {
@@ -66,3 +68,13 @@ main (void)
 
   return status;
 }
+
+#else
+
+int
+main (void)
+{
+  return 77; /* UNSUPPORTED */
+}
+
+#endif

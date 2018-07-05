@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 
+#if INCLUDE_nthash
+
 static const struct
 {
   const char *input;
@@ -160,3 +162,13 @@ main (void)
 
   return result;
 }
+
+#else
+
+int
+main (void)
+{
+  return 77; /* UNSUPPORTED */
+}
+
+#endif

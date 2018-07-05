@@ -1,6 +1,8 @@
 #include "crypt-port.h"
 #include "crypt-base.h"
 
+#if INCLUDE_md5
+
 int
 main (void)
 {
@@ -17,3 +19,13 @@ main (void)
 
   return result;
 }
+
+#else
+
+int
+main (void)
+{
+  return 77; /* UNSUPPORTED */
+}
+
+#endif

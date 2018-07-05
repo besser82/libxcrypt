@@ -49,6 +49,8 @@
 #include "crypt-port.h"
 #include "alg-des.h"
 
+#if INCLUDE_des || INCLUDE_des_xbsd || INCLUDE_des_big
+
 const uint8_t m_sbox[4][4096] = {
   {
     0xef, 0xe3, 0xe1, 0xed, 0xe8, 0xe4, 0xee, 0xe7, 0xe6, 0xef, 0xeb, 0xe2,
@@ -3842,3 +3844,5 @@ const uint32_t psbox[4][256] = {
     0x0a100421, 0x0a100c21, 0x0a120421, 0x0a120c21,
   },
 };
+
+#endif

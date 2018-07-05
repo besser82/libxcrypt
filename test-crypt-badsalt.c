@@ -25,7 +25,9 @@
 
 static const char *tests[][3] =
 {
+#if INCLUDE_des || INCLUDE_des_big
   { "no salt",               "",     "..ogcgXxFhnjI" /*  valid setting  */ },
+#endif
   { "single char",           "/",    "*0"            /* invalid setting */ },
   { "first char bad",        "!x",   "*0"            /* invalid setting */ },
   { "second char bad",       "Z%",   "*0"            /* invalid setting */ },

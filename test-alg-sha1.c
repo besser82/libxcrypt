@@ -9,6 +9,8 @@
 
 #include <stdio.h>
 
+#if INCLUDE_sha1
+
 /* Test Vectors (from FIPS PUB 180-1) */
 const char *test_data[3] =
 {
@@ -80,3 +82,13 @@ main (void)
   /* success */
   return retval;
 }
+
+#else
+
+int
+main (void)
+{
+  return 77; /* UNSUPPORTED */
+}
+
+#endif

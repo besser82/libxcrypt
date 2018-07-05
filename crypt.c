@@ -70,6 +70,7 @@ typedef void (*gensalt_fn) (unsigned long count,
 struct hashfn
 {
   const char *prefix;
+  size_t plen;
   crypt_fn crypt;
   gensalt_fn gensalt;
   /* The type of this field is unsigned char to ensure that it cannot
@@ -77,54 +78,12 @@ struct hashfn
   unsigned char nrbytes;
 };
 
-/* This table should always begin with the algorithm that should be used
-   for new encryptions.  */
-static const struct hashfn tagged_hashes[] =
+static const struct hashfn hash_algorithms[] =
 {
-  /* bcrypt */
-  { "$2b$",   crypt_bcrypt_rn, gensalt_bcrypt_b_rn, 16 },
-  { "$2a$",   crypt_bcrypt_rn, gensalt_bcrypt_a_rn, 16 },
-  { "$2x$",   crypt_bcrypt_rn, gensalt_bcrypt_x_rn, 16 },
-  { "$2y$",   crypt_bcrypt_rn, gensalt_bcrypt_y_rn, 16 },
-
-  /* legacy hashes */
-#if ENABLE_WEAK_HASHES
-  { "$1$",    crypt_md5_rn,    gensalt_md5_rn,      9  },
-#if ENABLE_WEAK_NON_GLIBC_HASHES
-  { "$3$",    crypt_nthash_rn, gensalt_nthash_rn,   16 },
-  { "$md5",   crypt_sunmd5_rn, gensalt_sunmd5_rn,   8  },
-  { "$sha1",  crypt_sha1_rn,   gensalt_sha1_rn,     48 },
-#endif
-#endif
-  { "$5$",    crypt_sha256_rn, gensalt_sha256_rn,   15 },
-  { "$6$",    crypt_sha512_rn, gensalt_sha512_rn,   15 },
-  { 0, 0, 0, 0 }
+  HASH_ALGORITHM_TABLE_ENTRIES
 };
 
-#if ENABLE_WEAK_HASHES
-#if ENABLE_WEAK_NON_GLIBC_HASHES
-/* BSD-style extended DES */
-static const struct hashfn bsdi_extended_hash =
-{
-  "_", crypt_des_xbsd_rn, gensalt_des_xbsd_rn, 3
-};
-
-/* Traditional DES or bigcrypt-style extended DES */
-static const struct hashfn traditional_hash =
-{
-  "", crypt_des_trd_or_big_rn, gensalt_des_trd_rn, 2
-};
-
-#else
-
-/* Traditional DES */
-static const struct hashfn traditional_hash =
-{
-  "", crypt_des_trd_rn, gensalt_des_trd_rn, 2
-};
-
-#endif
-
+#if INCLUDE_des || INCLUDE_des_big
 static int
 is_des_salt_char (char c)
 {
@@ -133,30 +92,29 @@ is_des_salt_char (char c)
           (c >= '0' && c <= '9') ||
           c == '.' || c == '/');
 }
-#endif /* ENABLE_WEAK_HASHES */
+#endif
 
 static const struct hashfn *
 get_hashfn (const char *setting)
 {
-  if (setting[0] == '$')
+  const struct hashfn *h;
+  for (h = hash_algorithms; h->prefix; h++)
     {
-      const struct hashfn *h;
-      for (h = tagged_hashes; h->prefix; h++)
-        if (!strncmp (setting, h->prefix, strlen (h->prefix)))
-          return h;
-      return 0;
+      if (h->plen > 0)
+        {
+          if (!strncmp (setting, h->prefix, h->plen))
+            return h;
+        }
+#if INCLUDE_des || INCLUDE_des_big
+      else
+        {
+          if (setting[0] == '\0' ||
+              (is_des_salt_char (setting[0]) && is_des_salt_char (setting[1])))
+            return h;
+        }
+#endif
     }
-#if ENABLE_WEAK_HASHES
-#if ENABLE_WEAK_NON_GLIBC_HASHES
-  else if (setting[0] == '_')
-    return &bsdi_extended_hash;
-#endif
-  else if (setting[0] == '\0' ||
-           (is_des_salt_char (setting[0]) && is_des_salt_char (setting[1])))
-    return &traditional_hash;
-#endif
-  else
-    return 0;
+  return 0;
 }
 
 /* For historical reasons, crypt and crypt_r are not expected ever to
@@ -392,9 +350,15 @@ crypt_gensalt_rn (const char *prefix, unsigned long count,
 
   /* If the prefix is 0, that means to use the current best default.
      Note that this is different from the behavior when the prefix is
-     "", which selects DES.  */
+     "", which selects DES.  HASH_ALGORITHM_DEFAULT is null when the
+     current default algorithm was disabled at configure time.  */
   if (!prefix)
-    prefix = tagged_hashes[0].prefix;
+    prefix = HASH_ALGORITHM_DEFAULT;
+  if (!prefix)
+    {
+      errno = EINVAL;
+      return 0;
+    }
 
   const struct hashfn *h = get_hashfn (prefix);
   if (!h)

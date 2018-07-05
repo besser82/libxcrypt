@@ -50,6 +50,8 @@
 #include <errno.h>
 #include <stdio.h>
 
+#if INCLUDE_bcrypt
+
 #if defined(__i386__) || defined(__x86_64__) || \
     defined(__alpha__) || defined(__hppa__)
 #define BF_SCALE                        1
@@ -1007,3 +1009,5 @@ gensalt_bcrypt_y_rn (unsigned long count,
 {
   BF_gensalt ('y', count, rbytes, nrbytes, output, o_size);
 }
+
+#endif

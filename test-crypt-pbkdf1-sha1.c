@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#if INCLUDE_sha1
+
 const char *password   = "zyxwvuts";
 const char *tests[][2] =
 {
@@ -92,3 +94,13 @@ main (void)
   free (previous);
   return result;
 }
+
+#else
+
+int
+main (void)
+{
+  return 77; /* UNSUPPORTED */
+}
+
+#endif

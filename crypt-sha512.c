@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#if INCLUDE_sha512
 
 /* Define our magic string to mark salt for SHA512 "encryption"
    replacement.  */
@@ -297,3 +298,5 @@ gensalt_sha512_rn (unsigned long count,
   gensalt_sha_rn ('6', SALT_LEN_MAX, ROUNDS_DEFAULT, ROUNDS_MIN, ROUNDS_MAX,
                   count, rbytes, nrbytes, output, output_size);
 }
+
+#endif

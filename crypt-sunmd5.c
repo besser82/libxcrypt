@@ -32,6 +32,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#if INCLUDE_sunmd5
+
+
 #define CRYPT_ALGNAME      "md5"
 
 /* minimum number of rounds we do, not including the per-user ones */
@@ -419,3 +422,5 @@ crypt_sunmd5_rn (const char *phrase, const char *setting,
   p += 2;
   *p = '\0';
 }
+
+#endif

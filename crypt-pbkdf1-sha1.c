@@ -35,6 +35,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#if INCLUDE_sha1
+
 /*
  * The default iterations - should take >0s on a fast CPU
  * but not be insane for a slow CPU.
@@ -258,3 +260,5 @@ gensalt_sha1_rn (unsigned long count,
   output[n + (c * enclen)]     = '$';
   output[n + (c * enclen) + 1] = '\0';
 }
+
+#endif

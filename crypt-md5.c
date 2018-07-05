@@ -23,6 +23,7 @@
 
 #include <errno.h>
 
+#if INCLUDE_md5
 
 /* Define our magic string to mark salt for MD5 "encryption"
    replacement.  This is meant to be the same as for other MD5 based
@@ -216,3 +217,5 @@ gensalt_md5_rn (unsigned long count,
   gensalt_sha_rn ('1', 8, 1000, 1000, 1000,
                   count, rbytes, nrbytes, output, output_size);
 }
+
+#endif

@@ -59,6 +59,9 @@
  */
 
 #include "crypt-port.h"
+
+#if INCLUDE_des || INCLUDE_des_big || INCLUDE_des_xbsd
+
 #include "alg-des.h"
 #include "byteorder.h"
 
@@ -261,3 +264,5 @@ des_crypt_block (struct des_ctx *restrict ctx,
   cpu_to_be32 (out, l_out);
   cpu_to_be32 (out + 4, r_out);
 }
+
+#endif

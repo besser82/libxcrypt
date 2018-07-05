@@ -201,35 +201,35 @@ AC_ARG_ENABLE([obsolete-api],
      [enable_obsolete_api=1]
 )
 
-AC_ARG_ENABLE([weak-hashes],
+AC_ARG_ENABLE([hashes],
     AS_HELP_STRING(
-        [--enable-weak-hashes[=ARG]],
-        [When set to "yes", all of the hashing methods documented in crypt(5)
-         are supported for authenticating existing password hashes, including
-         several that are too weak to use for new passwords.
-
-         When set to "glibc", only the weak hashes supported by historic
-         versions of GNU libc are supported: traditional DES and FreeBSD-style
-         MD5, but not bigcrypt-DES, BSDi extended DES, SHA1, SUNMD5, or NTHASH.
-
-         When set to "no", only bcrypt, SHA512, and SHA256 are supported.
-         This mode implies --disable-obsolete-api and breaks binary
-         compatibility with glibc's libcrypt.
-
-         [default=yes]]
+        [--enable-hashes=HASHES],
+        [Select hash algorithms to support.  Acceptable values are
+         'all' or a comma-separated list of names from the file
+         'hashes.lst' and/or the keywords 'strong' and 'glibc', which
+         select groups of hashes as described in that file.  The
+         default is 'all'.  Note: if binary compatibility with glibc's
+         libcrypt is desired, the 'des' hash must be enabled.]
     ),
-    [case "${enableval}" in
-        yes) enable_weak_hashes=1; enable_weak_non_glibc_hashes=1 ;;
-      glibc) enable_weak_hashes=1; enable_weak_non_glibc_hashes=0 ;;
-         no) enable_weak_hashes=0; enable_weak_non_glibc_hashes=0 ;;
-          *) AC_MSG_ERROR([bad value ${enableval} for --enable-weak-hashes]) ;;
-     esac],
-     [enable_weak_hashes=1; enable_weak_non_glibc_hashes=1]
+    [hashes_selected=$enableval],
+    [hashes_selected=all]
 )
+# This code must run after AC_PROG_AWK.
+hashes_enabled=$(
+    $AWK -f ${srcdir}/sel-hashes.awk -v SELECTED_HASHES="$hashes_selected" \
+            ${srcdir}/hashes.lst
+)
+if test x"$hashes_enabled" = x || test x"$hashes_enabled" = x,; then
+    AC_MSG_ERROR([bad value '${hashes_selected}' for --enable-hashes])
+fi
+AC_SUBST([hashes_enabled])
 
-# If weak hashes are disabled, then the obsolete APIs won't work anyway
-# (they're all DES-specific).
-if test $enable_weak_hashes = 0; then enable_obsolete_api=0; fi
+# If the traditional DES hash is disabled, then the obsolete APIs are
+# implicitly disabled.
+case "$hashes_enabled" in
+    *,des,*) ;;
+    *) enable_obsolete_api=0 ;;
+esac
 
 # The obsolete APIs are unconditionally excluded from the static library,
 # so if we are not building the shared library, we are effectively not
@@ -297,15 +297,6 @@ AC_DEFINE_UNQUOTED([ENABLE_OBSOLETE_API], [$enable_obsolete_api],
  [Define as 1 if the obsolete APIs (fcrypt, encrypt, setkey)
   should be included, 0 otherwise.])
 AM_CONDITIONAL([ENABLE_OBSOLETE_API], [test $enable_obsolete_api = 1])
-
-AC_DEFINE_UNQUOTED([ENABLE_WEAK_HASHES], [$enable_weak_hashes],
- [Define as 1 if weak hashes (DES, MD5) should be included, 0 otherwise.
-  If this is 0, ENABLE_OBSOLETE_API must also be 0.])
-AM_CONDITIONAL([ENABLE_WEAK_HASHES], [test $enable_weak_hashes = 1])
-
-AC_DEFINE_UNQUOTED([ENABLE_WEAK_NON_GLIBC_HASHES], [$enable_weak_non_glibc_hashes],
- [Define as 1 if weak hashes not supported by glibc should be included, 0 otherwise.])
-AM_CONDITIONAL([ENABLE_WEAK_NON_GLIBC_HASHES], [test $enable_weak_non_glibc_hashes = 1])
 
 # The Makefile needs to know which versions of the library we are building.
 AM_CONDITIONAL([ENABLE_STATIC], [test $enable_static = yes])

@@ -92,11 +92,13 @@ Linux.  We are willing to consider adding binary backward
 compatibility for other operating systems' existing libcrypts, but we
 don't currently plan to do that work ourselves.
 
-It is also possible to remove support for DES, MD5, NTHASH and SUNMD5
-password hashes, by supplying the `--disable-weak-hashes` switch to
-`configure`.  This option implies `--disable-obsolete-api`.  It should
-only be used in contexts where there are definitely no user accounts
-that are old enough to have stored their password with an old hash.
+Individual hash functions may be enabled or disabled by use of the
+`--enable-hashes` switch to `configure`.  The default is to enable all
+supported hashes.  Disabling the traditional 'des' hash algorithm
+implies `--disable-obsolete-api`.  Security-conscious environments
+without backward compatibility constraints are encouraged to use
+`--enable-hashes=strong`, which enables only the hash functions that
+are strong enough to be safe for newly hashed passwords.
 
 The original implementation of the SUNMD5 hashing algorithm has a bug,
 which is mimicked by libxcrypt to be fully compatible with hashes

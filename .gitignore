@@ -43,6 +43,7 @@
 *.so
 *.trs
 /crypt.h
+/crypt-hashes.h
 /crypt-symbol-vers.h
 /libcrypt.map
 /test-alg-des

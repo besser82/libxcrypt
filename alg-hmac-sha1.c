@@ -37,6 +37,8 @@
 
 #include <stdlib.h>
 
+#if INCLUDE_sha1
+
 /* Don't change these */
 #define HMAC_IPAD 0x36
 #define HMAC_OPAD 0x5c
@@ -125,3 +127,5 @@ hmac_sha1_process_data (const uint8_t *text, size_t text_len,
   sha1_process_bytes (resbuf, &ctx, HASH_LENGTH);
   sha1_finish_ctx(&ctx, resbuf);
 }
+
+#endif

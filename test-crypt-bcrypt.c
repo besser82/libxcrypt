@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#if INCLUDE_bcrypt
+
 static const char *tests[][3] =
 {
   {
@@ -259,3 +261,13 @@ main (void)
   free (data);
   return status;
 }
+
+#else
+
+int
+main (void)
+{
+  return 77; /* UNSUPPORTED */
+}
+
+#endif

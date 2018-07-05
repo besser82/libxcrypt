@@ -33,6 +33,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#if INCLUDE_sha1
+
 #define HASH_LENGTH 20
 
 static char *
@@ -166,3 +168,13 @@ main (void)
     }
   return n;
 }
+
+#else
+
+int
+main (void)
+{
+  return 77; /* UNSUPPORTED */
+}
+
+#endif

@@ -14,6 +14,8 @@
 #include <errno.h>
 #include <stdio.h>
 
+#if INCLUDE_sha256 || INCLUDE_sha512
+
 static const unsigned char _xcrypt_itoa64[64 + 1] =
   "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
@@ -90,3 +92,5 @@ gensalt_sha_rn (char tag, size_t maxsalt, unsigned long defcount,
 
   output[written] = '\0';
 }
+
+#endif
