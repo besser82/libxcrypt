@@ -19,80 +19,80 @@ matrix:
       os: linux
       services: docker
       env:
-        - CONF="--enable-obsolete-api --enable-weak-hashes"
+        - CONF="--enable-obsolete-api --enable-hashes=all"
         - FCVER="rawhide"
         - CODECOV=1
     - compiler: gcc
       os: linux
       services: docker
       env:
-        - CONF="--enable-obsolete-api --enable-weak-hashes"
+        - CONF="--enable-obsolete-api --enable-hashes=all"
         - FCVER="rawhide"
     - compiler: clang
       os: linux
       services: docker
       env:
-        - CONF="--enable-obsolete-api --enable-weak-hashes"
-        - FCVER="rawhide"
-    - compiler: gcc
-      os: linux
-      services: docker
-      env:
-        - CONF="--enable-obsolete-api --enable-weak-hashes"
-        - FCVER="latest"
-    - compiler: clang
-      os: linux
-      services: docker
-      env:
-        - CONF="--enable-obsolete-api --enable-weak-hashes"
-        - FCVER="latest"
-    - compiler: gcc
-      os: linux
-      services: docker
-      env:
-        - CONF="--disable-obsolete-api --enable-weak-hashes"
-        - FCVER="rawhide"
-    - compiler: clang
-      os: linux
-      services: docker
-      env:
-        - CONF="--disable-obsolete-api --enable-weak-hashes"
+        - CONF="--enable-obsolete-api --enable-hashes=all"
         - FCVER="rawhide"
     - compiler: gcc
       os: linux
       services: docker
       env:
-        - CONF="--disable-obsolete-api --enable-weak-hashes"
+        - CONF="--enable-obsolete-api --enable-hashes=all"
         - FCVER="latest"
     - compiler: clang
       os: linux
       services: docker
       env:
-        - CONF="--disable-obsolete-api --enable-weak-hashes"
+        - CONF="--enable-obsolete-api --enable-hashes=all"
         - FCVER="latest"
     - compiler: gcc
       os: linux
       services: docker
       env:
-        - CONF="--disable-obsolete-api --disable-weak-hashes"
+        - CONF="--disable-obsolete-api --enable-hashes=all"
         - FCVER="rawhide"
     - compiler: clang
       os: linux
       services: docker
       env:
-        - CONF="--disable-obsolete-api --disable-weak-hashes"
+        - CONF="--disable-obsolete-api --enable-hashes=all"
         - FCVER="rawhide"
     - compiler: gcc
       os: linux
       services: docker
       env:
-        - CONF="--disable-obsolete-api --disable-weak-hashes"
+        - CONF="--disable-obsolete-api --enable-hashes=all"
         - FCVER="latest"
     - compiler: clang
       os: linux
       services: docker
       env:
-        - CONF="--disable-obsolete-api --disable-weak-hashes"
+        - CONF="--disable-obsolete-api --enable-hashes=all"
+        - FCVER="latest"
+    - compiler: gcc
+      os: linux
+      services: docker
+      env:
+        - CONF="--disable-obsolete-api --enable-hashes=strong"
+        - FCVER="rawhide"
+    - compiler: clang
+      os: linux
+      services: docker
+      env:
+        - CONF="--disable-obsolete-api --enable-hashes=strong"
+        - FCVER="rawhide"
+    - compiler: gcc
+      os: linux
+      services: docker
+      env:
+        - CONF="--disable-obsolete-api --enable-hashes=strong"
+        - FCVER="latest"
+    - compiler: clang
+      os: linux
+      services: docker
+      env:
+        - CONF="--disable-obsolete-api --enable-hashes=strong"
         - FCVER="latest"
 
 before_install:
