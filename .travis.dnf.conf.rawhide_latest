@@ -1,5 +1,5 @@
-[latest_$basearch]
-name=Fedora - Rawhide Build - Fresh builds served by Koji - $basearch
+[latest_native]
+name=Fedora - Rawhide Build - Fresh builds served by Koji - native
 failovermethod=priority
 baseurl=https://kojipkgs.fedoraproject.org/repos/rawhide/latest/$basearch
 enabled=1
