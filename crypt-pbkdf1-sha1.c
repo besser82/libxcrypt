@@ -148,30 +148,33 @@ crypt_sha1_rn (const char *phrase, const char *setting,
   /*
    * Salt format is
    * $<tag>$<iterations>$salt[$]
-   * If it does not start with $ we use our default iterations.
    */
 
-  /* If it starts with the magic string, then skip that */
-  if (!strncmp (setting, magic, strlen (magic)))
+  /* If the string doesn't starts with the magic prefix, we shouldn't have been called */
+  if (strncmp (setting, magic, strlen (magic)))
     {
-      setting += strlen (magic);
-      /* and get the iteration count */
-      iterations = (unsigned long)strtoul (setting, (char **)&ep, 10);
-      if (*ep != '$')
-        {
-          errno = EINVAL;
-          return;  /* invalid input */
-        }
-      setting = (char *)ep + 1;  /* skip over the '$' */
-    }
-  else
-    {
-      iterations = (unsigned long)crypt_sha1_iterations (0);
+      errno = EINVAL;
+      return;
     }
 
-  /* It stops at the next '$', max CRYPT_SHA1_ITERATIONS chars */
-  for (sp = setting; *sp && *sp != '$' && sp < (setting + CRYPT_SHA1_ITERATIONS); sp++)
-    continue;
+  setting += strlen (magic);
+  /* get the iteration count */
+  iterations = (unsigned long)strtoul (setting, (char **)&ep, 10);
+  if (*ep != '$')
+    {
+      errno = EINVAL;
+      return;  /* invalid input */
+    }
+  setting = (char *)ep + 1;  /* skip over the '$' */
+
+  /* The next 1..CRYPT_SHA1_SALT_LENGTH bytes should be itoa64 characters,
+     followed by another '$' (or end of string).  */
+  sp = setting + strspn (setting, (const char *)itoa64);
+  if (sp == setting || (*sp && *sp != '$'))
+    {
+      errno = EINVAL;
+      return;
+    }
 
   /* Get the length of the actual salt */
   sl = (size_t)(sp - setting);

@@ -80,22 +80,22 @@ static const uint8_t ascii64[] =
 /* 0000000000111111111122222222223333333333444444444455555555556666 */
 /* 0123456789012345678901234567890123456789012345678901234567890123 */
 
-static inline unsigned int
+static inline int
 ascii_to_bin(char ch)
 {
   if (ch > 'z')
-    return 0;
+    return -1;
   if (ch >= 'a')
-    return (unsigned int)(ch - 'a' + 38);
+    return ch - 'a' + 38;
   if (ch > 'Z')
-    return 0;
+    return -1;
   if (ch >= 'A')
-    return (unsigned int)(ch - 'A' + 12);
+    return ch - 'A' + 12;
   if (ch > '9')
-    return 0;
+    return -1;
   if (ch >= '.')
-    return (unsigned int)(ch - '.');
-  return 0;
+    return ch - '.';
+  return -1;
 }
 
 /* Generate an 11-character DES password hash into the buffer at
@@ -169,10 +169,21 @@ crypt_des_rn (const char *phrase, const char *setting,
 
   /* "old"-style: setting - 2 bytes of salt, phrase - up to 8 characters.
      Note: ascii_to_bin maps all byte values outside the ascii64
-     alphabet to zero.  Do not read past the end of the string.  */
-  salt = ascii_to_bin (setting[0]);
-  if (setting[0])
-    salt |= ascii_to_bin (setting[1]) << 6;
+     alphabet to -1.  Do not read past the end of the string.  */
+  i = ascii_to_bin (setting[0]);
+  if (i < 0)
+    {
+      errno = EINVAL;
+      return;
+    }
+  salt = (unsigned int)i;
+  i = ascii_to_bin (setting[1]);
+  if (i < 0)
+    {
+      errno = EINVAL;
+      return;
+    }
+  salt |= ((unsigned int)i << 6);
 
   /* Write the canonical form of the salt to the output buffer.  We do
      this instead of copying from the setting because the setting
@@ -247,9 +258,20 @@ crypt_des_big_rn (const char *phrase, const char *setting,
 
   /* The setting string is exactly the same as for a traditional DES
      hash.  */
-  salt = ascii_to_bin (setting[0]);
-  if (setting[0])
-    salt |= ascii_to_bin (setting[1]) << 6;
+  i = ascii_to_bin (setting[0]);
+  if (i < 0)
+    {
+      errno = EINVAL;
+      return;
+    }
+  salt = (unsigned int)i;
+  i = ascii_to_bin (setting[1]);
+  if (i < 0)
+    {
+      errno = EINVAL;
+      return;
+    }
+  salt |= ((unsigned int)i << 6);
 
   *cp++ = ascii64[salt & 0x3f];
   *cp++ = ascii64[(salt >> 6) & 0x3f];
@@ -272,9 +294,9 @@ crypt_des_big_rn (const char *phrase, const char *setting,
         break;
 
       /* change the salt (1st 2 chars of previous block) - this was found
-         by dowsing */
-      salt = ascii_to_bin ((char)cp[0]);
-      salt |= ascii_to_bin ((char)cp[1]) << 6;
+         by dowsing - no need to check for invalid characters here */
+      salt = (unsigned int)ascii_to_bin ((char)cp[0]);
+      salt |= (unsigned int)ascii_to_bin ((char)cp[1]) << 6;
       cp += 11;
     }
 }
@@ -309,17 +331,33 @@ crypt_des_xbsd_rn (const char *phrase, const char *setting,
   uint32_t count = 0, salt = 0;
   uint8_t *keybuf = buf->keybuf, *pkbuf = buf->pkbuf;
   uint8_t *cp = output;
-  int i;
+  int i, x;
 
   /* "new"-style DES hash:
    	setting - underscore, 4 bytes of count, 4 bytes of salt
    	phrase - unlimited characters
    */
   for (i = 1; i < 5; i++)
-    count |= ascii_to_bin(setting[i]) << ((i - 1) * 6);
+    {
+      x = ascii_to_bin(setting[i]);
+      if (x < 0)
+        {
+          errno = EINVAL;
+          return;
+        }
+      count |= (unsigned int)x << ((i - 1) * 6);
+    }
 
   for (i = 5; i < 9; i++)
-    salt |= ascii_to_bin(setting[i]) << ((i - 5) * 6);
+    {
+      x = ascii_to_bin(setting[i]);
+      if (x < 0)
+        {
+          errno = EINVAL;
+          return;
+        }
+      salt |= (unsigned int)x << ((i - 5) * 6);
+    }
 
   memcpy (cp, setting, 9);
   cp += 9;
