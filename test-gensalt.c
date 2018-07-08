@@ -208,9 +208,8 @@ main (void)
             fprintf (stderr, "   ok: %s/%u -> %s\n",
                      tcase->prefix, ent, salt);
 
-          /* Note: strncpy's somewhat odd fill-to-size-with-NULs behavior
-             is specifically wanted in this case.  */
-          strncpy (prev_output, salt, CRYPT_GENSALT_OUTPUT_SIZE);
+          XCRYPT_SECURE_MEMSET (prev_output, CRYPT_GENSALT_OUTPUT_SIZE);
+          strncpy (prev_output, salt, CRYPT_GENSALT_OUTPUT_SIZE -1 );
         }
     }
 
