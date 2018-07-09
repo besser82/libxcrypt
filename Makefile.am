@@ -36,6 +36,15 @@ libcrypt_la_SOURCES = \
 	randombytes.c
 
 pkgconfig_DATA = libxcrypt.pc
+# Install libcrypt.pc symlink to libxcrypt.pc file.
+.PHONY: install-data-hook-pkgconfig uninstall-hook-pkgconfig
+install-data-hook: install-data-hook-pkgconfig
+uninstall-hook: uninstall-hook-pkgconfig
+install-data-hook-pkgconfig:
+	cd $(DESTDIR)$(pkgconfigdir) && \
+		$(LN_S) libxcrypt.pc libcrypt.pc
+uninstall-hook-pkgconfig:
+	-rm -f $(DESTDIR)$(pkgconfigdir)/libcrypt.pc
 
 # Build libcrypt.so.2 if obsolete APIs are excluded, libcrypt.so.1 otherwise.
 if ENABLE_OBSOLETE_API
