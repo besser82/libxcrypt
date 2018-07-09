@@ -35,21 +35,24 @@ struct testcase
 static const struct testcase testcases[] =
 {
   /* These strings are invalid regardless of the algorithm.  */
-  { "*too short",                           1, "/"    },
-  { "*invalid char :",                      1, ":"    },
-  { "*invalid char ;",                      1, ";"    },
-  { "*invalid char *",                      1, "*"    },
-  { "*invalid char !",                      1, "!"    },
-  { "*invalid char \\",                     1, "\\"   },
-  { "*invalid white 1",                     1, " "    },
-  { "*invalid white 2",                     1, "\t"   },
-  { "*invalid white 3",                     1, "\r"   },
-  { "*invalid white 4",                     1, "\n"   },
-  { "*invalid white 5",                     1, "\f"   },
-  { "*invalid ctrl 1",                      1, "\1"   },
-  { "*invalid ctrl 2",                      1, "\177" },
-  { "*failure token 1",                     2, "*0"   },
-  { "*failure token 2",                     2, "*1"   },
+  { "*too short",                           1, "/"              },
+  { "*invalid char :",                      1, ":"              },
+  { "*invalid char ;",                      1, ";"              },
+  { "*invalid char *",                      1, "*"              },
+  { "*invalid char !",                      1, "!"              },
+  { "*invalid char \\",                     1, "\\"             },
+  { "*invalid white 1",                     1, " "              },
+  { "*invalid white 2",                     1, "\t"             },
+  { "*invalid white 3",                     1, "\r"             },
+  { "*invalid white 4",                     1, "\n"             },
+  { "*invalid white 5",                     1, "\f"             },
+  { "*invalid ctrl 1",                      1, "\1"             },
+  { "*invalid ctrl 2",                      1, "\177"           },
+  { "*failure token 1",                     2, "*0"             },
+  { "*failure token 2",                     2, "*1"             },
+  { "*bcrypt invalid salt",                 3, "$2$"            },
+  { "*unsupported algorithm",              13, "$un$upp0rt3d$"  },
+  { "*empty string",                        1, "\0"             },
 
   /* Each of these is a valid setting string for some algorithm,
      from which we will derive many invalid setting strings.
@@ -114,10 +117,14 @@ static const struct testcase testcases[] =
 #endif
 #if INCLUDE_md5
   { "MD5 (FreeBSD)",                       12, "$1$MJHnaAke$" },
+  { "*MD5 (FreeBSD) invalid char",         12, "$1$:JHnaAke$" },
 #endif
 #if INCLUDE_sunmd5
   { "MD5 (Sun, plain)",                    14, "$md5$1xMeE.at$"            },
+  { "*MD5 (Sun, plain) invalid char",      14, "$md5$:xMeE.at$"            },
   { "MD5 (Sun, rounds)",                   25, "$md5,rounds=123$1xMeE.at$" },
+  { "*MD5 (Sun, rounds) invalid char",     25, "$md5,rounds=123$:xMeE.at$" },
+  { "*MD5 (Sun, rounds) invalid rounds",   25, "$md5,rounds=:23$1xMeE.at$" },
 #endif
 #if INCLUDE_nthash
   { "NTHASH (bare)",                        3, "$3$"                           },
@@ -125,20 +132,34 @@ static const struct testcase testcases[] =
 #endif
 #if INCLUDE_sha1
   { "HMAC-SHA1",                           27, "$sha1$123$GGXpNqoJvglVTkGU$" },
+  { "*HMAC-SHA1 invalid char",             27, "$sha1$123$:GXpNqoJvglVTkGU$" },
+  { "*HMAC-SHA1 invalid rounds",           27, "$sha1$:23$GGXpNqoJvglVTkGU$" },
 #endif
 #if INCLUDE_sha256
   { "SHA-256 (plain)",                     20, "$5$MJHnaAkegEVYHsFK$"             },
+  { "*SHA-256 (plain) invalid char",       20, "$5$:JHnaAkegEVYHsFK$"             },
   { "SHA-256 (rounds)",                    32, "$5$rounds=1000$MJHnaAkegEVYHsFK$" },
+  { "*SHA-256 (rounds) invalid rounds",    32, "$5$rounds=:000$MJHnaAkegEVYHsFK$" },
 #endif
 #if INCLUDE_sha512
   { "SHA-512 (plain)",                     20, "$6$MJHnaAkegEVYHsFK$"             },
+  { "*SHA-512 (plain) invalid char",       20, "$6$:JHnaAkegEVYHsFK$"             },
   { "SHA-512 (rounds)",                    32, "$6$rounds=1000$MJHnaAkegEVYHsFK$" },
+  { "*SHA-512 (rounds) invalid rounds",    32, "$6$rounds=:000$MJHnaAkegEVYHsFK$" },
 #endif
 #if INCLUDE_bcrypt
   { "bcrypt (a04)",                        29, "$2a$04$UBVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (a04) invalid char",          29, "$2a$04$:BVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (a04) invalid rounds",        29, "$2a$:4$UBVLHeMpJ/QQCv3XqJx8zO" },
   { "bcrypt (b04)",                        29, "$2b$04$UBVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (b04) invalid char",          29, "$2b$04$:BVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (b04) invalid rounds",        29, "$2b$:4$UBVLHeMpJ/QQCv3XqJx8zO" },
   { "bcrypt (x04)",                        29, "$2x$04$UBVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (x04) invalid char",          29, "$2x$04$:BVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (x04) invalid rounds",        29, "$2x$:4$UBVLHeMpJ/QQCv3XqJx8zO" },
   { "bcrypt (y04)",                        29, "$2y$04$UBVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (y04) invalid char",          29, "$2y$04$:BVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (y04) invalid rounds",        29, "$2y$:4$UBVLHeMpJ/QQCv3XqJx8zO" },
 #endif
 };
 
@@ -289,7 +310,7 @@ test_one_case (const struct testcase *t,
         {
           printf ("FAIL: %s: initial hash returned NULL/%s (%s)\n",
                   t->label, cd->output, strerror (errno));
-          return 1;
+          return false;
         }
 
       size_t l_hash = strlen (result);
