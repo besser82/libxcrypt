@@ -126,7 +126,7 @@ check_PROGRAMS = \
 	test-crypt-md5 test-crypt-nthash \
 	test-crypt-pbkdf1-sha1 test-crypt-sha256 test-crypt-sha512 \
 	test-crypt-sunmd5 \
-	test-byteorder test-badsalt test-gensalt
+	test-byteorder test-badsalt test-gensalt test-short-outbuf
 
 if ENABLE_OBSOLETE_API
 libcrypt_la_SOURCES += crypt-des-obsolete.c
@@ -169,6 +169,7 @@ test_badsalt_LDADD = libcrypt.la
 test_gensalt_LDADD = libcrypt.la
 test_des_obsolete_LDADD = libcrypt.la
 test_des_obsolete_r_LDADD = libcrypt.la
+test_short_outbuf_LDADD = libcrypt.la
 
 # These tests call internal APIs that may not be accessible from the
 # fully linked shared library.
