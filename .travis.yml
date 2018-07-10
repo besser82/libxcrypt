@@ -118,6 +118,30 @@ matrix:
       env:
         - CONF="--enable-obsolete-api --enable-hashes=glibc"
         - FCVER="latest"
+    - compiler: gcc
+      os: linux
+      services: docker
+      env:
+        - CONF="--enable-obsolete-api=glibc --enable-hashes=strong,glibc"
+        - FCVER="rawhide"
+    - compiler: clang
+      os: linux
+      services: docker
+      env:
+        - CONF="--enable-obsolete-api=glibc --enable-hashes=strong,glibc"
+        - FCVER="rawhide"
+    - compiler: gcc
+      os: linux
+      services: docker
+      env:
+        - CONF="--enable-obsolete-api=glibc --enable-hashes=strong,glibc"
+        - FCVER="latest"
+    - compiler: clang
+      os: linux
+      services: docker
+      env:
+        - CONF="--enable-obsolete-api=glibc --enable-hashes=strong,glibc"
+        - FCVER="latest"
 
 before_install:
   - for i in `seq 0 99`; do docker pull fedora:$FCVER && i= && break || sleep 1; done; [ -z "$i" ]
