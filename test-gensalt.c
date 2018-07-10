@@ -45,7 +45,13 @@ static const char *const nthash_expected_output[] =
 };
 #endif
 #if INCLUDE_sunmd5
-#define sunmd5_expected_output 0 /* output is not deterministic */
+static const char *const sunmd5_expected_output[] =
+{
+  "$md5,rounds=55349$BPm.fm03$",
+  "$md5,rounds=72501$WKoucttX$",
+  "$md5,rounds=42259$3HtkHq/x$",
+  "$md5,rounds=73773$p.5e9AQf$",
+};
 #endif
 #if INCLUDE_sha1
 #define pbkdf_expected_output 0  /* output is not deterministic */

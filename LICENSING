@@ -28,7 +28,7 @@ source tree.  For specific licensing terms consult the files themselves.
  * Copyright Michael Bretterklieber, Björn Esser et al.; 2-clause BSD:
    crypt-nthash.c
 
- * Copyright Sun Microsystems, Inc., Björn Esser; CDDL-1.0:
+ * Copyright Zack Weinberg; 2-clause BSD:
    crypt-sunmd5.c
 
  * Public domain, written by Steve Reid et al.:

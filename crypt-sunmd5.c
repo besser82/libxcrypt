@@ -1,27 +1,31 @@
-/*
- * CDDL HEADER START
+/* Copyright (c) 2018 Zack Weinberg.
+ * All rights reserved.
  *
- * The contents of this file are subject to the terms of the
- * Common Development and Distribution License, Version 1.0 only
- * (the "License").  You may not use this file except in compliance
- * with the License.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
  *
- * You can obtain a copy of the license at usr/src/OPENSOLARIS.LICENSE
- * or http://www.opensolaris.org/os/licensing.
- * See the License for the specific language governing permissions
- * and limitations under the License.
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
  *
- * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at usr/src/OPENSOLARIS.LICENSE.
- * If applicable, add the following below this CDDL HEADER, with the
- * fields enclosed by brackets "[]" replaced with your own identifying
- * information: Portions Copyright [yyyy] [name of copyright owner]
- *
- * CDDL HEADER END
- */
-/*
- * Copyright 2003 Sun Microsystems, Inc.  All rights reserved.
- * Use is subject to license terms.
+ * This is a clean-room reimplementation of the Sun-MD5 password hash,
+ * based on the prose description of the algorithm in the Passlib v1.7.1
+ * documentation:
+ * https://passlib.readthedocs.io/en/stable/lib/passlib.hash.sun_md5_crypt.html
  */
 
 #include "crypt-port.h"
@@ -34,21 +38,21 @@
 
 #if INCLUDE_sunmd5
 
+#define SUNMD5_PREFIX           "$md5"
+#define SUNMD5_PREFIX_LEN       4
+#define SUNMD5_SALT_LEN         8
+#define SUNMD5_MAX_SETTING_LEN  32 /* $md5,rounds=4294963199$12345678$ */
+#define SUNMD5_BARE_OUTPUT_LEN  22 /* not counting the setting or the NUL */
+#define SUNMD5_MAX_ROUNDS       (0xFFFFFFFF - 4096)
 
-#define CRYPT_ALGNAME      "md5"
-
-/* minimum number of rounds we do, not including the per-user ones */
-#define BASIC_ROUND_COUNT  4096  /* enough to make things interesting */
-#define DIGEST_LEN         16
-#define ROUND_BUFFER_LEN   64
-
-/*
- * Public domain quotation courtesy of Project Gutenberg.
- * ftp://metalab.unc.edu/pub/docs/books/gutenberg/etext98/2ws2610.txt
- * Hamlet III.ii - 1517 bytes, including trailing NUL
- * ANSI-C string constant concatenation is a requirement here.
- */
-static const char constant_phrase[] =
+/* At each round of the algorithm, this string (including the trailing
+   NUL) may or may not be included in the input to MD5, depending on a
+   pseudorandom coin toss.  It is Hamlet's famous soliloquy from the
+   play of the same name, which is in the public domain.  Text from
+   <https://www.gutenberg.org/files/1524/old/2ws2610.tex> with double
+   blank lines replaced with `\n`.  Note that more recent Project
+   Gutenberg editions of _Hamlet_ are punctuated differently.  */
+static const char hamlet_quotation[] =
   "To be, or not to be,--that is the question:--\n"
   "Whether 'tis nobler in the mind to suffer\n"
   "The slings and arrows of outrageous fortune\n"
@@ -85,346 +89,233 @@ static const char constant_phrase[] =
   "The fair Ophelia!--Nymph, in thy orisons\n"
   "Be all my sins remember'd.\n";
 
-/* ------------------------------------------------------------------ */
-
-static int
-md5bit (uint8_t *digest, int bit_num)
+/* Decide, pseudorandomly, whether or not to include the above quotation
+   in the input to MD5.  */
+static inline bool
+get_nth_bit (const uint8_t digest[16], unsigned int n)
 {
-  int byte_off;
-  int bit_off;
-
-  bit_num %= 128;          /* keep this bounded for convenience */
-  byte_off = bit_num / 8;
-  bit_off = bit_num % 8;
-
-  /* return the value of bit N from the digest */
-  return ((digest[byte_off] & (0x01 << bit_off)) ? 1 : 0);
+  unsigned int byte = (n % 128) / 8;
+  unsigned int bit  = (n % 128) % 8;
+  return !!(digest[byte] & (1 << bit));
 }
 
-/* 0 ... 63 => ascii - 64 */
-static unsigned char itoa64[] =
+static bool
+muffet_coin_toss (const uint8_t prev_digest[16], unsigned int round_count)
+{
+  unsigned int x, y, a, b, r, v, i;
+  for (i = 0, x = 0, y = 0; i < 8; i++)
+    {
+      a = prev_digest[(i + 0) % 16];
+      b = prev_digest[(i + 3) % 16];
+      r = a >> (b % 5);
+      v = prev_digest[r % 16];
+      if (b & (1u << (a % 8)))
+        v /= 2;
+      x |= ((unsigned int) +get_nth_bit (prev_digest, v)) << i;
+
+      a = prev_digest[(i + 8)  % 16];
+      b = prev_digest[(i + 11) % 16];
+      r = a >> (b % 5);
+      v = prev_digest[r % 16];
+      if (b & (1u << (a % 8)))
+        v /= 2;
+      y |= ((unsigned int) +get_nth_bit (prev_digest, v)) << i;
+    }
+
+  if (get_nth_bit (prev_digest, round_count))
+    x /= 2;
+  if (get_nth_bit (prev_digest, round_count + 64))
+    y /= 2;
+
+  return !!(get_nth_bit (prev_digest, x) ^ get_nth_bit (prev_digest, y));
+}
+
+/* itoa64 output utilities.  */
+static const unsigned char itoa64[] =
   "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-static void
-to64 (char *s, uint64_t v, int n)
+static inline void
+write_itoa64_4 (uint8_t *output,
+                unsigned int b0, unsigned int b1, unsigned int b2)
 {
-  while (--n >= 0)
-    {
-      *s++ = (char)itoa64[v&0x3f];
-      v >>= 6;
-    }
+  unsigned int value = (b0 << 0) | (b1 << 8) | (b2 << 16);
+  output[0] = itoa64[value & 0x3f];
+  output[1] = itoa64[(value >> 6) & 0x3f];
+  output[2] = itoa64[(value >> 12) & 0x3f];
+  output[3] = itoa64[(value >> 18) & 0x3f];
 }
 
-#define ROUNDS             ",rounds="
-#define ROUNDSLEN          (sizeof (ROUNDS) - 1)
-
-/*
- * get the integer value after ,rounds= if present
- * s should point immediately after $md5
- * set *puresalt one character after the dollar sign after
- * the number of rounds (if present) or to NULL if the syntax
- * is invalid
- */
-static uint32_t
-getrounds (const char *s, const char **puresalt)
+/* used only for the last two bytes of crypt_sunmd5_rn output */
+static inline void
+write_itoa64_2 (uint8_t *output,
+                unsigned int b0, unsigned int b1, unsigned int b2)
 {
-  const char *p;
-  char *e;
-  long val;
+  unsigned int value = (b0 << 0) | (b1 << 8) | (b2 << 16);
+  output[0] = itoa64[value & 0x3f];
+  output[1] = itoa64[(value >> 6) & 0x3f];
+}
 
-  *puresalt = 0;
+/* Module entry points.  */
 
-  if (s == NULL)
-    return (0);
+void
+crypt_sunmd5_rn (const char *phrase,
+                 const char *setting,
+                 uint8_t *output,
+                 size_t o_size,
+                 void *scratch,
+                 size_t s_size)
+{
+  struct crypt_sunmd5_scratch
+  {
+    struct md5_ctx ctx;
+    uint8_t dg[16];
+    char    rn[16];
+  };
 
-  if (*s == '$')
+  /* If 'setting' doesn't start with the prefix, we should not have
+     been called in the first place.  */
+  if (strncmp (setting, SUNMD5_PREFIX, SUNMD5_PREFIX_LEN)
+      || (setting[SUNMD5_PREFIX_LEN] != '$'
+          && setting[SUNMD5_PREFIX_LEN] != ','))
     {
-      *puresalt = s + 1;
-      return (0);
+      errno = EINVAL;
+      return;
     }
 
-  if (strncmp (s, ROUNDS, ROUNDSLEN) != 0)
-    return (0);
+  /* For bug-compatibility with the original implementation, we allow
+     'rounds=' to follow either '$md5,' or '$md5$'.  */
+  const char *p = setting + SUNMD5_PREFIX_LEN + 1;
+  unsigned int nrounds = 4096;
+  if (!strncmp (p, "rounds=", sizeof "rounds=" - 1))
+    {
+      p += sizeof "rounds=" - 1;
+      /* Do not allow an explicit setting of zero additional rounds,
+         nor leading zeroes on the number of rounds.  */
+      if (!(*p >= '1' && *p <= '9'))
+        {
+          errno = EINVAL;
+          return;
+        }
 
-  p = s + ROUNDSLEN;
-  errno = 0;
-  val = strtol (p, &e, 10);
-  /*
-   * An error occured or there is non-numeric stuff at the end
-   * which isn't one of the crypt(3c) special chars ',' or '$'
-   */
-  if (errno != 0 || val < 0 || p == e || (*e != '\0' && *e != '$'))
-    return (0);
+      errno = 0;
+      char *endp;
+      unsigned long arounds = strtoul (p, &endp, 10);
+      if (endp == p || arounds > SUNMD5_MAX_ROUNDS || errno)
+        {
+          errno = EINVAL;
+          return;
+        }
+      nrounds += (unsigned int)arounds;
+      p = endp;
+      if (*p != '$')
+        {
+          errno = EINVAL;
+          return;
+        }
+      p += 1;
+    }
 
-  if (*e == '$')
-    *puresalt = e + 1;
-  else
-    *puresalt = e;
+  /* p now points to the beginning of the actual salt.  */
+  p += strspn (p, (const char *)itoa64);
+  if (*p != '\0' && *p != '$')
+    {
+      errno = EINVAL;
+      return;
+    }
+  /* For bug-compatibility with the original implementation, if p
+     points to a '$' and the following character is either another '$'
+     or NUL, the first '$' should be included in the salt.  */
+  if (p[0] == '$' && (p[1] == '$' || p[1] == '\0'))
+    p += 1;
 
-  return ((uint32_t)val);
+  size_t saltlen = (size_t) (p - setting);
+  /* Do we have enough space?  */
+  if (s_size < sizeof (struct crypt_sunmd5_scratch)
+      || o_size < saltlen + SUNMD5_BARE_OUTPUT_LEN + 2)
+    {
+      errno = ERANGE;
+      return;
+    }
+
+  struct crypt_sunmd5_scratch *s = scratch;
+
+  /* Initial round.  */
+  md5_init_ctx (&s->ctx);
+  md5_process_bytes (phrase, strlen (phrase), &s->ctx);
+  md5_process_bytes (setting, saltlen, &s->ctx);
+  md5_finish_ctx (&s->ctx, s->dg);
+
+  /* Stretching rounds.  */
+  for (unsigned int i = 0; i < nrounds; i++)
+    {
+      md5_init_ctx (&s->ctx);
+
+      md5_process_bytes (s->dg, sizeof s->dg, &s->ctx);
+
+      /* The trailing nul is intentionally included.  */
+      if (muffet_coin_toss (s->dg, i))
+        md5_process_bytes (hamlet_quotation, sizeof hamlet_quotation, &s->ctx);
+
+      int nwritten = snprintf (s->rn, sizeof s->rn, "%u", i);
+      assert (nwritten >= 1 && (unsigned int)nwritten + 1 <= sizeof s->rn);
+      md5_process_bytes (s->rn, (unsigned int)nwritten, &s->ctx);
+
+      md5_finish_ctx (&s->ctx, s->dg);
+    }
+
+  memcpy (output, setting, saltlen);
+  *(output + saltlen + 0) = '$';
+  /* This is the same permuted order used by BSD md5-crypt ($1$).  */
+  write_itoa64_4 (output + saltlen +  1, s->dg[12], s->dg[ 6], s->dg[0]);
+  write_itoa64_4 (output + saltlen +  5, s->dg[13], s->dg[ 7], s->dg[1]);
+  write_itoa64_4 (output + saltlen +  9, s->dg[14], s->dg[ 8], s->dg[2]);
+  write_itoa64_4 (output + saltlen + 13, s->dg[15], s->dg[ 9], s->dg[3]);
+  write_itoa64_4 (output + saltlen + 17, s->dg[ 5], s->dg[10], s->dg[4]);
+  write_itoa64_2 (output + saltlen + 21, s->dg[11], 0, 0);
+  *(output + saltlen + 23) = '\0';
 }
 
 void
 gensalt_sunmd5_rn (unsigned long count,
-                   const uint8_t *rbytes, size_t nrbytes,
-                   uint8_t *output, size_t o_size)
+                   const uint8_t *rbytes,
+                   size_t nrbytes,
+                   uint8_t *output,
+                   size_t o_size)
 {
-  /* This should not happen, but.  */
-  if ((nrbytes < sizeof (uint64_t)) || (o_size < 33))
+  if (o_size < SUNMD5_MAX_SETTING_LEN + 1 || nrbytes < 6 + 2)
     {
       errno = ERANGE;
       return;
     }
-
-  uint64_t rndval;
-  char rndstr[sizeof (rndval) + 1];  /* rndval as a base64 string */
-  const uint8_t minrounds = 15;      /* Min. number of rounds = 2^X */
-
-  /* Set count to a reasonable random value,
-     if count was not set high enough by the
-     caller.  */
-  if (count < (unsigned long)(1 << minrounds))
-    {
-      uint64_t rand1, rand2;
-      get_random_bytes(&rand1, sizeof (uint64_t));
-      get_random_bytes(&rand2, sizeof (uint64_t));
-      count  = (long unsigned int)(1 << ((rand1 % 2) + minrounds));
-      count += (long unsigned int)(rand2 % (uint64_t)((1 << (minrounds - 1)) + 1));
-    }
-
-  memcpy (&rndval, rbytes, sizeof (rndval));
-  to64 ((char *)&rndstr, rndval, sizeof (rndval));
-  rndstr[sizeof (rndstr) - 1] = '\0';
-
-  /* Generated salt is at least 27 bytes
-     and a maximum of 32 bytes long.  */
-  snprintf ((char *)output, o_size,
-            "$" CRYPT_ALGNAME ROUNDS "%u$%s$",
-            (unsigned int)count, rndstr);
-}
-
-void
-crypt_sunmd5_rn (const char *phrase, const char *setting,
-                 uint8_t *output, size_t o_size,
-                 void *scratch, size_t s_size)
-{
-  /* put all the sensitive data in a struct */
-  struct sunmd5_ctx
-  {
-    struct md5_ctx context;             /* working buffer for MD5 algorithm */
-    uint8_t digest[DIGEST_LEN];         /* where the MD5 digest is stored */
-
-    int indirect_4[16];                 /* extracted array of 4bit values */
-    int shift_4[16];                    /* shift schedule, vals 0..4 */
-
-    int s7shift;                        /* shift for shift_7 creation, vals  0..7 */
-    int indirect_7[16];                 /* extracted array of 7bit values */
-    int shift_7[16];                    /* shift schedule, vals 0..1 */
-
-    int indirect_a;                     /* 7bit index into digest */
-    int shift_a;                        /* shift schedule, vals 0..1 */
-
-    int indirect_b;                     /* 7bit index into digest */
-    int shift_b;                        /* shift schedule, vals 0..1 */
-
-    int bit_a;                          /* single bit for cointoss */
-    int bit_b;                          /* single bit for cointoss */
-
-    char roundascii[ROUND_BUFFER_LEN];  /* ascii rep of roundcount */
-  };
-
-  /* Scratch space needs to be large enough
-     to fit struct sunmd5_ctx.  Output must
-     be able to fit up to 32 bytes for the
-     setting + '$' + 22 bytes of hash.  */
-  if (s_size < sizeof (struct sunmd5_ctx) || (o_size < 32 + 1 + 22))
-    {
-      errno = ERANGE;
-      return;
-    }
-
-  /* If the magic does not match, this
-     should not have been called.  */
-  if (!strncmp ("$" CRYPT_ALGNAME, setting, sizeof ("$" CRYPT_ALGNAME)))
+  if (count > SUNMD5_MAX_ROUNDS)
     {
       errno = EINVAL;
       return;
     }
 
-  int i;
-  int round;
-  uint32_t maxrounds = BASIC_ROUND_COUNT;
-  uint32_t l;
-  const char *ps = 0;
-  const char *saltend = 0;
-  char *p, *puresalt;
-  struct sunmd5_ctx *data = scratch;
+  /* The default number of rounds, 4096, is much too low.  The actual
+     number of rounds is somewhat randomized to make construction of
+     rainbow tables more difficult (effectively this means an extra 16
+     bits of entropy are smuggled into the salt via the round number).  */
+  if (count < 32768)
+    count = 32768;
+  else if (count + 65536 > SUNMD5_MAX_ROUNDS)
+    count = SUNMD5_MAX_ROUNDS - 65536;
 
-  /*
-   * Extract the rounds (if it exists) and puresalt from the salt string
-   * $md5[,rounds=%d]$<puresalt>$<optional existing encoding>
-   */
-  maxrounds += getrounds (setting + sizeof ("$" CRYPT_ALGNAME) - 1, &ps);
-  if (ps)
-    saltend = ps + strspn (ps, (char *)itoa64);
-  if (!saltend || saltend == ps || saltend[0] != '$')
-    {
-      errno = EINVAL;
-      return;
-    }
-  /* For bug-compatibility with the original implementation, if saltend
-     points at "$$", advance it to point at the second dollar sign.  */
-  if (saltend[0] == '$' && saltend[1] == '$')
-    saltend += 1;
+  count += ((unsigned int)rbytes[0]) << 8;
+  count += ((unsigned int)rbytes[1]) << 0;
 
-  if (saltend[1] != '\0')
-    {
-      size_t len = (size_t)(saltend - setting + 1);
+  assert (count != 0);
 
-      if ((puresalt = malloc (len)) == NULL)
-        /* malloc() is supposed to set errno == ENOMEM.  */
-        return;
-
-      /* The original implementation used strlcpy(),
-         which is not portable.  Since strlcpy()
-         always terminated a C string properly after
-         copying len - 1 bytes of data, we need to
-         do that manually.  */
-      (void)strncpy (puresalt, setting, len);
-      puresalt[len - 1] = '\0';
-    }
-  else
-    {
-      puresalt = strdup(setting);
-
-      if (puresalt == NULL)
-        {
-          /* strdup() is supposed to set errno == ENOMEM.  */
-          return;
-        }
-    }
-
-  /* initialise the context */
-  md5_init_ctx (&(data->context));
-
-  /* update with the (hopefully entropic) plaintext */
-  md5_process_bytes ((const unsigned char *)phrase, strlen (phrase), &(data->context));
-
-  /* update with the (publically known) salt */
-  md5_process_bytes ((unsigned char *)puresalt, strlen (puresalt), &(data->context));
+  size_t written = (size_t) snprintf ((char *)output, o_size,
+                                      "%s,rounds=%lu$", SUNMD5_PREFIX, count);
 
 
-  /* compute the digest */
-  md5_finish_ctx (&(data->context), &(data->digest));
+  write_itoa64_4(output + written + 0, rbytes[2], rbytes[3], rbytes[4]);
+  write_itoa64_4(output + written + 4, rbytes[5], rbytes[6], rbytes[7]);
 
-  /*
-   * now to delay high-speed md5 implementations that have stuff
-   * like code inlining, loops unrolled and table lookup
-   */
-
-  for (round = 0; (uint32_t)round < maxrounds; round++)
-    {
-      /* re-initialise the context */
-      md5_init_ctx (&(data->context));
-
-      /* update with the previous digest */
-      md5_process_bytes (&(data->digest), sizeof (data->digest), &(data->context));
-
-      /* populate the shift schedules for use later */
-      for (i = 0; i < 16; i++)
-        {
-          int j;
-
-          /* offset 3 -> occasionally span more than 1 int32 fetch */
-          j = (i + 3) % 16;
-          data->s7shift = data->digest[i] % 8;
-          data->shift_4[i] = data->digest[j] % 5;
-          data->shift_7[i] = (data->digest[j] >> data->s7shift) & 0x01;
-        }
-
-      data->shift_a = md5bit (data->digest, round);
-      data->shift_b = md5bit (data->digest, round + 64);
-
-      /* populate indirect_4 with 4bit values extracted from digest */
-      for (i = 0; i < 16; i++)
-        /* shift the digest byte and extract four bits */
-        data->indirect_4[i] = (data->digest[i] >> data->shift_4[i]) & 0x0f;
-
-      /*
-       * populate indirect_7 with 7bit values from digest
-       * indexed via indirect_4
-       */
-
-      for (i = 0; i < 16; i++)
-        /* shift the digest byte and extract seven bits */
-        data->indirect_7[i] = (data->digest[data->indirect_4[i]]
-                               >> data->shift_7[i]) & 0x7f;
-
-      /*
-       * use the 7bit values to indirect into digest,
-       * and create two 8bit values from the results.
-       */
-      data->indirect_a = data->indirect_b = 0;
-
-      for (i = 0; i < 8; i++)
-        {
-          data->indirect_a |= (md5bit (data->digest,
-                                       data->indirect_7[i]) << i);
-
-          data->indirect_b |= (md5bit (data->digest,
-                                       data->indirect_7[i + 8]) << i);
-        }
-
-      /* shall we utilise the top or bottom 7 bits? */
-      data->indirect_a = (data->indirect_a >> data->shift_a) & 0x7f;
-      data->indirect_b = (data->indirect_b >> data->shift_b) & 0x7f;
-
-      /* extract two data->digest bits */
-      data->bit_a = md5bit (data->digest, data->indirect_a);
-      data->bit_b = md5bit (data->digest, data->indirect_b);
-
-      /* xor a coin-toss; if true, mix-in the constant phrase */
-
-      if (data->bit_a ^ data->bit_b)
-        md5_process_bytes ((const unsigned char *) constant_phrase,
-                           sizeof (constant_phrase),
-                           &(data->context));
-
-      /* digest a decimal sprintf of the current roundcount */
-      snprintf (data->roundascii, ROUND_BUFFER_LEN, "%d", round);
-      md5_process_bytes ((unsigned char *) data->roundascii,
-                         strlen (data->roundascii),
-                         &(data->context));
-
-      /* compute/flush the digest, and loop */
-      md5_finish_ctx (&(data->context), &(data->digest));
-    }
-
-  (void)snprintf ((char *)output, o_size, "%s$", puresalt);
-
-  free (puresalt);
-
-  p = (char *)output + strlen ((const char *)output);
-
-  l = (uint32_t)((data->digest[ 0]<<16) | (data->digest[ 6]<<8) | data->digest[12]);
-  to64 (p, l, 4);
-  p += 4;
-  l = (uint32_t)((data->digest[ 1]<<16) | (data->digest[ 7]<<8) | data->digest[13]);
-  to64 (p, l, 4);
-  p += 4;
-  l = (uint32_t)((data->digest[ 2]<<16) | (data->digest[ 8]<<8) | data->digest[14]);
-  to64 (p, l, 4);
-  p += 4;
-  l = (uint32_t)((data->digest[ 3]<<16) | (data->digest[ 9]<<8) | data->digest[15]);
-  to64 (p, l, 4);
-  p += 4;
-  l = (uint32_t)((data->digest[ 4]<<16) | (data->digest[10]<<8) | data->digest[ 5]);
-  to64 (p, l, 4);
-  p += 4;
-  l = (uint32_t)data->digest[11];
-  to64 (p, l, 2);
-  p += 2;
-  *p = '\0';
+  output[written + 8] = '$';
+  output[written + 9] = '\0';
 }
 
 #endif
