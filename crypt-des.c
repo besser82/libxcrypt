@@ -107,7 +107,7 @@ des_gen_hash (struct des_ctx *ctx, uint32_t count, uint8_t *output,
               uint8_t cbuf[8])
 {
   uint8_t plaintext[8];
-  XCRYPT_SECURE_MEMSET (plaintext, 8)
+  XCRYPT_SECURE_MEMSET (plaintext, 8);
   des_crypt_block (ctx, cbuf, plaintext, count, false);
 
   /* Now encode the result.  */
@@ -369,7 +369,7 @@ crypt_des_xbsd_rn (const char *phrase, const char *setting,
      set as the DES key, and encrypted to produce the round output.
      The salt is zero throughout this procedure.  */
   des_set_salt (ctx, 0);
-  XCRYPT_SECURE_MEMSET (pkbuf, 8)
+  XCRYPT_SECURE_MEMSET (pkbuf, 8);
   for (;;)
     {
       for (i = 0; i < 8; i++)

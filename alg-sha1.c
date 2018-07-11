@@ -274,8 +274,8 @@ sha1_finish_ctx (struct sha1_ctx *ctx, void *resbuf)
 
   /* Wipe variables */
   i = 0;
-  XCRYPT_SECURE_MEMSET (ctx, sizeof (struct sha1_ctx))
-  XCRYPT_SECURE_MEMSET (finalcount, 8)  /* SWR */
+  XCRYPT_SECURE_MEMSET (ctx, sizeof (struct sha1_ctx));
+  XCRYPT_SECURE_MEMSET (finalcount, 8);  /* SWR */
 
   return resbuf;
 }

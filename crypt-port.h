@@ -95,15 +95,15 @@ typedef union
 #if defined HAVE_MEMSET_S
 /* Will never be optimized out.  */
 #define XCRYPT_SECURE_MEMSET(s, len) \
-  memset_s (s, len, 0x00, len);
+  memset_s (s, len, 0x00, len)
 #elif defined HAVE_EXPLICIT_BZERO
 /* explicit_bzero() should give us enough guarantees.  */
 #define XCRYPT_SECURE_MEMSET(s, len) \
-  explicit_bzero(s, len);
+  explicit_bzero(s, len)
 #elif defined HAVE_EXPLICIT_MEMSET
 /* Same guarantee goes for explicit_memset().  */
 #define XCRYPT_SECURE_MEMSET(s, len) \
-  explicit_memset (s, 0x00, len);
+  explicit_memset (s, 0x00, len)
 #else
 /* The best hope we have in this case.  */
 static inline
@@ -114,7 +114,7 @@ void _xcrypt_secure_memset (void *s, size_t len)
     *c++ = 0x00;
 }
 #define XCRYPT_SECURE_MEMSET(s, len) \
-  _xcrypt_secure_memset (s, len);
+  _xcrypt_secure_memset (s, len)
 #endif
 
 /* Per-symbol version tagging.  Currently we only know how to do this

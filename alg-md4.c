@@ -163,7 +163,7 @@ md4_read_ctx (struct md4_ctx *ctx, void *resbuf)
   cpu_to_le32 (buf +  4, ctx->b);
   cpu_to_le32 (buf +  8, ctx->c);
   cpu_to_le32 (buf + 12, ctx->d);
-  XCRYPT_SECURE_MEMSET (ctx, sizeof(struct md4_ctx))
+  XCRYPT_SECURE_MEMSET (ctx, sizeof(struct md4_ctx));
   return resbuf;
 }
 
@@ -230,13 +230,13 @@ md4_finish_ctx (struct md4_ctx *ctx, void *resbuf)
 
   if (free < 8)
     {
-      XCRYPT_SECURE_MEMSET (&ctx->buffer[used], free)
+      XCRYPT_SECURE_MEMSET (&ctx->buffer[used], free);
       body(ctx, ctx->buffer, 64);
       used = 0;
       free = 64;
     }
 
-  XCRYPT_SECURE_MEMSET (&ctx->buffer[used], free - 8)
+  XCRYPT_SECURE_MEMSET (&ctx->buffer[used], free - 8);
 
   ctx->lo <<= 3;
   ctx->buffer[56] = (unsigned char)((ctx->lo) & 0xff);

@@ -190,7 +190,7 @@ crypt_sha1_rn (const char *phrase, const char *setting,
   *ep = '\0';
 
   /* Don't leave anything around in vm they could use. */
-  XCRYPT_SECURE_MEMSET (scratch, s_size)
+  XCRYPT_SECURE_MEMSET (scratch, s_size);
 }
 
 /* Modified excerpt from:
