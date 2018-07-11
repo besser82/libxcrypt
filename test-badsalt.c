@@ -124,7 +124,13 @@ static const struct testcase testcases[] =
   { "*MD5 (Sun, plain) invalid char",      14, "$md5$:xMeE.at$"            },
   { "MD5 (Sun, rounds)",                   25, "$md5,rounds=123$1xMeE.at$" },
   { "*MD5 (Sun, rounds) invalid char",     25, "$md5,rounds=123$:xMeE.at$" },
-  { "*MD5 (Sun, rounds) invalid rounds",   25, "$md5,rounds=:23$1xMeE.at$" },
+  { "*MD5 (Sun, rounds) invalid rounds 1", 25, "$md5,rounds=:23$1xMeE.at$" },
+  { "*MD5 (Sun, rounds) invalid rounds 2", 25, "$md5,rounds=12:$1xMeE.at$" },
+  { "*MD5 (Sun, rounds) invalid rounds 3", 25, "$md5,rounds:123$1xMeE.at$" },
+  { "*MD5 (Sun, rounds) invalid rounds 4", 22, "$md5,rounds=$1xMeE.at$"    },
+  { "*MD5 (Sun, rounds) invalid rounds 5", 23, "$md5,rounds=0$1xMeE.at$"   },
+  { "*MD5 (Sun, rounds) invalid rounds 6", 25, "$md5,rounds=012$1xMeE.at$" },
+  { "*MD5 (Sun, rounds) invalid rounds 7", 32, "$md5,rounds=4294967295$1xMeE.at$" },
 #endif
 #if INCLUDE_nthash
   { "NTHASH (bare)",                        3, "$3$"                           },
@@ -133,33 +139,51 @@ static const struct testcase testcases[] =
 #if INCLUDE_sha1
   { "HMAC-SHA1",                           27, "$sha1$123$GGXpNqoJvglVTkGU$" },
   { "*HMAC-SHA1 invalid char",             27, "$sha1$123$:GXpNqoJvglVTkGU$" },
-  { "*HMAC-SHA1 invalid rounds",           27, "$sha1$:23$GGXpNqoJvglVTkGU$" },
+  { "*HMAC-SHA1 invalid rounds 1",         27, "$sha1$:23$GGXpNqoJvglVTkGU$" },
+  { "*HMAC-SHA1 invalid rounds 2",         27, "$sha1$12:$GGXpNqoJvglVTkGU$" },
+  { "*HMAC-SHA1 invalid rounds 3",         27, "$sha1$12:$GGXpNqoJvglVTkGU$" },
 #endif
 #if INCLUDE_sha256
   { "SHA-256 (plain)",                     20, "$5$MJHnaAkegEVYHsFK$"             },
   { "*SHA-256 (plain) invalid char",       20, "$5$:JHnaAkegEVYHsFK$"             },
   { "SHA-256 (rounds)",                    32, "$5$rounds=1000$MJHnaAkegEVYHsFK$" },
-  { "*SHA-256 (rounds) invalid rounds",    32, "$5$rounds=:000$MJHnaAkegEVYHsFK$" },
+  { "*SHA-256 (rounds) invalid rounds 1",  32, "$5$rounds=:000$MJHnaAkegEVYHsFK$" },
+  { "*SHA-256 (rounds) invalid rounds 2",  32, "$5$rounds=100:$MJHnaAkegEVYHsFK$" },
+  { "*SHA-256 (rounds) invalid rounds 3",  32, "$5$rounds:1000$MJHnaAkegEVYHsFK$" },
+  { "*SHA-256 (rounds) invalid rounds 4",  28, "$5$rounds=$MJHnaAkegEVYHsFK$" },
+  { "*SHA-256 (rounds) invalid rounds 5",  29, "$5$rounds=0$MJHnaAkegEVYHsFK$" },
+  { "*SHA-256 (rounds) invalid rounds 6",  32, "$5$rounds=0100$MJHnaAkegEVYHsFK$" },
+  { "*SHA-256 (rounds) invalid rounds 7",  38, "$5$rounds=4294967295$MJHnaAkegEVYHsFK$" },
 #endif
 #if INCLUDE_sha512
   { "SHA-512 (plain)",                     20, "$6$MJHnaAkegEVYHsFK$"             },
   { "*SHA-512 (plain) invalid char",       20, "$6$:JHnaAkegEVYHsFK$"             },
   { "SHA-512 (rounds)",                    32, "$6$rounds=1000$MJHnaAkegEVYHsFK$" },
-  { "*SHA-512 (rounds) invalid rounds",    32, "$6$rounds=:000$MJHnaAkegEVYHsFK$" },
+  { "*SHA-512 (rounds) invalid rounds 1",  32, "$6$rounds=:000$MJHnaAkegEVYHsFK$" },
+  { "*SHA-512 (rounds) invalid rounds 2",  32, "$6$rounds=100:$MJHnaAkegEVYHsFK$" },
+  { "*SHA-512 (rounds) invalid rounds 3",  32, "$6$rounds:1000$MJHnaAkegEVYHsFK$" },
+  { "*SHA-512 (rounds) invalid rounds 4",  28, "$6$rounds=$MJHnaAkegEVYHsFK$" },
+  { "*SHA-512 (rounds) invalid rounds 5",  29, "$6$rounds=0$MJHnaAkegEVYHsFK$" },
+  { "*SHA-512 (rounds) invalid rounds 6",  32, "$6$rounds=0100$MJHnaAkegEVYHsFK$" },
+  { "*SHA-512 (rounds) invalid rounds 6",  38, "$6$rounds=4294967295$MJHnaAkegEVYHsFK$" },
 #endif
 #if INCLUDE_bcrypt
   { "bcrypt (a04)",                        29, "$2a$04$UBVLHeMpJ/QQCv3XqJx8zO" },
   { "*bcrypt (a04) invalid char",          29, "$2a$04$:BVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (a04) invalid rounds",        29, "$2a$:4$UBVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (a04) invalid rounds 1",      29, "$2a$:4$UBVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (a04) invalid rounds 2",      29, "$2a$0:$UBVLHeMpJ/QQCv3XqJx8zO" },
   { "bcrypt (b04)",                        29, "$2b$04$UBVLHeMpJ/QQCv3XqJx8zO" },
   { "*bcrypt (b04) invalid char",          29, "$2b$04$:BVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (b04) invalid rounds",        29, "$2b$:4$UBVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (b04) invalid rounds 1",      29, "$2b$:4$UBVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (b04) invalid rounds 2",      29, "$2b$0:$UBVLHeMpJ/QQCv3XqJx8zO" },
   { "bcrypt (x04)",                        29, "$2x$04$UBVLHeMpJ/QQCv3XqJx8zO" },
   { "*bcrypt (x04) invalid char",          29, "$2x$04$:BVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (x04) invalid rounds",        29, "$2x$:4$UBVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (x04) invalid rounds 1",      29, "$2x$:4$UBVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (x04) invalid rounds 2",      29, "$2x$0:$UBVLHeMpJ/QQCv3XqJx8zO" },
   { "bcrypt (y04)",                        29, "$2y$04$UBVLHeMpJ/QQCv3XqJx8zO" },
   { "*bcrypt (y04) invalid char",          29, "$2y$04$:BVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (y04) invalid rounds",        29, "$2y$:4$UBVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (y04) invalid rounds 1",      29, "$2y$:4$UBVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (y04) invalid rounds 2",      29, "$2y$0:$UBVLHeMpJ/QQCv3XqJx8zO" },
 #endif
 };
 

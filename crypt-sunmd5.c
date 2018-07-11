@@ -282,12 +282,12 @@ gensalt_sunmd5_rn (unsigned long count,
                    uint8_t *output,
                    size_t o_size)
 {
-  if (o_size < SUNMD5_MAX_SETTING_LEN + 1 || nrbytes < 6 + 2)
+  if (o_size < SUNMD5_MAX_SETTING_LEN + 1)
     {
       errno = ERANGE;
       return;
     }
-  if (count > SUNMD5_MAX_ROUNDS)
+  if (count > SUNMD5_MAX_ROUNDS || nrbytes < 6 + 2)
     {
       errno = EINVAL;
       return;

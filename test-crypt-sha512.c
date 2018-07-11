@@ -23,11 +23,6 @@ static const struct
     "HbbMCVNSnCM/UrjmM0Dp8vOuZeHBy/YTBmSK6H9qs/y3RnOaw5v."
   },
   {
-    "$6$rounds=5000$toolongsaltstring", "This is just a test",
-    "$6$rounds=5000$toolongsaltstrin$lQ8jolhgVRVhY4b5pZKaysCLi0QBxGoNeKQ"
-    "zQ3glMhwllF7oGDZxUhx1yxdYcz/e1JSbq3y6JMxxl8audkUEm0"
-  },
-  {
     "$6$rounds=1400$anotherlongsaltstring",
     "a very much longer text to encrypt.  This one even stretches over more"
     "than one line.",
@@ -44,11 +39,6 @@ static const struct
     "$6$rounds=123456$asaltof16chars..", "a short string",
     "$6$rounds=123456$asaltof16chars..$BtCwjqMJGx5hrJhZywWvt0RLE8uZ4oPwc"
     "elCjmw2kSYu.Ec6ycULevoBK25fs2xXgMNrCzIMVcgEJAstJeonj1"
-  },
-  {
-    "$6$rounds=10$roundstoolow", "the minimum number is still observed",
-    "$6$rounds=1000$roundstoolow$kUMsbe306n21p9R.FRkW3IGn.S9NPN0x50YhH1x"
-    "hLsPuWGsUSklZt58jaTfF4ZEQpyUNGc0dqbpBYYBaHHrsX."
   },
 };
 #define ntests ARRAY_SIZE (tests)

@@ -83,6 +83,17 @@ static const struct hashfn hash_algorithms[] =
   HASH_ALGORITHM_TABLE_ENTRIES
 };
 
+#if INCLUDE_des || INCLUDE_des_big
+static int
+is_des_salt_char (char c)
+{
+  return ((c >= 'a' && c <= 'z') ||
+          (c >= 'A' && c <= 'Z') ||
+          (c >= '0' && c <= '9') ||
+          c == '.' || c == '/');
+}
+#endif
+
 static const struct hashfn *
 get_hashfn (const char *setting)
 {
@@ -98,7 +109,7 @@ get_hashfn (const char *setting)
       else
         {
           if (setting[0] == '\0' ||
-             (setting[0] != '$' && setting[0] != '*'))
+              (is_des_salt_char (setting[0]) && is_des_salt_char (setting[1])))
             return h;
         }
 #endif

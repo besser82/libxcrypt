@@ -22,11 +22,6 @@ static const struct
     "opqey6IcA"
   },
   {
-    "$5$rounds=5000$toolongsaltstring", "This is just a test",
-    "$5$rounds=5000$toolongsaltstrin$Un/5jzAHMgOGZ5.mWJpuVolil07guHPvOW8"
-    "mGRcvxa5"
-  },
-  {
     "$5$rounds=1400$anotherlongsaltstring",
     "a very much longer text to encrypt.  This one even stretches over more"
     "than one line.",
@@ -42,11 +37,6 @@ static const struct
     "$5$rounds=123456$asaltof16chars..", "a short string",
     "$5$rounds=123456$asaltof16chars..$gP3VQ/6X7UUEW3HkBn2w1/Ptq2jxPyzV/"
     "cZKmF/wJvD"
-  },
-  {
-    "$5$rounds=10$roundstoolow", "the minimum number is still observed",
-    "$5$rounds=1000$roundstoolow$yfvwcWrQ8l/K0DAWyuPMDNHpIVlTQebY9l/gL97"
-    "2bIC"
   },
 };
 

@@ -209,7 +209,7 @@ gensalt_sha1_rn (unsigned long count,
      'count' with.  */
   if (nrbytes < 12 + 4)
     {
-      errno = ERANGE;
+      errno = EINVAL;
       return;
     }
 

@@ -111,7 +111,6 @@ crypt_sha512_rn (const char *phrase, const char *setting,
   size_t cnt;
   /* Default number of rounds.  */
   size_t rounds = ROUNDS_DEFAULT;
-  bool rounds_custom = false;
 
   /* Find beginning of salt string.  The prefix should normally always
      be present.  Just in case it is not.  */
@@ -123,14 +122,27 @@ crypt_sha512_rn (const char *phrase, const char *setting,
       == 0)
     {
       const char *num = salt + sizeof (sha512_rounds_prefix) - 1;
-      char *endp;
-      unsigned long int srounds = strtoul (num, &endp, 10);
-      if (*endp == '$')
+      /* Do not allow an explicit setting of zero rounds, nor of the
+         default number of rounds, nor leading zeroes on the rounds.  */
+      if (!(*num >= '1' && *num <= '9'))
         {
-          salt = endp + 1;
-          rounds = MAX (ROUNDS_MIN, MIN (srounds, ROUNDS_MAX));
-          rounds_custom = true;
+          errno = EINVAL;
+          return;
         }
+
+      errno = 0;
+      char *endp;
+      rounds = strtoul (num, &endp, 10);
+      if (endp == num || *endp != '$'
+          || rounds < ROUNDS_MIN
+          || rounds > ROUNDS_MAX
+          || rounds == ROUNDS_DEFAULT
+          || errno)
+        {
+          errno = EINVAL;
+          return;
+        }
+      salt = endp + 1;
     }
 
   salt_len = strspn (salt, b64t);
@@ -246,7 +258,7 @@ crypt_sha512_rn (const char *phrase, const char *setting,
   memcpy (cp, sha512_salt_prefix, sizeof (sha512_salt_prefix) - 1);
   cp += sizeof (sha512_salt_prefix) - 1;
 
-  if (rounds_custom)
+  if (rounds != ROUNDS_DEFAULT)
     {
       int n = snprintf (cp,
                         SHA512_HASH_LENGTH - (sizeof (sha512_salt_prefix) - 1),

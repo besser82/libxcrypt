@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 
 static const char *const entropy[] =
 {
@@ -24,6 +25,13 @@ static const char *const bsdi_expected_output[] =
   "_J9..PKXc",
   "_J9..ZAFl",
   "_J9..UqGB"
+};
+static const char *const bsdi_expected_output_r[] =
+{
+  "_DT0.MJHn",
+  "_DT0.PKXc",
+  "_DT0.ZAFl",
+  "_DT0.UqGB"
 };
 #endif
 #if INCLUDE_md5
@@ -52,14 +60,28 @@ static const char *const sunmd5_expected_output[] =
   "$md5,rounds=42259$3HtkHq/x$",
   "$md5,rounds=73773$p.5e9AQf$",
 };
+static const char *const sunmd5_expected_output_r[] =
+{
+  "$md5,rounds=4294920244$BPm.fm03$",
+  "$md5,rounds=4294937396$WKoucttX$",
+  "$md5,rounds=4294907154$3HtkHq/x$",
+  "$md5,rounds=4294938668$p.5e9AQf$",
+};
 #endif
 #if INCLUDE_sha1
-static const char *const pbkdf_expected_output[] =
+static const char *const sha1_expected_output[] =
 {
   "$sha1$248488$ggu.H673kaZ5$",
   "$sha1$248421$SWqudaxXA5L0$",
   "$sha1$257243$RAtkIrDxEovH$",
   "$sha1$250464$1j.eVxRfNAPO$",
+};
+static const char *const sha1_expected_output_r[] =
+{
+  "$sha1$3643984551$ggu.H673kaZ5$",
+  "$sha1$4200450659$SWqudaxXA5L0$",
+  "$sha1$3946507480$RAtkIrDxEovH$",
+  "$sha1$3486175838$1j.eVxRfNAPO$",
 };
 #endif
 #if INCLUDE_sha256
@@ -70,6 +92,13 @@ static const char *const sha256_expected_output[] =
   "$5$ZAFlICwYRETzIzIj",
   "$5$UqGBkVu01rurVZqg"
 };
+static const char *const sha256_expected_output_r[] =
+{
+  "$5$rounds=10191$MJHnaAkegEVYHsFK",
+  "$5$rounds=10191$PKXc3hCOSyMqdaEQ",
+  "$5$rounds=10191$ZAFlICwYRETzIzIj",
+  "$5$rounds=10191$UqGBkVu01rurVZqg"
+};
 #endif
 #if INCLUDE_sha512
 static const char *const sha512_expected_output[] =
@@ -78,6 +107,13 @@ static const char *const sha512_expected_output[] =
   "$6$PKXc3hCOSyMqdaEQ",
   "$6$ZAFlICwYRETzIzIj",
   "$6$UqGBkVu01rurVZqg"
+};
+static const char *const sha512_expected_output_r[] =
+{
+  "$6$rounds=10191$MJHnaAkegEVYHsFK",
+  "$6$rounds=10191$PKXc3hCOSyMqdaEQ",
+  "$6$rounds=10191$ZAFlICwYRETzIzIj",
+  "$6$rounds=10191$UqGBkVu01rurVZqg"
 };
 #endif
 #if INCLUDE_bcrypt
@@ -117,41 +153,57 @@ struct testcase
   const char *const *expected_output;
   unsigned int expected_len;
   unsigned int expected_auto_len;
+  unsigned long rounds;
 };
 
 static const struct testcase testcases[] =
 {
 #if INCLUDE_des || INCLUDE_des_big
-  { "",      des_expected_output,       2,  0 }, // DES
+  { "",      des_expected_output,       2,  0, 0 },
+  // DES doesn't have variable round count.
 #endif
 #if INCLUDE_des_xbsd
-  { "_",     bsdi_expected_output,      9,  0 }, // BSDi extended DES
+  { "_",     bsdi_expected_output,      9,  0, 0 },
+  { "_",     bsdi_expected_output_r,    9,  0, 10191 },
 #endif
 #if INCLUDE_md5
-  { "$1$",   md5_expected_output,      11,  0 }, // MD5
+  { "$1$",   md5_expected_output,      11,  0, 0 },
+  // MD5/BSD doesn't have variable round count.
 #endif
 #if INCLUDE_nthash
-  { "$3$",   nthash_expected_output,   29,  0 }, // NTHASH
+  { "$3$",   nthash_expected_output,   29,  0, 0 },
+  // NTHASH doesn't have variable round count.
 #endif
 #if INCLUDE_sunmd5
-  { "$md5",  sunmd5_expected_output,   27,  0 }, // SUNMD5
+  { "$md5",  sunmd5_expected_output,   27,  0, 0 },
+  // SHA1/PBKDF always emits a round count, but we need to test its
+  // behavior on very large inputs.  (This number is the largest
+  // supported round count.)
+  { "$md5", sunmd5_expected_output_r,  32, 0, 4294963199 },
 #endif
 #if INCLUDE_sha1
-  { "$sha1", pbkdf_expected_output,    26, 34 }, // PBKDF with SHA1
+  { "$sha1", sha1_expected_output,     26, 34, 0 },
+  // SHA1/PBKDF always emits a round count, but we need to test its
+  // behavior on very large inputs.  (The behavior should be the
+  // same whether or not ULONG_MAX > UINT32_MAX.)
+  { "$sha1", sha1_expected_output_r,   30, 38, ULONG_MAX },
 #endif
 #if INCLUDE_sha256
-  { "$5$",   sha256_expected_output,   19,  0 }, // SHA-2-256
+  { "$5$",   sha256_expected_output,   19,  0, 0 },
+  { "$5$",   sha256_expected_output_r, 32,  0, 10191 },
 #endif
 #if INCLUDE_sha512
-  { "$6$",   sha512_expected_output,   19,  0 }, // SHA-2-512
+  { "$6$",   sha512_expected_output,   19,  0, 0 },
+  { "$6$",   sha512_expected_output_r, 32,  0, 10191 },
 #endif
 #if INCLUDE_bcrypt
-  { "$2a$",  bcrypt_a_expected_output, 29,  0 }, // bcrypt mode A
-  { "$2b$",  bcrypt_b_expected_output, 29,  0 }, // bcrypt mode B
-  { "$2x$",  bcrypt_x_expected_output, 29,  0 }, // bcrypt mode X
-  { "$2y$",  bcrypt_y_expected_output, 29,  0 }, // bcrypt mode Y
+  { "$2a$",  bcrypt_a_expected_output, 29,  0, 0 },
+  { "$2b$",  bcrypt_b_expected_output, 29,  0, 0 },
+  { "$2x$",  bcrypt_x_expected_output, 29,  0, 0 },
+  { "$2y$",  bcrypt_y_expected_output, 29,  0, 0 },
+  // bcrypt gensalt always emits a round count.
 #endif
-  { 0, 0, 0, 0 }
+  { 0, 0, 0, 0, 0 }
 };
 
 int
@@ -169,7 +221,7 @@ main (void)
       for (ent = 0; ent < ARRAY_SIZE (entropy); ent++)
         {
           XCRYPT_SECURE_MEMSET (output, CRYPT_GENSALT_OUTPUT_SIZE);
-          char *salt = crypt_gensalt_rn (tcase->prefix, 0,
+          char *salt = crypt_gensalt_rn (tcase->prefix, tcase->rounds,
                                          entropy[ent], 16,
                                          output, CRYPT_GENSALT_OUTPUT_SIZE);
           if (salt == 0)

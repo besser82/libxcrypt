@@ -126,7 +126,8 @@ check_PROGRAMS = \
 	test-crypt-md5 test-crypt-nthash \
 	test-crypt-pbkdf1-sha1 test-crypt-sha256 test-crypt-sha512 \
 	test-crypt-sunmd5 \
-	test-byteorder test-badsalt test-gensalt test-short-outbuf
+	test-byteorder test-badsalt test-badsetting test-gensalt \
+	test-short-outbuf
 
 if ENABLE_OBSOLETE_API
 libcrypt_la_SOURCES += crypt-des-obsolete.c
@@ -166,6 +167,7 @@ test_crypt_sha256_LDADD = libcrypt.la
 test_crypt_sha512_LDADD = libcrypt.la
 test_crypt_sunmd5_LDADD = libcrypt.la
 test_badsalt_LDADD = libcrypt.la
+test_badsetting_LDADD = libcrypt.la
 test_gensalt_LDADD = libcrypt.la
 test_des_obsolete_LDADD = libcrypt.la
 test_des_obsolete_r_LDADD = libcrypt.la
