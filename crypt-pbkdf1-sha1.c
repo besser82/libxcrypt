@@ -51,7 +51,8 @@
 # define CRYPT_SHA1_SALT_LENGTH 64
 #endif
 
-#define SHA1_SIZE 20
+#define SHA1_SIZE 20         /* size of raw SHA1 digest, 160 bits */
+#define SHA1_OUTPUT_SIZE 28  /* size of base64-ed output string */
 
 static const uint8_t itoa64[] =
   "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -97,7 +98,8 @@ crypt_sha1_rn (const char *phrase, const char *setting,
 {
   static const char *magic = "$sha1$";
 
-  if ((o_size < (strlen (magic) + 2 + 10 + CRYPT_SHA1_SALT_LENGTH + SHA1_SIZE)) ||
+  if ((o_size < (strlen (magic) + 2 + 10 + CRYPT_SHA1_SALT_LENGTH +
+                 SHA1_OUTPUT_SIZE)) ||
       s_size < SHA1_SIZE)
     {
       errno = ERANGE;
