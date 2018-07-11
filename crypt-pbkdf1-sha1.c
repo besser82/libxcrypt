@@ -67,34 +67,6 @@ to64 (uint8_t *s, unsigned long v, int n)
 }
 
 /*
- * This may be called from crypt_sha1 or gensalt.
- *
- * The value returned will be slightly less than <hint> which defaults
- * to 24680.  The goals are that the number of iterations should take
- * non-zero amount of time on a fast cpu while not taking insanely
- * long on a slow cpu.  The current default will take about 5 seconds
- * on a 100MHz sparc, and about 0.04 seconds on a 3GHz i386.
- * The number is varied to frustrate those attempting to generate a
- * dictionary of pre-computed hashes.
- */
-static unsigned long
-crypt_sha1_iterations (unsigned long hint)
-{
-  unsigned long random;
-
-  /*
-   * We treat CRYPT_SHA1_ITERATIONS as a hint.
-   * Make it harder for someone to pre-compute hashes for a
-   * dictionary attack by not using the same iteration count for
-   * every entry.
-   */
-  get_random_bytes (&random, sizeof (unsigned long));
-  if (hint == 0)
-    hint = CRYPT_SHA1_ITERATIONS;
-  return hint - (random % (hint / 4));
-}
-
-/*
  * UNIX password using hmac_sha1
  * This is PBKDF1 from RFC 2898, but using hmac_sha1.
  *
@@ -107,7 +79,7 @@ crypt_sha1_iterations (unsigned long hint)
  * 			have been applied to <digest>.  The number
  * 			should vary slightly for each password to make
  * 			it harder to generate a dictionary of
- * 			pre-computed hashes.  See crypt_sha1_iterations.
+ * 			pre-computed hashes.  See gensalt_sha1_rn.
  * 	<salt>		up to 64 bytes of random data, 8 bytes is
  * 			currently considered more than enough.
  *	<digest>	the hashed password.
@@ -234,34 +206,62 @@ gensalt_sha1_rn (unsigned long count,
                  const uint8_t *rbytes, size_t nrbytes,
                  uint8_t *output, size_t o_size)
 {
-  /* The salt can be up to 64 bytes, but 32
-     is considered enough for now.  */
-  const uint8_t saltlen = 16;
+  static_assert (sizeof (uint32_t) == 4,
+                 "space calculations below assume 8-bit bytes");
 
-  const size_t  enclen  = sizeof (unsigned long)*4/3;
-
-  if ((o_size < (size_t)(6 + CRYPT_SHA1_SALT_LENGTH + 2)) ||
-      ((nrbytes*4/3) < saltlen))
+  /* Make sure we have enough random bytes to use for the salt.
+     The format supports using up to 48 random bytes, but 12 is
+     enough.  We require another 4 bytes of randomness to perturb
+     'count' with.  */
+  if (nrbytes < 12 + 4)
     {
       errno = ERANGE;
       return;
     }
 
-  unsigned long c, encbuf;
-
-  unsigned int n = (unsigned int) snprintf((char *)output, o_size, "$sha1$%u$",
-                   (unsigned int)crypt_sha1_iterations(count));
-
-  for (c = 0; (c * sizeof (unsigned long)) + sizeof (unsigned long) <= nrbytes &&
-       (c * enclen) + enclen <= CRYPT_SHA1_SALT_LENGTH; ++c)
+  /* Make sure we have enough output space, given the amount of
+     randomness available.  $sha1$<10digits>$<(nrbytes-4)*4/3>$ */
+  if (o_size < (nrbytes - 4) * 4 / 3 + sizeof "$sha1$$$" + 10)
     {
-      memcpy (&encbuf, rbytes + (c * sizeof (unsigned long)),
-              sizeof (unsigned long));
-      to64 (output + n + (c * enclen), encbuf, (int)enclen);
+      errno = ERANGE;
+      return;
     }
 
-  output[n + (c * enclen)]     = '$';
-  output[n + (c * enclen) + 1] = '\0';
+  /*
+   * We treat 'count' as a hint.
+   * Make it harder for someone to pre-compute hashes for a
+   * dictionary attack by not using the same iteration count for
+   * every entry.
+   */
+  uint32_t rounds, random;
+  memcpy (&random, rbytes, 4);
+  if (count == 0)
+    count = CRYPT_SHA1_ITERATIONS;
+  if (count > UINT32_MAX)
+    count = UINT32_MAX;
+  rounds = (uint32_t) (count - (random % (count / 4)));
+
+  uint32_t encbuf;
+  int n = snprintf((char *)output, o_size, "$sha1$%u$", (unsigned int)rounds);
+  assert (n >= 1 && (size_t)n + 2 < o_size);
+
+  const uint8_t *r = rbytes + 4;
+  const uint8_t *rlim = rbytes + nrbytes;
+  uint8_t *o = output + n;
+  uint8_t *olim = output + n + CRYPT_SHA1_SALT_LENGTH;
+  if (olim + 2 > output + o_size)
+    olim = output + o_size - 2;
+
+  for (; r + 3 < rlim && o + 4 < olim; r += 3, o += 4)
+    {
+      encbuf = ((((uint32_t)r[0]) << 16) |
+                (((uint32_t)r[1]) <<  8) |
+                (((uint32_t)r[2]) <<  0));
+      to64 (o, encbuf, 4);
+    }
+
+  o[0] = '$';
+  o[1] = '\0';
 }
 
 #endif

@@ -54,7 +54,13 @@ static const char *const sunmd5_expected_output[] =
 };
 #endif
 #if INCLUDE_sha1
-#define pbkdf_expected_output 0  /* output is not deterministic */
+static const char *const pbkdf_expected_output[] =
+{
+  "$sha1$248488$ggu.H673kaZ5$",
+  "$sha1$248421$SWqudaxXA5L0$",
+  "$sha1$257243$RAtkIrDxEovH$",
+  "$sha1$250464$1j.eVxRfNAPO$",
+};
 #endif
 #if INCLUDE_sha256
 static const char *const sha256_expected_output[] =
@@ -131,7 +137,7 @@ static const struct testcase testcases[] =
   { "$md5",  sunmd5_expected_output,   27,  0 }, // SUNMD5
 #endif
 #if INCLUDE_sha1
-  { "$sha1", pbkdf_expected_output,    34, 74 }, // PBKDF with SHA1
+  { "$sha1", pbkdf_expected_output,    26, 34 }, // PBKDF with SHA1
 #endif
 #if INCLUDE_sha256
   { "$5$",   sha256_expected_output,   19,  0 }, // SHA-2-256
@@ -203,8 +209,7 @@ main (void)
                        tcase->prefix, ent, salt);
               status = 1;
             }
-          else if (entropy[ent] && tcase->expected_output &&
-                   strcmp (salt, tcase->expected_output[ent]))
+          else if (entropy[ent] &&  strcmp (salt, tcase->expected_output[ent]))
             {
               fprintf (stderr, "ERROR: %s/%u -> %s (expected %s)\n",
                        tcase->prefix, ent, salt, tcase->expected_output[ent]);

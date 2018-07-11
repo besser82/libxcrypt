@@ -5,8 +5,9 @@
 # name used for the 'crypt_fn' and 'gensalt_fn' entry points to the
 # relevant algorithm module; an optional suffix on the name of the
 # 'gensalt_fn'; the prefix used to identify the algorithm in hash
-# strings; the number of bytes of random data required to generate a
-# salt; and a set of flags.  Currently there are three flags: DEFAULT
+# strings; the number of bytes of random data that crypt_gensalt
+# should draw from the OS when its caller doesn't supply any;
+# and a set of flags.  Currently there are three flags: DEFAULT
 # means this is the hash to use when no prefix was supplied to
 # crypt_gensalt, STRONG means the hash is still considered strong
 # enough to use for newly hashed passwords, and GLIBC means the hash
@@ -33,8 +34,8 @@ sha512   :          $6$       15       STRONG,GLIBC
 sha256   :          $5$       15       STRONG,GLIBC
 md5      :          $1$       9        GLIBC
 sunmd5   :          $md5      8        :
-sha1     :          $sha1     48       :
-nthash   :          $3$       16       :
+sha1     :          $sha1     20       :
+nthash   :          $3$       7        :
 des_xbsd :          _         3        :
 des_big  :          :         2        :
 des      :          :         2        GLIBC
