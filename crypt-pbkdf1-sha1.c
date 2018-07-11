@@ -109,7 +109,6 @@ crypt_sha1_rn (const char *phrase, const char *setting,
   unsigned long ul;
   size_t sl;
   size_t pl;
-  char *salt;
   int dl;
   unsigned long iterations;
   unsigned long i;
@@ -148,32 +147,27 @@ crypt_sha1_rn (const char *phrase, const char *setting,
       return;
     }
 
-  /* Get the length of the actual salt */
   sl = (size_t)(sp - setting);
-
-  salt = malloc (sl + 1);
-  strncpy (salt, setting, sl);
-  salt[sl] = '\0';
-
   pl = strlen (phrase);
 
   /*
    * Now get to work...
    * Prime the pump with <salt><magic><iterations>
    */
-  dl = snprintf ((char *)output, o_size, "%s%s%lu",
-                 salt, magic, iterations);
+  dl = snprintf ((char *)output, o_size, "%.*s%s%lu",
+                 (int)sl, setting, magic, iterations);
   /*
    * Then hmac using <phrase> as key, and repeat...
    */
-  hmac_sha1_process_data ((const unsigned char *)output, (size_t)dl, pwu, pl, hmac_buf);
+  hmac_sha1_process_data ((const unsigned char *)output, (size_t)dl,
+                          pwu, pl, hmac_buf);
   for (i = 1; i < iterations; ++i)
     {
       hmac_sha1_process_data (hmac_buf, SHA1_SIZE, pwu, pl, hmac_buf);
     }
   /* Now output... */
-  pl = (size_t)snprintf ((char *)output, o_size, "%s%lu$%s$",
-                         magic, iterations, salt);
+  pl = (size_t)snprintf ((char *)output, o_size, "%s%lu$%.*s$",
+                         magic, iterations, (int)sl, setting);
   ep = output + pl;
 
   /* Every 3 bytes of hash gives 24 bits which is 4 base64 chars */
@@ -195,8 +189,6 @@ crypt_sha1_rn (const char *phrase, const char *setting,
 
   /* Don't leave anything around in vm they could use. */
   XCRYPT_SECURE_MEMSET (scratch, s_size)
-  XCRYPT_SECURE_MEMSET (salt, sl)
-  free (salt);
 }
 
 /* Modified excerpt from:
