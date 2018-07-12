@@ -54,6 +54,7 @@
 /test-alg-sha256
 /test-alg-sha512
 /test-badsalt
+/test-badsetting
 /test-bigcrypt
 /test-byteorder
 /test-crypt-bcrypt
@@ -67,6 +68,7 @@
 /test-des-obsolete
 /test-des-obsolete_r
 /test-gensalt
+/test-short-outbuf
 
 # backup-files
 
