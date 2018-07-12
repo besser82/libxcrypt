@@ -27,66 +27,97 @@ struct testcase
   int osize;   /* 0 = use CRYPT_GENSALT_OUTPUT_SIZE */
 };
 
-/* Note: because all of the test strings below are invalid settings,
-   they can all be tested unconditionally -- it doesn't matter whether
-   the specific hash algorithm that they are invalid for is actually
-   configured in.  */
-
+/* For each included hash, test malformed versions of its prefix
+   and invalid combinations of other arguments to gensalt.
+   For each excluded hash, test that a correct gensalt invocation
+   will still be rejected.  */
 static const struct testcase testcases[] = {
   /* DES (traditional and/or bigcrypt) -- count is ignored */
+#if INCLUDE_des || INCLUDE_des_big
   { "!a", 0, 0, 0 },            // invalid first character
   { "a!", 0, 0, 0 },            // invalid second character
   { "xx", 1, 0, 0 },            // doesn't accept variable counts
   { "xx", 0, 1, 0 },            // inadequate rbytes
   { "xx", 0, 0, 1 },            // inadequate osize
-
+#else
+  { "",   0, 0, 0 },
+  { "xx", 0, 0, 0 },
+#endif
 
   /* BSDi extended DES  */
+#if INCLUDE_des_xbsd
   { "_", 2,        0, 0 },      // even number
   { "_", 16777217, 0, 0 },      // too large
   { "_", 0,        2, 0 },      // inadequate rbytes
   { "_", 0,        0, 4 },      // inadequate osize
-
+#else
+  { "_", 0, 0, 0 },
+#endif
 
   /* MD5 (FreeBSD) */
+#if INCLUDE_md5
   { "$1",  0, 0, 0 },           // truncated prefix
   { "$1$", 1, 0, 0 },           // doesn't accept variable counts
   { "$1$", 0, 2, 0 },           // inadequate rbytes
   { "$1$", 0, 0, 4 },           // inadequate osize
+#else
+  { "$1$", 0, 0, 0 },
+#endif
 
   /* MD5 (Sun) */
+#if INCLUDE_sunmd5
   { "$m",   0,          0, 0 }, // truncated prefix
   { "$md",  0,          0, 0 },
   { "$md5", 4294963200, 0, 0 }, // too large
   { "$md5", 0,          2, 0 }, // inadequate rbytes
   { "$md5", 0,          0, 4 }, // inadequate osize
+#else
+  { "$md5", 0, 0, 0 },
+#endif
 
   /* NTHASH */
+#if INCLUDE_nthash
   { "$3",  0, 0, 0 },           // truncated prefix
   { "$3$", 0, 0, 4 },           // inadequate osize
+#else
+  { "$3$", 0, 0, 0 },
+#endif
 
   /* SHA1 */
+#if INCLUDE_sha1
   { "$s",   0, 0, 0 },          // truncated prefix
   { "$sh",  0, 0, 0 },
   { "$sha", 0, 0, 0 },
   { "$sha1", 0, 2, 0 },         // inadequate rbytes
   { "$sha1", 0, 0, 4 },         // inadequate osize
+#else
+  { "$sha1", 0, 0, 0 },
+#endif
 
   /* SHA256 */
+#if INCLUDE_sha256
   { "$5",  0,          0, 0 },  // truncated prefix
   { "$5$", 999,        0, 0 },  // too small
   { "$5$", 1000000000, 0, 0 },  // too large
   { "$5$", 0,          2, 0 },  // inadequate rbytes
   { "$5$", 0,          0, 4 },  // inadequate osize
+#else
+  { "$5$", 0, 0, 0 },
+#endif
 
   /* SHA512 */
+#if INCLUDE_sha512
   { "$6",  0,          0, 0 },  // truncated prefix
   { "$6$", 999,        0, 0 },  // too small
   { "$6$", 1000000000, 0, 0 },  // too large
   { "$6$", 0,          2, 0 },  // inadequate rbytes
   { "$6$", 0,          0, 4 },  // inadequate osize
+#else
+  { "$6$", 0, 0, 0 },
+#endif
 
   /* bcrypt */
+#if INCLUDE_bcrypt
   { "$2",   0,  0, 0 },         // truncated prefix
   { "$2a",  0,  0, 0 },
   { "$2b",  0,  0, 0 },
@@ -96,6 +127,12 @@ static const struct testcase testcases[] = {
   { "$2b$", 32, 0, 0 },         // too large
   { "$2b$", 0,  2, 0 },         // inadequate rbytes
   { "$2b$", 0,  0, 4 },         // inadequate osize
+#else
+  { "$2a$", 0, 0, 0 },
+  { "$2b$", 0, 0, 0 },
+  { "$2x$", 0, 0, 0 },
+  { "$2y$", 0, 0, 0 },
+#endif
 };
 
 static void
