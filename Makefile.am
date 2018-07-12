@@ -127,7 +127,8 @@ check_PROGRAMS = \
 	test-crypt-pbkdf1-sha1 test-crypt-sha256 test-crypt-sha512 \
 	test-crypt-sunmd5 \
 	test-byteorder test-badsalt test-badsetting test-gensalt \
-	test-short-outbuf
+	test-short-outbuf \
+        test-getrandom-interface test-getrandom-fallbacks
 
 if ENABLE_OBSOLETE_API
 libcrypt_la_SOURCES += crypt-des-obsolete.c
@@ -183,6 +184,13 @@ test_alg_sha1_LDADD = alg-sha1.lo
 test_alg_sha256_LDADD = alg-sha256.lo
 test_alg_sha512_LDADD = alg-sha512.lo
 
+test_getrandom_interface_LDADD = randombytes.lo
+test_getrandom_fallbacks_LDADD = randombytes.lo
+if HAVE_LD_WRAP
+test_getrandom_fallbacks_LDFLAGS = \
+  -Wl,--wrap,getentropy -Wl,--wrap,getrandom -Wl,--wrap,syscall \
+  -Wl,--wrap,open -Wl,--wrap,read -Wl,--wrap,close
+endif
 
 # Every object file depends on crypt-symbol-vers.h and crypt-hashes.h,
 # which are generated files, so automatic dependency generation is not

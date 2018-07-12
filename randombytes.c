@@ -61,6 +61,8 @@
 bool
 get_random_bytes(void *buf, size_t buflen)
 {
+  if (buflen == 0)
+    return true;
   if (buflen > 256)
     {
       errno = EIO;

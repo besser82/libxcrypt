@@ -68,6 +68,8 @@
 /test-des-obsolete
 /test-des-obsolete_r
 /test-gensalt
+/test-getrandom-fallbacks
+/test-getrandom-interface
 /test-short-outbuf
 
 # backup-files
