@@ -1,6 +1,6 @@
 /* Test rejection of ill-formed setting strings.
 
-   Written by Zack Weinberg <zackw at panix.com> in 2017.
+   Written by Zack Weinberg <zackw at panix.com> in 2018.
    To the extent possible under law, Zack Weinberg has waived all
    copyright and related or neighboring rights to this work.
 
