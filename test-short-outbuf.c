@@ -44,8 +44,8 @@ main (void)
           ok = false;
         }
 
-      printf ("Test %u.0: %s, expected: \"%-2s\", got: \"%-2s\"\n",
-              (unsigned int)(i + 1), result, testcases[i].exp_rn, *outbuf);
+      printf ("Test %zu.0: %s, expected: \"%-2s\", got: \"%-2s\"\n",
+              i + 1, result, testcases[i].exp_rn, *outbuf);
 
       crypt_ra ("@@", "@@", (void **) outbuf, (int *) j);
 
@@ -59,8 +59,8 @@ main (void)
           ok = false;
         }
 
-      printf ("Test %u.1: %s, expected: \"%-2s\", got: \"%-2s\"\n",
-              (unsigned int)(i + 1), result, testcases[i].exp_ra, *outbuf);
+      printf ("Test %zu.1: %s, expected: \"%-2s\", got: \"%-2s\"\n",
+              i + 1, result, testcases[i].exp_ra, *outbuf);
 
       free (j);
       free (*outbuf);

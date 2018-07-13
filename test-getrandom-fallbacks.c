@@ -170,6 +170,19 @@ __wrap_open (const char *path, int flags, mode_t mode)
   return ret;
 }
 
+extern int __wrap_open64 (const char *, int, mode_t);
+extern int __real_open64 (const char *, int, mode_t);
+int
+__wrap_open64 (const char *path, int flags, mode_t mode)
+{
+  int ret = __real_open64 (path, flags, mode);
+  if (ret == -1)
+    return ret;
+  if (!strcmp (path, "/dev/urandom"))
+    urandom_fd = ret;
+  return ret;
+}
+
 extern int __wrap_close (int);
 extern int __real_close (int);
 int

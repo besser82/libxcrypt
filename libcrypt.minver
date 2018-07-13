@@ -31,23 +31,24 @@
 riscv64.*	GLIBC_2.27
 nios2.*		GLIBC_2.21
 microblaze.*	GLIBC_2.18
-powerpc64le.*	GLIBC_2.17
 aarch64.*	GLIBC_2.17
+powerpc64le.*	GLIBC_2.17
 x86_64.*	GLIBC_2.16	/* x32 */ __x86_64__ && ULONG_MAX == UINT_MAX
-tilepro.*	GLIBC_2.12
 tilegx.*	GLIBC_2.12
-m68k.*		GLIBC_2.4	/* coldfire */ defined __mcoldfire__
+tilepro.*	GLIBC_2.12
 arm.*		GLIBC_2.4
+m68k.*		GLIBC_2.4	/* coldfire */ defined __mcoldfire__
 powerpc64.*	GLIBC_2.3
-x86_64.*	GLIBC_2.2.5
+x86_64.*	GLIBC_2.2.5     /* 64 */ defined __x86_64__
 s390x.*		GLIBC_2.2
-sparc.*		GLIBC_2.0
-sh.*		GLIBC_2.0
-s390.*		GLIBC_2.0
-powerpc.*	GLIBC_2.0
-mips.*		GLIBC_2.0
-m68k.*		GLIBC_2.0
-ia64.*		GLIBC_2.0
-i[3-9]86.*	GLIBC_2.0
-hppa.*		GLIBC_2.0
 alpha.*		GLIBC_2.0
+hppa.*		GLIBC_2.0
+i[3-9]86.*	GLIBC_2.0
+ia64.*		GLIBC_2.0
+m68k.*		GLIBC_2.0
+mips.*		GLIBC_2.0
+powerpc.*	GLIBC_2.0
+s390.*		GLIBC_2.0
+sh.*		GLIBC_2.0
+sparc.*		GLIBC_2.0
+x86_64.*        GLIBC_2.0       /* 32 */

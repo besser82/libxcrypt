@@ -179,7 +179,7 @@ static const struct testcase testcases[] =
   // SHA1/PBKDF always emits a round count, but we need to test its
   // behavior on very large inputs.  (This number is the largest
   // supported round count.)
-  { "$md5", sunmd5_expected_output_r,  32, 0, 4294963199 },
+  { "$md5", sunmd5_expected_output_r,  32, 0, 4294963199ul },
 #endif
 #if INCLUDE_sha1
   { "$sha1", sha1_expected_output,     26, 34, 0 },

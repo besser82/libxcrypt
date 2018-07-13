@@ -204,7 +204,7 @@ test_getrandom_fallbacks_LDADD = randombytes.lo
 if HAVE_LD_WRAP
 test_getrandom_fallbacks_LDFLAGS = \
   -Wl,--wrap,getentropy -Wl,--wrap,getrandom -Wl,--wrap,syscall \
-  -Wl,--wrap,open -Wl,--wrap,read -Wl,--wrap,close
+  -Wl,--wrap,open -Wl,--wrap,open64 -Wl,--wrap,read -Wl,--wrap,close
 endif
 
 # Every object file depends on crypt-symbol-vers.h and crypt-hashes.h,
