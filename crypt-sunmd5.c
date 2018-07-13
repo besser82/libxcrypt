@@ -299,7 +299,7 @@ gensalt_sunmd5_rn (unsigned long count,
      bits of entropy are smuggled into the salt via the round number).  */
   if (count < 32768)
     count = 32768;
-  else if (count + 65536 > SUNMD5_MAX_ROUNDS)
+  else if (count > SUNMD5_MAX_ROUNDS - 65536)
     count = SUNMD5_MAX_ROUNDS - 65536;
 
   count += ((unsigned int)rbytes[0]) << 8;
