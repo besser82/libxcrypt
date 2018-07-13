@@ -147,6 +147,7 @@ AC_CHECK_FUNCS_ONCE([
   getentropy
   getrandom
   memset_s
+  open64
   syscall
 ])
 

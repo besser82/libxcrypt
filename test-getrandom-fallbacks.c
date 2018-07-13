@@ -170,6 +170,7 @@ __wrap_open (const char *path, int flags, mode_t mode)
   return ret;
 }
 
+#ifdef HAVE_OPEN64
 extern int __wrap_open64 (const char *, int, mode_t);
 extern int __real_open64 (const char *, int, mode_t);
 int
@@ -182,6 +183,7 @@ __wrap_open64 (const char *path, int flags, mode_t mode)
     urandom_fd = ret;
   return ret;
 }
+#endif
 
 extern int __wrap_close (int);
 extern int __real_close (int);
