@@ -3,6 +3,37 @@ libxcrypt NEWS -- history of user-visible changes.
 Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
+Version 4.1.0
+* Fix spelling of SUSE.
+* Lower the minimum required automake version to 1.14.
+* Fix build with USE_SWAPCONTEXT turned off.
+* Extend --enable-weak-hashes configure option to accept optional
+  "glibc" parameter.  When specified, it enables only those of
+  weak hashes that are supported by historic versions of the
+  GNU libc.
+* Fix the leak of obtained random bytes.
+* Check expected output strings for deterministic methods.
+* Fix memory leak in crypt_sha1_rn.
+* Fix read of random bytes out of bounds in gensalt_sha1_rn.
+* Make it possible to disable individual hashes at configure time.
+  The default is --enable-hashes=all.  --enable-hashes=strong is the
+  equivalent of the old --disable-weak-hashes.  You could even do
+  --enable-hashes=bcrypt,des to get a binary-compatible libcrypt.so.1
+  that still supports almost nothing other than bcrypt.
+* Make salt validation pickier.
+* Replace crypt-sunmd5.c with BSD-licensed cleanroom reimplementation.
+* Make crypt_gensalt for $sha1 deterministic.
+* Fix incorrect output-size computation in crypt_sha1_rn.
+* Add docs for SHA1, MD5/Sun, NTHASH.
+* Introduce CRYPT_GENSALT_IMPLEMENTS_* feature test macros.
+* Install libcrypt.pc symlink along with libxcrypt.pc.
+* Extend --enable-obsolete-api configure option.
+  Make vendor specific parts of compatibility ABI that are enabled by
+  --enable-obsolete-api option configurable.
+  This allows vendors to enable only those parts of compatibility ABI
+  that are relevant to them.
+* Extend overall test coverage.
+
 Version 4.0.1
 * Fixes for GCC v8.x
 * Add symbol version for riscv64
