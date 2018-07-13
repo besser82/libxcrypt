@@ -30,6 +30,7 @@
 #include "crypt-port.h"
 #include "crypt-private.h"
 #include "alg-hmac-sha1.h"
+#include "byteorder.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -227,8 +228,8 @@ gensalt_sha1_rn (unsigned long count,
    * dictionary attack by not using the same iteration count for
    * every entry.
    */
-  uint32_t rounds, random;
-  memcpy (&random, rbytes, 4);
+  uint32_t rounds, random = le32_to_cpu (rbytes);
+
   if (count == 0)
     count = CRYPT_SHA1_ITERATIONS;
   if (count > UINT32_MAX)
