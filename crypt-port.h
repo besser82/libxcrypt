@@ -250,7 +250,7 @@ void _xcrypt_secure_memset (void *s, size_t len)
 #define sha512_process_bytes     _crypt_sha512_process_bytes
 #endif
 
-#if INCLUDE_sha256 || INCLUDE_sha512
+#if INCLUDE_md5 || INCLUDE_sha256 || INCLUDE_sha512
 #define gensalt_sha_rn           _crypt_gensalt_sha_rn
 #endif
 
