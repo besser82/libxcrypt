@@ -18,10 +18,14 @@
 #   <https://www.gnu.org/licenses/>.
 
 BEGIN {
-    enable_all    = 0
-    enable_strong = 0
-    enable_glibc  = 0
-    enable_some   = 0
+    enable_all      = 0
+    enable_strong   = 0
+    enable_glibc    = 0
+    enable_freebsd  = 0
+    enable_netbsd   = 0
+    enable_openbsd  = 0
+    enable_osx      = 0
+    enable_solaris  = 0
     error = 0
     split(SELECTED_HASHES, selected_hashes_list, ",")
     for (i in selected_hashes_list) {
@@ -32,12 +36,24 @@ BEGIN {
             enable_strong = 1
         } else if (h == "glibc") {
             enable_glibc = 1
+        } else if (h == "freebsd") {
+            enable_freebsd = 1
+        } else if (h == "netbsd") {
+            enable_netbsd = 1
+        } else if (h == "openbsd") {
+            enable_openbsd = 1
+        } else if (h == "osx") {
+            enable_osx = 1
+        } else if (h == "solaris") {
+            enable_solaris = 1
         } else {
             enable_some = 1
             selected_hashes[h] = 1
         }
     }
-    if (enable_all && (enable_strong || enable_glibc || enable_some)) {
+    if (enable_all && (enable_strong  || enable_glibc  || enable_some    || \
+                       enable_freebsd || enable_netbsd || enable_openbsd || \
+                       enable_osx     || enable_solaris)) {
         error = 1
         exit 1
     }
@@ -59,6 +75,16 @@ BEGIN {
             if (flag == "STRONG" && enable_strong) {
                 enabled_hashes[$1] = 1
             } else if (flag == "GLIBC" && enable_glibc) {
+                enabled_hashes[$1] = 1
+            } else if (flag == "FREEBSD" && enable_freebsd) {
+                enabled_hashes[$1] = 1
+            } else if (flag == "NETBSD" && enable_netbsd) {
+                enabled_hashes[$1] = 1
+            } else if (flag == "OPENBSD" && enable_openbsd) {
+                enabled_hashes[$1] = 1
+            } else if (flag == "OSX" && enable_osx) {
+                enabled_hashes[$1] = 1
+            } else if (flag == "SOLARIS" && enable_solaris) {
                 enabled_hashes[$1] = 1
             }
         }

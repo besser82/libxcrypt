@@ -82,7 +82,10 @@ BEGIN {
                        FILENAME, default_prefix_line) > "/dev/stderr"
                 error = 1
             }
-        } else if (flag == "STRONG" || flag == "GLIBC") {
+        } else if (flag == "STRONG"  || flag == "GLIBC"  || \
+                   flag == "FREEBSD" || flag == "NETBSD" || \
+                   flag == "OPENBSD" || flag == "OSX"    || \
+                   flag == "SOLARIS") {
             # handled in sel-hashes.awk
         } else {
             printf("%s:%d: unrecognized flag %s\n", FILENAME, NR, flag) \
