@@ -1,7 +1,9 @@
 /* One way encryption based on the SHA512-based Unix crypt implementation.
  *
  * Written by Ulrich Drepper <drepper at redhat.com> in 2007 [1].
- * To the extent possible under law, Ulrich Drepper has waived all
+ * Modified by Zack Weinberg <zackw at panix.com> in 2017, 2018.
+ * Composed by Björn Esser <besser82 at fedoraproject.org> in 2018.
+ * To the extent possible under law, the named authors have waived all
  * copyright and related or neighboring rights to this work.
  *
  * See https://creativecommons.org/publicdomain/zero/1.0/ for further
@@ -39,9 +41,36 @@ static const char sha512_rounds_prefix[] = "rounds=";
 /* Maximum number of rounds.  */
 #define ROUNDS_MAX 999999999
 
+/* The maximum possible length of a SHA512-hashed password string,
+   including the terminating NUL character.  Prefix (including its NUL)
+   + rounds tag ("rounds=$" = "rounds=\0") + strlen(ROUNDS_MAX)
+   + salt (up to SALT_LEN_MAX chars) + '$' + hash (86 chars).  */
+
+#define LENGTH_OF_NUMBER(n) (sizeof #n - 1)
+
+#define SHA512_HASH_LENGTH \
+  (sizeof (sha512_salt_prefix) + sizeof (sha512_rounds_prefix) + \
+   LENGTH_OF_NUMBER (ROUNDS_MAX) + SALT_LEN_MAX + 1 + 86)
+
+static_assert (SHA512_HASH_LENGTH <= CRYPT_OUTPUT_SIZE,
+               "CRYPT_OUTPUT_SIZE is too small for SHA512");
+
+/* A sha512_buffer holds all of the sensitive intermediate data.  */
+struct sha512_buffer
+{
+  struct sha512_ctx ctx;
+  uint8_t result[64];
+  uint8_t p_bytes[64];
+  uint8_t s_bytes[64];
+};
+
+static_assert (sizeof (struct sha512_buffer) <= ALG_SPECIFIC_SIZE,
+               "ALG_SPECIFIC_SIZE is too small for SHA512");
+
+
 /* Table with characters for base64 transformation.  */
-static const char b64t[64] =
-"./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+static const char b64t[] =
+  "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 /* Subroutine of _xcrypt_crypt_sha512_rn: Feed CTX with LEN bytes of a
    virtual byte sequence consisting of BLOCK repeated over and over
@@ -56,23 +85,30 @@ sha512_process_recycled_bytes (unsigned char block[64], size_t len,
   sha512_process_bytes (block, cnt, ctx);
 }
 
-static char *
-sha512_crypt_r (const char *key, const char *salt, char *buffer, int buflen)
+void
+crypt_sha512_rn (const char *phrase, size_t phr_size,
+                 const char *setting, size_t ARG_UNUSED (set_size),
+                 uint8_t *output, size_t out_size,
+                 void *scratch, size_t scr_size)
 {
-  unsigned char alt_result[64]
-    __attribute__ ((__aligned__ (__alignof__ (uint64_t))));
-  unsigned char temp_result[64]
-    __attribute__ ((__aligned__ (__alignof__ (uint64_t))));
-  struct sha512_ctx ctx;
-  struct sha512_ctx alt_ctx;
-  size_t salt_len;
-  size_t key_len;
+  /* This shouldn't ever happen, but...  */
+  if (out_size < SHA512_HASH_LENGTH
+      || scr_size < sizeof (struct sha512_buffer))
+    {
+      errno = ERANGE;
+      return;
+    }
+
+  struct sha512_buffer *buf = scratch;
+  struct sha512_ctx *ctx = &buf->ctx;
+  uint8_t *result = buf->result;
+  uint8_t *p_bytes = buf->p_bytes;
+  uint8_t *s_bytes = buf->s_bytes;
+  char *cp = (char *)output;
+  const char *salt = setting;
+
+  size_t salt_size;
   size_t cnt;
-  char *cp;
-  char *copied_key = NULL;
-  char *copied_salt = NULL;
-  char *p_bytes;
-  char *s_bytes;
   /* Default number of rounds.  */
   size_t rounds = ROUNDS_DEFAULT;
   bool rounds_custom = false;
@@ -87,227 +123,191 @@ sha512_crypt_r (const char *key, const char *salt, char *buffer, int buflen)
       == 0)
     {
       const char *num = salt + sizeof (sha512_rounds_prefix) - 1;
+      /* Do not allow an explicit setting of zero rounds, nor of the
+         default number of rounds, nor leading zeroes on the rounds.  */
+      if (!(*num >= '1' && *num <= '9'))
+        {
+          errno = EINVAL;
+          return;
+        }
+
+      errno = 0;
       char *endp;
-      unsigned long int srounds = strtoul (num, &endp, 10);
-      if (*endp == '$')
-	{
-	  salt = endp + 1;
-	  rounds = MAX (ROUNDS_MIN, MIN (srounds, ROUNDS_MAX));
-	  rounds_custom = true;
-	}
+      rounds = strtoul (num, &endp, 10);
+      if (endp == num || *endp != '$'
+          || rounds < ROUNDS_MIN
+          || rounds > ROUNDS_MAX
+          || errno)
+        {
+          errno = EINVAL;
+          return;
+        }
+      salt = endp + 1;
+      rounds_custom = true;
     }
 
-  salt_len = MIN (strcspn (salt, "$"), SALT_LEN_MAX);
-  key_len = strlen (key);
-
-  if ((key - (char *) 0) % __alignof__ (uint64_t) != 0)
+  salt_size = strspn (salt, b64t);
+  if (salt[salt_size] && salt[salt_size] != '$')
     {
-      char *tmp = (char *) alloca (key_len + __alignof__ (uint64_t));
-      key = copied_key =
-	memcpy (tmp + __alignof__ (uint64_t)
-		- (tmp - (char *) 0) % __alignof__ (uint64_t),
-		key, key_len);
+      errno = EINVAL;
+      return;
     }
+  if (salt_size > SALT_LEN_MAX)
+    salt_size = SALT_LEN_MAX;
+  phr_size = strlen (phrase);
 
-  if ((salt - (char *) 0) % __alignof__ (uint64_t) != 0)
-    {
-      char *tmp = (char *) alloca (salt_len + __alignof__ (uint64_t));
-      salt = copied_salt =
-	memcpy (tmp + __alignof__ (uint64_t)
-		- (tmp - (char *) 0) % __alignof__ (uint64_t),
-		salt, salt_len);
-    }
-
-  /* Prepare for the real work.  */
-  sha512_init_ctx (&ctx);
-
-  /* Add the key string.  */
-  sha512_process_bytes (key, key_len, &ctx);
-
-  /* The last part is the salt string.  This must be at most 16
-     characters and it ends at the first `$' character (for
-     compatibility with existing implementations).  */
-  sha512_process_bytes (salt, salt_len, &ctx);
-
-
-  /* Compute alternate SHA512 sum with input KEY, SALT, and KEY.  The
+  /* Compute alternate SHA512 sum with input PHRASE, SALT, and PHRASE.  The
      final result will be added to the first context.  */
-  sha512_init_ctx (&alt_ctx);
+  sha512_init_ctx (ctx);
 
-  /* Add key.  */
-  sha512_process_bytes (key, key_len, &alt_ctx);
+  /* Add phrase.  */
+  sha512_process_bytes (phrase, phr_size, ctx);
 
   /* Add salt.  */
-  sha512_process_bytes (salt, salt_len, &alt_ctx);
+  sha512_process_bytes (salt, salt_size, ctx);
 
-  /* Add key again.  */
-  sha512_process_bytes (key, key_len, &alt_ctx);
+  /* Add phrase again.  */
+  sha512_process_bytes (phrase, phr_size, ctx);
 
   /* Now get result of this (64 bytes) and add it to the other
      context.  */
-  sha512_finish_ctx (&alt_ctx, alt_result);
+  sha512_finish_ctx (ctx, result);
 
-  /* Add for any character in the key one byte of the alternate sum.  */
-  for (cnt = key_len; cnt > 64; cnt -= 64)
-    sha512_process_bytes (alt_result, 64, &ctx);
-  sha512_process_bytes (alt_result, cnt, &ctx);
+  /* Prepare for the real work.  */
+  sha512_init_ctx (ctx);
 
-  /* Take the binary representation of the length of the key and for every
-     1 add the alternate sum, for every 0 the key.  */
-  for (cnt = key_len; cnt > 0; cnt >>= 1)
+  /* Add the phrase string.  */
+  sha512_process_bytes (phrase, phr_size, ctx);
+
+  /* The last part is the salt string.  This must be at most 8
+     characters and it ends at the first `$' character (for
+     compatibility with existing implementations).  */
+  sha512_process_bytes (salt, salt_size, ctx);
+
+  /* Add for any character in the phrase one byte of the alternate sum.  */
+  for (cnt = phr_size; cnt > 64; cnt -= 64)
+    sha512_process_bytes (result, 64, ctx);
+  sha512_process_bytes (result, cnt, ctx);
+
+  /* Take the binary representation of the length of the phrase and for every
+     1 add the alternate sum, for every 0 the phrase.  */
+  for (cnt = phr_size; cnt > 0; cnt >>= 1)
     if ((cnt & 1) != 0)
-      sha512_process_bytes (alt_result, 64, &ctx);
+      sha512_process_bytes (result, 64, ctx);
     else
-      sha512_process_bytes (key, key_len, &ctx);
+      sha512_process_bytes (phrase, phr_size, ctx);
 
   /* Create intermediate result.  */
-  sha512_finish_ctx (&ctx, alt_result);
+  sha512_finish_ctx (ctx, result);
 
   /* Start computation of P byte sequence.  */
-  sha512_init_ctx (&alt_ctx);
+  sha512_init_ctx (ctx);
 
   /* For every character in the password add the entire password.  */
-  for (cnt = 0; cnt < key_len; ++cnt)
-    sha512_process_bytes (key, key_len, &alt_ctx);
+  for (cnt = 0; cnt < phr_size; ++cnt)
+    sha512_process_bytes (phrase, phr_size, ctx);
 
   /* Finish the digest.  */
-  sha512_finish_ctx (&alt_ctx, temp_result);
-
-  /* Create byte sequence P.  */
-  cp = p_bytes = alloca (key_len);
-  for (cnt = key_len; cnt >= 64; cnt -= 64)
-    cp = mempcpy (cp, temp_result, 64);
-  memcpy (cp, temp_result, cnt);
+  sha512_finish_ctx (ctx, p_bytes);
 
   /* Start computation of S byte sequence.  */
-  sha512_init_ctx (&alt_ctx);
+  sha512_init_ctx (ctx);
 
   /* For every character in the password add the entire password.  */
-  for (cnt = 0; cnt < 16 + alt_result[0]; ++cnt)
-    sha512_process_bytes (salt, salt_len, &alt_ctx);
+  for (cnt = 0; cnt < (size_t) 16 + (size_t) result[0]; ++cnt)
+    sha512_process_bytes (salt, salt_size, ctx);
 
   /* Finish the digest.  */
-  sha512_finish_ctx (&alt_ctx, temp_result);
-
-  /* Create byte sequence S.  */
-  cp = s_bytes = alloca (salt_len);
-  for (cnt = salt_len; cnt >= 64; cnt -= 64)
-    cp = mempcpy (cp, temp_result, 64);
-  memcpy (cp, temp_result, cnt);
+  sha512_finish_ctx (ctx, s_bytes);
 
   /* Repeatedly run the collected hash value through SHA512 to burn
      CPU cycles.  */
   for (cnt = 0; cnt < rounds; ++cnt)
     {
       /* New context.  */
-      sha512_init_ctx (&ctx);
+      sha512_init_ctx (ctx);
 
-      /* Add key or last result.  */
+      /* Add phrase or last result.  */
       if ((cnt & 1) != 0)
-	sha512_process_bytes (p_bytes, key_len, &ctx);
+        sha512_process_recycled_bytes (p_bytes, phr_size, ctx);
       else
-	sha512_process_bytes (alt_result, 64, &ctx);
+        sha512_process_bytes (result, 64, ctx);
 
       /* Add salt for numbers not divisible by 3.  */
       if (cnt % 3 != 0)
-	sha512_process_bytes (s_bytes, salt_len, &ctx);
+        sha512_process_recycled_bytes (s_bytes, salt_size, ctx);
 
-      /* Add key for numbers not divisible by 7.  */
+      /* Add phrase for numbers not divisible by 7.  */
       if (cnt % 7 != 0)
-	sha512_process_bytes (p_bytes, key_len, &ctx);
+        sha512_process_recycled_bytes (p_bytes, phr_size, ctx);
 
-      /* Add key or last result.  */
+      /* Add phrase or last result.  */
       if ((cnt & 1) != 0)
-	sha512_process_bytes (alt_result, 64, &ctx);
+        sha512_process_bytes (result, 64, ctx);
       else
-	sha512_process_bytes (p_bytes, key_len, &ctx);
+        sha512_process_recycled_bytes (p_bytes, phr_size, ctx);
 
       /* Create intermediate result.  */
-      sha512_finish_ctx (&ctx, alt_result);
+      sha512_finish_ctx (ctx, result);
     }
 
-  /* Now we can construct the result string.  It consists of three
-     parts.  */
-  cp = __stpncpy (buffer, sha512_salt_prefix, MAX (0, buflen));
-  buflen -= sizeof (sha512_salt_prefix) - 1;
+  /* Now we can construct the result string.  It consists of four
+     parts, one of which is optional.  We already know that buflen is
+     at least sha512_hash_length, therefore none of the string bashing
+     below can overflow the buffer. */
+
+  memcpy (cp, sha512_salt_prefix, sizeof (sha512_salt_prefix) - 1);
+  cp += sizeof (sha512_salt_prefix) - 1;
 
   if (rounds_custom)
     {
-      int n = snprintf (cp, MAX (0, buflen), "%s%zu$",
-			sha512_rounds_prefix, rounds);
+      int n = snprintf (cp,
+                        SHA512_HASH_LENGTH - (sizeof (sha512_salt_prefix) - 1),
+                        "%s%zu$", sha512_rounds_prefix, rounds);
       cp += n;
-      buflen -= n;
     }
 
-  cp = __stpncpy (cp, salt, MIN ((size_t) MAX (0, buflen), salt_len));
-  buflen -= MIN ((size_t) MAX (0, buflen), salt_len);
+  memcpy (cp, salt, salt_size);
+  cp += salt_size;
+  *cp++ = '$';
 
-  if (buflen > 0)
-    {
-      *cp++ = '$';
-      --buflen;
-    }
-
-#define b64_from_24bit(B2, B1, B0, N)					      \
-  do {									      \
-    unsigned int w = ((B2) << 16) | ((B1) << 8) | (B0);			      \
-    int n = (N);							      \
-    while (n-- > 0 && buflen > 0)					      \
-      {									      \
-	*cp++ = b64t[w & 0x3f];						      \
-	--buflen;							      \
-	w >>= 6;							      \
-      }									      \
+#define b64_from_24bit(B2, B1, B0, N)                   \
+  do {                                                  \
+    unsigned int w = ((((unsigned int)(B2)) << 16) |    \
+                      (((unsigned int)(B1)) << 8) |     \
+                      ((unsigned int)(B0)));            \
+    int n = (N);                                        \
+    while (n-- > 0)                                     \
+      {                                                 \
+        *cp++ = b64t[w & 0x3f];                         \
+        w >>= 6;                                        \
+      }                                                 \
   } while (0)
 
-  b64_from_24bit (alt_result[0], alt_result[21], alt_result[42], 4);
-  b64_from_24bit (alt_result[22], alt_result[43], alt_result[1], 4);
-  b64_from_24bit (alt_result[44], alt_result[2], alt_result[23], 4);
-  b64_from_24bit (alt_result[3], alt_result[24], alt_result[45], 4);
-  b64_from_24bit (alt_result[25], alt_result[46], alt_result[4], 4);
-  b64_from_24bit (alt_result[47], alt_result[5], alt_result[26], 4);
-  b64_from_24bit (alt_result[6], alt_result[27], alt_result[48], 4);
-  b64_from_24bit (alt_result[28], alt_result[49], alt_result[7], 4);
-  b64_from_24bit (alt_result[50], alt_result[8], alt_result[29], 4);
-  b64_from_24bit (alt_result[9], alt_result[30], alt_result[51], 4);
-  b64_from_24bit (alt_result[31], alt_result[52], alt_result[10], 4);
-  b64_from_24bit (alt_result[53], alt_result[11], alt_result[32], 4);
-  b64_from_24bit (alt_result[12], alt_result[33], alt_result[54], 4);
-  b64_from_24bit (alt_result[34], alt_result[55], alt_result[13], 4);
-  b64_from_24bit (alt_result[56], alt_result[14], alt_result[35], 4);
-  b64_from_24bit (alt_result[15], alt_result[36], alt_result[57], 4);
-  b64_from_24bit (alt_result[37], alt_result[58], alt_result[16], 4);
-  b64_from_24bit (alt_result[59], alt_result[17], alt_result[38], 4);
-  b64_from_24bit (alt_result[18], alt_result[39], alt_result[60], 4);
-  b64_from_24bit (alt_result[40], alt_result[61], alt_result[19], 4);
-  b64_from_24bit (alt_result[62], alt_result[20], alt_result[41], 4);
-  b64_from_24bit (0, 0, alt_result[63], 2);
+  b64_from_24bit (result[0], result[21], result[42], 4);
+  b64_from_24bit (result[22], result[43], result[1], 4);
+  b64_from_24bit (result[44], result[2], result[23], 4);
+  b64_from_24bit (result[3], result[24], result[45], 4);
+  b64_from_24bit (result[25], result[46], result[4], 4);
+  b64_from_24bit (result[47], result[5], result[26], 4);
+  b64_from_24bit (result[6], result[27], result[48], 4);
+  b64_from_24bit (result[28], result[49], result[7], 4);
+  b64_from_24bit (result[50], result[8], result[29], 4);
+  b64_from_24bit (result[9], result[30], result[51], 4);
+  b64_from_24bit (result[31], result[52], result[10], 4);
+  b64_from_24bit (result[53], result[11], result[32], 4);
+  b64_from_24bit (result[12], result[33], result[54], 4);
+  b64_from_24bit (result[34], result[55], result[13], 4);
+  b64_from_24bit (result[56], result[14], result[35], 4);
+  b64_from_24bit (result[15], result[36], result[57], 4);
+  b64_from_24bit (result[37], result[58], result[16], 4);
+  b64_from_24bit (result[59], result[17], result[38], 4);
+  b64_from_24bit (result[18], result[39], result[60], 4);
+  b64_from_24bit (result[40], result[61], result[19], 4);
+  b64_from_24bit (result[62], result[20], result[41], 4);
+  b64_from_24bit (0, 0, result[63], 2);
 
-  if (buflen <= 0)
-    {
-      errno = ERANGE;
-      buffer = NULL;
-    }
-  else
-    *cp = '\0';		/* Terminate the string.  */
-
-  /* Clear the buffer for the intermediate result so that people
-     attaching to processes or reading core dumps cannot get any
-     information.  We do it in this way to clear correct_words[]
-     inside the SHA512 implementation as well.  */
-  sha512_init_ctx (&ctx);
-  sha512_finish_ctx (&ctx, alt_result);
-  memset (temp_result, '\0', sizeof (temp_result));
-  memset (p_bytes, '\0', key_len);
-  memset (s_bytes, '\0', salt_len);
-  memset (&ctx, '\0', sizeof (ctx));
-  memset (&alt_ctx, '\0', sizeof (alt_ctx));
-  if (copied_key != NULL)
-    memset (copied_key, '\0', key_len);
-  if (copied_salt != NULL)
-    memset (copied_salt, '\0', salt_len);
-
-  return buffer;
+  *cp = '\0';
 }
 
 void
