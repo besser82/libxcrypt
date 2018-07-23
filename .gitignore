@@ -57,6 +57,7 @@
 /test-badsetting
 /test-bigcrypt
 /test-byteorder
+/test-crypt-badargs
 /test-crypt-bcrypt
 /test-crypt-des
 /test-crypt-md5

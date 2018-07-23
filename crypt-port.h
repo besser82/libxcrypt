@@ -43,9 +43,11 @@
 #define __THROW /* nothing */
 #endif
 
-#ifndef HAVE_SYS_CDEFS_NONNULL
+/* While actually compiling the library, suppress the __nonnull tags
+   on the functions in crypt-base.h, so that internal checks for NULL
+   are not deleted by the compiler.  */
+#undef __nonnull
 #define __nonnull(param) /* nothing */
-#endif
 
 /* Suppression of unused-argument warnings.  */
 #if defined __GNUC__ && __GNUC__ >= 3

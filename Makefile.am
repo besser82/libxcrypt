@@ -148,7 +148,7 @@ check_PROGRAMS = \
 	test-crypt-pbkdf1-sha1 test-crypt-sha256 test-crypt-sha512 \
 	test-crypt-sunmd5 \
 	test-byteorder test-badsalt test-badsetting test-gensalt \
-	test-short-outbuf \
+	test-crypt-badargs test-short-outbuf \
         test-getrandom-interface test-getrandom-fallbacks
 
 if ENABLE_OBSOLETE_API
@@ -193,6 +193,7 @@ test_badsetting_LDADD = libcrypt.la
 test_gensalt_LDADD = libcrypt.la
 test_des_obsolete_LDADD = libcrypt.la
 test_des_obsolete_r_LDADD = libcrypt.la
+test_crypt_badargs_LDADD = libcrypt.la
 test_short_outbuf_LDADD = libcrypt.la
 
 # These tests call internal APIs that may not be accessible from the

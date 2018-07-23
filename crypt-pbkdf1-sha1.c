@@ -93,15 +93,16 @@ to64 (uint8_t *s, unsigned long v, int n)
  * hmac key.
  */
 void
-crypt_sha1_rn (const char *phrase, const char *setting,
-               uint8_t *output, size_t o_size,
-               void *scratch, size_t s_size)
+crypt_sha1_rn (const char *phrase, size_t phr_size,
+               const char *setting, size_t ARG_UNUSED (set_size),
+               uint8_t *output, size_t out_size,
+               void *scratch, size_t scr_size)
 {
   static const char *magic = "$sha1$";
 
-  if ((o_size < (strlen (magic) + 2 + 10 + CRYPT_SHA1_SALT_LENGTH +
-                 SHA1_OUTPUT_SIZE)) ||
-      s_size < SHA1_SIZE)
+  if ((out_size < (strlen (magic) + 2 + 10 + CRYPT_SHA1_SALT_LENGTH +
+                   SHA1_OUTPUT_SIZE)) ||
+      scr_size < SHA1_SIZE)
     {
       errno = ERANGE;
       return;
@@ -111,7 +112,7 @@ crypt_sha1_rn (const char *phrase, const char *setting,
   uint8_t *ep;
   unsigned long ul;
   size_t sl;
-  size_t pl;
+  size_t pl = phr_size;
   int dl;
   unsigned long iterations;
   unsigned long i;
@@ -151,13 +152,12 @@ crypt_sha1_rn (const char *phrase, const char *setting,
     }
 
   sl = (size_t)(sp - setting);
-  pl = strlen (phrase);
 
   /*
    * Now get to work...
    * Prime the pump with <salt><magic><iterations>
    */
-  dl = snprintf ((char *)output, o_size, "%.*s%s%lu",
+  dl = snprintf ((char *)output, out_size, "%.*s%s%lu",
                  (int)sl, setting, magic, iterations);
   /*
    * Then hmac using <phrase> as key, and repeat...
@@ -169,7 +169,7 @@ crypt_sha1_rn (const char *phrase, const char *setting,
       hmac_sha1_process_data (hmac_buf, SHA1_SIZE, pwu, pl, hmac_buf);
     }
   /* Now output... */
-  pl = (size_t)snprintf ((char *)output, o_size, "%s%lu$%.*s$",
+  pl = (size_t)snprintf ((char *)output, out_size, "%s%lu$%.*s$",
                          magic, iterations, (int)sl, setting);
   ep = output + pl;
 
@@ -191,7 +191,7 @@ crypt_sha1_rn (const char *phrase, const char *setting,
   *ep = '\0';
 
   /* Don't leave anything around in vm they could use. */
-  XCRYPT_SECURE_MEMSET (scratch, s_size);
+  XCRYPT_SECURE_MEMSET (scratch, scr_size);
 }
 
 /* Modified excerpt from:

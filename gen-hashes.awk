@@ -51,8 +51,8 @@ BEGIN {
         renames[$1] = renames[$1] \
           "#define " crypt_fn " _crypt_" crypt_fn "\n"
         prototypes[$1] = prototypes[$1] \
-          "extern void " crypt_fn "\n  " \
-          "(const char *, const char *, uint8_t *, size_t, void *, size_t);\n"
+          "extern void " crypt_fn " (const char *, size_t, const char *,\n" \
+            "                size_t, uint8_t *, size_t, void *, size_t);\n"
     }
     if (!(gensalt_fn in prototyped)) {
         prototyped[gensalt_fn] = 1

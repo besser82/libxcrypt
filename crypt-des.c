@@ -149,12 +149,13 @@ des_gen_hash (struct des_ctx *ctx, uint32_t count, uint8_t *output,
 #if INCLUDE_des
 /* The original UNIX DES-based password hash, no extensions.  */
 void
-crypt_des_rn (const char *phrase, const char *setting,
-              uint8_t *output, size_t o_size,
-              void *scratch, size_t s_size)
+crypt_des_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
+              const char *setting, size_t ARG_UNUSED (set_size),
+              uint8_t *output, size_t out_size,
+              void *scratch, size_t scr_size)
 {
   /* This shouldn't ever happen, but...  */
-  if (o_size < DES_TRD_OUTPUT_LEN || s_size < sizeof (struct des_buffer))
+  if (out_size < DES_TRD_OUTPUT_LEN || scr_size < sizeof (struct des_buffer))
     {
       errno = ERANGE;
       return;
@@ -226,9 +227,10 @@ crypt_des_rn (const char *phrase, const char *setting,
 
    Andy Phillips <atp@mssl.ucl.ac.uk>  */
 void
-crypt_des_big_rn (const char *phrase, const char *setting,
-                  uint8_t *output, size_t o_size,
-                  void *scratch, size_t s_size)
+crypt_des_big_rn (const char *phrase, size_t phr_size,
+                  const char *setting, size_t set_size,
+                  uint8_t *output, size_t out_size,
+                  void *scratch, size_t scr_size)
 {
 #if INCLUDE_des
   /* For backward compatibility, if the setting string is short enough
@@ -237,13 +239,14 @@ crypt_des_big_rn (const char *phrase, const char *setting,
      of 'phrase' are significant).  */
   if (strlen (setting) <= 13)
     {
-      crypt_des_rn (phrase, setting, output, o_size, scratch, s_size);
+      crypt_des_rn (phrase, phr_size, setting, set_size,
+                    output, out_size, scratch, scr_size);
       return;
     }
 #endif
 
   /* This shouldn't ever happen, but...  */
-  if (o_size < DES_BIG_OUTPUT_LEN || s_size < sizeof (struct des_buffer))
+  if (out_size < DES_BIG_OUTPUT_LEN || scr_size < sizeof (struct des_buffer))
     {
       errno = ERANGE;
       return;
@@ -307,12 +310,13 @@ crypt_des_big_rn (const char *phrase, const char *setting,
    permit long passwords and have more salt and a controllable iteration
    count, but are still unacceptably weak by modern standards.  */
 void
-crypt_des_xbsd_rn (const char *phrase, const char *setting,
-                   uint8_t *output, size_t o_size,
-                   void *scratch, size_t s_size)
+crypt_des_xbsd_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
+                   const char *setting, size_t set_size,
+                   uint8_t *output, size_t out_size,
+                   void *scratch, size_t scr_size)
 {
   /* This shouldn't ever happen, but...  */
-  if (o_size < DES_EXT_OUTPUT_LEN || s_size < sizeof (struct des_buffer))
+  if (out_size < DES_EXT_OUTPUT_LEN || scr_size < sizeof (struct des_buffer))
     {
       errno = ERANGE;
       return;
@@ -320,7 +324,7 @@ crypt_des_xbsd_rn (const char *phrase, const char *setting,
 
   /* If this is true, this function shouldn't have been called.
      Setting must be at least 9 bytes long, byte 10+ is ignored.  */
-  if (*setting != '_' || strlen (setting) < 9)
+  if (*setting != '_' || set_size < 9)
     {
       errno = EINVAL;
       return;

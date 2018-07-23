@@ -61,12 +61,13 @@ static_assert (sizeof (struct md5_buffer) <= ALG_SPECIFIC_SIZE,
 /* This entry point is equivalent to the `crypt' function in Unix
    libcs.  */
 void
-crypt_md5_rn (const char *phrase, const char *setting,
-              uint8_t *output, size_t o_size,
-              void *scratch, size_t s_size)
+crypt_md5_rn (const char *phrase, size_t phr_size,
+              const char *setting, size_t ARG_UNUSED (set_size),
+              uint8_t *output, size_t out_size,
+              void *scratch, size_t scr_size)
 {
   /* This shouldn't ever happen, but...  */
-  if (o_size < MD5_HASH_LENGTH || s_size < sizeof (struct md5_buffer))
+  if (out_size < MD5_HASH_LENGTH || scr_size < sizeof (struct md5_buffer))
     {
       errno = ERANGE;
       return;
@@ -78,8 +79,7 @@ crypt_md5_rn (const char *phrase, const char *setting,
   char *cp = (char *)output;
   const char *salt = setting;
 
-  size_t salt_len;
-  size_t phrase_len;
+  size_t salt_size;
   size_t cnt;
 
   /* Find beginning of salt string.  The prefix should normally always
@@ -88,28 +88,27 @@ crypt_md5_rn (const char *phrase, const char *setting,
     /* Skip salt prefix.  */
     salt += sizeof (md5_salt_prefix) - 1;
 
-  salt_len = strspn (salt, b64t);
-  if (salt[salt_len] && salt[salt_len] != '$')
+  salt_size = strspn (salt, b64t);
+  if (salt[salt_size] && salt[salt_size] != '$')
     {
       errno = EINVAL;
       return;
     }
-  if (salt_len > SALT_LEN_MAX)
-    salt_len = SALT_LEN_MAX;
-  phrase_len = strlen (phrase);
+  if (salt_size > SALT_LEN_MAX)
+    salt_size = SALT_LEN_MAX;
 
   /* Compute alternate MD5 sum with input PHRASE, SALT, and PHRASE.  The
      final result will be added to the first context.  */
   md5_init_ctx (ctx);
 
   /* Add phrase.  */
-  md5_process_bytes (phrase, phrase_len, ctx);
+  md5_process_bytes (phrase, phr_size, ctx);
 
   /* Add salt.  */
-  md5_process_bytes (salt, salt_len, ctx);
+  md5_process_bytes (salt, salt_size, ctx);
 
   /* Add phrase again.  */
-  md5_process_bytes (phrase, phrase_len, ctx);
+  md5_process_bytes (phrase, phr_size, ctx);
 
   /* Now get result of this (16 bytes).  */
   md5_finish_ctx (ctx, result);
@@ -118,7 +117,7 @@ crypt_md5_rn (const char *phrase, const char *setting,
   md5_init_ctx (ctx);
 
   /* Add the phrase string.  */
-  md5_process_bytes (phrase, phrase_len, ctx);
+  md5_process_bytes (phrase, phr_size, ctx);
 
   /* Because the SALT argument need not always have the salt prefix we
      add it separately.  */
@@ -127,11 +126,11 @@ crypt_md5_rn (const char *phrase, const char *setting,
   /* The last part is the salt string.  This must be at most 8
      characters and it ends at the first `$' character (for
      compatibility with existing implementations).  */
-  md5_process_bytes (salt, salt_len, ctx);
+  md5_process_bytes (salt, salt_size, ctx);
 
 
   /* Add for any character in the phrase one byte of the alternate sum.  */
-  for (cnt = phrase_len; cnt > 16; cnt -= 16)
+  for (cnt = phr_size; cnt > 16; cnt -= 16)
     md5_process_bytes (result, 16, ctx);
   md5_process_bytes (result, cnt, ctx);
 
@@ -142,7 +141,7 @@ crypt_md5_rn (const char *phrase, const char *setting,
      bit in the phrase the first 0 is added to the buffer, for every 0
      bit the first character of the phrase.  This does not seem to be
      what was intended but we have to follow this to be compatible.  */
-  for (cnt = phrase_len; cnt > 0; cnt >>= 1)
+  for (cnt = phr_size; cnt > 0; cnt >>= 1)
     md5_process_bytes ((cnt & 1) != 0 ? (const char *) result : phrase, 1,
                        ctx);
 
@@ -159,23 +158,23 @@ crypt_md5_rn (const char *phrase, const char *setting,
 
       /* Add phrase or last result.  */
       if ((cnt & 1) != 0)
-        md5_process_bytes (phrase, phrase_len, ctx);
+        md5_process_bytes (phrase, phr_size, ctx);
       else
         md5_process_bytes (result, 16, ctx);
 
       /* Add salt for numbers not divisible by 3.  */
       if (cnt % 3 != 0)
-        md5_process_bytes (salt, salt_len, ctx);
+        md5_process_bytes (salt, salt_size, ctx);
 
       /* Add phrase for numbers not divisible by 7.  */
       if (cnt % 7 != 0)
-        md5_process_bytes (phrase, phrase_len, ctx);
+        md5_process_bytes (phrase, phr_size, ctx);
 
       /* Add phrase or last result.  */
       if ((cnt & 1) != 0)
         md5_process_bytes (result, 16, ctx);
       else
-        md5_process_bytes (phrase, phrase_len, ctx);
+        md5_process_bytes (phrase, phr_size, ctx);
 
       /* Create intermediate result.  */
       md5_finish_ctx (ctx, result);
@@ -186,8 +185,8 @@ crypt_md5_rn (const char *phrase, const char *setting,
   memcpy (cp, md5_salt_prefix, sizeof (md5_salt_prefix) - 1);
   cp += sizeof (md5_salt_prefix) - 1;
 
-  memcpy (cp, salt, salt_len);
-  cp += salt_len;
+  memcpy (cp, salt, salt_size);
+  cp += salt_size;
   *cp++ = '$';
 
 #define b64_from_24bit(B2, B1, B0, N)                   \
