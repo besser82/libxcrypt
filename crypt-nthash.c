@@ -49,12 +49,10 @@
  */
 
 void
-crypt_nthash_rn (const char *phrase,
-                 const char *setting,
-                 uint8_t *output,
-                 size_t o_size,
-                 void *scratch,
-                 size_t s_size)
+crypt_nthash_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
+                 const char *setting, size_t ARG_UNUSED (set_size),
+                 uint8_t *output, size_t out_size,
+                 void *scratch, size_t scr_size)
 {
   size_t unipwLen;
   int i;
@@ -65,8 +63,8 @@ crypt_nthash_rn (const char *phrase,
   const char *s;
   struct md4_ctx *ctx = scratch;
 
-  if ((o_size < 4 + 32) ||
-      (s_size < sizeof (struct md4_ctx)))
+  if ((out_size < 4 + 32) ||
+      (scr_size < sizeof (struct md4_ctx)))
     {
       errno = ERANGE;
       return;

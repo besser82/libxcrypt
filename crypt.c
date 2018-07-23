@@ -59,9 +59,10 @@ get_internal (struct crypt_data *data)
   return (struct crypt_internal *)internalp;
 }
 
-typedef void (*crypt_fn) (const char *phrase, const char *setting,
-                          uint8_t *output, size_t o_size,
-                          void *scratch, size_t s_size);
+typedef void (*crypt_fn) (const char *phrase, size_t phr_size,
+                          const char *setting, size_t set_size,
+                          uint8_t *output, size_t out_size,
+                          void *scratch, size_t scr_size);
 
 typedef void (*gensalt_fn) (unsigned long count,
                             const uint8_t *rbytes, size_t nrbytes,
@@ -144,7 +145,7 @@ make_failure_token (const char *setting, char *output, int size)
       output[1] = '0';
       output[2] = '\0';
 
-      if (setting[0] == '*' && setting[1] == '0')
+      if (setting && setting[0] == '*' && setting[1] == '0')
         output[1] = '1';
     }
 
@@ -177,11 +178,13 @@ struct crypt_fn_args
 {
   crypt_fn cfn;
   const char *phrase;
+  size_t phr_size;
   const char *setting;
+  size_t set_size;
   uint8_t *output;
-  size_t o_size;
+  size_t out_size;
   void *scratch;
-  size_t s_size;
+  size_t scr_size;
 };
 
 #if UINTPTR_MAX == UINT_MAX
@@ -225,15 +228,24 @@ static void
 call_crypt_fn (CCF_ARGDECL)
 {
   struct crypt_fn_args *a = UNSWIZZLE_PTR (CCF_ARGS);
-  a->cfn (a->phrase, a->setting, a->output, a->o_size, a->scratch, a->s_size);
+  a->cfn (a->phrase, a->phr_size,
+          a->setting, a->set_size,
+          a->output, a->out_size,
+          a->scratch, a->scr_size);
 }
 #endif /* USE_SWAPCONTEXT */
 
 static void
 do_crypt (const char *phrase, const char *setting, struct crypt_data *data)
 {
+  if (!phrase || !setting)
+    {
+      errno = EINVAL;
+      return;
+    }
+  size_t phr_size = strlen (phrase);
+  size_t set_size = strlen (setting);
   struct crypt_internal *cint = get_internal (data);
-
   const struct hashfn *h = get_hashfn (setting);
   if (!h)
     /* Unrecognized hash algorithm */
@@ -246,13 +258,15 @@ do_crypt (const char *phrase, const char *setting, struct crypt_data *data)
           ucontext_t outer_ctx;
           struct crypt_fn_args a;
 
-          a.cfn     = h->crypt;
-          a.phrase  = phrase;
-          a.setting = setting;
-          a.output  = (unsigned char *)data->output;
-          a.o_size  = sizeof data->output;
-          a.scratch = cint->alg_specific;
-          a.s_size  = sizeof cint->alg_specific;
+          a.cfn      = h->crypt;
+          a.phrase   = phrase;
+          a.phr_size = phr_size;
+          a.setting  = setting;
+          a.set_size = set_size;
+          a.output   = (unsigned char *)data->output;
+          a.out_size = sizeof data->output;
+          a.scratch  = cint->alg_specific;
+          a.scr_size = sizeof cint->alg_specific;
 
           cint->inner_ctx.uc_stack.ss_sp   = cint->inner_stack;
           cint->inner_ctx.uc_stack.ss_size = sizeof cint->inner_stack;
@@ -264,7 +278,7 @@ do_crypt (const char *phrase, const char *setting, struct crypt_data *data)
           swapcontext (&outer_ctx, &cint->inner_ctx);
         }
 #else
-      h->crypt (phrase, setting,
+      h->crypt (phrase, phr_size, setting, set_size,
                 (unsigned char *)data->output, sizeof data->output,
                 cint->alg_specific, sizeof cint->alg_specific);
 #endif

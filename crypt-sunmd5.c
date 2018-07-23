@@ -158,12 +158,10 @@ write_itoa64_2 (uint8_t *output,
 /* Module entry points.  */
 
 void
-crypt_sunmd5_rn (const char *phrase,
-                 const char *setting,
-                 uint8_t *output,
-                 size_t o_size,
-                 void *scratch,
-                 size_t s_size)
+crypt_sunmd5_rn (const char *phrase, size_t phr_size,
+                 const char *setting, size_t ARG_UNUSED (set_size),
+                 uint8_t *output, size_t out_size,
+                 void *scratch, size_t scr_size)
 {
   struct crypt_sunmd5_scratch
   {
@@ -230,8 +228,8 @@ crypt_sunmd5_rn (const char *phrase,
 
   size_t saltlen = (size_t) (p - setting);
   /* Do we have enough space?  */
-  if (s_size < sizeof (struct crypt_sunmd5_scratch)
-      || o_size < saltlen + SUNMD5_BARE_OUTPUT_LEN + 2)
+  if (scr_size < sizeof (struct crypt_sunmd5_scratch)
+      || out_size < saltlen + SUNMD5_BARE_OUTPUT_LEN + 2)
     {
       errno = ERANGE;
       return;
@@ -241,7 +239,7 @@ crypt_sunmd5_rn (const char *phrase,
 
   /* Initial round.  */
   md5_init_ctx (&s->ctx);
-  md5_process_bytes (phrase, strlen (phrase), &s->ctx);
+  md5_process_bytes (phrase, phr_size, &s->ctx);
   md5_process_bytes (setting, saltlen, &s->ctx);
   md5_finish_ctx (&s->ctx, s->dg);
 

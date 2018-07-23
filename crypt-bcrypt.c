@@ -870,12 +870,13 @@ BF_crypt (const char *key, const char *setting, unsigned char *output,
  * setting.
  */
 void
-crypt_bcrypt_rn (const char *key, const char *setting,
-                 uint8_t *output, size_t o_size,
-                 void *scratch, size_t s_size)
+crypt_bcrypt_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
+                 const char *setting, size_t ARG_UNUSED (set_size),
+                 uint8_t *output, size_t out_size,
+                 void *scratch, size_t scr_size)
 {
   /* This shouldn't ever happen, but...  */
-  if (o_size < BF_HASH_LENGTH || s_size < sizeof (struct BF_buffer))
+  if (out_size < BF_HASH_LENGTH || scr_size < sizeof (struct BF_buffer))
     {
       errno = ERANGE;
       return;
@@ -883,7 +884,7 @@ crypt_bcrypt_rn (const char *key, const char *setting,
   struct BF_buffer *buffer = scratch;
 
   /* Hash the supplied password */
-  if (!BF_crypt (key, setting, buffer->re_output, &buffer->data, 16))
+  if (!BF_crypt (phrase, setting, buffer->re_output, &buffer->data, 16))
     return; /* errno has already been set */
 
   /* Save and restore the current value of errno around the self-test.  */
