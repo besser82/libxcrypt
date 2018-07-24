@@ -412,8 +412,11 @@ crypt_gensalt_ra (const char *prefix, unsigned long count,
   if (!output)
     return 0;
 
-  return crypt_gensalt_rn (prefix, count, rbytes, nrbytes, output,
-                           CRYPT_GENSALT_OUTPUT_SIZE);
+  char *result = crypt_gensalt_rn (prefix, count, rbytes, nrbytes, output,
+                                   CRYPT_GENSALT_OUTPUT_SIZE);
+  if (result == 0)
+    free (output);
+  return result;
 }
 SYMVER_crypt_gensalt_ra;
 #endif
