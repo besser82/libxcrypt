@@ -13,8 +13,8 @@
 
 #include <stdio.h>
 
-symver_ref(encrypt_r, encrypt_r, SYMVER_FLOOR);
-symver_ref(setkey_r, setkey_r, SYMVER_FLOOR);
+symver_ref("encrypt_r", encrypt_r, SYMVER_FLOOR);
+symver_ref("setkey_r", setkey_r, SYMVER_FLOOR);
 
 static void
 expand (unsigned char ex[64], const unsigned char pk[8])

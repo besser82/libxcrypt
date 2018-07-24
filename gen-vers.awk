@@ -172,16 +172,20 @@ END {
 
     for (sym in allsyms) {
         if (includesym[sym]) {
-            printf("#define SYMVER_%s \\\n", sym)
             seq = 0
             for (i = NVCHAIN; i >= symver_floor_idx; i--) {
                 v = VCHAIN[i]
                 if ((v, sym) in symset) {
                     if (seq == 0) {
+                        if (compat_only[sym] || includesym[sym] > 1) {
+                            printf("#ifdef PIC\n#define %s _crypt_%s\n#endif\n",
+                                   sym, sym);
+                        }
+                        printf("#define SYMVER_%s \\\n", sym)
                         if (compat_only[sym]) {
-                            printf("  symver_compat0 (%s, %s, %s)", sym, sym, v)
+                            printf("  symver_compat0 (\"%s\", %s, %s)", sym, sym, v)
                         } else if (includesym[sym] > 1) {
-                            printf("  symver_default (%s, %s, %s)", sym, sym, v)
+                            printf("  symver_default (\"%s\", %s, %s)", sym, sym, v)
                         } else {
                             # Due to what appears to be a bug in GNU ld,
                             # we must not issue symver_default() if there
@@ -189,8 +193,8 @@ END {
                             printf("  symver_nop ()")
                         }
                     } else {
-                        printf("; \\\n  symver_compat (%d, %s, %s, %s)",
-                               seq, sym, sym, v)
+                        printf("; \\\n  symver_compat (%d, \"%s\", %s, %s, %s)",
+                               seq, sym, sym, sym, v)
                     }
                     seq++
                 }
