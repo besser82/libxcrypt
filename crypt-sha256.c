@@ -111,6 +111,7 @@ crypt_sha256_rn (const char *phrase, const char *setting,
   size_t cnt;
   /* Default number of rounds.  */
   size_t rounds = ROUNDS_DEFAULT;
+  bool rounds_custom = false;
 
   /* Find beginning of salt string.  The prefix should normally always
      be present.  Just in case it is not.  */
@@ -136,13 +137,13 @@ crypt_sha256_rn (const char *phrase, const char *setting,
       if (endp == num || *endp != '$'
           || rounds < ROUNDS_MIN
           || rounds > ROUNDS_MAX
-          || rounds == ROUNDS_DEFAULT
           || errno)
         {
           errno = EINVAL;
           return;
         }
       salt = endp + 1;
+      rounds_custom = true;
     }
 
   salt_len = strspn (salt, b64t);
@@ -255,7 +256,7 @@ crypt_sha256_rn (const char *phrase, const char *setting,
   memcpy (cp, sha256_salt_prefix, sizeof (sha256_salt_prefix) - 1);
   cp += sizeof (sha256_salt_prefix) - 1;
 
-  if (rounds != ROUNDS_DEFAULT)
+  if (rounds_custom)
     {
       int n = snprintf (cp,
                         SHA256_HASH_LENGTH - (sizeof (sha256_salt_prefix) - 1),

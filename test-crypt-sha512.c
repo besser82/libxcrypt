@@ -17,6 +17,12 @@ static const struct
     "$6$saltstring$svn8UoSVapNtMuq1ukKS4tPQd8iKwSMHWjl/O817G3uBnIFNjnQJu"
     "esI68u4OTLiBFdcbYEdFCoEOfaS35inz1"
   },
+  /* explicit specification of rounds=5000 should be allowed and preserved */
+  {
+    "$6$rounds=5000$saltstring", "Hello world!",
+    "$6$rounds=5000$saltstring$svn8UoSVapNtMuq1ukKS4tPQd8iKwSMHWjl/O817G3"
+    "uBnIFNjnQJuesI68u4OTLiBFdcbYEdFCoEOfaS35inz1"
+  },
   {
     "$6$rounds=10000$saltstringsaltstring", "Hello world!",
     "$6$rounds=10000$saltstringsaltst$OW1/O6BYHV6BcXZu8QVeXbDWra3Oeqh0sb"

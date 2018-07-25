@@ -54,6 +54,11 @@ const char *tests[][3] =
     "$md5$1xMeE.at$qRpVD46c.sEWM/48tNk191"
   },
   {
+    "$md5,rounds=4096$1xMeE.at$$XbkZGZUTKzh/i0o7JRKe./",
+    "$md5,rounds=4096$1xMeE.at$",
+    "$md5,rounds=4096$1xMeE.at$XbkZGZUTKzh/i0o7JRKe./",
+  },
+  {
     "$md5,rounds=9748$2kkhnoZI$$HzOCKmX2sus/1S9CmohBY/",
     "$md5,rounds=9748$2kkhnoZI$",
     "$md5,rounds=9748$2kkhnoZI$HzOCKmX2sus/1S9CmohBY/"
