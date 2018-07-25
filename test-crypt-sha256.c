@@ -16,6 +16,11 @@ static const struct
     "$5$saltstring", "Hello world!",
     "$5$saltstring$5B8vYYiY.CVt1RlTTf8KbXBH3hsxY/GNooZaBBGWEc5"
   },
+  /* explicit specification of rounds=5000 should be allowed and preserved */
+  {
+    "$5$rounds=5000$saltstring", "Hello world!",
+    "$5$rounds=5000$saltstring$5B8vYYiY.CVt1RlTTf8KbXBH3hsxY/GNooZaBBGWEc5"
+  },
   {
     "$5$rounds=10000$saltstringsaltstring", "Hello world!",
     "$5$rounds=10000$saltstringsaltst$3xv.VbSHBb41AL9AvLeujZkZRBAwqFMz2."
