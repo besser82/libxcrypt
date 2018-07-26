@@ -161,11 +161,11 @@ AC_ARG_ENABLE([obsolete-api],
          When set to "glibc", include interfaces for compatibility with glibc.
          When set to "owl", include interfaces for compatibility with Owl.
          When set to "suse", include interfaces for compatibility with SUSE.
-         When set to "no", do not include compatibility definitions of obsolete
-         APIs (fcrypt, encrypt, setkey) in the shared library, which breaks
-         binary compatibility with glibc's libcrypt.  Only affects existing
-         binaries; new programs cannot be linked against these compatibility
-         functions in any case. [default=yes]]
+         When set to "no", do not include any compatibility definitions at all,
+         and change the soname of the installed library to libcrypt.so.2.
+         This setting only affects existing binaries; new programs cannot
+         be linked against the obsolete APIs (bigcrypt, fcrypt, encrypt, setkey)
+         in any case. [default=yes]]
     ),
     [case "${enableval}" in
         alt|glibc|owl)
@@ -193,11 +193,13 @@ AC_ARG_ENABLE([hashes],
         [--enable-hashes=HASHES],
         [Select hash algorithms to support.  Acceptable values are
          'all' or a comma-separated list of names from the file
-         'hashes.lst' and/or the keywords 'strong' and 'glibc', which
-         select groups of hashes as described in that file.  The
-         default is 'all'.  Note: if binary compatibility with glibc's
-         libcrypt is desired, the 'des' hash must be enabled.]
-    ),
+         'hashes.lst' and/or the keywords 'strong', 'freebsd',
+         'glibc', 'netbsd', 'openbsd', 'osx', and 'solaris',
+         which select groups of hashes as described in that file.
+         The default is 'all'.
+         Note: if binary compatibility with any historic libcrypt is
+         desired (i.e. any --enable-obsolete-api setting other than
+         'no'), the 'des' hash must be enabled.]),
     [hashes_selected=$enableval],
     [hashes_selected=all]
 )
@@ -215,7 +217,15 @@ AC_SUBST([hashes_enabled])
 # implicitly disabled.
 case "$hashes_enabled" in
     *,des,*) ;;
-    *) enable_obsolete_api=0 ;;
+    *)
+       if test x"$COMPAT_ABI" != xno; then
+         AC_MSG_WARN(
+           [--enable-hashes=${hashes_selected} forces --enable-obsolete-api=no])
+       fi
+       enable_obsolete_api=0
+       enable_compat_suse=0
+       COMPAT_ABI=no
+       ;;
 esac
 
 # The obsolete APIs are unconditionally excluded from the static library,

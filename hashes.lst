@@ -6,12 +6,14 @@
 # relevant algorithm module; an optional suffix on the name of the
 # 'gensalt_fn'; the prefix used to identify the algorithm in hash
 # strings; the number of bytes of random data that crypt_gensalt
-# should draw from the OS when its caller doesn't supply any;
-# and a set of flags.  Currently there are three flags: DEFAULT
-# means this is the hash to use when no prefix was supplied to
-# crypt_gensalt, STRONG means the hash is still considered strong
-# enough to use for newly hashed passwords, and GLIBC means the hash
-# was historically supported by GNU libc's libcrypt.
+# should draw from the OS when its caller doesn't supply any; and a
+# comma-separated list of flags.  The current set of possible flags
+# is: DEFAULT means this is the hash to use when no prefix was
+# supplied to crypt_gensalt.  STRONG means the hash is still
+# considered strong enough to use for newly hashed passwords.
+# FREEBSD, GLIBC, NETBSD, OPENBSD, OSX, and SOLARIS mean that the hash
+# was historically supported by crypt() as provided by that operating
+# system / C library.
 #
 # Fields are separated by whitespace. Lines beginning with # are
 # ignored; # is not otherwise significant.  Multiple flags are
