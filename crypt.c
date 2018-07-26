@@ -23,10 +23,6 @@
 #include <stdlib.h>
 #include <limits.h>
 
-#ifdef USE_SWAPCONTEXT
-#include <ucontext.h>
-#endif
-
 /* The internal storage area within struct crypt_data is used as
    follows.  We don't know what alignment the algorithm modules will
    need for their scratch data, so give it the maximum natural
@@ -37,10 +33,6 @@
 struct crypt_internal
 {
   char alignas (max_align_t) alg_specific[ALG_SPECIFIC_SIZE];
-#ifdef USE_SWAPCONTEXT
-  char inner_stack[16384];
-  ucontext_t inner_ctx;
-#endif
 };
 
 static_assert(sizeof (struct crypt_internal) + alignof (struct crypt_internal)
@@ -161,74 +153,6 @@ make_failure_token (const char *setting, char *output, int size)
     }
 }
 
-/* If getcontext, makecontext, and swapcontext are available, we use
-   them to force the stack frames and register state for the actual
-   hash algorithm to be saved in a place (inside struct crypt_internal)
-   where we can erase them after we're done.  Passing arguments into
-   the makecontext callback is somewhat awkward; you can call any
-   function that takes any number of 'int' arguments and returns
-   nothing.  We need to pass a whole bunch of pointers, which don't
-   necessarily fit.  The code below handles only the case where a
-   pointer to a struct fits in one 'int', and the case where it fits
-   in two 'int's.  */
-
-#ifdef USE_SWAPCONTEXT
-struct crypt_fn_args
-{
-  crypt_fn cfn;
-  const char *phrase;
-  const char *setting;
-  uint8_t *output;
-  size_t o_size;
-  void *scratch;
-  size_t s_size;
-};
-
-#if UINTPTR_MAX == UINT_MAX
-static_assert (sizeof (uintptr_t) == sizeof (int),
-               "UINTPTR_MAX matches UINT_MAX but sizeof (uintptr_t) != sizeof (int)");
-
-static_assert (sizeof (struct crypt_fn_args *) == sizeof (int),
-               "UINTPTR_MAX matches UINT_MAX but sizeof (crypt_fn_args *) != sizeof (int)");
-
-#define SWIZZLE_PTR(ptr) 1, ((int)(uintptr_t)(ptr))
-#define UNSWIZZLE_PTR(val) ((struct crypt_fn_args *)(uintptr_t)(val))
-#define CCF_ARGDECL int arg
-#define CCF_ARGS arg
-
-#elif UINTPTR_MAX == ULONG_MAX
-static_assert (sizeof (uintptr_t) == 2*sizeof (int),
-               "UINTPTR_MAX matches ULONG_MAX but sizeof (uintptr_t) != 2*sizeof (int)");
-
-static_assert (sizeof (struct crypt_fn_args *) == 2*sizeof (int),
-               "UINTPTR_MAX matches ULONG_MAX but sizeof (crypt_fn_args *) != 2*sizeof (int)");
-
-#define SWIZZLE_PTR(ptr) 2,                                             \
-    (int)((((uintptr_t)ptr) >> (sizeof(int)*CHAR_BIT)) & UINT_MAX),     \
-    (int)((((uintptr_t)ptr) >> 0)                      & UINT_MAX)
-
-#define UNSWIZZLE_PTR_(a, b)                                            \
-  ((struct crypt_fn_args *)                                             \
-   ((((uintptr_t)(unsigned int)a) << (sizeof(int)*CHAR_BIT)) |          \
-    (((uintptr_t)(unsigned int)b) << 0)))
-
-#define UNSWIZZLE_PTR(ARGS) UNSWIZZLE_PTR_ (ARGS)
-
-#define CCF_ARGDECL int a1, int a2
-#define CCF_ARGS a1, a2
-
-#else
-#error "Don't know how to swizzle pointers for makecontext with this ABI"
-#endif
-
-static void
-call_crypt_fn (CCF_ARGDECL)
-{
-  struct crypt_fn_args *a = UNSWIZZLE_PTR (CCF_ARGS);
-  a->cfn (a->phrase, a->setting, a->output, a->o_size, a->scratch, a->s_size);
-}
-#endif /* USE_SWAPCONTEXT */
-
 static void
 do_crypt (const char *phrase, const char *setting, struct crypt_data *data)
 {
@@ -240,34 +164,9 @@ do_crypt (const char *phrase, const char *setting, struct crypt_data *data)
     errno = EINVAL;
   else
     {
-#ifdef USE_SWAPCONTEXT
-      if (!getcontext (&cint->inner_ctx))
-        {
-          ucontext_t outer_ctx;
-          struct crypt_fn_args a;
-
-          a.cfn     = h->crypt;
-          a.phrase  = phrase;
-          a.setting = setting;
-          a.output  = (unsigned char *)data->output;
-          a.o_size  = sizeof data->output;
-          a.scratch = cint->alg_specific;
-          a.s_size  = sizeof cint->alg_specific;
-
-          cint->inner_ctx.uc_stack.ss_sp   = cint->inner_stack;
-          cint->inner_ctx.uc_stack.ss_size = sizeof cint->inner_stack;
-          cint->inner_ctx.uc_link          = &outer_ctx;
-
-          makecontext (&cint->inner_ctx,
-                       (void (*) (void))call_crypt_fn,
-                       SWIZZLE_PTR (&a));
-          swapcontext (&outer_ctx, &cint->inner_ctx);
-        }
-#else
       h->crypt (phrase, setting,
                 (unsigned char *)data->output, sizeof data->output,
                 cint->alg_specific, sizeof cint->alg_specific);
-#endif
     }
 
   XCRYPT_SECURE_MEMSET (data->internal, sizeof data->internal);
