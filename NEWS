@@ -3,6 +3,20 @@ libxcrypt NEWS -- history of user-visible changes.
 Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
+Version 4.1.1
+* --enable-hashes now supports additional groups of hashing methods:
+  'freebsd', 'netbsd', 'openbsd', 'osx', and 'solaris', which select
+  the hashes historically supported on those operating systems.
+* Predictable behavior when arguments to crypt() are NULL or invalid
+  (issue #15).
+* Hash formats $5, $6, and $md5 once again allow an explicit rounds
+  parameter specifying the default number of rounds (issue #16).
+* The library no longer uses swapcontext(), for ease of debugging and
+  better compatibility with hardening mechanisms like Intel CET
+  (issue #18).
+* Can now be built with versions of GNU ld older than 2.26.2.
+* crypt_gensalt_ra no longer leaks memory on failure.
+
 Version 4.1.0
 * Fix spelling of SUSE.
 * Lower the minimum required automake version to 1.14.
