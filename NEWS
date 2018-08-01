@@ -5,6 +5,8 @@ Please send bug reports, questions and suggestions to
 
 Version 4.1.2
 * Add optional 'check-valgrind' target to the Makefile.
+* Replace crypt-sha{256,512}.c with an implementation in the Public
+  Domain.
 
 Version 4.1.1
 * --enable-hashes now supports additional groups of hashing methods:

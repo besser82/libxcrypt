@@ -14,13 +14,16 @@ source tree.  For specific licensing terms consult the files themselves.
  * Copyright Free Software Foundation, Inc.; LGPL (v2.1 or later):
    crypt-base.h, crypt-obsolete.h, crypt-private.h
    alg-md5.h, alg-md5.c, crypt-md5.c,
-   alg-sha256.h, alg-sha256.c, crypt-sha256.c,
-   alg-sha512.h, alg-sha512.c, crypt-sha256.c,
+   alg-sha256.h, alg-sha256.c,
+   alg-sha512.h, alg-sha512.c,
    test-crypt-badsalt, test-crypt-nonnull
 
  * Copyright David Burren et al.; 3-clause BSD:
    alg-des.h, alg-des.c, alg-des-tables.c,
    crypt-des.c, crypt-des-obsolete.c, gen-des-tables.c
+
+ * Public domain, written by Ulrich Drepper et al.:
+   crypt-sha256.c, crypt-sha512.c
 
  * Public domain, written by Solar Designer et al.:
    alg-md4.h, alg-md4.c, crypt-bcrypt.c, crypt-gensalt.c, test-crypt-bcrypt.c
