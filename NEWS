@@ -3,6 +3,8 @@ libxcrypt NEWS -- history of user-visible changes.
 Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
+Version 4.1.2
+
 Version 4.1.1
 * --enable-hashes now supports additional groups of hashing methods:
   'freebsd', 'netbsd', 'openbsd', 'osx', and 'solaris', which select
