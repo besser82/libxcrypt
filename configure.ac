@@ -51,7 +51,6 @@ AC_C_BIGENDIAN(
    AC_DEFINE([IS_BIGENDIAN], 0,
     [Define to 0 if system's architecture is little-endian.])
 )
-
 # One of the test scripts needs to use -dD.
 AC_CACHE_CHECK([whether the preprocessor ($CPP) supports -dD],
   [ac_cv_prog_cc_dD],
@@ -151,8 +150,18 @@ AC_CHECK_FUNCS_ONCE([
   syscall
 ])
 
-# Configure options.
+# Disable valgrind tools for checking multithreaded
+# programs, as we don't use them in checks.
+AX_VALGRIND_DFLT([drd], [off])
+AX_VALGRIND_DFLT([helgrind], [off])
 
+# Valgrind's sgcheck is b0rk3n upstream.
+AX_VALGRIND_DFLT([sgcheck], [off])
+
+# Add a target to run testsuite with valgrind.
+AX_VALGRIND_CHECK()
+
+# Configure options.
 AC_ARG_ENABLE([obsolete-api],
     AS_HELP_STRING(
         [--enable-obsolete-api[=ARG]],
