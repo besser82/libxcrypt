@@ -18,7 +18,8 @@ EXTRA_DIST = \
 	gen-map.awk gen-vers.awk gen-crypt-h.awk \
 	gen-hashes.awk sel-hashes.awk hashes.lst
 
-notrans_dist_man3_MANS = crypt_rn.3 crypt_gensalt.3
+notrans_dist_man3_MANS = crypt.3 crypt_r.3 crypt_ra.3 \
+	crypt_rn.3 crypt_gensalt.3
 notrans_dist_man5_MANS = crypt.5
 
 nodist_include_HEADERS = crypt.h
