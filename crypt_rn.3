@@ -204,32 +204,37 @@ multiple threads simultaneously, as long as a separate
 object is used for each thread.
 .PP
 Upon error,
-.B crypt
-and
-.B crypt_r
-return a pointer to an
+.BR crypt_r ", " crypt_rn ", and " crypt_ra
+write an
 .I invalid
-hashed passphrase.
+hashed passphrase to the
+.I output
+field of their
+.I crypt_data
+object, and
+.B crypt
+writes an invalid hash to its static storage area.
 This string will be shorter than 13 characters,
 will begin with a \(oq\fB*\fR\(cq,
 and will not compare equal to
 .IR setting .
-(This peculiar behavior is for compatibility
+.PP
+Upon error,
+.BR crypt_rn " and " crypt_ra
+return a null pointer.
+.BR crypt_r " and " crypt
+may also return a null pointer,
+or they may return a pointer to the invalid hash,
+depending on how
+.I libcrypt
+was configured.
+(The option to return the invalid hash is for compatibility
 with old applications that assume that
 .B crypt
 cannot return a null pointer.
 See
 .B "PORTABILITY NOTES"
 below.)
-.PP
-.B crypt_rn
-and
-.B crypt_ra
-also write an invalid hashed passphrase to the
-.I output
-field of their
-.I crypt_data
-object when they fail, but they return a null pointer.
 .PP
 All four functions set
 .I errno

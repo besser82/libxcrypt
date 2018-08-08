@@ -169,6 +169,14 @@ test_crypt_ra (const char *tag,
   check (tag, expect, got);
 }
 
+#if ENABLE_FAILURE_TOKENS
+# define FT0 "*0"
+# define FT1 "*1"
+#else
+# define FT0 0
+# define FT1 0
+#endif
+
 /* PAGE should point to PAGESIZE bytes of read-write memory followed
    by another PAGESIZE bytes of inaccessible memory.  */
 
@@ -187,55 +195,55 @@ do_tests(char *page, size_t pagesize)
   size_t i;
 
   /* When SETTING is null, it shouldn't matter what PHRASE is.  */
-  expect_no_fault ("0.0.crypt",    0,  0, "*0", test_crypt);
-  expect_no_fault ("0.0.crypt_r",  0,  0, "*0", test_crypt_r);
+  expect_no_fault ("0.0.crypt",    0,  0, FT0, test_crypt);
+  expect_no_fault ("0.0.crypt_r",  0,  0, FT0, test_crypt_r);
   expect_no_fault ("0.0.crypt_rn", 0,  0, 0,    test_crypt_rn);
   expect_no_fault ("0.0.crypt_ra", 0,  0, 0,    test_crypt_ra);
 
-  expect_no_fault ("''.0.crypt",    "", 0, "*0", test_crypt);
-  expect_no_fault ("''.0.crypt_r",  "", 0, "*0", test_crypt_r);
+  expect_no_fault ("''.0.crypt",    "", 0, FT0, test_crypt);
+  expect_no_fault ("''.0.crypt_r",  "", 0, FT0, test_crypt_r);
   expect_no_fault ("''.0.crypt_rn", "", 0, 0,    test_crypt_rn);
   expect_no_fault ("''.0.crypt_ra", "", 0, 0,    test_crypt_ra);
 
-  expect_no_fault ("ph.0.crypt",    phrase, 0, "*0", test_crypt);
-  expect_no_fault ("ph.0.crypt_r",  phrase, 0, "*0", test_crypt_r);
+  expect_no_fault ("ph.0.crypt",    phrase, 0, FT0, test_crypt);
+  expect_no_fault ("ph.0.crypt_r",  phrase, 0, FT0, test_crypt_r);
   expect_no_fault ("ph.0.crypt_rn", phrase, 0, 0,    test_crypt_rn);
   expect_no_fault ("ph.0.crypt_ra", phrase, 0, 0,    test_crypt_ra);
 
-  expect_no_fault ("p1.0.crypt",    p1, 0, "*0", test_crypt);
-  expect_no_fault ("p1.0.crypt_r",  p1, 0, "*0", test_crypt_r);
+  expect_no_fault ("p1.0.crypt",    p1, 0, FT0, test_crypt);
+  expect_no_fault ("p1.0.crypt_r",  p1, 0, FT0, test_crypt_r);
   expect_no_fault ("p1.0.crypt_rn", p1, 0, 0,    test_crypt_rn);
   expect_no_fault ("p1.0.crypt_ra", p1, 0, 0,    test_crypt_ra);
 
-  expect_no_fault ("p2.0.crypt",    p2, 0, "*0", test_crypt);
-  expect_no_fault ("p2.0.crypt_r",  p2, 0, "*0", test_crypt_r);
+  expect_no_fault ("p2.0.crypt",    p2, 0, FT0, test_crypt);
+  expect_no_fault ("p2.0.crypt_r",  p2, 0, FT0, test_crypt_r);
   expect_no_fault ("p2.0.crypt_rn", p2, 0, 0,    test_crypt_rn);
   expect_no_fault ("p2.0.crypt_ra", p2, 0, 0,    test_crypt_ra);
 
   /* Conversely, when PHRASE is null,
      it shouldn't matter what SETTING is...  */
-  expect_no_fault ("0.''.crypt",    0, "", "*0", test_crypt);
-  expect_no_fault ("0.''.crypt_r",  0, "", "*0", test_crypt_r);
+  expect_no_fault ("0.''.crypt",    0, "", FT0,  test_crypt);
+  expect_no_fault ("0.''.crypt_r",  0, "", FT0,  test_crypt_r);
   expect_no_fault ("0.''.crypt_rn", 0, "", 0,    test_crypt_rn);
   expect_no_fault ("0.''.crypt_ra", 0, "", 0,    test_crypt_ra);
 
-  expect_no_fault ("0.'*'.crypt",    0, "*", "*0", test_crypt);
-  expect_no_fault ("0.'*'.crypt_r",  0, "*", "*0", test_crypt_r);
+  expect_no_fault ("0.'*'.crypt",    0, "*", FT0,  test_crypt);
+  expect_no_fault ("0.'*'.crypt_r",  0, "*", FT0,  test_crypt_r);
   expect_no_fault ("0.'*'.crypt_rn", 0, "*", 0,    test_crypt_rn);
   expect_no_fault ("0.'*'.crypt_ra", 0, "*", 0,    test_crypt_ra);
 
-  expect_no_fault ("0.'*0'.crypt",    0, "*0", "*1", test_crypt);
-  expect_no_fault ("0.'*0'.crypt_r",  0, "*0", "*1", test_crypt_r);
+  expect_no_fault ("0.'*0'.crypt",    0, "*0", FT1,  test_crypt);
+  expect_no_fault ("0.'*0'.crypt_r",  0, "*0", FT1,  test_crypt_r);
   expect_no_fault ("0.'*0'.crypt_rn", 0, "*0", 0,    test_crypt_rn);
   expect_no_fault ("0.'*0'.crypt_ra", 0, "*0", 0,    test_crypt_ra);
 
-  expect_no_fault ("0.'*1'.crypt",    0, "*1", "*0", test_crypt);
-  expect_no_fault ("0.'*1'.crypt_r",  0, "*1", "*0", test_crypt_r);
+  expect_no_fault ("0.'*1'.crypt",    0, "*1", FT0,  test_crypt);
+  expect_no_fault ("0.'*1'.crypt_r",  0, "*1", FT0,  test_crypt_r);
   expect_no_fault ("0.'*1'.crypt_rn", 0, "*1", 0,    test_crypt_rn);
   expect_no_fault ("0.'*1'.crypt_ra", 0, "*1", 0,    test_crypt_ra);
 
-  expect_no_fault ("0.p1.crypt",    0, p1, "*0", test_crypt);
-  expect_no_fault ("0.p1.crypt_r",  0, p1, "*0", test_crypt_r);
+  expect_no_fault ("0.p1.crypt",    0, p1, FT0,  test_crypt);
+  expect_no_fault ("0.p1.crypt_r",  0, p1, FT0,  test_crypt_r);
   expect_no_fault ("0.p1.crypt_rn", 0, p1, 0,    test_crypt_rn);
   expect_no_fault ("0.p1.crypt_ra", 0, p1, 0,    test_crypt_ra);
 
@@ -245,8 +253,8 @@ do_tests(char *page, size_t pagesize)
      bug, but it's impractical to fix without breaking the property
      that 'crypt' _never_ creates a failure token that is equal to the
      setting string, which is more important than this corner case.  */
-  expect_a_fault ("0.p2.crypt",    0, p2, "*0", test_crypt);
-  expect_a_fault ("0.p2.crypt_r",  0, p2, "*0", test_crypt_r);
+  expect_a_fault ("0.p2.crypt",    0, p2, FT0,  test_crypt);
+  expect_a_fault ("0.p2.crypt_r",  0, p2, FT0,  test_crypt_r);
   expect_a_fault ("0.p2.crypt_rn", 0, p2, 0,    test_crypt_rn);
   expect_a_fault ("0.p2.crypt_ra", 0, p2, 0,    test_crypt_ra);
 
@@ -257,9 +265,9 @@ do_tests(char *page, size_t pagesize)
       strcpy (page, "p1.'");
       strcat (page, settings[i]);
       strcat (page, "'.crypt");
-      expect_a_fault (page, p1, settings[i], "*0", test_crypt);
+      expect_a_fault (page, p1, settings[i], FT0,  test_crypt);
       strcat (page, "_r");
-      expect_a_fault (page, p1, settings[i], "*0", test_crypt_r);
+      expect_a_fault (page, p1, settings[i], FT0,  test_crypt_r);
       strcat (page, "n");
       expect_a_fault (page, p1, settings[i], 0,    test_crypt_rn);
       page [strlen (page) - 1] = 'a';
@@ -268,9 +276,9 @@ do_tests(char *page, size_t pagesize)
       strcpy (page, "p2.'");
       strcat (page, settings[i]);
       strcat (page, "'.crypt");
-      expect_a_fault (page, p2, settings[i], "*0", test_crypt);
+      expect_a_fault (page, p2, settings[i], FT0,  test_crypt);
       strcat (page, "_r");
-      expect_a_fault (page, p2, settings[i], "*0", test_crypt_r);
+      expect_a_fault (page, p2, settings[i], FT0,  test_crypt_r);
       strcat (page, "n");
       expect_a_fault (page, p2, settings[i], 0,    test_crypt_rn);
       page [strlen (page) - 1] = 'a';
@@ -279,8 +287,8 @@ do_tests(char *page, size_t pagesize)
 
   /* Conversely, when PHRASE is valid, passing an invalid string as SETTING
      should crash reliably.  */
-  expect_a_fault ("ph.p2.crypt",    phrase, p2, "*0", test_crypt);
-  expect_a_fault ("ph.p2.crypt_r",  phrase, p2, "*0", test_crypt_r);
+  expect_a_fault ("ph.p2.crypt",    phrase, p2, FT0,  test_crypt);
+  expect_a_fault ("ph.p2.crypt_r",  phrase, p2, FT0,  test_crypt_r);
   expect_a_fault ("ph.p2.crypt_rn", phrase, p2, 0,    test_crypt_rn);
   expect_a_fault ("ph.p2.crypt_ra", phrase, p2, 0,    test_crypt_ra);
 
@@ -292,9 +300,9 @@ do_tests(char *page, size_t pagesize)
       strcpy (page, "ph.'");
       strcat (page, settings[i]);
       strcat (page, ".crypt");
-      expect_a_fault (page, phrase, p1, "*0", test_crypt);
+      expect_a_fault (page, phrase, p1, FT0, test_crypt);
       strcat (page, "_r");
-      expect_a_fault (page, phrase, p1, "*0", test_crypt_r);
+      expect_a_fault (page, phrase, p1, FT0, test_crypt_r);
       strcat (page, "n");
       expect_a_fault (page, phrase, p1, 0,    test_crypt_rn);
       page [strlen (page) - 1] = 'a';

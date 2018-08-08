@@ -194,8 +194,12 @@ main (void)
       errno = 0;
       p = crypt (key, setting);
       errnm = errno;
+#if ENABLE_FAILURE_TOKENS
       match = strcmp (p, hash);
-      if ((!ok && !errno) || strcmp (p, hash))
+#else
+      match = (ok ? strcmp (p, hash) : p != 0);
+#endif
+      if ((!ok && !errno) || match)
         {
           printf ("FAIL: %d/crypt.1: key=%s setting=%s: xhash=%s xerr=%d, "
                   "p=%s match=%d err=%s\n",

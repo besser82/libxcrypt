@@ -162,6 +162,26 @@ AX_VALGRIND_DFLT([sgcheck], [off])
 AX_VALGRIND_CHECK()
 
 # Configure options.
+AC_ARG_ENABLE([failure-tokens],
+    AS_HELP_STRING(
+        [--disable-failure-tokens],
+        [Make crypt and crypt_r return NULL on failure, instead of a
+         special "failure token" string that isn't the hash of any
+         passphrase.  This matches the behavior of several other
+         crypt implementations, but will break programs that assume these
+         functions never return NULL.  crypt_rn and crypt_ra are not affected
+         by this option, and will always return NULL on failure.]
+    ),
+    [case "$enableval" in
+      yes) enable_failure_tokens=1;;
+       no) enable_failure_tokens=0;;
+        *) AC_MSG_ERROR([bad value ${enableval} for --enable-failure-tokens]);;
+     esac],
+    [enable_failure_tokens=1])
+AC_DEFINE_UNQUOTED([ENABLE_FAILURE_TOKENS], [$enable_failure_tokens],
+  [Define to 1 if crypt and crypt_r should return a "failure token" on
+   failure, or 0 if they should return NULL.])
+
 AC_ARG_ENABLE([obsolete-api],
     AS_HELP_STRING(
         [--enable-obsolete-api[=ARG]],

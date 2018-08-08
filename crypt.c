@@ -235,7 +235,11 @@ crypt_r (const char *phrase, const char *setting, struct crypt_data *data)
 {
   make_failure_token (setting, data->output, sizeof data->output);
   do_crypt (phrase, setting, data);
+#if ENABLE_FAILURE_TOKENS
   return data->output;
+#else
+  return data->output[0] == '*' ? 0 : data->output;
+#endif
 }
 SYMVER_crypt_r;
 #endif

@@ -222,12 +222,28 @@ check_crypt (const char *label, const char *fn,
              const char *retval, const char *setting,
              bool expected_to_succeed)
 {
-  /* crypt/crypt_r should never return null */
+#if ENABLE_FAILURE_TOKENS
+  /* crypt/crypt_r never return null when failure tokens are enabled */
   if (!retval)
     {
       printf ("FAIL: %s/%s/%s: returned NULL\n", label, setting, fn);
       return false;
     }
+#else
+  if (expected_to_succeed && !retval)
+    {
+      printf ("FAIL: %s/%s/%s: returned NULL\n", label, setting, fn);
+      return false;
+    }
+  else if (!expected_to_succeed && retval)
+    {
+      printf ("FAIL: %s/%s/%s: returned %p, should be NULL\n",
+              label, setting, fn, (const void *)retval);
+      return false;
+    }
+  else if (!expected_to_succeed && !retval)
+    return true;
+#endif
   if (!check_results (label, fn, retval, setting,
                       expected_to_succeed))
     return false;
