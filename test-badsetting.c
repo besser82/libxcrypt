@@ -46,8 +46,6 @@ static const struct testcase testcases[] = {
 
   /* BSDi extended DES  */
 #if INCLUDE_des_xbsd
-  { "_", 2,        0, 0 },      // even number
-  { "_", 16777217, 0, 0 },      // too large
   { "_", 0,        2, 0 },      // inadequate rbytes
   { "_", 0,        0, 4 },      // inadequate osize
 #else
@@ -68,7 +66,6 @@ static const struct testcase testcases[] = {
 #if INCLUDE_sunmd5
   { "$m",   0,          0, 0 }, // truncated prefix
   { "$md",  0,          0, 0 },
-  { "$md5", 4294963200, 0, 0 }, // too large
   { "$md5", 0,          2, 0 }, // inadequate rbytes
   { "$md5", 0,          0, 4 }, // inadequate osize
 #else
@@ -78,6 +75,7 @@ static const struct testcase testcases[] = {
   /* NTHASH */
 #if INCLUDE_nthash
   { "$3",  0, 0, 0 },           // truncated prefix
+  { "$3$", 1, 0, 0 },           // doesn't accept variable counts
   { "$3$", 0, 0, 4 },           // inadequate osize
 #else
   { "$3$", 0, 0, 0 },
@@ -97,8 +95,6 @@ static const struct testcase testcases[] = {
   /* SHA256 */
 #if INCLUDE_sha256
   { "$5",  0,          0, 0 },  // truncated prefix
-  { "$5$", 999,        0, 0 },  // too small
-  { "$5$", 1000000000, 0, 0 },  // too large
   { "$5$", 0,          2, 0 },  // inadequate rbytes
   { "$5$", 0,          0, 4 },  // inadequate osize
 #else
@@ -108,8 +104,6 @@ static const struct testcase testcases[] = {
   /* SHA512 */
 #if INCLUDE_sha512
   { "$6",  0,          0, 0 },  // truncated prefix
-  { "$6$", 999,        0, 0 },  // too small
-  { "$6$", 1000000000, 0, 0 },  // too large
   { "$6$", 0,          2, 0 },  // inadequate rbytes
   { "$6$", 0,          0, 4 },  // inadequate osize
 #else

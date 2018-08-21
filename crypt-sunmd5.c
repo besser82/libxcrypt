@@ -285,7 +285,7 @@ gensalt_sunmd5_rn (unsigned long count,
       errno = ERANGE;
       return;
     }
-  if (count > SUNMD5_MAX_ROUNDS || nrbytes < 6 + 2)
+  if (nrbytes < 6 + 2)
     {
       errno = EINVAL;
       return;

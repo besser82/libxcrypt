@@ -406,7 +406,7 @@ gensalt_des_rn (unsigned long count,
       return;
     }
 
-  if (nrbytes < 2 || (count != 0 && count != 25))
+  if (nrbytes < 2 || count != 0)
     {
       errno = EINVAL;
       return;
@@ -432,17 +432,20 @@ gensalt_des_xbsd_rn (unsigned long count,
       errno = ERANGE;
       return;
     }
-
-  if (count == 0)
-    count = 725;
-
-  /* Even iteration counts make it easier to detect weak DES keys from a look
-     at the hash, so they should be avoided.  */
-  if (nrbytes < 3 || count > 0xffffff || count % 2 == 0)
+  if (nrbytes < 3)
     {
       errno = EINVAL;
       return;
     }
+
+  if (count == 0)
+    count = 725;
+  if (count > 0xffffff)
+    count = 0xffffff;
+
+  /* Even iteration counts make it easier to detect weak DES keys from a look
+     at the hash, so they should be avoided.  */
+  count |= 1;
 
   unsigned long value =
     ((unsigned long) (unsigned char) rbytes[0] <<  0) |

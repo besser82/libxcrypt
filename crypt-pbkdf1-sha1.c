@@ -232,6 +232,8 @@ gensalt_sha1_rn (unsigned long count,
 
   if (count == 0)
     count = CRYPT_SHA1_ITERATIONS;
+  if (count < 4)
+    count = 4;
   if (count > UINT32_MAX)
     count = UINT32_MAX;
   rounds = (uint32_t) (count - (random % (count / 4)));

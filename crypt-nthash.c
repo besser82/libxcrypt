@@ -125,12 +125,14 @@ gensalt_nthash_rn (unsigned long count,
       errno = ERANGE;
       return;
     }
-
-  if (count < 20)
-    count = 20;
+  if (count != 0)
+    {
+      errno = EINVAL;
+      return;
+    }
 
   md4_init_ctx (&ctx);
-  for (i = 0; i < count; i++)
+  for (i = 0; i < 20; i++)
     {
       md4_process_bytes (salt, &ctx, (i % 15) + 1);
       md4_process_bytes (rbytes, &ctx, nrbytes);

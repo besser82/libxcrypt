@@ -218,8 +218,13 @@ gensalt_md5_rn (unsigned long count,
                 const uint8_t *rbytes, size_t nrbytes,
                 uint8_t *output, size_t output_size)
 {
-  gensalt_sha_rn ('1', 8, 1000, 1000, 1000,
-                  count, rbytes, nrbytes, output, output_size);
+  if (count != 0)
+    {
+      errno = EINVAL;
+      return;
+    }
+  gensalt_sha_rn ('1', 8, 1000, 1000, 1000, 1000,
+                  rbytes, nrbytes, output, output_size);
 }
 
 #endif

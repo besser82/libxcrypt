@@ -28,10 +28,24 @@ static const char *const bsdi_expected_output[] =
 };
 static const char *const bsdi_expected_output_r[] =
 {
-  "_DT0.MJHn",
-  "_DT0.PKXc",
-  "_DT0.ZAFl",
-  "_DT0.UqGB"
+  "_/.2.MJHn",
+  "_/.2.PKXc",
+  "_/.2.ZAFl",
+  "_/.2.UqGB"
+};
+static const char *const bsdi_expected_output_l[] =
+{
+  "_/...MJHn",
+  "_/...PKXc",
+  "_/...ZAFl",
+  "_/...UqGB"
+};
+static const char *const bsdi_expected_output_h[] =
+{
+  "_zzzzMJHn",
+  "_zzzzPKXc",
+  "_zzzzZAFl",
+  "_zzzzUqGB"
 };
 #endif
 #if INCLUDE_md5
@@ -60,7 +74,14 @@ static const char *const sunmd5_expected_output[] =
   "$md5,rounds=42259$3HtkHq/x$",
   "$md5,rounds=73773$p.5e9AQf$",
 };
-static const char *const sunmd5_expected_output_r[] =
+static const char *const sunmd5_expected_output_l[] =
+{
+  "$md5,rounds=55349$BPm.fm03$",
+  "$md5,rounds=72501$WKoucttX$",
+  "$md5,rounds=42259$3HtkHq/x$",
+  "$md5,rounds=73773$p.5e9AQf$",
+};
+static const char *const sunmd5_expected_output_h[] =
 {
   "$md5,rounds=4294920244$BPm.fm03$",
   "$md5,rounds=4294937396$WKoucttX$",
@@ -76,7 +97,14 @@ static const char *const sha1_expected_output[] =
   "$sha1$257243$RAtkIrDxEovH$",
   "$sha1$250464$1j.eVxRfNAPO$",
 };
-static const char *const sha1_expected_output_r[] =
+static const char *const sha1_expected_output_l[] =
+{
+  "$sha1$4$ggu.H673kaZ5$",
+  "$sha1$4$SWqudaxXA5L0$",
+  "$sha1$4$RAtkIrDxEovH$",
+  "$sha1$4$1j.eVxRfNAPO$",
+};
+static const char *const sha1_expected_output_h[] =
 {
   "$sha1$3643984551$ggu.H673kaZ5$",
   "$sha1$4200450659$SWqudaxXA5L0$",
@@ -99,6 +127,20 @@ static const char *const sha256_expected_output_r[] =
   "$5$rounds=10191$ZAFlICwYRETzIzIj",
   "$5$rounds=10191$UqGBkVu01rurVZqg"
 };
+static const char *const sha256_expected_output_l[] =
+{
+  "$5$rounds=1000$MJHnaAkegEVYHsFK",
+  "$5$rounds=1000$PKXc3hCOSyMqdaEQ",
+  "$5$rounds=1000$ZAFlICwYRETzIzIj",
+  "$5$rounds=1000$UqGBkVu01rurVZqg"
+};
+static const char *const sha256_expected_output_h[] =
+{
+  "$5$rounds=999999999$MJHnaAkegEVYHsFK",
+  "$5$rounds=999999999$PKXc3hCOSyMqdaEQ",
+  "$5$rounds=999999999$ZAFlICwYRETzIzIj",
+  "$5$rounds=999999999$UqGBkVu01rurVZqg"
+};
 #endif
 #if INCLUDE_sha512
 static const char *const sha512_expected_output[] =
@@ -115,6 +157,20 @@ static const char *const sha512_expected_output_r[] =
   "$6$rounds=10191$ZAFlICwYRETzIzIj",
   "$6$rounds=10191$UqGBkVu01rurVZqg"
 };
+static const char *const sha512_expected_output_l[] =
+{
+  "$6$rounds=1000$MJHnaAkegEVYHsFK",
+  "$6$rounds=1000$PKXc3hCOSyMqdaEQ",
+  "$6$rounds=1000$ZAFlICwYRETzIzIj",
+  "$6$rounds=1000$UqGBkVu01rurVZqg"
+};
+static const char *const sha512_expected_output_h[] =
+{
+  "$6$rounds=999999999$MJHnaAkegEVYHsFK",
+  "$6$rounds=999999999$PKXc3hCOSyMqdaEQ",
+  "$6$rounds=999999999$ZAFlICwYRETzIzIj",
+  "$6$rounds=999999999$UqGBkVu01rurVZqg"
+};
 #endif
 #if INCLUDE_bcrypt
 static const char *const bcrypt_a_expected_output[] =
@@ -130,6 +186,20 @@ static const char *const bcrypt_b_expected_output[] =
   "$2b$05$kxUgPcrmlm9XoOjvxCyfP.",
   "$2b$05$HPNDjKMRFdR7zC87CMSmA.",
   "$2b$05$mAyzaIeJu41dWUkxEbn8hO"
+};
+static const char *const bcrypt_b_expected_output_l[] =
+{
+  "$2b$04$UBVLHeMpJ/QQCv3XqJx8zO",
+  "$2b$04$kxUgPcrmlm9XoOjvxCyfP.",
+  "$2b$04$HPNDjKMRFdR7zC87CMSmA.",
+  "$2b$04$mAyzaIeJu41dWUkxEbn8hO"
+};
+static const char *const bcrypt_b_expected_output_h[] =
+{
+  "$2b$31$UBVLHeMpJ/QQCv3XqJx8zO",
+  "$2b$31$kxUgPcrmlm9XoOjvxCyfP.",
+  "$2b$31$HPNDjKMRFdR7zC87CMSmA.",
+  "$2b$31$mAyzaIeJu41dWUkxEbn8hO"
 };
 static const char *const bcrypt_x_expected_output[] =
 {
@@ -156,6 +226,13 @@ struct testcase
   unsigned long rounds;
 };
 
+// For all hashing methods with a linear cost parameter (that is,
+// DES/BSD, MD5/Sun, SHA1, SHA256, and SHA512), crypt_gensalt will
+// accept any value in the range of 'unsigned long' and clip it to the
+// actual valid range.
+#define MIN_LINEAR_COST 1
+#define MAX_LINEAR_COST ULONG_MAX
+
 static const struct testcase testcases[] =
 {
 #if INCLUDE_des || INCLUDE_des_big
@@ -164,7 +241,12 @@ static const struct testcase testcases[] =
 #endif
 #if INCLUDE_des_xbsd
   { "_",     bsdi_expected_output,      9,  0, 0 },
-  { "_",     bsdi_expected_output_r,    9,  0, 10191 },
+  // BSDI/DES always emits a round count.
+  // The _r expectation is used to verify that even inputs are
+  // made odd, rather than rejected.
+  { "_",     bsdi_expected_output_r,    9,  0, 16384 },
+  { "_",     bsdi_expected_output_l,    9,  0, MIN_LINEAR_COST },
+  { "_",     bsdi_expected_output_h,    9,  0, MAX_LINEAR_COST },
 #endif
 #if INCLUDE_md5
   { "$1$",   md5_expected_output,      11,  0, 0 },
@@ -176,32 +258,42 @@ static const struct testcase testcases[] =
 #endif
 #if INCLUDE_sunmd5
   { "$md5",  sunmd5_expected_output,   27,  0, 0 },
-  // SHA1/PBKDF always emits a round count, but we need to test its
-  // behavior on very large inputs.  (This number is the largest
-  // supported round count.)
-  { "$md5", sunmd5_expected_output_r,  32, 0, 4294963199ul },
+  // MD5/Sun always emits a round count.
+  { "$md5", sunmd5_expected_output_l,  27,  0, MIN_LINEAR_COST },
+  { "$md5", sunmd5_expected_output_h,  32,  0, MAX_LINEAR_COST },
 #endif
 #if INCLUDE_sha1
   { "$sha1", sha1_expected_output,     26, 34, 0 },
-  // SHA1/PBKDF always emits a round count, but we need to test its
-  // behavior on very large inputs.  (The behavior should be the
-  // same whether or not ULONG_MAX > UINT32_MAX.)
-  { "$sha1", sha1_expected_output_r,   30, 38, ULONG_MAX },
+  // SHA1/PBKDF always emits a round count.
+  { "$sha1", sha1_expected_output_l,   21, 29, MIN_LINEAR_COST },
+  { "$sha1", sha1_expected_output_h,   30, 38, MAX_LINEAR_COST },
 #endif
 #if INCLUDE_sha256
   { "$5$",   sha256_expected_output,   19,  0, 0 },
   { "$5$",   sha256_expected_output_r, 32,  0, 10191 },
+  { "$5$",   sha256_expected_output_l, 31,  0, MIN_LINEAR_COST },
+  { "$5$",   sha256_expected_output_h, 36,  0, MAX_LINEAR_COST },
 #endif
 #if INCLUDE_sha512
   { "$6$",   sha512_expected_output,   19,  0, 0 },
   { "$6$",   sha512_expected_output_r, 32,  0, 10191 },
+  { "$6$",   sha512_expected_output_l, 31,  0, MIN_LINEAR_COST },
+  { "$6$",   sha512_expected_output_h, 36,  0, MAX_LINEAR_COST },
 #endif
 #if INCLUDE_bcrypt
-  { "$2a$",  bcrypt_a_expected_output, 29,  0, 0 },
   { "$2b$",  bcrypt_b_expected_output, 29,  0, 0 },
+  // bcrypt always emits a cost parameter.
+  // bcrypt's cost parameter is exponential, not linear, and
+  // values outside the documented range are errors.
+  { "$2b$",  bcrypt_b_expected_output_l, 29,  0, 4 },
+  { "$2b$",  bcrypt_b_expected_output_h, 29,  0, 31 },
+
+  // Salt generation for legacy bcrypt variants uses the same code as
+  // the 'b' variant, so we don't bother testing them on non-default
+  // rounds.
+  { "$2a$",  bcrypt_a_expected_output, 29,  0, 0 },
   { "$2x$",  bcrypt_x_expected_output, 29,  0, 0 },
   { "$2y$",  bcrypt_y_expected_output, 29,  0, 0 },
-  // bcrypt gensalt always emits a round count.
 #endif
   { 0, 0, 0, 0, 0 }
 };
@@ -228,12 +320,14 @@ main (void)
             {
               if (entropy[ent] == 0 && errno == ENOSYS)
                 {
-                  fprintf (stderr, "UNSUPPORTED: %s/auto-entropy -> ENOSYS\n",
-                           tcase->prefix);
+                  fprintf (stderr,
+                           "UNSUPPORTED: %s/%lu/auto-entropy -> ENOSYS\n",
+                           tcase->prefix, tcase->rounds);
                 }
               else
                 {
-                  fprintf (stderr, "ERROR: %s/%u -> 0\n", tcase->prefix, ent);
+                  fprintf (stderr, "ERROR: %s/%lu/%u -> 0\n",
+                           tcase->prefix, tcase->rounds, ent);
                   status = 1;
                 }
               continue;
@@ -245,31 +339,33 @@ main (void)
           if (slen != expected_len)
             {
               fprintf (stderr,
-                       "ERROR: %s/%u -> %s (expected len=%u got %zu)\n",
-                       tcase->prefix, ent, salt, expected_len, slen);
+                       "ERROR: %s/%lu/%u -> %s (expected len=%u got %zu)\n",
+                       tcase->prefix, tcase->rounds, ent, salt,
+                       expected_len, slen);
               status = 1;
             }
           else if (strncmp (salt, tcase->prefix, strlen (tcase->prefix)))
             {
-              fprintf (stderr, "ERROR: %s/%u -> %s (prefix wrong)\n",
-                       tcase->prefix, ent, salt);
+              fprintf (stderr, "ERROR: %s/%lu/%u -> %s (prefix wrong)\n",
+                       tcase->prefix, tcase->rounds, ent, salt);
               status = 1;
             }
           else if (!strcmp (salt, prev_output))
             {
-              fprintf (stderr, "ERROR: %s/%u -> %s (same as prev)\n",
-                       tcase->prefix, ent, salt);
+              fprintf (stderr, "ERROR: %s/%lu/%u -> %s (same as prev)\n",
+                       tcase->prefix, tcase->rounds, ent, salt);
               status = 1;
             }
           else if (entropy[ent] &&  strcmp (salt, tcase->expected_output[ent]))
             {
-              fprintf (stderr, "ERROR: %s/%u -> %s (expected %s)\n",
-                       tcase->prefix, ent, salt, tcase->expected_output[ent]);
+              fprintf (stderr, "ERROR: %s/%lu/%u -> %s (expected %s)\n",
+                       tcase->prefix, tcase->rounds, ent, salt,
+                       tcase->expected_output[ent]);
               status = 1;
             }
           else
-            fprintf (stderr, "   ok: %s/%u -> %s\n",
-                     tcase->prefix, ent, salt);
+            fprintf (stderr, "   ok: %s/%lu/%u -> %s\n",
+                     tcase->prefix, tcase->rounds, ent, salt);
 
           XCRYPT_SECURE_MEMSET (prev_output, CRYPT_GENSALT_OUTPUT_SIZE);
           strncpy (prev_output, salt, CRYPT_GENSALT_OUTPUT_SIZE -1 );

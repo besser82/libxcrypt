@@ -26,14 +26,6 @@ gensalt_sha_rn (char tag, size_t maxsalt, unsigned long defcount,
                 const uint8_t *rbytes, size_t nrbytes,
                 uint8_t *output, size_t output_size)
 {
-  if (count == 0)
-    count = defcount;
-  if (count < mincount || count > maxcount)
-    {
-      errno = EINVAL;
-      return;
-    }
-
   /* We will use more rbytes if available, but at least this much is
      required.  */
   if (nrbytes < 3)
@@ -41,6 +33,13 @@ gensalt_sha_rn (char tag, size_t maxsalt, unsigned long defcount,
       errno = EINVAL;
       return;
     }
+
+  if (count == 0)
+    count = defcount;
+  if (count < mincount)
+    count = mincount;
+  if (count > maxcount)
+    count = maxcount;
 
   /* Compute how much space we need.  */
   size_t output_len = 8; /* $x$ssss\0 */
