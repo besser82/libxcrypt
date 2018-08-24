@@ -176,7 +176,7 @@ script:
   - export LDFLAGS="`cat ldflags.txt`" ; echo $LDFLAGS
   - if [[ "$CODECOV" == "1" ]] ; then export CFLAGS="-O0 -g --coverage" ; export CXXFLAGS="$CFLAGS" ; export LDFLAGS="--coverage" ; fi
   - docker exec -t buildenv /bin/sh -c "cat /etc/redhat-release"
-  - docker exec -t buildenv /bin/sh -c "cd /opt/libxcrypt && autoreconf -fiv"
+  - docker exec -t buildenv /bin/sh -c "cd /opt/libxcrypt && autoreconf -fiv -Wall -Werror"
   - docker exec -t buildenv /bin/sh -c "cd /opt/libxcrypt && CFLAGS=\"$CFLAGS\" CXXFLAGS=\"$CXXFLAGS\" LDFLAGS=\"$LDFLAGS\" ./configure --prefix=/opt/libxcrypt --disable-silent-rules --enable-shared --enable-static $CONF"
   - docker exec -t buildenv /bin/sh -c "make -C /opt/libxcrypt -j$((`nproc --all` * 2))"
   - docker exec -t buildenv /bin/sh -c "make -C /opt/libxcrypt install"
