@@ -3,6 +3,8 @@ libxcrypt NEWS -- history of user-visible changes.
 Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
+Version 4.1.3
+
 Version 4.1.2
 * Add optional 'check-valgrind' target to the Makefile.
 * Replace crypt-sha{256,512}.c with an implementation in the Public
