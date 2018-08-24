@@ -16,6 +16,20 @@ Version 4.1.2
   failure; but it breaks compatibility with programs that assume these
   functions never return NULL.  We're not sure which type of program
   is more common.  Please let us know if you encounter either.
+* Improved handling of out-of-range cost parameters in gensalt.
+  The behavior is now:
+  - for hashes with a fixed cost parameter (DES/trad, DES/big, NTHASH,
+    MD5/bsd), crypt_gensalt only accepts 0 as the rounds argument.
+  - for hashes with a linear cost parameter (DES/bsdi, MD5/sun, SHA1,
+    SHA256, SHA512), crypt_gensalt accepts 0 or any value in the range
+    [1, ULONG_MAX] and clips it to the actual valid range for the hash
+    function, if necessary.  In the case of DES/bsdi, even numbers
+    become odd, as well.
+  - for hashes with an exponential cost parameter (bcrypt),
+    crypt_gensalt only accepts 0 or a value in the actual valid range.
+  - the documented valid range for SHA1 is now [4, 4294967295] instead
+    of [1, 4294967295].
+  - all of this is tested.
 
 Version 4.1.1
 * --enable-hashes now supports additional groups of hashing methods:
