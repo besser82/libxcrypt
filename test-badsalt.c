@@ -185,6 +185,17 @@ static const struct testcase testcases[] =
   { "*bcrypt (y04) invalid rounds 1",      29, "$2y$:4$UBVLHeMpJ/QQCv3XqJx8zO" },
   { "*bcrypt (y04) invalid rounds 2",      29, "$2y$0:$UBVLHeMpJ/QQCv3XqJx8zO" },
 #endif
+#if INCLUDE_yescrypt
+  { "yescrypt",                            30, "$y$j9T$PKXc3hCOSyMqdaEQArI62/$" },
+  { "*yescrypt invalid char 1",            30, "$y$j9T$:KXc3hCOSyMqdaEQArI62/$" },
+  { "*yescrypt invalid char 2",            18, "$y$j9T$PKXc:hCOS$" },
+  { "*yescrypt invalid params 1",          30, "$y$:9T$PKXc3hCOSyMqdaEQArI62/$" },
+  { "*yescrypt invalid params 2",          30, "$y$j:T$PKXc3hCOSyMqdaEQArI62/$" },
+  { "*yescrypt invalid params 3",          30, "$y$j9:$PKXc3hCOSyMqdaEQArI62/$" },
+  { "*yescrypt invalid params 4",          30, "$y$$9T$PKXc3hCOSyMqdaEQArI62/$" },
+  { "*yescrypt invalid params 5",          30, "$y$j$:$PKXc3hCOSyMqdaEQArI62/$" },
+  { "*yescrypt invalid params 6",          30, "$y$j9$$PKXc3hCOSyMqdaEQArI62/$" },
+#endif
 };
 
 static bool

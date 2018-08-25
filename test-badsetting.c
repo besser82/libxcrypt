@@ -128,6 +128,14 @@ static const struct testcase testcases[] =
   { "$2x$", 0, 0, 0 },
   { "$2y$", 0, 0, 0 },
 #endif
+#if INCLUDE_yescrypt
+  { "$y",   0,  0, 0 },         // truncated prefix
+  { "$y$",  32, 0, 0 },         // too large
+  { "$y$",  0,  2, 0 },         // inadequate rbytes
+  { "$y$",  0,  0, 4 },         // inadequate osize
+#else
+  { "$y$", 0, 0, 0 },
+#endif
 };
 
 static void
