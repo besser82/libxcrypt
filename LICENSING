@@ -35,6 +35,9 @@ source tree.  For specific licensing terms consult the files themselves.
    alg-yescrypt.h, alg-yescrypt-opt.c, alg-yescrypt-sha256.c,
    alg-yescrypt-sha256.h, alg-yescrypt-sysendian.h
 
+ * Copyright Alexander Peslyak, Björn Esser; 0-clause BSD:
+   crypt-scrypt.c
+
  * Copyright Michael Bretterklieber, Björn Esser et al.; 2-clause BSD:
    crypt-nthash.c
 

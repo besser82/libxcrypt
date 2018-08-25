@@ -30,7 +30,7 @@
 
 #include "crypt-port.h"
 
-#if INCLUDE_yescrypt
+#if INCLUDE_yescrypt || INCLUDE_scrypt
 
 #pragma GCC diagnostic ignored "-Wcast-align"
 #ifdef __clang__
@@ -1426,4 +1426,4 @@ int yescrypt_free_local(yescrypt_local_t *local)
 	return free_region(local);
 }
 
-#endif /* INCLUDE_yescrypt */
+#endif /* INCLUDE_yescrypt || INCLUDE_scrypt */

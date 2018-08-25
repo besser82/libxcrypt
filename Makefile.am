@@ -39,9 +39,8 @@ libcrypt_la_SOURCES = \
 	alg-yescrypt-sha256.c alg-yescrypt-common.c \
 	crypt.c crypt-bcrypt.c crypt-des.c crypt-gensalt-static.c \
 	crypt-gensalt.c crypt-md5.c crypt-nthash.c crypt-pbkdf1-sha1.c \
-	crypt-sha256.c crypt-sha512.c crypt-static.c crypt-sunmd5.c \
-	crypt-yescrypt.c randombytes.c
-
+	crypt-scrypt.c crypt-sha256.c crypt-sha512.c crypt-static.c \
+	crypt-sunmd5.c crypt-yescrypt.c randombytes.c
 
 EXTRA_DIST += yescrypt-platform.c
 
