@@ -27,7 +27,7 @@
 
 #include "crypt-port.h"
 
-#if INCLUDE_yescrypt
+#if INCLUDE_yescrypt || INCLUDE_scrypt
 
 #include <assert.h>
 #include <stdint.h>
@@ -649,4 +649,4 @@ cleanup:
 	insecure_memzero(&u, sizeof(u));
 }
 
-#endif /* INCLUDE_yescrypt */
+#endif /* INCLUDE_yescrypt || INCLUDE_scrypt */

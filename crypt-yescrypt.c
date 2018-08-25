@@ -18,13 +18,11 @@
 
 #include "crypt-port.h"
 #include "crypt-private.h"
-#include "byteorder.h"
-
-#include <stdlib.h>
-#include <errno.h>
 #include "alg-yescrypt.h"
 
-#if INCLUDE_yescrypt
+#include <errno.h>
+
+#if INCLUDE_yescrypt || INCLUDE_scrypt
 
 /* For use in scratch space by crypt_yescrypt_rn().  */
 typedef struct
@@ -36,6 +34,66 @@ typedef struct
 
 static_assert (sizeof (crypt_yescrypt_internal_t) <= ALG_SPECIFIC_SIZE,
                "ALG_SPECIFIC_SIZE is too small for YESCRYPT.");
+
+void
+crypt_yescrypt_rn (const char *phrase, size_t phr_size,
+                   const char *setting, size_t set_size,
+                   uint8_t *output, size_t o_size,
+                   void *scratch, size_t s_size)
+{
+#if !INCLUDE_scrypt
+
+  /* If scrypt is disabled fail when called with its prefix.  */
+  if (!strncmp (setting, "$7$", 3))
+    {
+      errno = EINVAL;
+      return;
+    }
+
+#endif /* !INCLUDE_scrypt */
+
+#if !INCLUDE_yescrypt
+
+  /* If yescrypt is disabled fail when called with its prefix.  */
+  if (!strncmp (setting, "$y$", 3))
+    {
+      errno = EINVAL;
+      return;
+    }
+
+#endif /* !INCLUDE_yescrypt */
+
+  if (o_size < set_size + 1 + 43 + 1 ||
+      CRYPT_OUTPUT_SIZE < set_size + 1 + 43 + 1 ||
+      s_size < sizeof (crypt_yescrypt_internal_t))
+    {
+      errno = ERANGE;
+      return;
+    }
+
+  crypt_yescrypt_internal_t *intbuf = scratch;
+
+  if (yescrypt_init_local (&intbuf->local))
+    return;
+
+  intbuf->retval = yescrypt_r (NULL, &intbuf->local,
+                               (const uint8_t *)phrase, phr_size,
+                               (const uint8_t *)setting, NULL,
+                               intbuf->outbuf, o_size);
+
+  if (!intbuf->retval)
+    errno = EINVAL;
+
+  if (yescrypt_free_local (&intbuf->local) || !intbuf->retval)
+    return;
+
+  XCRYPT_STRCPY_OR_ABORT (output, o_size, intbuf->outbuf);
+  return;
+}
+
+#endif /* INCLUDE_yescrypt || INCLUDE_scrypt */
+
+#if INCLUDE_yescrypt
 
 /*
  * As OUTPUT is initialized with a failure token before gensalt_yescrypt_rn
@@ -110,40 +168,6 @@ gensalt_yescrypt_rn (unsigned long count,
     }
 
   XCRYPT_STRCPY_OR_ABORT (output, o_size, outbuf);
-  return;
-}
-
-void
-crypt_yescrypt_rn (const char *phrase, size_t phr_size,
-                   const char *setting, size_t set_size,
-                   uint8_t *output, size_t o_size,
-                   void *scratch, size_t s_size)
-{
-  if (o_size < set_size + 1 + 43 + 1 ||
-      CRYPT_OUTPUT_SIZE < set_size + 1 + 43 + 1 ||
-      s_size < sizeof (crypt_yescrypt_internal_t))
-    {
-      errno = ERANGE;
-      return;
-    }
-
-  crypt_yescrypt_internal_t *intbuf = scratch;
-
-  if (yescrypt_init_local (&intbuf->local))
-    return;
-
-  intbuf->retval = yescrypt_r (NULL, &intbuf->local,
-                               (const uint8_t *)phrase, phr_size,
-                               (const uint8_t *)setting, NULL,
-                               intbuf->outbuf, o_size);
-
-  if (!intbuf->retval)
-    errno = EINVAL;
-
-  if (yescrypt_free_local (&intbuf->local) || !intbuf->retval)
-    return;
-
-  XCRYPT_STRCPY_OR_ABORT (output, o_size, intbuf->outbuf);
   return;
 }
 

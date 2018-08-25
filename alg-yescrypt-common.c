@@ -20,7 +20,7 @@
 
 #include "crypt-port.h"
 
-#if INCLUDE_yescrypt
+#if INCLUDE_yescrypt || INCLUDE_scrypt
 
 #include <stdint.h>
 #include <string.h>
@@ -598,4 +598,4 @@ uint8_t *yescrypt_encode_params_r(const yescrypt_params_t *params,
 	return buf;
 }
 
-#endif /* INCLUDE_yescrypt */
+#endif /* INCLUDE_yescrypt || INCLUDE_scrypt */
