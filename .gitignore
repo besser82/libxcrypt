@@ -66,6 +66,7 @@
 /test-crypt-sha256
 /test-crypt-sha512
 /test-crypt-sunmd5
+/test-crypt-yescrypt
 /test-des-obsolete
 /test-des-obsolete_r
 /test-gensalt
