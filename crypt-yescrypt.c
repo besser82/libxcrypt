@@ -121,23 +121,19 @@ crypt_yescrypt_rn (const char *phrase, size_t phr_size,
 
   crypt_yescrypt_internal_t *intbuf = scratch;
 
-  if (yescrypt_init_local(&intbuf->local))
-    {
-      errno = ENOMEM;
-      return;
-    }
+  if (yescrypt_init_local (&intbuf->local))
+    return;
 
   intbuf->retval = yescrypt_r (NULL, &intbuf->local,
                                (const uint8_t *)phrase, phr_size,
                                (const uint8_t *)setting, NULL,
                                intbuf->outbuf, o_size);
 
-  if (yescrypt_free_local(&intbuf->local) ||
-      !intbuf->retval)
-    {
-      errno = EINVAL;
-      return;
-    }
+  if (!intbuf->retval)
+    errno = EINVAL;
+
+  if (yescrypt_free_local (&intbuf->local) || !intbuf->retval)
+    return;
 
   XCRYPT_STRCPY_OR_ABORT (output, o_size, intbuf->outbuf);
   return;
