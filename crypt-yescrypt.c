@@ -96,7 +96,7 @@ gensalt_yescrypt_rn(unsigned long count,
 }
 
 void
-crypt_yescrypt_rn(const char *phrase, size_t ARG_UNUSED (phr_size),
+crypt_yescrypt_rn(const char *phrase, size_t phr_size,
                   const char *setting, size_t ARG_UNUSED (set_size),
                   uint8_t *output, size_t o_size,
                   ARG_UNUSED(void *scratch), ARG_UNUSED(size_t s_size))
@@ -115,7 +115,7 @@ crypt_yescrypt_rn(const char *phrase, size_t ARG_UNUSED (phr_size),
       return;
     }
   retval = yescrypt_r(NULL, &local,
-                      (const uint8_t *)phrase, strlen(phrase),
+                      (const uint8_t *)phrase, phr_size,
                       (const uint8_t *)setting, NULL,
                       output, o_size);
   if (yescrypt_free_local(&local) ||
