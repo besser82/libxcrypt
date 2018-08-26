@@ -7,6 +7,7 @@ Version 4.2.0
 * Implement yescrypt ($y$) and scrypt ($7$) hashing algorithms.
 * For scrypt the implemented gensalt function ensures every new hash
   is computed using at least 32 MiBytes of RAM.
+* yescrypt is the new default method used for new hashes.
 
 Version 4.1.2
 * Add optional 'check-valgrind' target to the Makefile.

@@ -428,18 +428,18 @@ main (void)
     }
 
   /* Currently, passing a null pointer as the prefix argument to
-     crypt_gensalt is supposed to produce a bcrypt-mode-2b setting
+     crypt_gensalt is supposed to produce a yescrypt setting
      string.  */
   {
     char *setting1, *setting2;
-    setting1 = crypt_gensalt_ra ("$2b$", 0, entropy[0], 16);
+    setting1 = crypt_gensalt_ra ("$y$", 0, entropy[0], 16);
     setting2 = crypt_gensalt_ra (0, 0, entropy[0], 16);
     if ((setting1 == 0 && setting2 != 0) ||
         (setting1 != 0 && setting2 == 0) ||
         (setting1 != 0 && setting2 != 0 && strcmp (setting1, setting2)))
       {
-        printf ("FAILED: crypt_gensalt defaulting to $2b$\n"
-                "  $2b$ -> %s\n"
+        printf ("FAILED: crypt_gensalt defaulting to $y$\n"
+                "  $y$ -> %s\n"
                 "  null -> %s\n",
                 setting1, setting2);
         status = 1;
