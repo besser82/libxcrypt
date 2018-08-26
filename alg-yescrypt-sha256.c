@@ -34,9 +34,9 @@
 #include <string.h>
 
 #define insecure_memzero XCRYPT_SECURE_MEMSET
-#include "yescrypt-sysendian.h"
+#include "alg-yescrypt-sysendian.h"
 
-#include "yescrypt-sha256.h"
+#include "alg-yescrypt-sha256.h"
 
 #ifdef __ICC
 /* Miscompile with icc 14.0.0 (at least), so don't use restrict there */

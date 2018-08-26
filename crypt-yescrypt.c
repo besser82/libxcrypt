@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include "yescrypt.h"
+#include "alg-yescrypt.h"
 
 #if INCLUDE_yescrypt
 

@@ -27,20 +27,21 @@ nodist_include_HEADERS = crypt.h
 nodist_noinst_HEADERS = crypt-hashes.h
 noinst_HEADERS = \
 	alg-des.h alg-hmac-sha1.h alg-md4.h alg-md5.h \
-	alg-sha1.h alg-sha256.h alg-sha512.h byteorder.h \
+	alg-sha1.h alg-sha256.h alg-sha512.h alg-yescrypt-sha256.h \
+	alg-yescrypt.h alg-yescrypt-sysendian.h byteorder.h \
 	crypt-base.h crypt-obsolete.h crypt-private.h \
-	crypt-port.h test-des-cases.h yescrypt-sha256.h \
-	yescrypt.h yescrypt-sysendian.h
+	crypt-port.h test-des-cases.h
 
 lib_LTLIBRARIES = libcrypt.la
 libcrypt_la_SOURCES = \
 	alg-des.c alg-des-tables.c alg-hmac-sha1.c alg-md4.c alg-md5.c \
-	alg-sha1.c alg-sha256.c alg-sha512.c \
+	alg-sha1.c alg-sha256.c alg-sha512.c alg-yescrypt-opt.c \
+	alg-yescrypt-sha256.c alg-yescrypt-common.c \
 	crypt.c crypt-bcrypt.c crypt-des.c crypt-gensalt-static.c \
 	crypt-gensalt.c crypt-md5.c crypt-nthash.c crypt-pbkdf1-sha1.c \
 	crypt-sha256.c crypt-sha512.c crypt-static.c crypt-sunmd5.c \
-	randombytes.c yescrypt-opt.c yescrypt-sha256.c \
-	yescrypt-common.c crypt-yescrypt.c
+	crypt-yescrypt.c randombytes.c
+
 
 EXTRA_DIST += yescrypt-platform.c
 
@@ -157,11 +158,10 @@ check_PROGRAMS = \
 	test-crypt-bcrypt test-crypt-des \
 	test-crypt-md5 test-crypt-nthash \
 	test-crypt-pbkdf1-sha1 test-crypt-sha256 test-crypt-sha512 \
-	test-crypt-sunmd5 \
+	test-crypt-sunmd5 test-crypt-yescrypt \
 	test-byteorder test-badsalt test-badsetting test-gensalt \
 	test-crypt-badargs test-short-outbuf \
-        test-getrandom-interface test-getrandom-fallbacks \
-	test-crypt-yescrypt
+        test-getrandom-interface test-getrandom-fallbacks
 
 if ENABLE_OBSOLETE_API
 libcrypt_la_SOURCES += crypt-des-obsolete.c

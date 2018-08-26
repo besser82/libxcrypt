@@ -91,13 +91,13 @@
 #include <string.h>
 
 #define insecure_memzero XCRYPT_SECURE_MEMSET
-#include "yescrypt-sha256.h"
-#include "yescrypt-sysendian.h"
+#include "alg-yescrypt-sha256.h"
+#include "alg-yescrypt-sysendian.h"
 
 #define YESCRYPT_INTERNAL
-#include "yescrypt.h"
+#include "alg-yescrypt.h"
 
-#include "yescrypt-platform.c"
+#include "alg-yescrypt-platform.c"
 
 #if __STDC_VERSION__ >= 199901L
 /* Have restrict */
