@@ -32,6 +32,10 @@ extern void gensalt_sha_rn (char tag, size_t maxsalt, unsigned long defcount,
                             const uint8_t *rbytes, size_t nrbytes,
                             uint8_t *output, size_t output_size);
 
+/* Calculate the size of a base64 encoding of N bytes:
+   6 bits per output byte, rounded up.  */
+#define BASE64_LEN(bytes) ((((bytes) * 8) + 5) / 6)
+
 /* The "scratch" area passed to each of the individual hash functions is
    this big.  */
 #define ALG_SPECIFIC_SIZE 8192

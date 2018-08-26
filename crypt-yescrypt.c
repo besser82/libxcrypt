@@ -49,6 +49,13 @@ gensalt_yescrypt_rn (unsigned long count,
                      const uint8_t *rbytes, size_t nrbytes,
                      uint8_t *output, size_t o_size)
 {
+  if (o_size < 3 + 8 * 6 + BASE64_LEN (nrbytes) + 1 ||
+      CRYPT_GENSALT_OUTPUT_SIZE < 3 + 8 * 6 + BASE64_LEN (nrbytes) + 1)
+    {
+      errno = ERANGE;
+      return;
+    }
+
   if (count > 11)
     {
       errno = EINVAL;
@@ -108,11 +115,12 @@ gensalt_yescrypt_rn (unsigned long count,
 
 void
 crypt_yescrypt_rn (const char *phrase, size_t phr_size,
-                   const char *setting, size_t ARG_UNUSED (set_size),
+                   const char *setting, size_t set_size,
                    uint8_t *output, size_t o_size,
                    void *scratch, size_t s_size)
 {
-  if (o_size < 3  ||
+  if (o_size < set_size + 1 + 43 + 1 ||
+      CRYPT_OUTPUT_SIZE < set_size + 1 + 43 + 1 ||
       s_size < sizeof (crypt_yescrypt_internal_t))
     {
       errno = ERANGE;
