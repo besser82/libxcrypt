@@ -20,7 +20,8 @@
 
 /* The behavior tested below should be consistent for all hashing
    methods.  */
-static const char *settings[] = {
+static const char *settings[] =
+{
 #if INCLUDE_des || INCLUDE_des_big
   "Mp",
 #endif

@@ -226,7 +226,8 @@ struct subtest
   bool *make_fail;
   char expected;
 };
-const struct subtest subtests[] = {
+const struct subtest subtests[] =
+{
   { "initial", 0, 'x' },
 
 #ifdef HAVE_GETENTROPY

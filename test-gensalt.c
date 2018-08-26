@@ -217,7 +217,8 @@ static const char *const bcrypt_y_expected_output[] =
 };
 #endif
 #if INCLUDE_yescrypt
-static const char *yescrypt_expected_output[] = {
+static const char *yescrypt_expected_output[] =
+{
   "$y$j9T$MJHnaAkegEVYHsFKkmfzJ1",
   "$y$j9T$PKXc3hCOSyMqdaEQArI62/",
   "$y$j9T$ZAFlICwYRETzIzIjEIC86.",

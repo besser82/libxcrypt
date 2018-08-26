@@ -26,40 +26,43 @@
 static int
 test(const char *p, const char *s, const char *m)
 {
-	char *cp;
-	struct crypt_data output;
-	cp = crypt_r(p, s, &output);
-	if (!cp)
-		return 1;
-	if (strcmp(m, cp)) {
-		fprintf(stderr, "ERROR: %s %s -> %s\n\t(expected %s)\n",
-		    p, s, cp, m);
-		return 1;
-	} else {
-		fprintf(stderr, "   ok: %s %s -> %s\n", p, s, cp);
-		return 0;
-	}
+  char *cp;
+  struct crypt_data output;
+  cp = crypt_r(p, s, &output);
+  if (!cp)
+    return 1;
+  if (strcmp(m, cp))
+    {
+      fprintf(stderr, "ERROR: %s %s -> %s\n\t(expected %s)\n",
+              p, s, cp, m);
+      return 1;
+    }
+  else
+    {
+      fprintf(stderr, "   ok: %s %s -> %s\n", p, s, cp);
+      return 0;
+    }
 }
 
 int
 main (void)
 {
-	int result = 0;
+  int result = 0;
 
-	result |= test("pleaseletmein", "$7$C6..../....SodiumChloride",
-	    "$7$C6..../....SodiumChloride$kBGj9fHznVYFQMEn/qDCfrDevf9YDtcDdKvEqHJLV8D");
-	result |= test("pleaseletmein", "$7$06..../....SodiumChloride",
-	    "$7$06..../....SodiumChloride$ENlyo6fGw4PCcDBOFepfSZjFUnVatHzCcW55.ZGz3B0");
-	result |= test("pleaseletmein", "$y$jD5.7$LdJMENpBABJJ3hIHjB1Bi.",
-	    "$y$jD5.7$LdJMENpBABJJ3hIHjB1Bi.$HboGM6qPrsK.StKYGt6KErmUYtioHreJd98oIugoNB6");
+  result |= test("pleaseletmein", "$7$C6..../....SodiumChloride",
+                 "$7$C6..../....SodiumChloride$kBGj9fHznVYFQMEn/qDCfrDevf9YDtcDdKvEqHJLV8D");
+  result |= test("pleaseletmein", "$7$06..../....SodiumChloride",
+                 "$7$06..../....SodiumChloride$ENlyo6fGw4PCcDBOFepfSZjFUnVatHzCcW55.ZGz3B0");
+  result |= test("pleaseletmein", "$y$jD5.7$LdJMENpBABJJ3hIHjB1Bi.",
+                 "$y$jD5.7$LdJMENpBABJJ3hIHjB1Bi.$HboGM6qPrsK.StKYGt6KErmUYtioHreJd98oIugoNB6");
 
-	result |= test("", "$y$jD5.7$",  "$y$jD5.7$$JD8dsR.nt1ty0ltQ2HHwauaDRoOUIEaA5i.vpj2nyL.");
-	result |= test("", "$y$jD5.7$$", "$y$jD5.7$$JD8dsR.nt1ty0ltQ2HHwauaDRoOUIEaA5i.vpj2nyL.");
-	result |= test("test", "$y$", "*0");
-	result |= test("test", "*0", "*1");
-	result |= test("test", "*1", "*0");
+  result |= test("", "$y$jD5.7$",  "$y$jD5.7$$JD8dsR.nt1ty0ltQ2HHwauaDRoOUIEaA5i.vpj2nyL.");
+  result |= test("", "$y$jD5.7$$", "$y$jD5.7$$JD8dsR.nt1ty0ltQ2HHwauaDRoOUIEaA5i.vpj2nyL.");
+  result |= test("test", "$y$", "*0");
+  result |= test("test", "*0", "*1");
+  result |= test("test", "*1", "*0");
 
-	return result;
+  return result;
 }
 
 #else
