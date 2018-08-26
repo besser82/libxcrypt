@@ -1,5 +1,6 @@
 The yescrypt code comes from yescrypt by Solar Designer <solar at
 openwall.com>. It builds upon Colin Percival's scrypt.
+See: http://openwall.com/yescrypt/ for reference.
 
 The bcrypt hash module comes from crypt_blowfish, originally written
 by Solar Designer <solar at openwall.com> and based on algorithms and
@@ -24,7 +25,7 @@ The SUNMD5 hash module is a clean-room reimplementation by Zack Weinberg,
 based on a specification written by Eli Collins for the Passlib project,
 of an algorithm originally developed by Alec Muffett for use in Solaris 9.
 
-The yescrypt's crypt and gensalt backends are by <vt at altlinux.org>.
+The crypt and gensalt backends for yescrypt are by <vt at altlinux.org>.
 
 The implementation of the public interface (crypt, crypt_r, etc) is a
 mashup of code from the GNU C Library with code from crypt_blowfish,
