@@ -134,7 +134,16 @@ static const struct testcase testcases[] =
   { "$y$",  0,  2, 0 },         // inadequate rbytes
   { "$y$",  0,  0, 4 },         // inadequate osize
 #else
-  { "$y$", 0, 0, 0 },
+  { "$y$",  0, 0, 0 },
+#endif
+#if INCLUDE_scrypt
+  { "$7",   0,  0, 0 },         // truncated prefix
+  { "$7$",  3,  0, 0 },         // too small
+  { "$7$",  32, 0, 0 },         // too large
+  { "$7$",  0,  2, 0 },         // inadequate rbytes
+  { "$7$",  0,  0, 4 },         // inadequate osize
+#else
+  { "$7$",  0, 0, 0 },
 #endif
 };
 

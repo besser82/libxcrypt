@@ -63,6 +63,7 @@
 /test-crypt-md5
 /test-crypt-nthash
 /test-crypt-pbkdf1-sha1
+/test-crypt-scrypt
 /test-crypt-sha256
 /test-crypt-sha512
 /test-crypt-sunmd5
