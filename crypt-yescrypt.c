@@ -56,7 +56,7 @@ gensalt_yescrypt_rn (unsigned long count,
       return;
     }
 
-  if (count > 11)
+  if (count > 11 || nrbytes < 16)
     {
       errno = EINVAL;
       return;
