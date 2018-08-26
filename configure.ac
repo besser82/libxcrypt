@@ -220,11 +220,12 @@ AC_SUBST(COMPAT_ABI)
 AC_ARG_ENABLE([hashes],
     AS_HELP_STRING(
         [--enable-hashes=HASHES],
-        [Select hash algorithms to support.  Acceptable values are
+        [Select hash methods to support.  Acceptable values are
          'all' or a comma-separated list of names from the file
-         'hashes.lst' and/or the keywords 'strong', 'freebsd',
-         'glibc', 'netbsd', 'openbsd', 'osx', and 'solaris',
-         which select groups of hashes as described in that file.
+         'hashes.lst' and/or the keywords 'strong', 'altlinux',
+         'freebsd', 'glibc', 'netbsd', 'openbsd', 'osx', 'owl',
+         'solaris', and 'suse' which select groups of methods
+         as described in that file.
          The default is 'all'.
          Note: if binary compatibility with any historic libcrypt is
          desired (i.e. any --enable-obsolete-api setting other than

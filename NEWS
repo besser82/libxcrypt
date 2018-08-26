@@ -8,6 +8,9 @@ Version 4.2.0
 * For scrypt the implemented gensalt function ensures every new hash
   is computed using at least 32 MiBytes of RAM.
 * yescrypt is the new default method used for new hashes.
+* --enable-hashes now supports additional groups of hashing methods:
+  'altlinux', 'owl', and 'suse', which select the methods historically
+  supported on those operating systems.
 
 Version 4.1.2
 * Add optional 'check-valgrind' target to the Makefile.
