@@ -21,11 +21,21 @@
 #include "byteorder.h"
 
 #include <stdlib.h>
-#include <string.h>
 #include <errno.h>
 #include "alg-yescrypt.h"
 
 #if INCLUDE_yescrypt
+
+/* For use in scratch space by crypt_yescrypt_rn().  */
+typedef struct
+{
+  yescrypt_local_t local;
+  uint8_t outbuf[CRYPT_OUTPUT_SIZE];
+  uint8_t *retval;
+} crypt_yescrypt_internal_t;
+
+static_assert (sizeof (crypt_yescrypt_internal_t) <= ALG_SPECIFIC_SIZE,
+               "ALG_SPECIFIC_SIZE is too small for YESCRYPT.");
 
 /*
  * As OUTPUT is initialized with a failure token before gensalt_yescrypt_rn
@@ -35,15 +45,19 @@
  * with a short failure token when need.
  */
 void
-gensalt_yescrypt_rn(unsigned long count,
-                    const uint8_t *rbytes, size_t nrbytes,
-                    uint8_t *output, size_t o_size)
+gensalt_yescrypt_rn (unsigned long count,
+                     const uint8_t *rbytes, size_t nrbytes,
+                     uint8_t *output, size_t o_size)
 {
   if (count > 11)
     {
       errno = EINVAL;
       return;
     }
+
+  /* Temporary buffer for operation.  The buffer is guaranteed to be
+     large enough to hold the maximum size of the generated salt.  */
+  uint8_t outbuf[CRYPT_GENSALT_OUTPUT_SIZE];
 
   yescrypt_params_t params =
   {
@@ -82,54 +96,51 @@ gensalt_yescrypt_rn(unsigned long count,
       params.N = 1ULL << (count + 7); // 3 -> 1024, 4 -> 2048, ... 11 -> 262144
     }
 
-  if (!yescrypt_encode_params_r(&params, rbytes, nrbytes, output, o_size))
+  if (!yescrypt_encode_params_r (&params, rbytes, nrbytes, outbuf, o_size))
     {
-      /*
-       * As the output could have already been written,
-       * overwrite it with a short failure token.
-       */
-      output[0] = '*';
-      output[1] = '\0';
       errno = ERANGE;
       return;
     }
+
+  XCRYPT_STRCPY_OR_ABORT (output, o_size, outbuf);
+  return;
 }
 
 void
-crypt_yescrypt_rn(const char *phrase, size_t phr_size,
-                  const char *setting, size_t ARG_UNUSED (set_size),
-                  uint8_t *output, size_t o_size,
-                  ARG_UNUSED(void *scratch), ARG_UNUSED(size_t s_size))
+crypt_yescrypt_rn (const char *phrase, size_t phr_size,
+                   const char *setting, size_t ARG_UNUSED (set_size),
+                   uint8_t *output, size_t o_size,
+                   void *scratch, size_t s_size)
 {
-  yescrypt_local_t local;
-  uint8_t *retval;
-
-  if (o_size < 3)
+  if (o_size < 3  ||
+      s_size < sizeof (crypt_yescrypt_internal_t))
     {
       errno = ERANGE;
       return;
     }
-  if (yescrypt_init_local(&local))
+
+  crypt_yescrypt_internal_t *intbuf = scratch;
+
+  if (yescrypt_init_local(&intbuf->local))
     {
       errno = ENOMEM;
       return;
     }
-  retval = yescrypt_r(NULL, &local,
-                      (const uint8_t *)phrase, phr_size,
-                      (const uint8_t *)setting, NULL,
-                      output, o_size);
-  if (yescrypt_free_local(&local) ||
-      !retval)
+
+  intbuf->retval = yescrypt_r (NULL, &intbuf->local,
+                               (const uint8_t *)phrase, phr_size,
+                               (const uint8_t *)setting, NULL,
+                               intbuf->outbuf, o_size);
+
+  if (yescrypt_free_local(&intbuf->local) ||
+      !intbuf->retval)
     {
-      /*
-       * As the output could have already been written,
-       * overwrite it with a failure token.
-       */
-      output[0] = '*';
-      output[1] = '0';
-      output[2] = '\0';
       errno = EINVAL;
+      return;
     }
+
+  XCRYPT_STRCPY_OR_ABORT (output, o_size, intbuf->outbuf);
+  return;
 }
 
 #endif /* INCLUDE_yescrypt */
