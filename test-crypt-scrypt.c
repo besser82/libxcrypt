@@ -1,4 +1,5 @@
 /* Copyright (C) 2018 vt@altlinux.org
+ * Copyright (C) 2018 Björn Esser <besser82@fedoraproject.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted.
@@ -21,7 +22,7 @@
 
 #include <stdio.h>
 
-#if INCLUDE_yescrypt
+#if INCLUDE_scrypt
 
 static int
 test(const char *p, const char *s, const char *m)
@@ -47,12 +48,14 @@ test(const char *p, const char *s, const char *m)
 int
 main (void)
 {
-  int result = test("pleaseletmein", "$y$jD5.7$LdJMENpBABJJ3hIHjB1Bi.",
-                    "$y$jD5.7$LdJMENpBABJJ3hIHjB1Bi.$HboGM6qPrsK.StKYGt6KErmUYtioHreJd98oIugoNB6");
-  result |= test("", "$y$jD5.7$",  "$y$jD5.7$$JD8dsR.nt1ty0ltQ2HHwauaDRoOUIEaA5i.vpj2nyL.");
-  result |= test("", "$y$jD5.7$$", "$y$jD5.7$$JD8dsR.nt1ty0ltQ2HHwauaDRoOUIEaA5i.vpj2nyL.");
+  int result = test("pleaseletmein", "$7$C6..../....SodiumChloride",
+                    "$7$C6..../....SodiumChloride$kBGj9fHznVYFQMEn/qDCfrDevf9YDtcDdKvEqHJLV8D");
+  result |= test("pleaseletmein", "$7$06..../....SodiumChloride",
+                 "$7$06..../....SodiumChloride$ENlyo6fGw4PCcDBOFepfSZjFUnVatHzCcW55.ZGz3B0");
+  result |= test("pleaseletmein", "$7$06..../....SodiumChloride$",
+                 "$7$06..../....SodiumChloride$ENlyo6fGw4PCcDBOFepfSZjFUnVatHzCcW55.ZGz3B0");
 
-  result |= test("test", "$y$", "*0");
+  result |= test("test", "$7$", "*0");
   result |= test("test", "*0", "*1");
   result |= test("test", "*1", "*0");
 
@@ -67,4 +70,4 @@ main (void)
   return 77; /* UNSUPPORTED */
 }
 
-#endif /* INCLUDE_yescrypt */
+#endif /* INCLUDE_scrypt */

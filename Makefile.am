@@ -156,8 +156,8 @@ check_PROGRAMS = \
 	test-alg-sha1 test-alg-sha256 test-alg-sha512 \
 	test-crypt-bcrypt test-crypt-des \
 	test-crypt-md5 test-crypt-nthash \
-	test-crypt-pbkdf1-sha1 test-crypt-sha256 test-crypt-sha512 \
-	test-crypt-sunmd5 test-crypt-yescrypt \
+	test-crypt-pbkdf1-sha1 test-crypt-scrypt test-crypt-sha256 \
+	test-crypt-sha512 test-crypt-sunmd5 test-crypt-yescrypt \
 	test-byteorder test-badsalt test-badsetting test-gensalt \
 	test-crypt-badargs test-short-outbuf \
         test-getrandom-interface test-getrandom-fallbacks
@@ -191,15 +191,16 @@ LOG_COMPILER = m4/skip-if-exec-format-error
 endif
 EXTRA_DIST += m4/skip-if-exec-format-error
 
-test_crypt_yescrypt_LDADD = libcrypt.la
 test_crypt_bcrypt_LDADD = libcrypt.la
 test_crypt_des_LDADD = libcrypt.la
 test_crypt_md5_LDADD = libcrypt.la
 test_crypt_nthash_LDADD = libcrypt.la
 test_crypt_pbkdf1_sha1_LDADD = libcrypt.la
+test_crypt_scrypt_LDADD = libcrypt.la
 test_crypt_sha256_LDADD = libcrypt.la
 test_crypt_sha512_LDADD = libcrypt.la
 test_crypt_sunmd5_LDADD = libcrypt.la
+test_crypt_yescrypt_LDADD = libcrypt.la
 test_badsalt_LDADD = libcrypt.la
 test_badsetting_LDADD = libcrypt.la
 test_gensalt_LDADD = libcrypt.la
