@@ -39,32 +39,47 @@ gensalt_yescrypt_rn(unsigned long count,
                     const uint8_t *rbytes, size_t nrbytes,
                     uint8_t *output, size_t o_size)
 {
-  /* Use one of recommended parameter sets as the 'low default'. */
-  yescrypt_params_t params = { .flags = YESCRYPT_DEFAULTS,
-                               .N = 4096, .r = 32, .p = 1
-                             };
-
-  if (count)
+  if (count > 11)
     {
-      /*
-       * `1 << (count - 1)` is MiB usage in range of 1MiB..1GiB,
-       * thus, count is in range of 1..11
-       */
-      if (count <= 2)
-        {
-          params.r = 8; /* N in 1KiB */
-          params.N = 512ULL << count;
-        }
-      else if (count <= 11)
-        {
-          params.r = 32; /* N in 4KiB */
-          params.N = 128ULL << count;
-        }
-      else
-        {
-          errno = EINVAL;
-          return;
-        }
+      errno = EINVAL;
+      return;
+    }
+
+  yescrypt_params_t params =
+  {
+    .flags = YESCRYPT_DEFAULTS,
+    .p = 1,
+  };
+
+  /* Valid cost parameters are from 1 to 11.  The default is 5.
+     These are used to set yescrypt's 'N' and 'r' parameters as
+     follows:
+     N (block count) is specified in units of r (block size,
+     adjustable in steps of 128 bytes).
+
+     128 bytes * r = size of each memory block
+
+     128 bytes * r * N = total amount of memory used for hashing
+                         in N blocks of r * 128 bytes.
+
+     The author of yescrypt recommends in the documentation to use
+     r=8 (a block size of 1 KiB) for total sizes of 2 MiB and less,
+     and r=32 (a block size of 4KiB) above that.
+     This has to do with the typical per-core last-level cache sizes
+     of current CPUs.  */
+
+  if (count == 0)
+    count = 5;
+
+  if (count < 3)
+    {
+      params.r = 8;                   // N in 1KiB
+      params.N = 1ULL << (count + 9); // 1 -> 1024, 2 -> 2048
+    }
+  else
+    {
+      params.r = 32;                  // N in 4KiB
+      params.N = 1ULL << (count + 7); // 3 -> 1024, 4 -> 2048, ... 11 -> 262144
     }
 
   if (!yescrypt_encode_params_r(&params, rbytes, nrbytes, output, o_size))
