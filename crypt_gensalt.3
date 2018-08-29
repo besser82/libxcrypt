@@ -170,6 +170,13 @@ only:
 failed to allocate memory for the compiled
 .I setting
 string.
+.TP
+.BR ENOSYS ", " EACCES ", " EIO ", etc.\&"
+Obtaining random bytes from the operating system failed.
+.br
+This can only happen when
+.I rbytes
+is a null pointer.
 .ad b
 .hy 1
 .SH FEATURE TEST MACROS
