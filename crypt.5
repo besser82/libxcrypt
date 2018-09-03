@@ -44,13 +44,13 @@ and then test it against each account's stored hash;
 the hash calculation must be repeated for each account.
 .TP
 2.
+It is not possible to tell whether two accounts use the same passphrase
+without successfully guessing one of the phrases.
+.TP
+3.
 Tables of precalculated hashes of commonly used passphrases
 must have an entry for each possible salt,
 which makes them impractically large.
-.TP
-3.
-It is not possible to tell whether two accounts use the same passphrase
-without successfully guessing one of the phrases.
 .PP
 All of the hashing methods are also deliberately engineered to be slow;
 they use many iterations of an underlying cryptographic primitive
@@ -103,10 +103,10 @@ is up to the hashing method.
 \(oq\fB$\fR\(cq characters
 usually delimit components,
 and the salt and hash are usually encoded as numerals in base 64.
-However, the details of the base-64 encoding vary among hashing
-methods and are usually
+The details of this base-64 encoding vary among hashing methods.
+The common \(lqbase64\(rq encoding specified by RFC 4648 is usually
 .I not
-compatible with the common \(lqbase64\(rq encoding.
+used.
 .SH AVAILABLE HASHING METHODS
 This is a list of
 .I all
@@ -123,10 +123,8 @@ and does not show the division into prefix, options, salt, and hash.
 .ad l
 .TP
 .B prefix
-.ie "\\$1"" \{\
-"" (empty string)
-.\}
-.el "\\$1"
+"\\$1"
+.if "\\$1"" (empty string)
 .TP
 .B Encoded passphrase format
 \\$2
@@ -136,10 +134,13 @@ and does not show the division into prefix, options, salt, and hash.
 .el \\$3 characters
 .ie "\\$4"7" (ignores 8th bit)
 .TP
-.TP
 .B Hash size
 \\$6 bits
-.if !"\\$5"\\$6" (effectively \\$5)
+.if !"\\$5"\\$6" \{
+.TP
+.B Effective key size
+\\$5 bits
+.\}
 .TP
 .B Salt size
 \\$7 bits
@@ -154,7 +155,7 @@ and does not show the division into prefix, options, salt, and hash.
 .br
 yescrypt is a scalable password hashing scheme designed by Solar
 Designer, which is based on Colin Percival's scrypt.
-.hash "$y$" "\e$y\e$[./A-Za-z0-9]+\e$[./A-Za-z0-9]*\e$[./A-Za-z0-9]{43}" unlimited 8 "" 256 "up to 512" "0 (default), 1 to 11 (logarithmic)"
+.hash "$y$" "\e$y\e$[./A-Za-z0-9]+\e$[./A-Za-z0-9]{,86}\e$[./A-Za-z0-9]{43}" unlimited 8 256 256 "up to 512" "1 to 11 (logarithmic)"
 .PP
 scrypt hashes previously used the "$7$" prefix, yescrypt is backward-compatible with them.
 .PP
