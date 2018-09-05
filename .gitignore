@@ -46,6 +46,7 @@
 /crypt.h
 /crypt-hashes.h
 /crypt-symbol-vers.h
+/crypt-tune-costs
 /libcrypt.map
 gen-des-tables
 test/alg-des

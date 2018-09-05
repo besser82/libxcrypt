@@ -128,6 +128,9 @@ libcrypt_la_SOURCES = \
 	lib/crypt.c \
 	lib/randombytes.c
 
+sbin_PROGRAMS = crypt-tune-costs
+crypt_tune_costs_LDADD = libcrypt.la -lm
+
 pkgconfig_DATA = libxcrypt.pc
 
 # Install libcrypt.pc symlink to libxcrypt.pc file.
