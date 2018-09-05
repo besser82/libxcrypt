@@ -41,6 +41,8 @@ libcrypt_la_SOURCES = \
 	randombytes.c yescrypt-opt.c yescrypt-sha256.c \
 	yescrypt-common.c crypt-yescrypt.c
 
+EXTRA_DIST += yescrypt-platform.c
+
 pkgconfig_DATA = libxcrypt.pc
 # Install libcrypt.pc symlink to libxcrypt.pc file.
 phony_targets = \
@@ -73,6 +75,8 @@ CLEANFILES = libcrypt.map libcrypt.map.T \
 	crypt-symbol-vers.h crypt-symbol-vers.h.T \
 	crypt-hashes.h crypt-hashes.h.T \
 	crypt.h crypt.h.T
+
+DISTCLEANFILES = .deps/*.Plo
 
 libcrypt.map: libcrypt.map.in gen-map.awk Makefile
 	$(AM_V_GEN)LC_ALL=C $(AWK) \
