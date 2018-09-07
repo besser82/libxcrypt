@@ -396,7 +396,7 @@ main (void)
                      tcase->prefix, tcase->rounds, ent, salt);
 
           XCRYPT_SECURE_MEMSET (prev_output, CRYPT_GENSALT_OUTPUT_SIZE);
-          strncpy (prev_output, salt, CRYPT_GENSALT_OUTPUT_SIZE -1 );
+          XCRYPT_STRCPY_OR_ABORT (prev_output, CRYPT_GENSALT_OUTPUT_SIZE, salt);
         }
     }
 
