@@ -423,7 +423,6 @@ main (void)
             fprintf (stderr, "   ok: %s/%lu/%u -> %s\n",
                      tcase->prefix, tcase->rounds, ent, salt);
 
-          XCRYPT_SECURE_MEMSET (prev_output, CRYPT_GENSALT_OUTPUT_SIZE);
           XCRYPT_STRCPY_OR_ABORT (prev_output, CRYPT_GENSALT_OUTPUT_SIZE, salt);
         }
     }

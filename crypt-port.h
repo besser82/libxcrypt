@@ -119,10 +119,25 @@ _xcrypt_secure_memset (void *s, size_t len)
   _xcrypt_secure_memset (s, len)
 #endif
 
-/* Provide a safe way to copy strings.  */
-#define XCRYPT_STRCPY_OR_ABORT(dest, destsize, src) \
-  assert (destsize >= strlen ((const char *) src) + 1); \
-  memcpy (dest, src, strlen ((const char *) src) + 1)
+/* Provide a safe way to copy strings with the guarantee src,
+   including its terminating '\0', will fit d_size bytes.
+   The trailing bytes of d_size will be filled with '\0'.
+   dst and src must not be NULL.  Returns strlen (src).  */
+static inline size_t
+_xcrypt_strcpy_or_abort (char *dst, const size_t d_size,
+                         const char *src)
+{
+  assert (dst != NULL);
+  assert (src != NULL);
+  const size_t s_size = strlen (src);
+  assert (d_size >= s_size + 1);
+  memcpy (dst, src, s_size);
+  XCRYPT_SECURE_MEMSET (dst + s_size, d_size - s_size);
+  return s_size;
+}
+#define XCRYPT_STRCPY_OR_ABORT(dst, d_size, src) \
+  _xcrypt_strcpy_or_abort ((char *) dst, (const size_t) d_size, \
+                           (const char *) src)
 
 /* Per-symbol version tagging.  Currently we only know how to do this
    using GCC extensions.  */
