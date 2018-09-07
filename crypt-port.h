@@ -119,6 +119,11 @@ void _xcrypt_secure_memset (void *s, size_t len)
   _xcrypt_secure_memset (s, len)
 #endif
 
+/* Provide a safe way to copy strings.  */
+#define XCRYPT_STRCPY_OR_ABORT(dest, destsize, src) \
+  assert (destsize >= strlen ((const char *) src) + 1); \
+  memcpy (dest, src, strlen ((const char *) src) + 1)
+
 /* Per-symbol version tagging.  Currently we only know how to do this
    using GCC extensions.  */
 
