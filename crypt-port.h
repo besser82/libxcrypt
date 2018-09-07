@@ -108,8 +108,8 @@ typedef union
   explicit_memset (s, 0x00, len)
 #else
 /* The best hope we have in this case.  */
-static inline
-void _xcrypt_secure_memset (void *s, size_t len)
+static inline void
+_xcrypt_secure_memset (void *s, size_t len)
 {
   volatile unsigned char *c = s;
   while (len--)
