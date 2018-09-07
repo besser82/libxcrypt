@@ -62,6 +62,12 @@ static const char *settings[] =
   "$2x$05$UBVLHeMpJ/QQCv3XqJx8zO",
   "$2y$05$UBVLHeMpJ/QQCv3XqJx8zO",
 #endif
+#if INCLUDE_yescrypt
+  "$y$j9T$MJHnaAkegEVYHsFKkmfzJ1",
+#endif
+#if INCLUDE_scrypt
+  "$7$CU..../....MJHnaAkegEVYHsFKkmfzJ1",
+#endif
 };
 
 /* In some of the tests below, a segmentation fault is the expected result.  */
