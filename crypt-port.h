@@ -124,20 +124,19 @@ _xcrypt_secure_memset (void *s, size_t len)
    The trailing bytes of d_size will be filled with '\0'.
    dst and src must not be NULL.  Returns strlen (src).  */
 static inline size_t
-_xcrypt_strcpy_or_abort (char *dst, const size_t d_size,
-                         const char *src)
+_xcrypt_strcpy_or_abort (void *dst, const size_t d_size,
+                         const void *src)
 {
   assert (dst != NULL);
   assert (src != NULL);
-  const size_t s_size = strlen (src);
+  const size_t s_size = strlen ((const char *) src);
   assert (d_size >= s_size + 1);
   memcpy (dst, src, s_size);
-  XCRYPT_SECURE_MEMSET (dst + s_size, d_size - s_size);
+  XCRYPT_SECURE_MEMSET ((char *) dst + s_size, d_size - s_size);
   return s_size;
 }
 #define XCRYPT_STRCPY_OR_ABORT(dst, d_size, src) \
-  _xcrypt_strcpy_or_abort ((char *) dst, (const size_t) d_size, \
-                           (const char *) src)
+  _xcrypt_strcpy_or_abort (dst, d_size, src)
 
 /* Per-symbol version tagging.  Currently we only know how to do this
    using GCC extensions.  */
