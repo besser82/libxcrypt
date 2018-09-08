@@ -42,7 +42,7 @@ libcrypt_la_SOURCES = \
 	crypt-scrypt.c crypt-sha256.c crypt-sha512.c crypt-static.c \
 	crypt-sunmd5.c crypt-yescrypt.c randombytes.c
 
-EXTRA_DIST += yescrypt-platform.c
+EXTRA_DIST += alg-yescrypt-platform.c
 
 pkgconfig_DATA = libxcrypt.pc
 # Install libcrypt.pc symlink to libxcrypt.pc file.
