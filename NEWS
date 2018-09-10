@@ -11,6 +11,10 @@ Version 4.2.0
 * --enable-hashes now supports additional groups of hashing methods:
   'altlinux', 'owl', and 'suse', which select the methods historically
   supported on those operating systems.
+* --enable-hashes=strong now excludes the SHA-2-based hashes
+  ($5$ and $6$).  These are still cryptographically sound, but not
+  hardened against massively parallel brute-force attacks (e.g. using
+  GPUs to compute SHA-2) as the newer bcrypt, scrypt, and yescrypt are.
 
 Version 4.1.2
 * Add optional 'check-valgrind' target to the Makefile.

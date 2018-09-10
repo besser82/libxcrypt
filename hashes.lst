@@ -34,8 +34,8 @@ bcrypt   _a         $2a$      16       STRONG,ALTLINUX,FREEBSD,NETBSD,OPENBSD,OW
 bcrypt   _b         $2b$      16       STRONG,ALTLINUX,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
 bcrypt   _x         $2x$      16       STRONG,ALTLINUX,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
 bcrypt   _y         $2y$      16       STRONG,ALTLINUX,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
-sha512   :          $6$       15       STRONG,GLIBC,FREEBSD,SOLARIS
-sha256   :          $5$       15       STRONG,GLIBC,FREEBSD,SOLARIS
+sha512   :          $6$       15       GLIBC,FREEBSD,SOLARIS
+sha256   :          $5$       15       GLIBC,FREEBSD,SOLARIS
 md5      :          $1$       9        GLIBC,FREEBSD,NETBSD,OPENBSD,SOLARIS
 sunmd5   :          $md5      8        SOLARIS
 sha1     :          $sha1     20       NETBSD

@@ -132,7 +132,7 @@ supported hashes.  Disabling the traditional ‘des’ hash algorithm
 implies `--disable-obsolete-api`.  Security-conscious environments
 without backward compatibility constraints are encouraged to use
 `--enable-hashes=strong`, which enables only the hash functions that
-are strong enough to be safe for newly hashed passwords.
+are definitely strong enough to be safe for newly hashed passwords.
 
 The original implementation of the SUNMD5 hashing algorithm has a bug,
 which is mimicked by libxcrypt to be fully compatible with hashes
