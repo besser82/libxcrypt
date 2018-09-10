@@ -1,7 +1,8 @@
 As mentioned in the README, many people have contributed to the code
 making up libxcrypt, often under the aegis of a different project.  Of
 the past contributors, we particularly wish to credit David Burren,
-Ulrich Drepper, Alec Muffett, Colin Percival, and Thorsten Kukuk.
+Ulrich Drepper, Alec Muffett, Colin Percival, Alexey Degtyarev, and
+Thorsten Kukuk.
 
 As well as the present maintainers, active contributors to the library
 include Solar Designer, Dmitry V. Levin, and <vt at altlinux dot org>.

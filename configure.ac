@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 m4_include([m4/zw_automodern.m4])
 AC_INIT([xcrypt],
-        [4.2.4],
+        [4.3.0],
         [https://github.com/besser82/libxcrypt/issues],
         [libxcrypt],
         [https://github.com/besser82/libxcrypt])
@@ -231,7 +231,7 @@ AC_ARG_ENABLE([hashes],
          Note: if binary compatibility with any historic libcrypt is
          desired (i.e. any --enable-obsolete-api setting other than
          'no'), the 'des' hash must be enabled.]),
-    [hashes_selected=$enableval],
+    [hashes_selected=`echo $enableval | $SED -e 's!-!_!g'`],
     [hashes_selected=all]
 )
 # This code must run after AC_PROG_AWK.

@@ -240,6 +240,18 @@ extern uint8_t *yescrypt_encode_params_r(const yescrypt_params_t *params,
     const uint8_t *src, size_t srclen,
     uint8_t *buf, size_t buflen);
 
+#ifdef YESCRYPT_INTERNAL
+
+#define decode64 yescrypt_decode64
+#define encode64 yescrypt_encode64
+
+extern const uint8_t *decode64(uint8_t *dst, size_t *dstlen,
+    const uint8_t *src, size_t srclen);
+extern uint8_t *encode64(uint8_t *dst, size_t dstlen,
+    const uint8_t *src, size_t srclen);
+
+#endif
+
 #ifdef __cplusplus
 }
 #endif

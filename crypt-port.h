@@ -230,6 +230,23 @@ _xcrypt_strcpy_or_abort (void *dst, const size_t d_size,
 #define symver_ref(extstr, intname, version) \
   symver_set(extstr, intname, version, "@")
 
+/* Define configuration macros used during compile-time by the
+   GOST R 34.11-2012 "Streebog" hash function.  */
+#if defined __SSE4_1__ && __SSE4_1__ >= 1
+#define __GOST3411_HAS_SSE41__ 1
+#endif
+#if defined __SSE2__ && __SSE2__ >= 1
+#define __GOST3411_HAS_SSE2__ 1
+#endif
+#if defined __MMX__ && __MMX__ >= 1
+#define __GOST3411_HAS_MMX__ 1
+#endif
+#if IS_BIGENDIAN
+#define __GOST3411_BIG_ENDIAN__ 1
+#else
+#define __GOST3411_LITTLE_ENDIAN__ 1
+#endif
+
 /* Get the set of hash algorithms to be included and some related
    definitions.  */
 #include "crypt-hashes.h"
@@ -288,27 +305,46 @@ _xcrypt_strcpy_or_abort (void *dst, const size_t d_size,
 #define gensalt_sha_rn           _crypt_gensalt_sha_rn
 #endif
 
-#if INCLUDE_yescrypt
+#if INCLUDE_yescrypt || INCLUDE_scrypt || INCLUDE_gost_yescrypt
 #define PBKDF2_SHA256            _crypt_PBKDF2_SHA256
 #define yescrypt_encode_params_r _crypt_yescrypt_encode_params_r
 #define yescrypt_free_local      _crypt_yescrypt_free_local
 #define yescrypt_init_local      _crypt_yescrypt_init_local
 #define yescrypt_kdf             _crypt_yescrypt_kdf
 #define yescrypt_r               _crypt_yescrypt_r
-#endif
+#define yescrypt_decode64        _crypt_yescrypt_decode64
+#define yescrypt_encode64        _crypt_yescrypt_encode64
 
-#if INCLUDE_yescrypt || INCLUDE_scrypt
 #define libcperciva_HMAC_SHA256_Init _crypt_HMAC_SHA256_Init
 #define libcperciva_HMAC_SHA256_Update _crypt_HMAC_SHA256_Update
 #define libcperciva_HMAC_SHA256_Final _crypt_HMAC_SHA256_Final
 #define libcperciva_HMAC_SHA256_Buf _crypt_HMAC_SHA256_Buf
 #endif
 
-#if INCLUDE_sha256 || INCLUDE_scrypt || INCLUDE_yescrypt
+#if INCLUDE_sha256 || INCLUDE_scrypt || INCLUDE_yescrypt || \
+    INCLUDE_gost_yescrypt
 #define libcperciva_SHA256_Init  _crypt_SHA256_Init
 #define libcperciva_SHA256_Update _crypt_SHA256_Update
 #define libcperciva_SHA256_Final _crypt_SHA256_Final
 #define libcperciva_SHA256_Buf   _crypt_SHA256_Buf
+#endif
+
+#if INCLUDE_gost_yescrypt
+#define GOST34112012Init       _crypt_GOST34112012_Init
+#define GOST34112012Update     _crypt_GOST34112012_Update
+#define GOST34112012Final      _crypt_GOST34112012_Final
+#define GOST34112012Cleanup    _crypt_GOST34112012_Cleanup
+#define GOST34112012_uint512_u _crypt_GOST34112012_uint512_u
+#define gost_hash256           _crypt_gost_hash256
+#define gost_hmac256           _crypt_gost_hmac256
+
+/* Those are not present, if gost-yescrypt is selected,
+   but yescrypt is not. */
+#if !INCLUDE_yescrypt
+#define gensalt_yescrypt_rn _crypt_gensalt_yescrypt_rn
+extern void gensalt_yescrypt_rn
+  (unsigned long, const uint8_t *, size_t, uint8_t *, size_t);
+#endif
 #endif
 
 #include "crypt.h"

@@ -215,6 +215,17 @@ static const struct testcase testcases[] =
   { "*scrypt invalid params 14",           29, "$7$C6.$:./....SodiumChloride$" },
   { "*scrypt invalid params 15",           29, "$7$C6..../.$:.SodiumChloride$" },
 #endif
+#if INCLUDE_gost_yescrypt
+  { "gost-yescrypt",                       31, "$gy$j9T$PKXc3hCOSyMqdaEQArI62/$" },
+  { "*gost-yescrypt invalid char 1",       31, "$gy$j9T$:KXc3hCOSyMqdaEQArI62/$" },
+  { "*gost-yescrypt invalid char 2",       19, "$gy$j9T$PKXc:hCOS$" },
+  { "*gost-yescrypt invalid params 1",     31, "$gy$:9T$PKXc3hCOSyMqdaEQArI62/$" },
+  { "*gost-yescrypt invalid params 2",     31, "$gy$j:T$PKXc3hCOSyMqdaEQArI62/$" },
+  { "*gost-yescrypt invalid params 3",     31, "$gy$j9:$PKXc3hCOSyMqdaEQArI62/$" },
+  { "*gost-yescrypt invalid params 4",     31, "$gy$$9T$PKXc3hCOSyMqdaEQArI62/$" },
+  { "*gost-yescrypt invalid params 5",     31, "$gy$j$:$PKXc3hCOSyMqdaEQArI62/$" },
+  { "*gost-yescrypt invalid params 6",     31, "$gy$j9$$PKXc3hCOSyMqdaEQArI62/$" },
+#endif
 };
 
 static bool

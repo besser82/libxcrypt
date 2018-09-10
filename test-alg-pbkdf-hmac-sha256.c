@@ -14,7 +14,7 @@
 
 #include <stdio.h>
 
-#if INCLUDE_scrypt || INCLUDE_yescrypt
+#if INCLUDE_scrypt || INCLUDE_yescrypt || INCLUDE_gost_yescrypt
 
 struct hmac_sha256_test
 {

@@ -145,6 +145,14 @@ static const struct testcase testcases[] =
 #else
   { "$7$",  0, 0, 0 },
 #endif
+#if INCLUDE_gost_yescrypt
+  { "$gy",  0,  0, 0 },         // truncated prefix
+  { "$gy$", 32, 0, 0 },         // too large
+  { "$gy$", 0,  2, 0 },         // inadequate rbytes
+  { "$gy$", 0,  0, 4 },         // inadequate osize
+#else
+  { "$gy$",  0, 0, 0 },
+#endif
 };
 
 static void

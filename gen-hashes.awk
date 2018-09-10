@@ -124,7 +124,7 @@ END {
     print ""
     for (i in output_order) {
         hash = output_order[i]
-        printf("#define INCLUDE_%-8s %d\n", hash, hash_enabled[hash])
+        printf("#define INCLUDE_%-13s %d\n", hash, hash_enabled[hash])
     }
 
     print ""

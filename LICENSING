@@ -37,6 +37,12 @@ source tree.  For specific licensing terms consult the files themselves.
  * Copyright Colin Percival; 2-clause BSD:
    alg-sha512.h, alg-sha512.c
 
+ * Copyright Alexey Degtyarev; 2-clause BSD:
+   alg-gost3411-2012-const.h, alg-gost3411-2012-core.c,
+   alg-gost3411-2012-core.h, alg-gost3411-2012-mmx.h,
+   alg-gost3411-2012-precalc.h, alg-gost3411-2012-ref.h,
+   alg-gost3411-2012-sse2.h, alg-gost3411-2012-sse41.h
+
  * Copyright Alexander Peslyak, Björn Esser; 0-clause BSD:
    crypt-scrypt.c
 

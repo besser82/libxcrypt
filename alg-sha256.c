@@ -27,7 +27,7 @@
 
 #include "crypt-port.h"
 
-#if INCLUDE_yescrypt || INCLUDE_scrypt || INCLUDE_sha256
+#if INCLUDE_gost_yescrypt || INCLUDE_yescrypt || INCLUDE_scrypt || INCLUDE_sha256
 
 #define insecure_memzero XCRYPT_SECURE_MEMSET
 #include "alg-yescrypt-sysendian.h"
@@ -360,9 +360,9 @@ SHA256_Buf(const void * in, size_t len, uint8_t digest[32])
 	insecure_memzero(tmp32, 288);
 }
 
-#endif /* INCLUDE_yescrypt || INCLUDE_scrypt || INCLUDE_sha256 */
+#endif /* INCLUDE_gost_yescrypt || INCLUDE_yescrypt || INCLUDE_scrypt || INCLUDE_sha256 */
 
-#if INCLUDE_yescrypt || INCLUDE_scrypt
+#if INCLUDE_gost_yescrypt || INCLUDE_yescrypt || INCLUDE_scrypt
 
 /**
  * HMAC_SHA256_Init(ctx, K, Klen):
@@ -649,4 +649,4 @@ cleanup:
 	insecure_memzero(&u, sizeof(u));
 }
 
-#endif /* INCLUDE_yescrypt || INCLUDE_scrypt */
+#endif /* INCLUDE_gost_yescrypt || INCLUDE_yescrypt || INCLUDE_scrypt */

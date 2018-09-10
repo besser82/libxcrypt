@@ -27,22 +27,26 @@ notrans_dist_man5_MANS = crypt.5
 nodist_include_HEADERS = crypt.h
 nodist_noinst_HEADERS = crypt-hashes.h crypt-symbol-vers.h
 noinst_HEADERS = \
-	alg-des.h alg-hmac-sha1.h alg-md4.h alg-md5.h \
-	alg-sha1.h alg-sha256.h alg-sha512.h \
-	alg-yescrypt.h alg-yescrypt-sysendian.h byteorder.h \
+	alg-des.h alg-gost3411-2012-const.h alg-gost3411-2012-core.h \
+	alg-gost3411-2012-hmac.h alg-gost3411-2012-mmx.h \
+	alg-gost3411-2012-precalc.h alg-gost3411-2012-ref.h \
+	alg-gost3411-2012-sse2.h alg-gost3411-2012-sse41.h \
+	alg-hmac-sha1.h alg-md4.h alg-md5.h alg-sha1.h alg-sha256.h \
+	alg-sha512.h alg-yescrypt.h alg-yescrypt-sysendian.h byteorder.h \
 	crypt-obsolete.h crypt-private.h crypt-port.h test-des-cases.h
 
 noinst_PROGRAMS = gen-des-tables
 
 lib_LTLIBRARIES = libcrypt.la
 libcrypt_la_SOURCES = \
-	alg-des.c alg-des-tables.c alg-hmac-sha1.c alg-md4.c alg-md5.c \
+	alg-des.c alg-des-tables.c alg-gost3411-2012-core.c \
+	alg-gost3411-2012-hmac.c alg-hmac-sha1.c alg-md4.c alg-md5.c \
 	alg-sha1.c alg-sha256.c alg-sha512.c alg-yescrypt-opt.c \
-	alg-yescrypt-common.c \
-	crypt.c crypt-bcrypt.c crypt-des.c crypt-gensalt-static.c \
-	crypt-gensalt.c crypt-md5.c crypt-nthash.c crypt-pbkdf1-sha1.c \
-	crypt-scrypt.c crypt-sha256.c crypt-sha512.c crypt-static.c \
-	crypt-sunmd5.c crypt-yescrypt.c randombytes.c
+	alg-yescrypt-common.c crypt.c crypt-bcrypt.c crypt-des.c \
+	crypt-gensalt-static.c crypt-gensalt.c crypt-gost-yescrypt.c \
+	crypt-md5.c crypt-nthash.c crypt-pbkdf1-sha1.c crypt-scrypt.c \
+	crypt-sha256.c crypt-sha512.c crypt-static.c crypt-sunmd5.c \
+	crypt-yescrypt.c randombytes.c
 
 EXTRA_DIST += alg-yescrypt-platform.c
 
@@ -160,11 +164,11 @@ endif
 endif
 
 check_PROGRAMS = \
-	test-alg-des test-alg-hmac-sha1 test-alg-md4 test-alg-md5 \
-	test-alg-pbkdf-hmac-sha256 \
-	test-alg-sha1 test-alg-sha256 test-alg-sha512 \
-	test-crypt-bcrypt test-crypt-des \
-	test-crypt-md5 test-crypt-nthash \
+	test-alg-des test-alg-gost3411-2012 test-alg-gost3411-2012-hmac \
+	test-alg-hmac-sha1 test-alg-md4 test-alg-md5 \
+	test-alg-pbkdf-hmac-sha256 test-alg-sha1 test-alg-sha256 \
+	test-alg-sha512 test-crypt-bcrypt test-crypt-des \
+	test-crypt-gost-yescrypt test-crypt-md5 test-crypt-nthash \
 	test-crypt-pbkdf1-sha1 test-crypt-scrypt test-crypt-sha256 \
 	test-crypt-sha512 test-crypt-sunmd5 test-crypt-yescrypt \
 	test-byteorder test-badsalt test-badsetting test-gensalt \
@@ -221,6 +225,10 @@ test_short_outbuf_LDADD = libcrypt.la
 # These tests call internal APIs that may not be accessible from the
 # fully linked shared library.
 test_alg_des_LDADD = alg-des.lo alg-des-tables.lo
+test_alg_gost3411_2012_LDADD = alg-gost3411-2012-core.lo \
+	alg-gost3411-2012-hmac.lo
+test_alg_gost3411_2012_hmac_LDADD = alg-gost3411-2012-core.lo \
+	alg-gost3411-2012-hmac.lo
 test_alg_hmac_sha1_LDADD = alg-sha1.lo alg-hmac-sha1.lo
 test_alg_md4_LDADD = alg-md4.lo
 test_alg_md5_LDADD = alg-md5.lo
@@ -228,6 +236,10 @@ test_alg_pbkdf_hmac_sha256_LDADD = alg-sha256.lo
 test_alg_sha1_LDADD = alg-sha1.lo
 test_alg_sha256_LDADD = alg-sha256.lo
 test_alg_sha512_LDADD = alg-sha512.lo
+test_crypt_gost_yescrypt_LDADD = alg-gost3411-2012-core.lo \
+	alg-gost3411-2012-hmac.lo alg-sha256.lo \
+	alg-yescrypt-common.lo alg-yescrypt-opt.lo \
+	crypt-yescrypt.lo libcrypt.la
 
 test_getrandom_interface_LDADD = randombytes.lo
 test_getrandom_fallbacks_LDADD = randombytes.lo
