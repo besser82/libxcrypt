@@ -166,6 +166,7 @@ originally for the Tarsnap online backup service.
 The algorithm was specifically designed to make it costly to perform
 large-scale custom hardware attacks by requiring large amounts of memory.
 In 2016, the scrypt algorithm was published by IETF as RFC 7914.
+Not as strong as yescrypt, but still acceptable for new hashes.
 .hash "$7$" "\e$7\e$[./A-Za-z0-9]{11,97}\e$[./A-Za-z0-9]{43}" unlimited 8 256 256 "up to 512" "6 to 11 (logarithmic)"
 .PP
 .ti -4
@@ -176,6 +177,7 @@ modified to have an extra-expensive key schedule.
 Originally developed by Niels Provos and David Mazieres for OpenBSD
 and also supported on recent versions of FreeBSD and NetBSD,
 on Solaris 10 and newer, and on several GNU/*/Linux distributions.
+Not as strong as yescrypt, but still acceptable for new hashes.
 .hash "$2b$" "\e$2[abxy]\e$[0-9]{2}\e$[./A-Za-z0-9]{53}" 72 8 184 184 128 "4 to 31 (logarithmic)"
 .PP
 The alternative prefix "$2y$" is equivalent to "$2b$".
@@ -190,7 +192,7 @@ which incorrectly processed characters with the 8th bit set.
 A hash based on SHA-2 with 512-bit output,
 originally developed by Ulrich Drepper for GNU libc.
 Supported on Linux but not common elsewhere.
-Acceptable for new hashes.
+Not recommended for new hashes, but not catastrophically weak.
 The default CPU time cost parameter is 5000,
 which is too low for modern hardware.
 .br
@@ -202,7 +204,7 @@ which is too low for modern hardware.
 A hash based on SHA-2 with 256-bit output,
 originally developed by Ulrich Drepper for GNU libc.
 Supported on Linux but not common elsewhere.
-Acceptable for new hashes.
+Not recommended for new hashes, but not catastrophically weak.
 The default CPU time cost parameter is 5000,
 which is too low for modern hardware.
 .br
