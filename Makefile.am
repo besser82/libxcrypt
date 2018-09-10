@@ -21,7 +21,8 @@ EXTRA_DIST = \
 
 notrans_dist_man3_MANS = \
 	crypt.3 crypt_r.3 crypt_ra.3 crypt_rn.3 \
-	crypt_gensalt.3 crypt_gensalt_ra.3 crypt_gensalt_rn.3
+	crypt_checksalt.3 crypt_gensalt.3 crypt_gensalt_ra.3 \
+	crypt_gensalt_rn.3
 notrans_dist_man5_MANS = crypt.5
 
 nodist_include_HEADERS = crypt.h
@@ -170,7 +171,7 @@ check_PROGRAMS = \
 	test-alg-des test-alg-gost3411-2012 test-alg-gost3411-2012-hmac \
 	test-alg-hmac-sha1 test-alg-md4 test-alg-md5 \
 	test-alg-pbkdf-hmac-sha256 test-alg-sha1 test-alg-sha256 \
-	test-alg-sha512 test-crypt-bcrypt test-crypt-des \
+	test-alg-sha512 test-checksalt test-crypt-bcrypt test-crypt-des \
 	test-crypt-gost-yescrypt test-crypt-md5 test-crypt-nthash \
 	test-crypt-pbkdf1-sha1 test-crypt-scrypt test-crypt-sha256 \
 	test-crypt-sha512 test-crypt-sunmd5 test-crypt-yescrypt \
@@ -220,6 +221,7 @@ test_crypt_yescrypt_LDADD = crypt-common.lo libcrypt.la
 test_badsalt_LDADD = crypt-common.lo libcrypt.la
 test_badsetting_LDADD = crypt-common.lo libcrypt.la
 test_gensalt_LDADD = crypt-common.lo libcrypt.la
+test_checksalt_LDADD = crypt-common.lo libcrypt.la
 test_des_obsolete_LDADD = crypt-common.lo libcrypt.la
 test_des_obsolete_r_LDADD = crypt-common.lo libcrypt.la
 test_crypt_badargs_LDADD = crypt-common.lo libcrypt.la

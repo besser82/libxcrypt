@@ -63,6 +63,7 @@
 /test-badsetting
 /test-bigcrypt
 /test-byteorder
+/test-checksalt
 /test-compile-strong-alias
 /test-crypt-badargs
 /test-crypt-bcrypt

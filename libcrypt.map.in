@@ -16,6 +16,9 @@ crypt_gensalt_rn	XCRYPT_2.0	GLIBC_2.0:owl:suse	GLIBC_2.2.1:alt     OW_CRYPT_1.0:
 crypt_ra		XCRYPT_2.0	GLIBC_2.0:owl:suse	GLIBC_2.2.2:alt
 crypt_gensalt_ra	XCRYPT_2.0	GLIBC_2.0:owl:suse	GLIBC_2.2.2:alt     OW_CRYPT_1.0:suse
 
+# Actively supported interfaces from libxcrypt.
+crypt_checksalt		XCRYPT_4.3
+
 # Deprecated interfaces, POSIX and otherwise; also present in GNU libc
 # since 2.0
 encrypt			-		GLIBC_2.0
@@ -31,4 +34,4 @@ fcrypt			-		GLIBC_2.0
 %chain GLIBC_2.0 GLIBC_2.2 GLIBC_2.2.1 GLIBC_2.2.2 GLIBC_2.2.5 GLIBC_2.3
 %chain GLIBC_2.4 GLIBC_2.12 GLIBC_2.16 GLIBC_2.17 GLIBC_2.18 GLIBC_2.21
 %chain GLIBC_2.27
-%chain OW_CRYPT_1.0 XCRYPT_2.0
+%chain OW_CRYPT_1.0 XCRYPT_2.0 XCRYPT_4.3

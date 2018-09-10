@@ -185,11 +185,29 @@ extern char *crypt_gensalt_ra (const char *__prefix, unsigned long __count,
                                const char *__rbytes, int __nrbytes)
 __THROW;
 
+/* Checks whether the given setting is a supported method.
+
+   The return value is 0 if there is nothing wrong with this setting.
+   Otherwise, it is one of the following constants.  */
+extern int crypt_checksalt (const char *__setting);
+
+/* Constants for checking the return value of the
+   crypt_checksalt function.  */
+#define CRYPT_SALT_OK              0
+#define CRYPT_SALT_INVALID         1
+#define CRYPT_SALT_METHOD_DISABLED 2  /* NOT implemented, yet. */
+#define CRYPT_SALT_METHOD_LEGACY   3  /* NOT implemented, yet. */
+#define CRYPT_SALT_TOO_CHEAP       4  /* NOT implemented, yet. */
+
 /* These macros could be checked by portable users of crypt_gensalt*
    functions to find out whether null pointers could be specified
    as PREFIX and RBYTES arguments.  */
 #define CRYPT_GENSALT_IMPLEMENTS_DEFAULT_PREFIX 1
-#define CRYPT_GENSALT_IMPLEMENTS_AUTO_ENTROPY 1
+#define CRYPT_GENSALT_IMPLEMENTS_AUTO_ENTROPY   1
+
+/* These macros can be checked by portable users of the crypt_checksalt
+   function to find out whether the function is implemented.  */
+#define CRYPT_CHECKSALT_AVAILABLE 1
 
 /* Version number split in single integers.  */
 #define XCRYPT_VERSION_MAJOR @XCRYPT_VERSION_MAJOR@

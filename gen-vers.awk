@@ -177,14 +177,14 @@ END {
                 v = VCHAIN[i]
                 if ((v, sym) in symset) {
                     if (seq == 0) {
-                        if (compat_only[sym] || includesym[sym] > 1) {
+                        if (compat_only[sym] || includesym[sym] > 0) {
                             printf("#ifdef PIC\n#define %s _crypt_%s\n#endif\n",
                                    sym, sym);
                         }
                         printf("#define SYMVER_%s \\\n", sym)
                         if (compat_only[sym]) {
                             printf("  symver_compat0 (\"%s\", %s, %s)", sym, sym, v)
-                        } else if (includesym[sym] > 1) {
+                        } else if (includesym[sym] > 0) {
                             printf("  symver_default (\"%s\", %s, %s)", sym, sym, v)
                         } else {
                             # Due to what appears to be a bug in GNU ld,

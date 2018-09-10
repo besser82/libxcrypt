@@ -334,3 +334,24 @@ crypt_gensalt_ra (const char *prefix, unsigned long count,
 }
 SYMVER_crypt_gensalt_ra;
 #endif
+
+#if INCLUDE_crypt_checksalt
+static_assert(CRYPT_SALT_OK == 0, "CRYPT_SALT_OK does not equal zero");
+
+int
+crypt_checksalt (const char *setting)
+{
+  int retval = CRYPT_SALT_INVALID;
+
+  if (!setting)
+    return retval;
+
+  const struct hashfn *h = get_hashfn (setting);
+
+  if (h)
+    retval = CRYPT_SALT_OK;
+
+  return retval;
+}
+SYMVER_crypt_checksalt;
+#endif
