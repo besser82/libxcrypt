@@ -18,6 +18,7 @@
 /config.status
 /m4/config.sub
 /configure
+/crypt-base.h
 /m4/depcomp
 /m4/install-sh
 /libtool

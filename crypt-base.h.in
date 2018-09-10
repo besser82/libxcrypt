@@ -191,6 +191,17 @@ __THROW;
 #define CRYPT_GENSALT_IMPLEMENTS_DEFAULT_PREFIX 1
 #define CRYPT_GENSALT_IMPLEMENTS_AUTO_ENTROPY 1
 
+/* Version number split in single integers.  */
+#define XCRYPT_VERSION_MAJOR @XCRYPT_VERSION_MAJOR@
+#define XCRYPT_VERSION_MINOR @XCRYPT_VERSION_MINOR@
+
+/* Version number coded into an integer.  */
+#define XCRYPT_VERSION_NUM ((XCRYPT_VERSION_MAJOR << 16) | \
+                             XCRYPT_VERSION_MINOR)
+
+/* Version number as a string constant.  */
+#define XCRYPT_VERSION_STR "@PACKAGE_VERSION@"
+
 /*TRAILER*/
 
 #endif /* crypt.h */

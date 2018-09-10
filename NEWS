@@ -11,6 +11,7 @@ Version 4.2.0
 * --enable-hashes now supports additional groups of hashing methods:
   'altlinux', 'owl', and 'suse', which select the methods historically
   supported on those operating systems.
+* Added 'XCRYPT_VERSION_*' macros.
 
 Version 4.1.2
 * Add optional 'check-valgrind' target to the Makefile.

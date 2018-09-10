@@ -12,6 +12,7 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
   Makefile
   libxcrypt.pc
+  crypt-base.h
 ])
 AM_INIT_AUTOMAKE
 
@@ -332,5 +333,14 @@ AM_CONDITIONAL([ENABLE_SHARED], [test $enable_shared = yes])
 
 # The Makefile needs to know if we are cross-compiling.
 AM_CONDITIONAL([CROSS_COMPILING], [test $cross_compiling = yes])
+
+XCRYPT_VERSION_MAJOR=$(
+    echo $PACKAGE_VERSION | $AWK -F. '{ print $1 }'
+)
+AC_SUBST([XCRYPT_VERSION_MAJOR])
+XCRYPT_VERSION_MINOR=$(
+    echo $PACKAGE_VERSION | $AWK -F. '{ print $2 }'
+)
+AC_SUBST([XCRYPT_VERSION_MINOR])
 
 AC_OUTPUT

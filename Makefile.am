@@ -14,7 +14,7 @@ TEST_EXTENSIONS = .sh
 
 EXTRA_DIST = \
 	LICENSING THANKS \
-	libcrypt.map.in libcrypt.minver \
+	crypt-base.h.in libcrypt.map.in libcrypt.minver \
 	gen-map.awk gen-vers.awk gen-crypt-h.awk \
 	gen-hashes.awk sel-hashes.awk hashes.lst
 
@@ -24,13 +24,12 @@ notrans_dist_man3_MANS = \
 notrans_dist_man5_MANS = crypt.5
 
 nodist_include_HEADERS = crypt.h
-nodist_noinst_HEADERS = crypt-hashes.h
+nodist_noinst_HEADERS = crypt-hashes.h crypt-base.h
 noinst_HEADERS = \
 	alg-des.h alg-hmac-sha1.h alg-md4.h alg-md5.h \
 	alg-sha1.h alg-sha256.h alg-sha512.h alg-yescrypt-sha256.h \
 	alg-yescrypt.h alg-yescrypt-sysendian.h byteorder.h \
-	crypt-base.h crypt-obsolete.h crypt-private.h \
-	crypt-port.h test-des-cases.h
+	crypt-obsolete.h crypt-private.h crypt-port.h test-des-cases.h
 
 lib_LTLIBRARIES = libcrypt.la
 libcrypt_la_SOURCES = \
@@ -98,7 +97,7 @@ crypt-symbol-vers.h: libcrypt.map.in gen-vers.awk Makefile
 
 crypt.h: crypt-base.h gen-crypt-h.awk config.h
 	$(AM_V_GEN)LC_ALL=C $(AWK) \
-	  -f $(srcdir)/gen-crypt-h.awk config.h $(srcdir)/crypt-base.h \
+	  -f $(srcdir)/gen-crypt-h.awk config.h $(builddir)/crypt-base.h \
 	  > crypt.h.T
 	$(AM_V_at)mv -f crypt.h.T crypt.h
 
