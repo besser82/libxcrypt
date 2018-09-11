@@ -1,5 +1,6 @@
 .\" Written and revised by Solar Designer <solar at openwall.com> in 2000-2011.
 .\" Revised by Zack Weinberg <zackw at panix.com> in 2017.
+.\" Converted to mdoc format by Zack Weinberg in 2018.
 .\"
 .\" No copyright is claimed, and this man page is hereby placed in the public
 .\" domain.  In case this attempt to disclaim copyright and place the man page
@@ -12,230 +13,255 @@
 .\"
 .\" There's ABSOLUTELY NO WARRANTY, express or implied.
 .\"
-.\" This manual page in its current form is intended for use on systems
-.\" based on the GNU C Library with crypt_blowfish patched into libcrypt.
-.\"
-.TH CRYPT_GENSALT 3 "October 9, 2017" "Openwall Project" "Library Functions"
-.ad l
-.\" No macros in NAME to keep makewhatis happy.
-.SH NAME
-\fBcrypt_gensalt\fR, \fBcrypt_gensalt_rn\fR, \fBcrypt_gensalt_ra\fR
-\- encode settings for passphrase hashing
-.SH SYNOPSIS
-.B #include <crypt.h>
-.sp
-.in +8
-.ti -8
-.BI "char *crypt_gensalt(const char *" prefix ", unsigned long " count ", const char *" rbytes ", int " nrbytes );
-.ti -8
-.BI "char *crypt_gensalt_rn(const char *" prefix ", unsigned long " count ", const char *" rbytes ", int " nrbytes ", char *" output ", int " output_size );
-.ti -8
-.BI "char *crypt_gensalt_ra(const char *" prefix ", unsigned long " count ", const char *" rbytes ", int " nrbytes );
-.in -8
-.sp
-Link with
-.IR -lcrypt .
-.ad b
-.SH DESCRIPTION
-.BR crypt_gensalt ", " crypt_gensalt_rn ", and " crypt_gensalt_ra
-compile a string for use as the
-.I setting
+.Dd October 11, 2017
+.Dt CRYPT_GENSALT 3
+.Os "Openwall Project"
+.Sh NAME
+.Nm crypt_gensalt , crypt_gensalt_rn , crypt_gensalt_ra
+.Nd encode settings for passphrase hashing
+.Sh LIBRARY
+.Lb libcrypt
+.Sh SYNOPSIS
+.In crypt.h
+.Ft "char *"
+.Fo crypt_gensalt
+.Fa "const char *prefix"
+.Fa "unsigned long count"
+.Fa "const char *rbytes"
+.Fa "int nrbytes"
+.Fc
+.Ft "char *"
+.Fo crypt_gensalt_rn
+.Fa "const char * prefix"
+.Fa "unsigned long count"
+.Fa "const char *rbytes"
+.Fa "int nrbytes"
+.Fa "char * output"
+.Fa "int output_size"
+.Fc
+.Ft "char *"
+.Fo crypt_gensalt_ra
+.Fa "const char *prefix"
+.Fa "unsigned long count"
+.Fa "const char *rbytes"
+.Fa "int nrbytes"
+.Fc
+.Sh DESCRIPTION
+The
+.Nm crypt_gensalt ,
+.Nm crypt_gensalt_rn ,
+and
+.Nm crypt_gensalt_ra
+functions compile a string for use as the
+.Fa setting
 argument to
-.BR crypt ", " crypt_r ", " crypt_rn ", and " crypt_ra .
-.PP
-.I prefix
-selects the hashing method to use;
-.I count
+.Nm crypt ,
+.Nm crypt_r ,
+.Nm crypt_rn ,
+and
+.Nm crypt_ra .
+.Fa prefix
+selects the hashing method to use.
+.Fa count
 controls the CPU time cost of the hash;
 the valid range for
-.I count
-and the exact meaning of \(lqCPU time cost\(rq
+.Fa count
+and the exact meaning of
+.Dq CPU time cost
 depends on the hashing method,
 but larger numbers correspond to more costly hashes.
-.I rbytes
+.Fa rbytes
 should point to
-.I nrbytes
-cryptographically random bytes for use as \(lqsalt.\(rq
-.PP
+.Fa nrbytes
+cryptographically random bytes for use as
+.Dq salt.
+.Pp
 If
-.I prefix
+.Fa prefix
 is a null pointer, the best available hashing method will be selected.
-(CAUTION: if
-.I prefix
+.Po Sy CAUTION :
+if
+.Fa prefix
 is an empty string,
-the \(lqtraditional\(rq DES-based hashing method will be selected;
-this method is unacceptably weak by modern standards.)
+the
+.Dq traditional
+DES-based hashing method will be selected;
+this method is unacceptably weak by modern standards.
+.Pc
 If
-.I count
+.Fa count
 is 0, a low default cost will be selected.
 If
-.I rbytes
+.Fa rbytes
 is a null pointer, an appropriate number of random bytes will be
 obtained from the operating system, and
-.I nrbytes
+.Fa nrbytes
 is ignored.
-.PP
+.Pp
 See
-.BR crypt (5)
+.Xr crypt 5
 for other strings that can be used as
-.IR prefix ,
+.Fa prefix ,
 and valid values of
-.IR count
+.Fa count
 for each.
-.SH RETURN VALUE
-.BR crypt_gensalt ", " crypt_gensalt_rn ", and " crypt_gensalt_ra
+.Sh RETURN VALUES
+.Nm crypt_gensalt ,
+.Nm crypt_gensalt_rn ,
+and
+.Nm crypt_gensalt_ra
 return a pointer to an encoded setting string.
 This string will be entirely printable ASCII,
-and will not contain whitespace
-or the characters \(oq\fB:\fR\(cq,
-\(oq\fB;\fR\(cq,
-\(oq\fB*\fR\(cq,
-\(oq\fB!\fR\(cq, or
-\(oq\fB\e\fR\(cq.
+and will not contain whitespace or the characters
+.Sq Li \&: ,
+.Sq Li \&; ,
+.Sq Li \&* ,
+.Sq Li \&! ,
+or
+.Sq Li \&\e .
 See
-.BR crypt (5)
+.Xr crypt 5
 for more detail on the format of this string.
 Upon error, they return a null pointer and set
-.I errno
+.Va errno
 to an appropriate error code.
-.PP
-.B crypt_gensalt
+.Pp
+.Nm crypt_gensalt
 places its result in a static storage area,
 which will be overwritten by subsequent calls to
-.BR crypt_gensalt .
+.Nm crypt_gensalt .
 It is not safe to call
-.B crypt_gensalt
+.Nm crypt_gensalt
 from multiple threads simultaneously.
 However, it
-.I is
+.Em is
 safe to pass the string returned by
-.B crypt_gensalt
+.Nm crypt_gensalt
 directly to
-.B crypt
+.Nm crypt
 without copying it;
 each function has its own static storage area.
-.PP
-.B crypt_gensalt_rn
+.Pp
+.Nm crypt_gensalt_rn
 places its result in the supplied
-.I output
+.Fa output
 buffer, which has
-.I output_size
+.Fa output_size
 bytes of storage available.
-.I output_size
+.Fa output_size
 should be greater than or equal to
-.BR CRYPT_GENSALT_OUTPUT_SIZE .
-.PP
-.B crypt_gensalt_ra
+.Dv CRYPT_GENSALT_OUTPUT_SIZE .
+.Pp
+.Nm crypt_gensalt_ra
 allocates memory for its result using
-.BR malloc (3).
+.Xr malloc 3 .
 It should be freed with
-.BR free (3)
+.Xr free 3
 after use.
-.PP
+.Pp
 Upon error, in addition to returning a null pointer,
-.BR crypt_gensalt " and " crypt_gensalt_rn
+.Nm crypt_gensalt
+and
+.Nm crypt_gensalt_rn
 will write an invalid setting string
 to their output buffer, if there is enough space;
-this string will begin with a \(oq\fB*\fR\(cq
+this string will begin with a
+.Sq Li \&*
 and will not be equal to
-.IR prefix .
-.SH ERRORS
-.ad l
-.nh
-.TP
-.B EINVAL
-.I prefix
+.Fa prefix .
+.Sh ERRORS
+.Bl -tag -width Er
+.It Er EINVAL
+.Fa prefix
 is invalid or not supported by this implementation;
-.I count
+.Fa count
 is invalid for the requested
-.IR prefix ;
+.Fa prefix ;
 the input
-.I nrbytes
+.Fa nrbytes
 is insufficient for the smallest valid salt with the requested
-.IR prefix .
-.TP
-.B ERANGE
-.BR crypt_gensalt_rn
+.Fa prefix .
+.It Er ERANGE
+.Nm crypt_gensalt_rn
 only:
-.I output_size
+.Fa output_size
 is too small to hold the compiled
-.I setting
+.Fa setting
 string.
-.TP
-.B ENOMEM
+.It Er ENOMEM
 Failed to allocate internal scratch memory.
 .br
-.BR crypt_gensalt_ra
+.Nm crypt_gensalt_ra
 only:
 failed to allocate memory for the compiled
-.I setting
+.Fa setting
 string.
-.TP
-.BR ENOSYS ", " EACCES ", " EIO ", etc.\&"
+.It Er ENOSYS , EACCES , EIO , No etc.\&
 Obtaining random bytes from the operating system failed.
-.br
 This can only happen when
-.I rbytes
+.Fa rbytes
 is a null pointer.
-.ad b
-.hy 1
-.SH FEATURE TEST MACROS
+.El
+.Sh FEATURE TEST MACROS
 The following macros are defined by
-.BR crypt.h :
-.TP
-.B CRYPT_GENSALT_IMPLEMENTS_DEFAULT_PREFIX
-A null pointer can be specified as
-.I prefix
+.In crypt.h :
+.Bl -tag -width 6n
+.It Dv CRYPT_GENSALT_IMPLEMENTS_DEFAULT_PREFIX
+A null pointer can be specified as the
+.Fa prefix
 argument.
-.TP
-.B CRYPT_GENSALT_IMPLEMENTS_AUTO_ENTROPY
-A null pointer can be specified as
-.I rbytes
+.It Dv CRYPT_GENSALT_IMPLEMENTS_AUTO_ENTROPY
+A null pointer can be specified as the
+.Fa rbytes
 argument.
-.SH PORTABILITY NOTES
+.El
+.Sh PORTABILITY NOTES
 The functions
-.BR crypt_gensalt ", " crypt_gensalt_rn ", and " crypt_gensalt_ra
+.Nm crypt_gensalt ,
+.Nm crypt_gensalt_rn ,
+and
+.Nm crypt_gensalt_ra
 are not part of any standard.
 They originate with the Openwall project.
 A function with the name
-.B crypt_gensalt
+.Nm crypt_gensalt
 also exists on Solaris 10 and newer, but its prototype and semantics differ.
-.PP
+.Pp
 The default prefix and auto entropy features are available since libxcrypt
 version 4.0.0.  Portable software can use feature test macros to find out
-whether null pointers could be specified as
-.I prefix
+whether null pointers can be used for the
+.Fa prefix
 and
-.I rbytes
+.Fa rbytes
 arguments.
-.PP
+.Pp
 The set of supported hashing methods varies considerably from system
 to system.
-.SH ATTRIBUTES
+.Sh ATTRIBUTES
 For an explanation of the terms used in this section, see
-.BR attributes (7).
+.Xr attributes 7 .
 .TS
 allbox;
 lb lb lb
 l l l.
 Interface	Attribute	Value
 T{
-.B crypt_gensalt
+.Nm crypt_gensalt
 T}	Thread safety	MT-Unsafe race:crypt_gensalt
 T{
-.BR crypt_gensalt_rn ", " crypt_gensalt_ra
+.Nm crypt_gensalt_rn ,
+.Nm crypt_gensalt_ra
 T}	Thread safety	MT-Safe
 .TE
 .sp
-.SH SEE ALSO
-.ad l
-.BR crypt (3),
-.BR getpass (3),
-.BR getpwent (3),
-.BR shadow (3),
-.BR login (1),
-.BR passwd (1),
-.BR crypt (5),
-.BR passwd (5),
-.BR shadow (5),
-.BR pam (8)
+.Sh SEE ALSO
+.Xr crypt 3 ,
+.Xr getpass 3 ,
+.Xr getpwent 3 ,
+.Xr shadow 3 ,
+.Xr login 1 ,
+.Xr passwd 1 ,
+.Xr crypt 5 ,
+.Xr passwd 5 ,
+.Xr shadow 5 ,
+.Xr pam 8

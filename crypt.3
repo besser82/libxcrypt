@@ -1,426 +1,468 @@
 .\" Written and revised by Solar Designer <solar at openwall.com> in 2000-2011.
 .\" Revised by Zack Weinberg <zackw at panix.com> in 2017.
+.\" Converted to mdoc format by Zack Weinberg in 2018.
 .\"
 .\" No copyright is claimed, and this man page is hereby placed in the public
 .\" domain.  In case this attempt to disclaim copyright and place the man page
 .\" in the public domain is deemed null and void, then the man page is
-.\" Copyright 2000-2011 Solar Designer, 2017 Zack Weinberg, and it is
- \" hereby released to the general public under the following terms:
+.\" Copyright 2000-2011 Solar Designer, 2017, 2018 Zack Weinberg, and it is
+.\" hereby released to the general public under the following terms:
 .\"
 .\" Redistribution and use in source and binary forms, with or without
 .\" modification, are permitted.
 .\"
 .\" There's ABSOLUTELY NO WARRANTY, express or implied.
 .\"
-.\" This manual page in its current form is intended for use on systems
-.\" based on the GNU C Library with crypt_blowfish patched into libcrypt.
-.\"
-.TH CRYPT_RN 3 "October 11, 2017" "Openwall Project" "Library functions"
-.ad l
-.\" No macros in NAME to keep makewhatis happy.
-.SH NAME
-\fBcrypt\fR, \fBcrypt_r\fR, \fBcrypt_rn\fR, \fBcrypt_ra\fR
-\- passphrase hashing
-.SH SYNOPSIS
-.B #include <crypt.h>
-.sp
-.in +8
-.ti -8
-.BI "char *crypt(const char *" phrase ", const char *" setting );
-.ti -8
-.BI "char *crypt_r(const char *" phrase ", const char *" setting ", struct crypt_data *" data );
-.ti -8
-.BI "char *crypt_rn(const char *" phrase ", const char *" setting ", void *" data ", int " size );
-.ti -8
-.BI "char *crypt_ra(const char *" phrase ", const char *" setting ", void **" data ", int *" size );
-.in -8
-.sp
-Link with
-.IR -lcrypt .
-.ad b
-.SH DESCRIPTION
+.Dd October 11, 2017
+.Dt CRYPT 3
+.Os "Openwall Project"
+.Sh NAME
+.Nm crypt , crypt_r , crypt_rn , crypt_ra
+.Nd passphrase hashing
+.Sh LIBRARY
+.Lb libcrypt
+.Sh SYNOPSIS
+.In crypt.h
+.Ft "char *"
+.Fo crypt
+.Fa "const char *phrase"
+.Fa "const char *setting"
+.Fc
+.Ft "char *"
+.Fo crypt_r
+.Fa "const char *phrase"
+.Fa "const char *setting"
+.Fa "struct crypt_data *data"
+.Fc
+.Ft "char *"
+.Fo crypt_rn
+.Fa "const char *phrase"
+.Fa "const char *setting"
+.Fa "struct crypt_data *data"
+.Fa "int size"
+.Fc
+.Ft "char *"
+.Fo crypt_ra
+.Fa "const char *phrase"
+.Fa "const char *setting"
+.Fa "void **data"
+.Fa "int *size"
+.Fc
+.Sh DESCRIPTION
 The
-.BR crypt ", " crypt_r ", " crypt_rn ", and " crypt_ra
-functions irreversibly \(lqhash\(rq
-.I phrase
+.Nm crypt ,
+.Nm crypt_r ,
+.Nm crypt_rn ,
+and
+.Nm crypt_ra
+functions irreversibly
+.Dq hash
+.Fa phrase
 for storage in the system password database
-.RB ( shadow (5))
-using a cryptographic \(lqhashing method.\(rq
-The result of this operation is called a \(lqhashed passphrase\(rq
-or just a \(lqhash.\(rq
+.Pq Xr shadow 5
+using a cryptographic
+.Dq hashing method.
+The result of this operation is called a
+.Dq hashed passphrase
+or just a
+.Dq hash.
 Hashing methods are described in
-.BR crypt (5).
-.PP
-.I setting
+.Xr crypt 5 .
+.Pp
+.Fa setting
 controls which hashing method to use,
 and also supplies various parameters to the chosen method,
-most importantly a random \(lqsalt\(rq
+most importantly a random
+.Dq salt
 which ensures that no two stored hashes are the same,
 even if the
-.I phrase
+.Fa phrase
 strings are the same.
-The hashing methods are explained below.
-.PP
+.Pp
 The
-.I crypt_data
-structure passed to
-.B crypt_r
-has at least these fields:
-.sp
-.in +4n
-.nf
+.Fa data
+argument to
+.Nm crypt_r
+is a structure of type
+.Vt "struct crypt_data" .
+It has at least these fields:
+.Bd -literal -offset indent
 struct crypt_data {
     char output[CRYPT_OUTPUT_SIZE];
     char setting[CRYPT_OUTPUT_SIZE];
     char phrase[CRYPT_MAX_PASSPHRASE_SIZE];
     char initialized;
 };
-.fi
-.in
-.PP
+.Ed
+.Pp
 Upon a successful return from
-.BR crypt_r ,
+.Nm crypt_r ,
 the hashed passphrase will be stored in
-.IR output .
+.Fa output .
 Applications are encouraged, but not required, to use the
-.I setting
+.Fa phrase
 and
-.I phrase
+.Fa setting
 fields to store the strings that they will pass as
-.I phrase
+.Fa phrase
 and
-.I setting
+.Fa setting
 to
-.BR crypt_r .
+.Nm crypt_r .
 This will make it easier to erase all sensitive data
 after it is no longer needed.
-.PP
+.Pp
 The
-.I initialized
+.Fa initialized
 field must be set to zero before the first time a
-.I crypt_data
+.Vt "struct crypt_data"
 object is first used in a call to
-.BR crypt_r .
-We recommend zeroing the entire
-.I crypt_data
-object, not just
-.I initialized
+.Fn crypt_r .
+We recommend zeroing the entire object,
+not just
+.Fa initialized
 and not just the documented fields,
 before the first use.
 (Of course, do this before storing anything in
-.I setting
+.Fa setting
 and
-.IR phrase .)
-.PP
+.Fa phrase . )
+.Pp
 The
-.I data
+.Fa data
 argument to
-.B crypt_rn
+.Nm crypt_rn
 should also point to a
-.I crypt_data
+.Vt "struct crypt_data"
 object, and
-.I size
+.Fa size
 should be the size of that object, cast to
-.BR int .
+.Vt int .
 When used with
-.BR crypt_rn ,
+.Nm crypt_rn ,
 the entire
-.I crypt_data
-object must be zeroed before its first use;
+.Fa data
+object (except for the
+.Fa phrase
+and
+.Fa setting
+fields) must be zeroed before its first use;
 this is not just a recommendation, as it is for
-.BR crypt_r .
-.RI ( setting
-and
-.I phrase
-are still allowed to be used.)
+.Nm crypt_r .
 Otherwise, the fields of the object have the same uses that they do for
-.BR crypt_r .
-.PP
+.Nm crypt_r .
+.Pp
 On the first call to
-.BR crypt_ra ,
-.I data
+.Nm crypt_ra ,
+.Fa data
 should be the address of a
-.B void *
+.Vt "void *"
 variable set to NULL, and
-.I size
+.Fa size
 should be the address of an
-.B int
+.Vt int
 variable set to zero.
-.B crypt_ra
+.Nm crypt_ra
 will allocate and initialize a
-.I crypt_data
+.Vt "struct crypt_data"
 object, using
-.BR malloc (3),
-and write its address and size into
-.RI * data
+.Xr malloc 3 ,
+and write its address and size into the variables pointed to by
+.Fa data
 and
-.RI * size .
+.Fa size .
 These can be reused in subsequent calls.
 After the application is done hashing passphrases,
-it should deallocate
-.RI * data
-using
-.BR free (3).
-.SH RETURN VALUE
+it should deallocate the
+.Vt "struct crypt_data"
+object using
+.Xr free 3 .
+.Sh RETURN VALUES
 Upon successful completion,
-.BR crypt ", " crypt_r ", " crypt_rn ", and " crypt_ra
+.Nm crypt ,
+.Nm crypt_r ,
+.Nm crypt_rn ,
+and
+.Nm crypt_ra
 return a pointer to a string which encodes both the hashed passphrase,
 and the settings that were used to encode it.
 This string is directly usable as
-.I setting
-with other calls to
-.BR crypt ", " crypt_r ", " crypt_rn ", and " crypt_ra ,
+.Fa setting
+in other calls to
+.Nm crypt ,
+.Nm crypt_r ,
+.Nm crypt_rn ,
+and
+.Nm crypt_ra ,
 and as
-.I prefix
-with calls to
-.BR crypt_gensalt ", " crypt_gensalt_rn ", and " crypt_gensalt_ra .
+.Fa prefix
+in calls to
+.Nm crypt_gensalt ,
+.Nm crypt_gensalt_rn ,
+and
+.Nm crypt_gensalt_ra .
 It will be entirely printable ASCII,
 and will not contain whitespace
-or the characters \(oq\fB:\fR\(cq,
-\(oq\fB;\fR\(cq,
-\(oq\fB*\fR\(cq,
-\(oq\fB!\fR\(cq, or
-\(oq\fB\e\fR\(cq.
+or the characters
+.Sq Li \&: ,
+.Sq Li \&; ,
+.Sq Li \&* ,
+.Sq Li \&! ,
+or
+.Sq Li \&\e .
 See
-.BR crypt (5)
+.Xr crypt 5
 for more detail on the format of hashed passphrases.
-.PP
-.B crypt
+.Pp
+.Nm crypt
 places its result in a static storage area,
 which will be overwritten by subsequent calls to
-.BR crypt .
+.Nm crypt .
 It is not safe to call
-.B crypt
+.Nm crypt
 from multiple threads simultaneously.
-.PP
-.BR crypt_r ", " crypt_rn ", and " crypt_ra
+.Pp
+.Nm crypt_r ,
+.Nm crypt_rn ,
+and
+.Nm crypt_ra
 place their result in the
-.I output
-field of the
-.I crypt_data
-object that they are supplied with; it is safe to call them from
-multiple threads simultaneously, as long as a separate
-.I crypt_data
-object is used for each thread.
-.PP
-Upon error,
-.BR crypt_r ", " crypt_rn ", and " crypt_ra
-write an
-.I invalid
-hashed passphrase to the
-.I output
+.Fa output
 field of their
-.I crypt_data
-object, and
-.B crypt
+.Fa data
+argument.
+It is safe to call them from multiple threads simultaneously,
+as long as a separate
+.Fa data
+object is used for each thread.
+.Pp
+Upon error,
+.Nm crypt_r ,
+.Nm crypt_rn ,
+and
+.Nm crypt_ra
+write an
+.Em invalid
+hashed passphrase to the
+.Fa output
+field of their
+.Fa data
+argument, and
+.Nm crypt
 writes an invalid hash to its static storage area.
 This string will be shorter than 13 characters,
-will begin with a \(oq\fB*\fR\(cq,
+will begin with a
+.Sq Li \&* ,
 and will not compare equal to
-.IR setting .
-.PP
+.Fa setting .
+.Pp
 Upon error,
-.BR crypt_rn " and " crypt_ra
+.Nm crypt_rn
+and
+.Nm crypt_ra
 return a null pointer.
-.BR crypt_r " and " crypt
+.Nm crypt_r
+and
+.Nm crypt
 may also return a null pointer,
 or they may return a pointer to the invalid hash,
-depending on how
-.I libcrypt
-was configured.
+depending on how libcrypt was configured.
 (The option to return the invalid hash is for compatibility
 with old applications that assume that
-.B crypt
+.Nm crypt
 cannot return a null pointer.
 See
-.B "PORTABILITY NOTES"
+.Sx PORTABILITY NOTES
 below.)
-.PP
+.Pp
 All four functions set
-.I errno
+.Va errno
 when they fail.
-.SH ERRORS
-.TP
-.B EINVAL
-.I setting
+.Sh ERRORS
+.Bl -tag -width Er
+.It Er EINVAL
+.Fa setting
 is invalid, or requests a hashing method that is not supported.
-.TP
-.B ERANGE
-.B crypt_rn
+.It Er ERANGE
+.Nm crypt_rn
 only:
-.I size
+.Fa size
 is too small for the hashing method requested by
-.IR setting .
-.TP
-.B ENOMEM
+.Fa setting .
+.It Er ENOMEM
 Failed to allocate internal scratch memory.
 .br
-.BR crypt_ra
+.Nm crypt_ra
 only: failed to allocate memory for
-.RI * data .
-.TP
-.BR ENOSYS " or " EOPNOTSUPP
+.Fa data .
+.It Er ENOSYS No or Er EOPNOTSUPP
 Hashing passphrases is not supported at all on this installation,
 or the hashing method requested by
-.I setting
+.Fa setting
 is not supported.
-These error codes are not used by this version of
-.IR libcrypt ,
+These error codes are not used by this version of libcrypt,
 but may be encountered on other systems.
-.SH PORTABILITY NOTES
-.PP
-.B crypt
+.El
+.Sh PORTABILITY NOTES
+.Nm crypt
 is included in POSIX, but
-.BR crypt_r ", " crypt_rn ", and " crypt_ra
+.Nm crypt_r ,
+.Nm crypt_rn ,
+and
+.Nm crypt_ra
 are not part of any standard.
-.PP
+.Pp
 POSIX does not specify any hashing methods,
 and does not require hashed passphrases to be portable between systems.
 In practice, hashed passphrases are portable
 as long as both systems support the hashing method that was used.
 However, the set of supported hashing methods
 varies considerably from system to system.
-.PP
+.Pp
 The behavior of
-.B crypt
+.Nm crypt
 on errors isn't well standardized.
 Some implementations simply can't fail
 (except by crashing the program),
 others return a null pointer or a fixed string.
 Most implementations don't set
-.IR errno ,
+.Va errno ,
 but some do.
 POSIX specifies returning a null pointer and setting
-.IR errno ,
+.Va errno ,
 but it defines only one possible error,
-.BR ENOSYS ,
+.Er ENOSYS ,
 in the case where
-.B crypt
+.Nm crypt
 is not supported at all.
-Many existing applications are not prepared to handle null pointers
+Some older applications are not prepared to handle null pointers
 returned by
-.BR crypt .
+.Nm crypt .
 The behavior described above for this implementation,
 setting
-.I errno
+.Va errno
 and returning an invalid hashed passphrase different from
-.IR setting ,
+.Fa setting ,
 is chosen to make these applications fail closed when an error occurs.
-.PP
+.Pp
 Due to historical restrictions
 on the export of cryptographic software from the USA,
-.B crypt
+.Nm crypt
 is an optional POSIX component.
 Applications should therefore be prepared for
-.B crypt
+.Nm crypt
 not to be available,
 or to always fail (setting
-.I errno
+.Va errno
 to
-.BR ENOSYS )
+.Er ENOSYS )
 at runtime.
-.PP
+.Pp
 POSIX specifies that
-.B crypt
+.Nm crypt
 is declared in
-.BR unistd.h ,
+.In unistd.h ,
 but only if the macro
-.B _XOPEN_CRYPT
-is defined and has a value greater than or equal to zero.  Since
-.I libcrypt
-does not provide
-.BR unistd.h ,
+.Dv _XOPEN_CRYPT
+is defined and has a value greater than or equal to zero.
+Since libcrypt does not provide
+.In unistd.h ,
 it declares
-.BR crypt ", " crypt_r ", " crypt_rn ", and " crypt_ra
+.Nm crypt ,
+.Nm crypt_r ,
+.Nm crypt_rn ,
+and
+.Nm crypt_ra
 in
-.B crypt.h
+.In crypt.h
 instead.
-.PP
+.Pp
 On a minority of systems (notably recent versions of Solaris),
-.B crypt
+.Nm crypt
 uses a thread-specific static storage buffer,
 which makes it safe to call from multiple threads simultaneously,
 but does not prevent each call within a thread
 from overwriting the results of the previous one.
-.SH BUGS
-.PP
+.Sh BUGS
 Some implementations of
-.BR crypt ,
+.Nm crypt ,
 upon error,
 return an invalid hash that is stored in a read-only location
 or only initialized once,
 which means that it is only safe to erase the buffer pointed to by the
-.B crypt
+.Nm crypt
 return value if an error did not occur.
-.PP
-.I struct crypt_data
-may be quite large (32kB in this implementation of
-.IR libcrypt ;
+.Pp
+.Vt "struct crypt_data"
+may be quite large (32kB in this implementation of libcrypt;
 over 128kB in some other implementations).
 This is large enough that it may be unwise to allocate it on the stack.
-.PP
+.Pp
 Some recently designed hashing methods need even more scratch memory,
 but the
-.B crypt_r
+.Nm crypt_r
 interface makes it impossible to change the size of
-.I crypt_data
+.Vt "struct crypt_data"
 without breaking binary compatibility.
 The
-.B crypt_rn
+.Nm crypt_rn
 interface could accommodate larger allocations for specific hashing methods,
 but the caller of
-.B crypt_rn
+.Nm crypt_rn
 has no way of knowing how much memory to allocate.
-.B crypt_ra
+.Nm crypt_ra
 does the allocation itself,
 but can only make a single call to
-.BR malloc (3).
-.SH ATTRIBUTES
+.Xr malloc 3 .
+.Sh ATTRIBUTES
 For an explanation of the terms used in this section, see
-.BR attributes (7).
-.ad l
+.Xr attributes 7 .
 .TS
 allbox;
 lb lb lb
 l l l.
 Interface	Attribute	Value
 T{
-.B crypt
+.Nm crypt
 T}	Thread safety	MT-Unsafe race:crypt
 T{
-.BR crypt_r ", " crypt_rn ", " crypt_ra
+.Nm crypt_r ,
+.Nm crypt_rn ,
+.Nm crypt_ra
 T}	Thread safety	MT-Safe
 .TE
-.ad b
 .sp
-.SH HISTORY
+.Sh HISTORY
 A rotor-based
-.B crypt
-function appeared in Version 6 AT&T UNIX.
-The "traditional" DES-based
-.B crypt
-first appeared in Version 7 AT&T UNIX.
-.PP
-.B crypt_r
+.Nm crypt
+function appeared in
+.At v6 .
+The
+.Dq traditional
+DES-based
+.Nm crypt
+first appeared in
+.At v7 .
+.Pp
+.Nm crypt_r
 originates with the GNU C Library.
 There's also a
-.B crypt_r
+.Nm crypt_r
 function on HP-UX and MKS Toolkit, but the prototypes and semantics
 differ.
-.PP
-.BR crypt_rn
+.Pp
+.Nm crypt_rn
 and
-.BR crypt_ra
+.Nm crypt_ra
 originate with the Openwall project.
-.SH SEE ALSO
-.ad l
-.BR crypt_gensalt (3),
-.BR getpass (3),
-.BR getpwent (3),
-.BR shadow (3),
-.BR login (1),
-.BR passwd (1),
-.BR crypt (5),
-.BR passwd (5),
-.BR shadow (5),
-.BR pam (8)
+.Sh SEE ALSO
+.Xr crypt_gensalt 3 ,
+.Xr getpass 3 ,
+.Xr getpwent 3 ,
+.Xr shadow 3 ,
+.Xr login 1 ,
+.Xr passwd 1 ,
+.Xr crypt 5 ,
+.Xr passwd 5 ,
+.Xr shadow 5 ,
+.Xr pam 8
