@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#if INCLUDE_sha256
+#if INCLUDE_sha256 || INCLUDE_scrypt || INCLUDE_yescrypt
 
 static const struct
 {
@@ -60,7 +60,7 @@ static const struct
 
 static void
 report_failure(int n, const char *tag,
-               const char expected[32], const char actual[32])
+               const char expected[32], uint8_t actual[32])
 {
   int i;
   printf ("FAIL: test %d (%s):\n  exp:", n, tag);
@@ -84,28 +84,25 @@ report_failure(int n, const char *tag,
 int
 main (void)
 {
-  struct sha256_ctx ctx;
-  char sum[32];
+  SHA256_CTX ctx;
+  uint8_t sum[32];
   int result = 0;
   int cnt;
   int i;
 
   for (cnt = 0; cnt < (int) ARRAY_SIZE (tests); ++cnt)
     {
-      sha256_init_ctx (&ctx);
-      sha256_process_bytes (tests[cnt].input, strlen (tests[cnt].input),
-                            &ctx);
-      sha256_finish_ctx (&ctx, sum);
+      SHA256_Buf (tests[cnt].input, strlen (tests[cnt].input), sum);
       if (memcmp (tests[cnt].result, sum, 32) != 0)
         {
           report_failure (cnt, "all at once", tests[cnt].result, sum);
           result = 1;
         }
 
-      sha256_init_ctx (&ctx);
+      SHA256_Init (&ctx);
       for (i = 0; tests[cnt].input[i] != '\0'; ++i)
-        sha256_process_bytes (&tests[cnt].input[i], 1, &ctx);
-      sha256_finish_ctx (&ctx, sum);
+        SHA256_Update (&ctx, &tests[cnt].input[i], 1);
+      SHA256_Final (sum, &ctx);
       if (memcmp (tests[cnt].result, sum, 32) != 0)
         {
           report_failure (cnt, "byte by byte", tests[cnt].result, sum);
@@ -116,10 +113,10 @@ main (void)
   /* Test vector from FIPS 180-2: appendix B.3.  */
   char buf[1000];
   memset (buf, 'a', sizeof (buf));
-  sha256_init_ctx (&ctx);
+  SHA256_Init (&ctx);
   for (i = 0; i < 1000; ++i)
-    sha256_process_bytes (buf, sizeof (buf), &ctx);
-  sha256_finish_ctx (&ctx, sum);
+    SHA256_Update (&ctx, buf, sizeof (buf));
+  SHA256_Final (sum, &ctx);
   static const char expected[32] =
     "\xcd\xc7\x6e\x5c\x99\x14\xfb\x92\x81\xa1\xc7\xe2\x84\xd7\x3e\x67"
     "\xf1\x80\x9a\x48\xa4\x97\x20\x0e\x04\x6d\x39\xcc\xc7\x11\x2c\xd0";

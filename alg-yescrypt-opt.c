@@ -91,7 +91,7 @@
 #include <string.h>
 
 #define insecure_memzero XCRYPT_SECURE_MEMSET
-#include "alg-yescrypt-sha256.h"
+#include "alg-sha256.h"
 #include "alg-yescrypt-sysendian.h"
 
 #define YESCRYPT_INTERNAL

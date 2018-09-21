@@ -26,7 +26,7 @@
 #include <string.h>
 
 #define insecure_memzero XCRYPT_SECURE_MEMSET
-#include "alg-yescrypt-sha256.h"
+#include "alg-sha256.h"
 
 #define YESCRYPT_INTERNAL
 #include "alg-yescrypt.h"

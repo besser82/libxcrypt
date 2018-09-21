@@ -27,7 +27,7 @@ nodist_include_HEADERS = crypt.h
 nodist_noinst_HEADERS = crypt-hashes.h crypt-base.h
 noinst_HEADERS = \
 	alg-des.h alg-hmac-sha1.h alg-md4.h alg-md5.h \
-	alg-sha1.h alg-sha256.h alg-sha512.h alg-yescrypt-sha256.h \
+	alg-sha1.h alg-sha256.h alg-sha512.h \
 	alg-yescrypt.h alg-yescrypt-sysendian.h byteorder.h \
 	crypt-obsolete.h crypt-private.h crypt-port.h test-des-cases.h
 
@@ -35,7 +35,7 @@ lib_LTLIBRARIES = libcrypt.la
 libcrypt_la_SOURCES = \
 	alg-des.c alg-des-tables.c alg-hmac-sha1.c alg-md4.c alg-md5.c \
 	alg-sha1.c alg-sha256.c alg-sha512.c alg-yescrypt-opt.c \
-	alg-yescrypt-sha256.c alg-yescrypt-common.c \
+	alg-yescrypt-common.c \
 	crypt.c crypt-bcrypt.c crypt-des.c crypt-gensalt-static.c \
 	crypt-gensalt.c crypt-md5.c crypt-nthash.c crypt-pbkdf1-sha1.c \
 	crypt-scrypt.c crypt-sha256.c crypt-sha512.c crypt-static.c \
@@ -152,6 +152,7 @@ endif
 
 check_PROGRAMS = \
 	test-alg-des test-alg-hmac-sha1 test-alg-md4 test-alg-md5 \
+	test-alg-pbkdf-hmac-sha256 \
 	test-alg-sha1 test-alg-sha256 test-alg-sha512 \
 	test-crypt-bcrypt test-crypt-des \
 	test-crypt-md5 test-crypt-nthash \
@@ -214,6 +215,7 @@ test_alg_des_LDADD = alg-des.lo alg-des-tables.lo
 test_alg_hmac_sha1_LDADD = alg-sha1.lo alg-hmac-sha1.lo
 test_alg_md4_LDADD = alg-md4.lo
 test_alg_md5_LDADD = alg-md5.lo
+test_alg_pbkdf_hmac_sha256_LDADD = alg-sha256.lo
 test_alg_sha1_LDADD = alg-sha1.lo
 test_alg_sha256_LDADD = alg-sha256.lo
 test_alg_sha512_LDADD = alg-sha512.lo

@@ -58,7 +58,7 @@ static_assert (SHA256_HASH_LENGTH <= CRYPT_OUTPUT_SIZE,
 /* A sha256_buffer holds all of the sensitive intermediate data.  */
 struct sha256_buffer
 {
-  struct sha256_ctx ctx;
+  SHA256_CTX ctx;
   uint8_t result[32];
   uint8_t p_bytes[32];
   uint8_t s_bytes[32];
@@ -72,17 +72,16 @@ static_assert (sizeof (struct sha256_buffer) <= ALG_SPECIFIC_SIZE,
 static const char b64t[] =
   "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-/* Subroutine of _xcrypt_crypt_sha256_rn: Feed CTX with LEN bytes of a
-   virtual byte sequence consisting of BLOCK repeated over and over
-   indefinitely.  */
+/* Feed CTX with LEN bytes of a virtual byte sequence consisting of
+   BLOCK repeated over and over indefinitely.  */
 static void
-sha256_process_recycled_bytes (unsigned char block[32], size_t len,
-                               struct sha256_ctx *ctx)
+SHA256_Update_recycled (SHA256_CTX *ctx,
+                        unsigned char block[32], size_t len)
 {
   size_t cnt;
   for (cnt = len; cnt >= 32; cnt -= 32)
-    sha256_process_bytes (block, 32, ctx);
-  sha256_process_bytes (block, cnt, ctx);
+    SHA256_Update (ctx, block, 32);
+  SHA256_Update (ctx, block, cnt);
 }
 
 void
@@ -100,7 +99,7 @@ crypt_sha256_rn (const char *phrase, size_t phr_size,
     }
 
   struct sha256_buffer *buf = scratch;
-  struct sha256_ctx *ctx = &buf->ctx;
+  SHA256_CTX *ctx = &buf->ctx;
   uint8_t *result = buf->result;
   uint8_t *p_bytes = buf->p_bytes;
   uint8_t *s_bytes = buf->s_bytes;
@@ -157,96 +156,96 @@ crypt_sha256_rn (const char *phrase, size_t phr_size,
 
   /* Compute alternate SHA256 sum with input PHRASE, SALT, and PHRASE.  The
      final result will be added to the first context.  */
-  sha256_init_ctx (ctx);
+  SHA256_Init (ctx);
 
   /* Add phrase.  */
-  sha256_process_bytes (phrase, phr_size, ctx);
+  SHA256_Update (ctx, phrase, phr_size);
 
   /* Add salt.  */
-  sha256_process_bytes (salt, salt_size, ctx);
+  SHA256_Update (ctx, salt, salt_size);
 
   /* Add phrase again.  */
-  sha256_process_bytes (phrase, phr_size, ctx);
+  SHA256_Update (ctx, phrase, phr_size);
 
   /* Now get result of this (32 bytes).  */
-  sha256_finish_ctx (ctx, result);
+  SHA256_Final (result, ctx);
 
   /* Prepare for the real work.  */
-  sha256_init_ctx (ctx);
+  SHA256_Init (ctx);
 
   /* Add the phrase string.  */
-  sha256_process_bytes (phrase, phr_size, ctx);
+  SHA256_Update (ctx, phrase, phr_size);
 
   /* The last part is the salt string.  This must be at most 8
      characters and it ends at the first `$' character (for
      compatibility with existing implementations).  */
-  sha256_process_bytes (salt, salt_size, ctx);
+  SHA256_Update (ctx, salt, salt_size);
 
   /* Add for any character in the phrase one byte of the alternate sum.  */
   for (cnt = phr_size; cnt > 32; cnt -= 32)
-    sha256_process_bytes (result, 32, ctx);
-  sha256_process_bytes (result, cnt, ctx);
+    SHA256_Update (ctx, result, 32);
+  SHA256_Update (ctx, result, cnt);
 
   /* Take the binary representation of the length of the phrase and for every
      1 add the alternate sum, for every 0 the phrase.  */
   for (cnt = phr_size; cnt > 0; cnt >>= 1)
     if ((cnt & 1) != 0)
-      sha256_process_bytes (result, 32, ctx);
+      SHA256_Update (ctx, result, 32);
     else
-      sha256_process_bytes (phrase, phr_size, ctx);
+      SHA256_Update (ctx, phrase, phr_size);
 
   /* Create intermediate result.  */
-  sha256_finish_ctx (ctx, result);
+  SHA256_Final (result, ctx);
 
   /* Start computation of P byte sequence.  */
-  sha256_init_ctx (ctx);
+  SHA256_Init (ctx);
 
   /* For every character in the password add the entire password.  */
   for (cnt = 0; cnt < phr_size; ++cnt)
-    sha256_process_bytes (phrase, phr_size, ctx);
+    SHA256_Update (ctx, phrase, phr_size);
 
   /* Finish the digest.  */
-  sha256_finish_ctx (ctx, p_bytes);
+  SHA256_Final (p_bytes, ctx);
 
   /* Start computation of S byte sequence.  */
-  sha256_init_ctx (ctx);
+  SHA256_Init (ctx);
 
   /* For every character in the password add the entire password.  */
   for (cnt = 0; cnt < (size_t) 16 + (size_t) result[0]; ++cnt)
-    sha256_process_bytes (salt, salt_size, ctx);
+    SHA256_Update (ctx, salt, salt_size);
 
   /* Finish the digest.  */
-  sha256_finish_ctx (ctx, s_bytes);
+  SHA256_Final (s_bytes, ctx);
 
   /* Repeatedly run the collected hash value through SHA256 to burn
      CPU cycles.  */
   for (cnt = 0; cnt < rounds; ++cnt)
     {
       /* New context.  */
-      sha256_init_ctx (ctx);
+      SHA256_Init (ctx);
 
       /* Add phrase or last result.  */
       if ((cnt & 1) != 0)
-        sha256_process_recycled_bytes (p_bytes, phr_size, ctx);
+        SHA256_Update_recycled (ctx, p_bytes, phr_size);
       else
-        sha256_process_bytes (result, 32, ctx);
+        SHA256_Update (ctx, result, 32);
 
       /* Add salt for numbers not divisible by 3.  */
       if (cnt % 3 != 0)
-        sha256_process_recycled_bytes (s_bytes, salt_size, ctx);
+        SHA256_Update_recycled (ctx, s_bytes, salt_size);
 
       /* Add phrase for numbers not divisible by 7.  */
       if (cnt % 7 != 0)
-        sha256_process_recycled_bytes (p_bytes, phr_size, ctx);
+        SHA256_Update_recycled (ctx, p_bytes, phr_size);
 
       /* Add phrase or last result.  */
       if ((cnt & 1) != 0)
-        sha256_process_bytes (result, 32, ctx);
+        SHA256_Update (ctx, result, 32);
       else
-        sha256_process_recycled_bytes (p_bytes, phr_size, ctx);
+        SHA256_Update_recycled (ctx, p_bytes, phr_size);
 
       /* Create intermediate result.  */
-      sha256_finish_ctx (ctx, result);
+      SHA256_Final (result, ctx);
     }
 
   /* Now we can construct the result string.  It consists of four
