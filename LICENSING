@@ -22,7 +22,7 @@ source tree.  For specific licensing terms consult the files themselves.
    crypt-des.c, crypt-des-obsolete.c, gen-des-tables.c
 
  * Public domain, written by Ulrich Drepper et al.:
-   crypt-sha512.c
+   crypt-sha256.c, crypt-sha512.c
 
  * Public domain, written by Solar Designer et al.:
    alg-md4.h, alg-md4.c, crypt-bcrypt.c, crypt-gensalt.c, test-crypt-bcrypt.c
