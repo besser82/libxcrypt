@@ -27,20 +27,17 @@
 static int
 test(const char *p, const char *s, const char *m)
 {
-  char *cp;
-  struct crypt_data output;
-  cp = crypt_r(p, s, &output);
-  if (!cp)
-    return 1;
-  if (strcmp(m, cp))
+  struct crypt_data cd;
+  crypt_r(p, s, &cd);
+  if (strcmp(m, cd.output))
     {
       fprintf(stderr, "ERROR: %s %s -> %s\n\t(expected %s)\n",
-              p, s, cp, m);
+              p, s, cd.output, m);
       return 1;
     }
   else
     {
-      fprintf(stderr, "   ok: %s %s -> %s\n", p, s, cp);
+      fprintf(stderr, "   ok: %s %s -> %s\n", p, s, cd.output);
       return 0;
     }
 }

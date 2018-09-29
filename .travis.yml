@@ -51,6 +51,30 @@ matrix:
       os: linux
       services: docker
       env:
+        - CONF="--disable-failure-tokens --enable-obsolete-api --enable-hashes=all"
+        - FCVER="rawhide"
+    - compiler: clang
+      os: linux
+      services: docker
+      env:
+        - CONF="--disable-failure-tokens --enable-obsolete-api --enable-hashes=all"
+        - FCVER="rawhide"
+    - compiler: gcc
+      os: linux
+      services: docker
+      env:
+        - CONF="--disable-failure-tokens --enable-obsolete-api --enable-hashes=all"
+        - FCVER="latest"
+    - compiler: clang
+      os: linux
+      services: docker
+      env:
+        - CONF="--disable-failure-tokens --enable-obsolete-api --enable-hashes=all"
+        - FCVER="latest"
+    - compiler: gcc
+      os: linux
+      services: docker
+      env:
         - CONF="--disable-obsolete-api --enable-hashes=all"
         - FCVER="rawhide"
     - compiler: clang
