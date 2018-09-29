@@ -3,6 +3,8 @@ libxcrypt NEWS -- history of user-visible changes.
 Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
+Version 4.2.2
+
 Version 4.2.1
 * Fix tests for yescrypt and scrypt, when failure-tokens have been
   disabled.
