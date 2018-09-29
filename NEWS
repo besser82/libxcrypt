@@ -3,6 +3,8 @@ libxcrypt NEWS -- history of user-visible changes.
 Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
+Version 4.2.1
+
 Version 4.2.0
 * Implement yescrypt ($y$) and scrypt ($7$) hashing algorithms.
 * For scrypt the implemented gensalt function ensures every new hash
