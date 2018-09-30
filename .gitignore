@@ -51,6 +51,7 @@
 /test-alg-hmac-sha1
 /test-alg-md4
 /test-alg-md5
+/test-alg-pbkdf-hmac-sha256
 /test-alg-sha1
 /test-alg-sha256
 /test-alg-sha512
