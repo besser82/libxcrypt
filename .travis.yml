@@ -178,13 +178,12 @@ before_install:
   - docker exec -t buildenv /bin/sh -c "echo \"\" >> /etc/dnf/dnf.conf"
   - if [[ "$FCVER" == "rawhide" ]] ; then docker exec -t buildenv /bin/sh -c "cat /opt/libxcrypt/.travis.dnf.conf.rawhide_latest >> /etc/dnf/dnf.conf" ; fi
   - docker exec -t buildenv /bin/sh -c 'for i in `seq 0 99`; do dnf makecache && i= && break || sleep 1; done; [ -z "$i" ]'
-  - docker exec -t buildenv /bin/sh -c 'for i in `seq 0 99`; do dnf -y --allowerasing --best --nogpgcheck upgrade dnf gdbm fedora-gpg-keys rpm && i= && break || sleep 1; done; [ -z "$i" ]'
-  - docker exec -t buildenv /bin/sh -c 'for i in `seq 0 99`; do dnf makecache && i= && break || sleep 1; done; [ -z "$i" ]'
-  - docker exec -t buildenv /bin/sh -c 'for i in `seq 0 99`; do dnf -y --allowerasing --best upgrade && i= && break || sleep 1; done; [ -z "$i" ]'
-  - docker exec -t buildenv /bin/sh -c 'for i in `seq 0 99`; do dnf -y --allowerasing --best groups install buildsys-build && i= && break || sleep 1; done; [ -z "$i" ]'
-  - docker exec -t buildenv /bin/sh -c 'for i in `seq 0 99`; do dnf -y --allowerasing --best install libtool valgrind && i= && break || sleep 1; done; [ -z "$i" ]'
-  - if [[ "$CC" == "clang" ]]  ; then docker exec -t buildenv /bin/sh -c 'for i in `seq 0 99`; do dnf -y --allowerasing --best install clang && i= && break || sleep 1; done; [ -z "$i" ]' ; fi
-  - if [[ "$CODECOV" == "1" ]] ; then docker exec -t buildenv /bin/sh -c 'for i in `seq 0 99`; do dnf -y --allowerasing --best install git lcov python3-pip && i= && break || sleep 1; done; [ -z "$i" ]' ; fi
+  - docker exec -t buildenv /bin/sh -c 'for i in `seq 0 99`; do dnf -y upgrade && i= && break || sleep 1; done; [ -z "$i" ]'
+  - docker exec -t buildenv /bin/sh -c 'for i in `seq 0 99`; do dnf -y swap coreutils-single coreutils && i= && break || sleep 1; done; [ -z "$i" ]'
+  - docker exec -t buildenv /bin/sh -c 'for i in `seq 0 99`; do dnf -y groups install buildsys-build && i= && break || sleep 1; done; [ -z "$i" ]'
+  - docker exec -t buildenv /bin/sh -c 'for i in `seq 0 99`; do dnf -y install libtool valgrind && i= && break || sleep 1; done; [ -z "$i" ]'
+  - if [[ "$CC" == "clang" ]]  ; then docker exec -t buildenv /bin/sh -c 'for i in `seq 0 99`; do dnf -y install clang && i= && break || sleep 1; done; [ -z "$i" ]' ; fi
+  - if [[ "$CODECOV" == "1" ]] ; then docker exec -t buildenv /bin/sh -c 'for i in `seq 0 99`; do dnf -y install git lcov python3-pip && i= && break || sleep 1; done; [ -z "$i" ]' ; fi
   - if [[ "$CODECOV" == "1" ]] ; then docker exec -t buildenv /bin/sh -c "pip3 install codecov" ; fi
   - docker exec -t buildenv /bin/sh -c 'for i in `seq 0 99`; do dnf -y autoremove && i= && break || sleep 1; done; [ -z "$i" ]'
 
