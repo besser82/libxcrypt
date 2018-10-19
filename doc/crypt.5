@@ -33,7 +33,7 @@ However, with a strong hashing method,
 guessing will be too slow for the attacker
 to discover a strong passphrase.
 .Pp
-All of the hashing methods use a
+Most of the hashing methods use a
 .Dq salt
 to perturb the hash function,
 so that the same passphrase may produce many possible hashes.
@@ -132,6 +132,12 @@ the hashing methods supported by
 in decreasing order of strength.
 Many of the older methods
 are now considered too weak to use for new passphrases.
+.Pp
+The name given in the subheading for each method
+is the name to use in
+.Xr crypt.conf 5
+to set local configuration for that method.
+.Pp
 The hashed passphrase format is expressed
 with extended regular expressions (see
 .Xr regex 7 )
@@ -167,8 +173,9 @@ and does not show the division into prefix, options, salt, and hash.
 .El
 ..
 .Ss yescrypt
-yescrypt is a scalable passphrase hashing scheme designed by Solar Designer,
-which is based on Colin Percival's scrypt.
+An improved version of scrypt (see below),
+with greater resistance to offline attacks.
+Developed by Solar Designer.
 Recommended for new hashes.
 .hash "$y$" "\e$y\e$[./A-Za-z0-9]+\e$[./A-Za-z0-9]{,86}\e$[./A-Za-z0-9]{43}" unlimited 8 256 256 "up to 512" "1 to 11 (logarithmic)"
 .Ss gost-yescrypt
@@ -183,9 +190,9 @@ as RFC 6986.
 Recommended for new hashes.
 .hash "$gy$" "\e$gy\e$[./A-Za-z0-9]+\e$[./A-Za-z0-9]{,86}\e$[./A-Za-z0-9]{43}" unlimited 8 256 256 "up to 512" "1 to 11 (logarithmic)"
 .Ss scrypt
-scrypt is a password-based key derivation function created by Colin Percival,
+A hash created by Colin Percival,
 originally for the Tarsnap online backup service.
-The algorithm was specifically designed to make it costly to perform
+The algorithm was designed to make it costly to perform
 large-scale custom hardware attacks by requiring large amounts of memory.
 In 2016, the scrypt algorithm was published by IETF as RFC 7914.
 .hash "$7$" "\e$7\e$[./A-Za-z0-9]{11,97}\e$[./A-Za-z0-9]{43}" unlimited 8 256 256 "up to 512" "6 to 11 (logarithmic)"
@@ -202,6 +209,14 @@ It exists for historical reasons only.
 The alternative prefixes "$2a$" and "$2x$"
 provide bug-compatibility with crypt_blowfish 1.0.4 and earlier,
 which incorrectly processed characters with the 8th bit set.
+In
+.Pa crypt.conf ,
+the treatment of alternative prefixes can be configured using the
+names
+.Li bcrypt_a ,
+.Li bcrypt_x ,
+and
+.Li bcrypt_y .
 .Ss sha512crypt
 A hash based on SHA-2 with 512-bit output,
 originally developed by Ulrich Drepper for GNU libc.
@@ -225,7 +240,7 @@ Not as weak as the DES-based hashes below,
 but SHA1 is so cheap on modern hardware
 that it should not be used for new hashes.
 .hash "$sha1" "\e$sha1\e$[1-9][0-9]+\e$[./0-9A-Za-z]{1,64}\e$[./0-9A-Za-z]{8,64}[./0-9A-Za-z]{32}" unlimited 8 160 160 "6 to 384" "4 to 4,294,967,295"
-.Ss SunMD5
+.Ss sunmd5
 A hash based on the MD5 algorithm,
 with additional cleverness to make precomputation difficult,
 originally developed by Alec David Muffet for Solaris.

@@ -282,7 +282,10 @@ when they fail.
 .Bl -tag -width Er
 .It Er EINVAL
 .Fa setting
-is invalid, or requests a hashing method that is not supported.
+is invalid,
+or requests a hashing method that is not supported
+or has been disabled in
+.Xr crypt.conf 5 .
 .It Er ERANGE
 .Fa phrase
 is too long
@@ -469,6 +472,7 @@ originate with the Openwall project.
 .Xr login 1 ,
 .Xr passwd 1 ,
 .Xr crypt 5 ,
+.Xr crypt.conf 5 ,
 .Xr passwd 5 ,
 .Xr shadow 5 ,
 .Xr pam 8

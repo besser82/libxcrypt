@@ -173,11 +173,15 @@ and will not be equal to
 .Bl -tag -width Er
 .It Er EINVAL
 .Fa prefix
-is invalid or not supported by this implementation;
+is invalid,
+or requests a hashing method that is not supported
+or has been disabled for new hashes in
+.Xr crypt.conf 5 .
+.br
 .Fa count
 is invalid for the requested
-.Fa prefix ;
-the input
+.Fa prefix .
+.br
 .Fa nrbytes
 is insufficient for the smallest valid salt with the requested
 .Fa prefix .
