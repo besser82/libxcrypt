@@ -24,7 +24,7 @@ notrans_dist_man3_MANS = \
 notrans_dist_man5_MANS = crypt.5
 
 nodist_include_HEADERS = crypt.h
-nodist_noinst_HEADERS = crypt-hashes.h
+nodist_noinst_HEADERS = crypt-hashes.h crypt-symbol-vers.h
 noinst_HEADERS = \
 	alg-des.h alg-hmac-sha1.h alg-md4.h alg-md5.h \
 	alg-sha1.h alg-sha256.h alg-sha512.h \
