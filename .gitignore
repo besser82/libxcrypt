@@ -48,6 +48,7 @@
 /crypt-hashes.h
 /crypt-symbol-vers.h
 /libcrypt.map
+/gen-des-tables
 /test-alg-des
 /test-alg-hmac-sha1
 /test-alg-md4

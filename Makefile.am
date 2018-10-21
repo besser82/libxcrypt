@@ -31,6 +31,8 @@ noinst_HEADERS = \
 	alg-yescrypt.h alg-yescrypt-sysendian.h byteorder.h \
 	crypt-obsolete.h crypt-private.h crypt-port.h test-des-cases.h
 
+noinst_PROGRAMS = gen-des-tables
+
 lib_LTLIBRARIES = libcrypt.la
 libcrypt_la_SOURCES = \
 	alg-des.c alg-des-tables.c alg-hmac-sha1.c alg-md4.c alg-md5.c \
