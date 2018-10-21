@@ -71,12 +71,18 @@ libcrypt_la_CPPFLAGS = $(AM_CPPFLAGS) -DIN_LIBCRYPT
 
 CONFIG_STATUS_DEPENDENCIES = libcrypt.minver
 EXTRA_libcrypt_la_DEPENDENCIES = libcrypt.map
-CLEANFILES = libcrypt.map libcrypt.map.T \
+CLEANFILES = Makefile.deps.T Makefile.deps \
+	libcrypt.map libcrypt.map.T \
 	crypt-symbol-vers.h crypt-symbol-vers.h.T \
 	crypt-hashes.h crypt-hashes.h.T \
 	crypt.h crypt.h.T
 
 DISTCLEANFILES = .deps/*.Plo
+
+# Empty target to have needed headers pre-generated before any other target.
+Makefile.deps: crypt-hashes.h crypt-symbol-vers.h
+	$(AM_V_GEN)LC_ALL=C echo "# Deps" > Makefile.deps.T
+	$(AM_V_at)mv -f Makefile.deps.T Makefile.deps
 
 libcrypt.map: libcrypt.map.in gen-map.awk Makefile
 	$(AM_V_GEN)LC_ALL=C $(AWK) \
@@ -230,12 +236,8 @@ endif
 
 # Every object file depends on crypt-symbol-vers.h and crypt-hashes.h,
 # which are generated files, so automatic dependency generation is not
-# sufficient.  Most of the test programs depend on either libcrypt.la
-# or one of its components, so they do not need an explicit dependency
-# (after the first *successful* build, automatic dependency generation
-# will reveal the direct dependency) but a few don't.
-$(libcrypt_la_OBJECTS): crypt-symbol-vers.h crypt-hashes.h
-$(test_byteorder_OBJECTS): crypt-symbol-vers.h crypt-hashes.h
+# sufficient.
+include $(builddir)/Makefile.deps
 
 # Add additional targets
 .PHONY: $(phony_targets)

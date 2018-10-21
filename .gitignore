@@ -1,6 +1,7 @@
 # http://www.gnu.org/software/automake
 
 /Makefile
+/Makefile.deps
 /Makefile.in
 /.deps/
 /.libs/
