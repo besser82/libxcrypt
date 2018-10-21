@@ -15,7 +15,6 @@
  */
 
 #include "crypt-port.h"
-#include "crypt-base.h"
 
 #include <errno.h>
 #include <stdio.h>

@@ -7,7 +7,6 @@
  */
 
 #include "crypt-port.h"
-#include "crypt-base.h"
 #include "crypt-obsolete.h"
 #include "test-des-cases.h"
 

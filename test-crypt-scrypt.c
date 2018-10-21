@@ -18,7 +18,6 @@
  */
 
 #include "crypt-port.h"
-#include "crypt-base.h"
 
 #include <stdio.h>
 

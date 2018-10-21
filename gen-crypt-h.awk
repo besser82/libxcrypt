@@ -1,4 +1,4 @@
-# Generation of crypt.h from crypt-base.h and config.h.
+# Generation of crypt.h from crypt.h.in and config.h.
 #
 # Written by Zack Weinberg <zackw at panix.com> in 2017.
 # To the extent possible under law, Zack Weinberg has waived all

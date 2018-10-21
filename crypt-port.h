@@ -44,8 +44,8 @@
 #endif
 
 /* While actually compiling the library, suppress the __nonnull tags
-   on the functions in crypt-base.h, so that internal checks for NULL
-   are not deleted by the compiler.  */
+   on the functions in crypt.h, so that internal checks for NULL are
+   not deleted by the compiler.  */
 #undef __nonnull
 #define __nonnull(param) /* nothing */
 
@@ -291,5 +291,7 @@ _xcrypt_strcpy_or_abort (void *dst, const size_t d_size,
 #define libcperciva_SHA256_Final _crypt_SHA256_Final
 #define libcperciva_SHA256_Buf   _crypt_SHA256_Buf
 #endif
+
+#include "crypt.h"
 
 #endif /* crypt-port.h */

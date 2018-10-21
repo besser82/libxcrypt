@@ -14,7 +14,7 @@ TEST_EXTENSIONS = .sh
 
 EXTRA_DIST = \
 	LICENSING THANKS \
-	crypt-base.h.in libcrypt.map.in libcrypt.minver \
+	crypt.h.in.in libcrypt.map.in libcrypt.minver \
 	gen-map.awk gen-vers.awk gen-crypt-h.awk \
 	gen-hashes.awk sel-hashes.awk hashes.lst
 
@@ -24,7 +24,7 @@ notrans_dist_man3_MANS = \
 notrans_dist_man5_MANS = crypt.5
 
 nodist_include_HEADERS = crypt.h
-nodist_noinst_HEADERS = crypt-hashes.h crypt-base.h
+nodist_noinst_HEADERS = crypt-hashes.h
 noinst_HEADERS = \
 	alg-des.h alg-hmac-sha1.h alg-md4.h alg-md5.h \
 	alg-sha1.h alg-sha256.h alg-sha512.h \
@@ -80,7 +80,7 @@ CLEANFILES = Makefile.deps.T Makefile.deps \
 DISTCLEANFILES = .deps/*.Plo
 
 # Empty target to have needed headers pre-generated before any other target.
-Makefile.deps: crypt-hashes.h crypt-symbol-vers.h
+Makefile.deps: crypt.h
 	$(AM_V_GEN)LC_ALL=C echo "# Deps" > Makefile.deps.T
 	$(AM_V_at)mv -f Makefile.deps.T Makefile.deps
 
@@ -101,9 +101,9 @@ crypt-symbol-vers.h: libcrypt.map.in gen-vers.awk Makefile
 	     $(srcdir)/libcrypt.map.in > crypt-symbol-vers.h.T
 	$(AM_V_at)mv -f crypt-symbol-vers.h.T crypt-symbol-vers.h
 
-crypt.h: crypt-base.h gen-crypt-h.awk config.h
+crypt.h: crypt.h.in crypt-hashes.h crypt-symbol-vers.h gen-crypt-h.awk config.h
 	$(AM_V_GEN)LC_ALL=C $(AWK) \
-	  -f $(srcdir)/gen-crypt-h.awk config.h $(builddir)/crypt-base.h \
+	  -f $(srcdir)/gen-crypt-h.awk config.h $(builddir)/crypt.h.in \
 	  > crypt.h.T
 	$(AM_V_at)mv -f crypt.h.T crypt.h
 

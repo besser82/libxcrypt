@@ -1,5 +1,4 @@
 #include "crypt-port.h"
-#include "crypt-base.h"
 
 #if INCLUDE_md5
 

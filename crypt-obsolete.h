@@ -19,7 +19,6 @@
 #ifndef _CRYPT_OBSOLETE_H
 #define _CRYPT_OBSOLETE_H 1
 
-#include "crypt-base.h"
 
 /* These functions are obsolete and should never be used, but we have to
    keep providing them for binary backward compatibility.  */
