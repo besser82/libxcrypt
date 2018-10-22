@@ -13,7 +13,7 @@ source tree.  For specific licensing terms consult the files themselves.
 
  * Copyright Free Software Foundation, Inc.; LGPL (v2.1 or later):
    crypt.h, crypt-obsolete.h, crypt-private.h
-   alg-md5.h, alg-md5.c, crypt-md5.c,
+   crypt-md5.c,
    test-crypt-badsalt.c, test-crypt-nonnull.c
 
  * Copyright David Burren et al.; 3-clause BSD:
@@ -24,7 +24,8 @@ source tree.  For specific licensing terms consult the files themselves.
    crypt-sha256.c, crypt-sha512.c
 
  * Public domain, written by Solar Designer et al.:
-   alg-md4.h, alg-md4.c, crypt-bcrypt.c, crypt-gensalt.c, test-crypt-bcrypt.c
+   alg-md4.h, alg-md4.c, alg-md5.h, alg-md5.c,
+   crypt-bcrypt.c, crypt-gensalt.c, test-crypt-bcrypt.c
 
  * Copyright Solar Designer, Colin Percival; 0-clause BSD:
    alg-yescrypt-common.c, alg-yescrypt-platform.c

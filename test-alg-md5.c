@@ -52,7 +52,7 @@ static const struct
 
 static void
 report_failure(int n, const char *tag,
-               const char expected[16], const char actual[16])
+               const char expected[16], uint8_t actual[16])
 {
   int i;
   printf ("FAIL: test %d (%s):\n  exp:", n, tag);
@@ -76,27 +76,27 @@ report_failure(int n, const char *tag,
 int
 main (void)
 {
-  struct md5_ctx ctx;
-  char sum[16];
+  MD5_CTX ctx;
+  uint8_t sum[16];
   int result = 0;
   int cnt;
   int i;
 
   for (cnt = 0; cnt < (int) ARRAY_SIZE (tests); ++cnt)
     {
-      md5_init_ctx (&ctx);
-      md5_process_bytes (tests[cnt].input, strlen (tests[cnt].input), &ctx);
-      md5_finish_ctx (&ctx, sum);
+      MD5_Init (&ctx);
+      MD5_Update (&ctx, tests[cnt].input, strlen (tests[cnt].input));
+      MD5_Final (sum, &ctx);
       if (memcmp (tests[cnt].result, sum, 16))
         {
           report_failure (cnt, "all at once", tests[cnt].result, sum);
           result = 1;
         }
 
-      md5_init_ctx (&ctx);
+      MD5_Init (&ctx);
       for (i = 0; tests[cnt].input[i] != '\0'; ++i)
-        md5_process_bytes (&tests[cnt].input[i], 1, &ctx);
-      md5_finish_ctx (&ctx, sum);
+        MD5_Update (&ctx, &tests[cnt].input[i], 1);
+      MD5_Final (sum, &ctx);
       if (memcmp (tests[cnt].result, sum, 16))
         {
           report_failure (cnt, "byte by byte", tests[cnt].result, sum);
@@ -108,10 +108,10 @@ main (void)
      <https://www.nist.gov/itl/ssd/software-quality-group/nsrl-test-data>. */
   char buf[1000];
   memset (buf, 'a', sizeof (buf));
-  md5_init_ctx (&ctx);
+  MD5_Init (&ctx);
   for (i = 0; i < 1000; ++i)
-    md5_process_bytes (buf, sizeof (buf), &ctx);
-  md5_finish_ctx (&ctx, sum);
+    MD5_Update (&ctx, buf, sizeof (buf));
+  MD5_Final (sum, &ctx);
   static const char expected[64] =
     "\x77\x07\xd6\xae\x4e\x02\x7c\x70\xee\xa2\xa9\x35\xc2\x29\x6f\x21";
   if (memcmp (expected, sum, 16) != 0)

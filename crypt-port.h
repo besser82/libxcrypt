@@ -247,9 +247,9 @@ _xcrypt_strcpy_or_abort (void *dst, const size_t d_size,
 #endif
 
 #if INCLUDE_md5 || INCLUDE_sunmd5
-#define md5_finish_ctx           _crypt_md5_finish_ctx
-#define md5_init_ctx             _crypt_md5_init_ctx
-#define md5_process_bytes        _crypt_md5_process_bytes
+#define MD5_Init   _crypt_MD5_Init
+#define MD5_Update _crypt_MD5_Update
+#define MD5_Final  _crypt_MD5_Final
 #endif
 
 #if INCLUDE_sha1

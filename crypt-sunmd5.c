@@ -165,7 +165,7 @@ crypt_sunmd5_rn (const char *phrase, size_t phr_size,
 {
   struct crypt_sunmd5_scratch
   {
-    struct md5_ctx ctx;
+    MD5_CTX ctx;
     uint8_t dg[16];
     char    rn[16];
   };
@@ -238,27 +238,27 @@ crypt_sunmd5_rn (const char *phrase, size_t phr_size,
   struct crypt_sunmd5_scratch *s = scratch;
 
   /* Initial round.  */
-  md5_init_ctx (&s->ctx);
-  md5_process_bytes (phrase, phr_size, &s->ctx);
-  md5_process_bytes (setting, saltlen, &s->ctx);
-  md5_finish_ctx (&s->ctx, s->dg);
+  MD5_Init (&s->ctx);
+  MD5_Update (&s->ctx, phrase, phr_size);
+  MD5_Update (&s->ctx, setting, saltlen);
+  MD5_Final (s->dg, &s->ctx);
 
   /* Stretching rounds.  */
   for (unsigned int i = 0; i < nrounds; i++)
     {
-      md5_init_ctx (&s->ctx);
+      MD5_Init (&s->ctx);
 
-      md5_process_bytes (s->dg, sizeof s->dg, &s->ctx);
+      MD5_Update (&s->ctx, s->dg, sizeof s->dg);
 
       /* The trailing nul is intentionally included.  */
       if (muffet_coin_toss (s->dg, i))
-        md5_process_bytes (hamlet_quotation, sizeof hamlet_quotation, &s->ctx);
+        MD5_Update (&s->ctx, hamlet_quotation, sizeof hamlet_quotation);
 
       int nwritten = snprintf (s->rn, sizeof s->rn, "%u", i);
       assert (nwritten >= 1 && (unsigned int)nwritten + 1 <= sizeof s->rn);
-      md5_process_bytes (s->rn, (unsigned int)nwritten, &s->ctx);
+      MD5_Update (&s->ctx, s->rn, (unsigned int)nwritten);
 
-      md5_finish_ctx (&s->ctx, s->dg);
+      MD5_Final (s->dg, &s->ctx);
     }
 
   memcpy (output, setting, saltlen);

@@ -1,52 +1,43 @@
-/* Declaration of functions and data types used for MD5 sum computing
-   library functions.
-
-   Copyright (C) 1995-2017 Free Software Foundation, Inc.
-
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public License
-   as published by the Free Software Foundation; either version 2.1 of
-   the License, or (at your option) any later version.
-
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU Lesser General Public License for more details.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, see
-   <https://www.gnu.org/licenses/>.  */
+/*
+ * This is an OpenSSL-compatible implementation of the RSA Data Security, Inc.
+ * MD5 Message-Digest Algorithm (RFC 1321).
+ *
+ * Homepage:
+ * http://openwall.info/wiki/people/solar/software/public-domain-source-code/md5
+ *
+ * Author:
+ * Alexander Peslyak, better known as Solar Designer <solar at openwall.com>
+ *
+ * This software was written by Alexander Peslyak in 2001.  No copyright is
+ * claimed, and the software is hereby placed in the public domain.
+ * In case this attempt to disclaim copyright and place the software in the
+ * public domain is deemed null and void, then the software is
+ * Copyright (c) 2001 Alexander Peslyak and it is hereby released to the
+ * general public under the following terms:
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted.
+ *
+ * There's ABSOLUTELY NO WARRANTY, express or implied.
+ *
+ * See md5.c for more information.
+ */
 
 #ifndef _CRYPT_ALG_MD5_H
 #define _CRYPT_ALG_MD5_H 1
 
-/* Structure to save state of computation between the single steps.  */
-struct md5_ctx
-{
-  uint32_t A;
-  uint32_t B;
-  uint32_t C;
-  uint32_t D;
+/* Any 32-bit or wider unsigned integer data type will do */
+typedef uint32_t MD5_u32plus;
 
-  uint64_t total;
-  uint32_t buflen;
-  uint32_t correct_words[16];
-  unsigned char buffer[128];
-};
+typedef struct {
+	MD5_u32plus lo, hi;
+	MD5_u32plus a, b, c, d;
+	uint8_t buffer[64];
+	MD5_u32plus block[16];
+} MD5_CTX;
 
-/* Initialize structure containing state of computation.
-   (RFC 1321, 3.3: Step 3)  */
-extern void md5_init_ctx (struct md5_ctx *ctx);
-
-/* Starting with the result of former calls of this function (or the
-   initialization function) update the context for the next LEN bytes
-   starting at BUFFER.  LEN does not need to be a multiple of 64.  */
-extern void md5_process_bytes (const void *buffer, size_t len,
-                               struct md5_ctx *ctx);
-
-/* Process the remaining bytes in the buffer and write the finalized
-   hash to RESBUF, which should point to 16 bytes of storage.  All
-   data written to CTX is erased before returning from the function.  */
-extern void *md5_finish_ctx (struct md5_ctx *ctx, void *resbuf);
+extern void MD5_Init(MD5_CTX *ctx);
+extern void MD5_Update(MD5_CTX *ctx, const void *data, size_t size);
+extern void MD5_Final(uint8_t result[16], MD5_CTX *ctx);
 
 #endif /* alg-md5.h */

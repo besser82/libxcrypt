@@ -50,7 +50,7 @@ static_assert (MD5_HASH_LENGTH <= CRYPT_OUTPUT_SIZE,
 /* An md5_buffer holds all of the sensitive intermediate data.  */
 struct md5_buffer
 {
-  struct md5_ctx ctx;
+  MD5_CTX ctx;
   uint8_t result[16];
 };
 
@@ -74,7 +74,7 @@ crypt_md5_rn (const char *phrase, size_t phr_size,
     }
 
   struct md5_buffer *buf = scratch;
-  struct md5_ctx *ctx = &buf->ctx;
+  MD5_CTX *ctx = &buf->ctx;
   uint8_t *result = buf->result;
   char *cp = (char *)output;
   const char *salt = setting;
@@ -99,40 +99,40 @@ crypt_md5_rn (const char *phrase, size_t phr_size,
 
   /* Compute alternate MD5 sum with input PHRASE, SALT, and PHRASE.  The
      final result will be added to the first context.  */
-  md5_init_ctx (ctx);
+  MD5_Init (ctx);
 
   /* Add phrase.  */
-  md5_process_bytes (phrase, phr_size, ctx);
+  MD5_Update (ctx, phrase, phr_size);
 
   /* Add salt.  */
-  md5_process_bytes (salt, salt_size, ctx);
+  MD5_Update (ctx, salt, salt_size);
 
   /* Add phrase again.  */
-  md5_process_bytes (phrase, phr_size, ctx);
+  MD5_Update (ctx, phrase, phr_size);
 
   /* Now get result of this (16 bytes).  */
-  md5_finish_ctx (ctx, result);
+  MD5_Final (result, ctx);
 
   /* Prepare for the real work.  */
-  md5_init_ctx (ctx);
+  MD5_Init (ctx);
 
   /* Add the phrase string.  */
-  md5_process_bytes (phrase, phr_size, ctx);
+  MD5_Update (ctx, phrase, phr_size);
 
   /* Because the SALT argument need not always have the salt prefix we
      add it separately.  */
-  md5_process_bytes (md5_salt_prefix, sizeof (md5_salt_prefix) - 1, ctx);
+  MD5_Update (ctx, md5_salt_prefix, sizeof (md5_salt_prefix) - 1);
 
   /* The last part is the salt string.  This must be at most 8
      characters and it ends at the first `$' character (for
      compatibility with existing implementations).  */
-  md5_process_bytes (salt, salt_size, ctx);
+  MD5_Update (ctx, salt, salt_size);
 
 
   /* Add for any character in the phrase one byte of the alternate sum.  */
   for (cnt = phr_size; cnt > 16; cnt -= 16)
-    md5_process_bytes (result, 16, ctx);
-  md5_process_bytes (result, cnt, ctx);
+    MD5_Update (ctx, result, 16);
+  MD5_Update (ctx, result, cnt);
 
   /* For the following code we need a NUL byte.  */
   *result = '\0';
@@ -142,11 +142,10 @@ crypt_md5_rn (const char *phrase, size_t phr_size,
      bit the first character of the phrase.  This does not seem to be
      what was intended but we have to follow this to be compatible.  */
   for (cnt = phr_size; cnt > 0; cnt >>= 1)
-    md5_process_bytes ((cnt & 1) != 0 ? (const char *) result : phrase, 1,
-                       ctx);
+    MD5_Update (ctx, (cnt & 1) != 0 ? (const char *) result : phrase, 1);
 
   /* Create intermediate result.  */
-  md5_finish_ctx (ctx, result);
+  MD5_Final (result, ctx);
 
   /* Now comes another weirdness.  In fear of password crackers here
      comes a quite long loop which just processes the output of the
@@ -154,30 +153,30 @@ crypt_md5_rn (const char *phrase, size_t phr_size,
   for (cnt = 0; cnt < 1000; ++cnt)
     {
       /* New context.  */
-      md5_init_ctx (ctx);
+      MD5_Init (ctx);
 
       /* Add phrase or last result.  */
       if ((cnt & 1) != 0)
-        md5_process_bytes (phrase, phr_size, ctx);
+        MD5_Update (ctx, phrase, phr_size);
       else
-        md5_process_bytes (result, 16, ctx);
+        MD5_Update (ctx, result, 16);
 
       /* Add salt for numbers not divisible by 3.  */
       if (cnt % 3 != 0)
-        md5_process_bytes (salt, salt_size, ctx);
+        MD5_Update (ctx, salt, salt_size);
 
       /* Add phrase for numbers not divisible by 7.  */
       if (cnt % 7 != 0)
-        md5_process_bytes (phrase, phr_size, ctx);
+        MD5_Update (ctx, phrase, phr_size);
 
       /* Add phrase or last result.  */
       if ((cnt & 1) != 0)
-        md5_process_bytes (result, 16, ctx);
+        MD5_Update (ctx, result, 16);
       else
-        md5_process_bytes (phrase, phr_size, ctx);
+        MD5_Update (ctx, phrase, phr_size);
 
       /* Create intermediate result.  */
-      md5_finish_ctx (ctx, result);
+      MD5_Final (result, ctx);
     }
 
   /* Now we can construct the result string.  It consists of three
