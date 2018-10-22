@@ -1,46 +1,75 @@
-/* Declaration of functions and data types used for SHA512 sum computing
-   library functions.
-   Copyright (C) 2007-2017 Free Software Foundation, Inc.
+/*-
+ * Copyright 2005 Colin Percival
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
 
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public License
-   as published by the Free Software Foundation; either version 2.1 of
-   the License, or (at your option) any later version.
+#ifndef _SHA512_H_
+#define _SHA512_H_
 
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU Lesser General Public License for more details.
+#include <stddef.h>
+#include <stdint.h>
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, see
-   <https://www.gnu.org/licenses/>.  */
+/*
+ * Use #defines in order to avoid namespace collisions with anyone else's
+ * SHA512 code (e.g., the code in OpenSSL).
+ */
+#define SHA512_Init libcperciva_SHA512_Init
+#define SHA512_Update libcperciva_SHA512_Update
+#define SHA512_Final libcperciva_SHA512_Final
+#define SHA512_Buf libcperciva_SHA512_Buf
+#define SHA512_CTX libcperciva_SHA512_CTX
 
-#ifndef _CRYPT_ALG_SHA512_H
-#define _CRYPT_ALG_SHA512_H 1
+/* Context structure for SHA512 operations. */
+typedef struct {
+	uint64_t state[8];
+	uint64_t count[2];
+	uint8_t  buf[128];
+} SHA512_CTX;
 
-/* Structure to save state of computation between the single steps.  */
-struct sha512_ctx
-{
-  uint64_t H[8];
+/**
+ * SHA512_Init(ctx):
+ * Initialize the SHA512 context ${ctx}.
+ */
+void SHA512_Init(SHA512_CTX *);
 
-  uint64_t total[2];
-  uint32_t buflen;
-  unsigned char buffer[256];
-};
+/**
+ * SHA512_Update(ctx, in, len):
+ * Input ${len} bytes from ${in} into the SHA512 context ${ctx}.
+ */
+void SHA512_Update(SHA512_CTX *, const void *, size_t);
 
-/* Initialize structure containing state of computation.
-   (FIPS 180-2: 5.3.3)  */
-extern void sha512_init_ctx (struct sha512_ctx *ctx);
+/**
+ * SHA512_Final(digest, ctx):
+ * Output the SHA512 hash of the data input to the context ${ctx} into the
+ * buffer ${digest}.
+ */
+void SHA512_Final(uint8_t[64], SHA512_CTX *);
 
-/* Starting with the result of former calls of this function (or the
-   initialization function) update the context for the next LEN bytes
-   starting at BUFFER.  LEN does not need to be a multiple of 128.  */
-extern void sha512_process_bytes (const void *buffer, size_t len,
-                                  struct sha512_ctx *ctx);
+/**
+ * SHA512_Buf(in, len, digest):
+ * Compute the SHA512 hash of ${len} bytes from ${in} and write it to ${digest}.
+ */
+void SHA512_Buf(const void *, size_t, uint8_t[64]);
 
-/* Process the remaining bytes in the buffer and write the finalized
-   hash to RESBUF, which should point to 64 bytes of storage.  */
-extern void *sha512_finish_ctx (struct sha512_ctx *ctx, void *resbuf);
-
-#endif /* alg-sha512.h */
+#endif /* !_SHA512_H_ */

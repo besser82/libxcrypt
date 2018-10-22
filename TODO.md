@@ -95,7 +95,7 @@ It was last updated 20 October 2018.
       at it, and no destructor function
 
 * Permissive relicensing, to encourage use beyond the GNU ecosystem?
-  * Replace remaining (L)GPLed crypto primitives (MD5, SHA512) with
+  * Replace remaining (L)GPLed crypto primitives (MD5) with
     permissively licensed equivalents (e.g. from Openwall)
   * Replace crypt-md5.c with original md5crypt from FreeBSD?
   * Other files subject to the (L)GPL are crypt.c, crypt-static.c,

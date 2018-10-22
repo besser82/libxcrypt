@@ -58,7 +58,7 @@ static_assert (SHA512_HASH_LENGTH <= CRYPT_OUTPUT_SIZE,
 /* A sha512_buffer holds all of the sensitive intermediate data.  */
 struct sha512_buffer
 {
-  struct sha512_ctx ctx;
+  SHA512_CTX ctx;
   uint8_t result[64];
   uint8_t p_bytes[64];
   uint8_t s_bytes[64];
@@ -77,12 +77,12 @@ static const char b64t[] =
    indefinitely.  */
 static void
 sha512_process_recycled_bytes (unsigned char block[64], size_t len,
-                               struct sha512_ctx *ctx)
+                               SHA512_CTX *ctx)
 {
   size_t cnt;
   for (cnt = len; cnt >= 64; cnt -= 64)
-    sha512_process_bytes (block, 64, ctx);
-  sha512_process_bytes (block, cnt, ctx);
+    SHA512_Update (ctx, block, 64);
+  SHA512_Update (ctx, block, cnt);
 }
 
 void
@@ -100,7 +100,7 @@ crypt_sha512_rn (const char *phrase, size_t phr_size,
     }
 
   struct sha512_buffer *buf = scratch;
-  struct sha512_ctx *ctx = &buf->ctx;
+  SHA512_CTX *ctx = &buf->ctx;
   uint8_t *result = buf->result;
   uint8_t *p_bytes = buf->p_bytes;
   uint8_t *s_bytes = buf->s_bytes;
@@ -158,80 +158,80 @@ crypt_sha512_rn (const char *phrase, size_t phr_size,
 
   /* Compute alternate SHA512 sum with input PHRASE, SALT, and PHRASE.  The
      final result will be added to the first context.  */
-  sha512_init_ctx (ctx);
+  SHA512_Init (ctx);
 
   /* Add phrase.  */
-  sha512_process_bytes (phrase, phr_size, ctx);
+  SHA512_Update (ctx, phrase, phr_size);
 
   /* Add salt.  */
-  sha512_process_bytes (salt, salt_size, ctx);
+  SHA512_Update (ctx, salt, salt_size);
 
   /* Add phrase again.  */
-  sha512_process_bytes (phrase, phr_size, ctx);
+  SHA512_Update (ctx, phrase, phr_size);
 
   /* Now get result of this (64 bytes) and add it to the other
      context.  */
-  sha512_finish_ctx (ctx, result);
+  SHA512_Final (result, ctx);
 
   /* Prepare for the real work.  */
-  sha512_init_ctx (ctx);
+  SHA512_Init (ctx);
 
   /* Add the phrase string.  */
-  sha512_process_bytes (phrase, phr_size, ctx);
+  SHA512_Update (ctx, phrase, phr_size);
 
   /* The last part is the salt string.  This must be at most 8
      characters and it ends at the first `$' character (for
      compatibility with existing implementations).  */
-  sha512_process_bytes (salt, salt_size, ctx);
+  SHA512_Update (ctx, salt, salt_size);
 
   /* Add for any character in the phrase one byte of the alternate sum.  */
   for (cnt = phr_size; cnt > 64; cnt -= 64)
-    sha512_process_bytes (result, 64, ctx);
-  sha512_process_bytes (result, cnt, ctx);
+    SHA512_Update (ctx, result, 64);
+  SHA512_Update (ctx, result, cnt);
 
   /* Take the binary representation of the length of the phrase and for every
      1 add the alternate sum, for every 0 the phrase.  */
   for (cnt = phr_size; cnt > 0; cnt >>= 1)
     if ((cnt & 1) != 0)
-      sha512_process_bytes (result, 64, ctx);
+      SHA512_Update (ctx, result, 64);
     else
-      sha512_process_bytes (phrase, phr_size, ctx);
+      SHA512_Update (ctx, phrase, phr_size);
 
   /* Create intermediate result.  */
-  sha512_finish_ctx (ctx, result);
+  SHA512_Final (result, ctx);
 
   /* Start computation of P byte sequence.  */
-  sha512_init_ctx (ctx);
+  SHA512_Init (ctx);
 
   /* For every character in the password add the entire password.  */
   for (cnt = 0; cnt < phr_size; ++cnt)
-    sha512_process_bytes (phrase, phr_size, ctx);
+    SHA512_Update (ctx, phrase, phr_size);
 
   /* Finish the digest.  */
-  sha512_finish_ctx (ctx, p_bytes);
+  SHA512_Final (p_bytes, ctx);
 
   /* Start computation of S byte sequence.  */
-  sha512_init_ctx (ctx);
+  SHA512_Init (ctx);
 
   /* For every character in the password add the entire password.  */
   for (cnt = 0; cnt < (size_t) 16 + (size_t) result[0]; ++cnt)
-    sha512_process_bytes (salt, salt_size, ctx);
+    SHA512_Update (ctx, salt, salt_size);
 
   /* Finish the digest.  */
-  sha512_finish_ctx (ctx, s_bytes);
+  SHA512_Final (s_bytes, ctx);
 
   /* Repeatedly run the collected hash value through SHA512 to burn
      CPU cycles.  */
   for (cnt = 0; cnt < rounds; ++cnt)
     {
       /* New context.  */
-      sha512_init_ctx (ctx);
+      SHA512_Init (ctx);
 
       /* Add phrase or last result.  */
       if ((cnt & 1) != 0)
         sha512_process_recycled_bytes (p_bytes, phr_size, ctx);
       else
-        sha512_process_bytes (result, 64, ctx);
+        SHA512_Update (ctx, result, 64);
 
       /* Add salt for numbers not divisible by 3.  */
       if (cnt % 3 != 0)
@@ -243,12 +243,12 @@ crypt_sha512_rn (const char *phrase, size_t phr_size,
 
       /* Add phrase or last result.  */
       if ((cnt & 1) != 0)
-        sha512_process_bytes (result, 64, ctx);
+        SHA512_Update (ctx, result, 64);
       else
         sha512_process_recycled_bytes (p_bytes, phr_size, ctx);
 
       /* Create intermediate result.  */
-      sha512_finish_ctx (ctx, result);
+      SHA512_Final (result, ctx);
     }
 
   /* Now we can construct the result string.  It consists of four

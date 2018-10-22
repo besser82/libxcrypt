@@ -260,9 +260,10 @@ _xcrypt_strcpy_or_abort (void *dst, const size_t d_size,
 #endif
 
 #if INCLUDE_sha512
-#define sha512_finish_ctx        _crypt_sha512_finish_ctx
-#define sha512_init_ctx          _crypt_sha512_init_ctx
-#define sha512_process_bytes     _crypt_sha512_process_bytes
+#define libcperciva_SHA512_Init   _crypt_SHA512_Init
+#define libcperciva_SHA512_Update _crypt_SHA512_Update
+#define libcperciva_SHA512_Final  _crypt_SHA512_Final
+#define libcperciva_SHA512_Buf    _crypt_SHA512_Buf
 #endif
 
 #if INCLUDE_md5 || INCLUDE_sha256 || INCLUDE_sha512

@@ -37,6 +37,7 @@
 /* Avoid namespace collisions with BSD <sys/endian.h>. */
 #define be32dec libcperciva_be32dec
 #define be32enc libcperciva_be32enc
+#define be64dec libcperciva_be64dec
 #define be64enc libcperciva_be64enc
 #define le32dec libcperciva_le32dec
 #define le32enc libcperciva_le32enc
@@ -59,6 +60,17 @@ be32enc(void * pp, uint32_t x)
 	p[2] = (x >> 8) & 0xff;
 	p[1] = (x >> 16) & 0xff;
 	p[0] = (x >> 24) & 0xff;
+}
+
+static inline uint64_t
+be64dec(const void *pp)
+{
+	const uint8_t *p = (uint8_t const *)pp;
+
+	return ((uint64_t)(p[7]) + ((uint64_t)(p[6]) << 8) +
+	    ((uint64_t)(p[5]) << 16) + ((uint64_t)(p[4]) << 24) +
+	    ((uint64_t)(p[3]) << 32) + ((uint64_t)(p[2]) << 40) +
+	    ((uint64_t)(p[1]) << 48) + ((uint64_t)(p[0]) << 56));
 }
 
 static inline void

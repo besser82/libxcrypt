@@ -84,7 +84,7 @@ static const struct
 
 static void
 report_failure(int n, const char *tag,
-               const char expected[64], const char actual[64])
+               const char expected[64], const uint8_t actual[64])
 {
   int i;
   printf ("FAIL: test %d (%s):\n  exp:", n, tag);
@@ -112,28 +112,25 @@ report_failure(int n, const char *tag,
 int
 main (void)
 {
-  struct sha512_ctx ctx;
-  char sum[64];
+  SHA512_CTX ctx;
+  uint8_t sum[64];
   int result = 0;
   int cnt;
   int i;
 
   for (cnt = 0; cnt < (int) ARRAY_SIZE (tests); ++cnt)
     {
-      sha512_init_ctx (&ctx);
-      sha512_process_bytes (tests[cnt].input, strlen (tests[cnt].input),
-                            &ctx);
-      sha512_finish_ctx (&ctx, sum);
+      SHA512_Buf (tests[cnt].input, strlen (tests[cnt].input), sum);
       if (memcmp (tests[cnt].result, sum, 64) != 0)
         {
           report_failure (cnt, "all at once", tests[cnt].result, sum);
           result = 1;
         }
 
-      sha512_init_ctx (&ctx);
+      SHA512_Init (&ctx);
       for (i = 0; tests[cnt].input[i] != '\0'; ++i)
-        sha512_process_bytes (&tests[cnt].input[i], 1, &ctx);
-      sha512_finish_ctx (&ctx, sum);
+        SHA512_Update (&ctx, &tests[cnt].input[i], 1);
+      SHA512_Final (sum, &ctx);
       if (memcmp (tests[cnt].result, sum, 64) != 0)
         {
           report_failure (cnt, "byte by byte", tests[cnt].result, sum);
@@ -144,10 +141,10 @@ main (void)
   /* Test vector from FIPS 180-2: appendix C.3.  */
   char buf[1000];
   memset (buf, 'a', sizeof (buf));
-  sha512_init_ctx (&ctx);
+  SHA512_Init (&ctx);
   for (i = 0; i < 1000; ++i)
-    sha512_process_bytes (buf, sizeof (buf), &ctx);
-  sha512_finish_ctx (&ctx, sum);
+    SHA512_Update (&ctx, buf, sizeof (buf));
+  SHA512_Final (sum, &ctx);
   static const char expected[64] =
     "\xe7\x18\x48\x3d\x0c\xe7\x69\x64\x4e\x2e\x42\xc7\xbc\x15\xb4\x63"
     "\x8e\x1f\x98\xb1\x3b\x20\x44\x28\x56\x32\xa8\x03\xaf\xa9\x73\xeb"

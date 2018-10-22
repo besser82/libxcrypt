@@ -6,6 +6,8 @@ Please send bug reports, questions and suggestions to
 Version 4.2.3
 * Add bootstrap script.  If building from a Git checkout instead of a
   tarball release, use './bootstrap' to create the configure script.
+* Use sha512 implementation from Colin Percival.  Thus we now have a
+  sha512 implementation under the BSD license.
 
 Version 4.2.2
 * Convert existing manpages to BSD mdoc format.
