@@ -45,7 +45,7 @@ static const struct
 
 static void
 report_failure(int n, const char *tag,
-               const char expected[16], const char actual[16])
+               const char expected[16], uint8_t actual[16])
 {
   int i;
   printf ("FAIL: test %d (%s):\n  exp:", n, tag);
@@ -69,27 +69,27 @@ report_failure(int n, const char *tag,
 int
 main (void)
 {
-  struct md4_ctx ctx;
-  char sum[16];
+  MD4_CTX ctx;
+  uint8_t sum[16];
   int result = 0;
   int cnt;
   int i;
 
   for (cnt = 0; cnt < (int) ARRAY_SIZE (tests); ++cnt)
     {
-      md4_init_ctx (&ctx);
-      md4_process_bytes ((const unsigned char*)tests[cnt].input, &ctx, strlen (tests[cnt].input));
-      md4_finish_ctx (&ctx, (unsigned char*)sum);
+      MD4_Init (&ctx);
+      MD4_Update (&ctx, tests[cnt].input, strlen (tests[cnt].input));
+      MD4_Final (sum, &ctx);
       if (memcmp (tests[cnt].result, sum, 16))
         {
           report_failure (cnt, "all at once", tests[cnt].result, sum);
           result = 1;
         }
 
-      md4_init_ctx (&ctx);
+      MD4_Init (&ctx);
       for (i = 0; tests[cnt].input[i] != '\0'; ++i)
-        md4_process_bytes ((const unsigned char*)&tests[cnt].input[i], &ctx, 1);
-      md4_finish_ctx (&ctx, (unsigned char*)sum);
+        MD4_Update (&ctx, &tests[cnt].input[i], 1);
+      MD4_Final (sum, &ctx);
       if (memcmp (tests[cnt].result, sum, 16))
         {
           report_failure (cnt, "byte by byte", tests[cnt].result, sum);

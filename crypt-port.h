@@ -241,9 +241,9 @@ _xcrypt_strcpy_or_abort (void *dst, const size_t d_size,
 #endif
 
 #if INCLUDE_nthash
-#define md4_finish_ctx           _crypt_md4_finish_ctx
-#define md4_init_ctx             _crypt_md4_init_ctx
-#define md4_process_bytes        _crypt_md4_process_bytes
+#define MD4_Init   _crypt_MD4_Init
+#define MD4_Update _crypt_MD4_Update
+#define MD4_Final  _crypt_MD4_Final
 #endif
 
 #if INCLUDE_md5 || INCLUDE_sunmd5

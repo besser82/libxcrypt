@@ -61,10 +61,10 @@ crypt_nthash_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
   uint16_t unipw[128];
   unsigned char hash[16];
   const char *s;
-  struct md4_ctx *ctx = scratch;
+  MD4_CTX *ctx = scratch;
 
   if ((out_size < 4 + 32) ||
-      (scr_size < sizeof (struct md4_ctx)))
+      (scr_size < sizeof (MD4_CTX)))
     {
       errno = ERANGE;
       return;
@@ -83,9 +83,9 @@ crypt_nthash_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
     unipw[unipwLen++] = htons((uint16_t)(*s << 8));
 
   /* Compute MD4 of Unicode password */
-  md4_init_ctx (ctx);
-  md4_process_bytes ((unsigned char *)unipw, ctx, unipwLen*sizeof(uint16_t));
-  md4_finish_ctx (ctx, hash);
+  MD4_Init (ctx);
+  MD4_Update (ctx, unipw, unipwLen*sizeof(uint16_t));
+  MD4_Final (hash, ctx);
 
   output = (uint8_t *)stpcpy ((char *)output, magic);
   *output++ = '$';
@@ -111,7 +111,7 @@ gensalt_nthash_rn (unsigned long count,
                    size_t o_size)
 {
   static const char *salt = "$3$__not_used__";
-  struct md4_ctx ctx;
+  MD4_CTX ctx;
   unsigned char hashbuf[16];
   char hashstr[14 + 1];
   unsigned long i;
@@ -131,15 +131,15 @@ gensalt_nthash_rn (unsigned long count,
       return;
     }
 
-  md4_init_ctx (&ctx);
+  MD4_Init (&ctx);
   for (i = 0; i < 20; i++)
     {
-      md4_process_bytes (salt, &ctx, (i % 15) + 1);
-      md4_process_bytes (rbytes, &ctx, nrbytes);
-      md4_process_bytes (salt, &ctx, 15);
-      md4_process_bytes (salt, &ctx, 15 - (i % 15));
+      MD4_Update (&ctx, salt, (i % 15) + 1);
+      MD4_Update (&ctx, rbytes, nrbytes);
+      MD4_Update (&ctx, salt, 15);
+      MD4_Update (&ctx, salt, 15 - (i % 15));
     }
-  md4_finish_ctx (&ctx, &hashbuf);
+  MD4_Final (hashbuf, &ctx);
 
   for (i = 0; i < 7; i++)
     sprintf (&(hashstr[i * 2]), "%02x", hashbuf[i]);

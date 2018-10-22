@@ -1,38 +1,43 @@
 /*
- * This is an implementation of the RSA Data Security, Inc.
- * MD4 Message-Digest Algorithm.
+ * This is an OpenSSL-compatible implementation of the RSA Data Security, Inc.
+ * MD4 Message-Digest Algorithm (RFC 1320).
  *
- * Written by Solar Designer <solar@openwall.com> in 2001, and placed in
- * the public domain.  See md4.c for more information.
+ * Homepage:
+ * http://openwall.info/wiki/people/solar/software/public-domain-source-code/md4
+ *
+ * Author:
+ * Alexander Peslyak, better known as Solar Designer <solar at openwall.com>
+ *
+ * This software was written by Alexander Peslyak in 2001.  No copyright is
+ * claimed, and the software is hereby placed in the public domain.
+ * In case this attempt to disclaim copyright and place the software in the
+ * public domain is deemed null and void, then the software is
+ * Copyright (c) 2001 Alexander Peslyak and it is hereby released to the
+ * general public under the following terms:
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted.
+ *
+ * There's ABSOLUTELY NO WARRANTY, express or implied.
+ *
+ * See md4.c for more information.
  */
 
 #ifndef _CRYPT_ALG_MD4_H
 #define _CRYPT_ALG_MD4_H 1
 
-#include <stddef.h>
-#include <stdint.h>
+/* Any 32-bit or wider unsigned integer data type will do */
+typedef uint32_t MD4_u32plus;
 
-/* Structure to save state of computation between the single steps.  */
-struct md4_ctx
-{
-  uint32_t lo, hi;
-  uint32_t a, b, c, d;
-  unsigned char buffer[64];
-  uint32_t block[16];
-};
+typedef struct {
+	MD4_u32plus lo, hi;
+	MD4_u32plus a, b, c, d;
+	uint8_t buffer[64];
+	MD4_u32plus block[16];
+} MD4_CTX;
 
-/* Initialize structure containing state of computation.
-   (RFC 1320, 3.3: Step 3)  */
-extern void md4_init_ctx (struct md4_ctx *ctx);
+extern void MD4_Init(MD4_CTX *ctx);
+extern void MD4_Update(MD4_CTX *ctx, const void *data, size_t size);
+extern void MD4_Final(uint8_t result[16], MD4_CTX *ctx);
 
-/* Starting with the result of former calls of this function (or the
-   initialization function) update the context for the next LEN bytes
-   starting at BUFFER.  LEN does not need to be a multiple of 64.  */
-extern void md4_process_bytes (const void *buffer, struct md4_ctx *ctx, size_t size);
-
-/* Process the remaining bytes in the buffer and write the finalized
-   hash to RESBUF, which should point to 16 bytes of storage.  All
-   data written to CTX is erased before returning from the function.  */
-extern void *md4_finish_ctx (struct md4_ctx *ctx, void *resbuf);
-
-#endif
+#endif /* alg-md4.h */
