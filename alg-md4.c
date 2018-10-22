@@ -73,7 +73,7 @@
  * link-time optimizations.  For the time being, keeping these MD4 routines in
  * their own translation unit avoids the problem.
  */
-#if defined(__i386__) || defined(__x86_64__) || defined(__vax__)
+#if 0 /* defined(__i386__) || defined(__x86_64__) || defined(__vax__) */
 #define SET(n) \
 	(*(const MD4_u32plus *)&ptr[(n) * 4])
 #define GET(n) \
