@@ -43,8 +43,16 @@ test(const char *p, const char *s, const char *m)
 int
 main (void)
 {
-  int result = test("pleaseletmein", "$y$jD5.7$LdJMENpBABJJ3hIHjB1Bi.",
-                    "$y$jD5.7$LdJMENpBABJJ3hIHjB1Bi.$HboGM6qPrsK.StKYGt6KErmUYtioHreJd98oIugoNB6");
+  int result = 0;
+
+#define YSETTINGS "$y$jD5.7$LdJMENpBABJJ3hIHjB1Bi."
+#define YHASHPART "HboGM6qPrsK.StKYGt6KErmUYtioHreJd98oIugoNB6"
+#define YFULLHASH YSETTINGS "$" YHASHPART
+  result |= test("pleaseletmein", YSETTINGS, YFULLHASH);
+  result |= test("pleaseletmein", YFULLHASH, YFULLHASH);
+  result |= test("pleaseletmein", YSETTINGS "$", YFULLHASH);
+  result |= test("pleaseletmein", YSETTINGS "$garbage", YFULLHASH);
+
   result |= test("", "$y$jD5.7$",  "$y$jD5.7$$JD8dsR.nt1ty0ltQ2HHwauaDRoOUIEaA5i.vpj2nyL.");
   result |= test("", "$y$jD5.7$$", "$y$jD5.7$$JD8dsR.nt1ty0ltQ2HHwauaDRoOUIEaA5i.vpj2nyL.");
 
