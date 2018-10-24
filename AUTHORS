@@ -25,7 +25,8 @@ The SUNMD5 hash module is a clean-room reimplementation by Zack Weinberg,
 based on a specification written by Eli Collins for the Passlib project,
 of an algorithm originally developed by Alec Muffett for use in Solaris 9.
 
-The crypt and gensalt backends for yescrypt are by <vt at altlinux.org>.
+The crypt and gensalt backends for yescrypt and gost-yescrypt are by
+Vitaly Chikunov.
 
 The implementation of the public interface (crypt, crypt_r, etc) is a
 mashup of code from the GNU C Library with code from crypt_blowfish,

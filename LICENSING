@@ -14,7 +14,7 @@ source tree.  For specific licensing terms consult the files themselves.
  * Copyright Free Software Foundation, Inc.; LGPL (v2.1 or later):
    crypt.h, crypt-obsolete.h, crypt-private.h
    crypt-md5.c,
-   test-crypt-badsalt.c, test-crypt-nonnull.c
+   test-badsalt.c, test-crypt-nonnull.c
 
  * Copyright David Burren et al.; 3-clause BSD:
    alg-des.h, alg-des.c, alg-des-tables.c,
@@ -43,8 +43,17 @@ source tree.  For specific licensing terms consult the files themselves.
    alg-gost3411-2012-precalc.h, alg-gost3411-2012-ref.h,
    alg-gost3411-2012-sse2.h, alg-gost3411-2012-sse41.h
 
+ * Copyright Vitaly Chikunov, Björn Esser; 0-clause BSD:
+   alg-gost3411-2012-hmac.c, alg-gost3411-2012-hmac.h,
+   crypt-gost-yescrypt.c, test-alg-gost3411-2012.c,
+   test-alg-gost3411-2012-hmac.c, test-crypt-gost-yescrypt.c,
+   test-crypt-scrypt.c
+
  * Copyright Alexander Peslyak, Björn Esser; 0-clause BSD:
    crypt-scrypt.c
+
+ * Copyright Björn Esser; 0-clause BSD:
+   test-short-outbuf.c
 
  * Copyright Michael Bretterklieber, Björn Esser et al.; 2-clause BSD:
    crypt-nthash.c
@@ -65,7 +74,9 @@ source tree.  For specific licensing terms consult the files themselves.
    byteorder.h, randombytes.c, test-byteorder.c
    test-alg-pbkdf-hmac-sha256.c
    gen-crypt-h.awk, gen-map.awk, gen-vers.awk
-   test-symbols-compat, test-symbols-renames, test-symbols-static
+   test-badsetting.c, test-crypt-badargs.c, test-getrandom-fallbacks.c,
+   test-getrandom-interface.c, test-symbols-compat.sh,
+   test-symbols-renames.sh, test-symbols-static.sh
    m4/zw_alignment.m4, m4/zw_static_assert.m4, m4/skip-if-exec-format-error
 
  * Copyright Zack Weinberg and Free Software Foundation, Inc;
