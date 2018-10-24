@@ -10,6 +10,8 @@ Version 4.2.3
   sha512 implementation under the BSD license.
 * Use md5 implementation from Alexander Peslyak.  Thus we now have a
   md5 implementation in the public domain.
+* 'make dist' now generates bzip2 and xz compressed tarballs along
+  with the default gzip compressed tarball.
 
 Version 4.2.2
 * Convert existing manpages to BSD mdoc format.

@@ -4,7 +4,7 @@
 # Author: Thorsten Kukuk <kukuk@suse.de>
 #
 
-AUTOMAKE_OPTIONS = 1.14 gnits
+AUTOMAKE_OPTIONS = 1.14 gnits dist-bzip2 dist-xz
 ACLOCAL_AMFLAGS = -I m4
 
 AM_CFLAGS = $(WARN_CFLAGS)
