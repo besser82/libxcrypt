@@ -14,7 +14,7 @@ AC_CONFIG_FILES([
   crypt.h.in
   libxcrypt.pc
 ])
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([tar-v7])
 
 AH_TOP(
 [#ifndef _CRYPT_CONFIG_H
