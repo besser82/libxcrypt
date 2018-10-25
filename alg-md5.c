@@ -266,13 +266,13 @@ void MD5_Final(uint8_t result[16], MD5_CTX *ctx)
 	available = 64 - used;
 
 	if (available < 8) {
-		XCRYPT_SECURE_MEMSET(&ctx->buffer[used], available);
+		memset(&ctx->buffer[used], 0, available);
 		body(ctx, ctx->buffer, 64);
 		used = 0;
 		available = 64;
 	}
 
-	XCRYPT_SECURE_MEMSET(&ctx->buffer[used], available - 8);
+	memset(&ctx->buffer[used], 0, available - 8);
 
 	ctx->lo <<= 3;
 	OUT(&ctx->buffer[56], ctx->lo)
