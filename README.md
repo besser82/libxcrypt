@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/besser82/libxcrypt.svg?branch=develop)](https://travis-ci.org/besser82/libxcrypt)
 [![codecov](https://codecov.io/gh/besser82/libxcrypt/branch/develop/graph/badge.svg)](https://codecov.io/gh/besser82/libxcrypt)
+[![Coverity Scan Build Status](https://scan.coverity.com/projects/17073/badge.svg)](https://scan.coverity.com/projects/besser82-libxcrypt)
 
 README for libxcrypt
 ====================
