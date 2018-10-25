@@ -327,9 +327,6 @@ SHA512_Buf(const void * in, size_t len, uint8_t digest[64])
         SHA512_Init(&ctx);
         SHA512_Update(&ctx, in, len);
         SHA512_Final(digest, &ctx);
-
-        /* Clean the stack. */
-        XCRYPT_SECURE_MEMSET(&ctx, sizeof(SHA512_CTX));
 }
 
 #endif
