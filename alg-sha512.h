@@ -40,11 +40,15 @@
 #define SHA512_Buf libcperciva_SHA512_Buf
 #define SHA512_CTX libcperciva_SHA512_CTX
 
+/* Common constants. */
+#define SHA512_BLOCK_LENGTH 128
+#define SHA512_DIGEST_LENGTH 64
+
 /* Context structure for SHA512 operations. */
 typedef struct {
 	uint64_t state[8];
 	uint64_t count[2];
-	uint8_t  buf[128];
+	uint8_t  buf[SHA512_BLOCK_LENGTH];
 } SHA512_CTX;
 
 /**
@@ -64,12 +68,14 @@ void SHA512_Update(SHA512_CTX *, const void *, size_t);
  * Output the SHA512 hash of the data input to the context ${ctx} into the
  * buffer ${digest}.
  */
-void SHA512_Final(uint8_t[64], SHA512_CTX *);
+void SHA512_Final(unsigned char[MIN_SIZE(SHA512_DIGEST_LENGTH)],
+    SHA512_CTX *);
 
 /**
  * SHA512_Buf(in, len, digest):
  * Compute the SHA512 hash of ${len} bytes from ${in} and write it to ${digest}.
  */
-void SHA512_Buf(const void *, size_t, uint8_t[64]);
+void SHA512_Buf(const void *, size_t,
+    unsigned char[MIN_SIZE(SHA512_DIGEST_LENGTH)]);
 
 #endif /* !_SHA512_H_ */

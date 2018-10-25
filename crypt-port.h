@@ -43,6 +43,12 @@
 #define __THROW /* nothing */
 #endif
 
+/* Version of __GNUC_PREREQ with trailing underscores for BSD
+   compatibility.  */
+#ifndef __GNUC_PREREQ__
+# define __GNUC_PREREQ__(ma, mi) __GNUC_PREREQ(ma, mi)
+#endif
+
 /* While actually compiling the library, suppress the __nonnull tags
    on the functions in crypt.h, so that internal checks for NULL are
    not deleted by the compiler.  */
@@ -54,6 +60,18 @@
 # define ARG_UNUSED(x) x __attribute__ ((__unused__))
 #else
 # define ARG_UNUSED(x) x
+#endif
+
+/* C99 Static array indices in function parameter declarations.  Syntax
+   such as:  void bar(int myArray[static 10]);  is allowed in C99, but
+   not all compiler support it properly.  Define MIN_SIZE appropriately
+   so headers using it can be compiled using any compiler.
+   Use like this:  void bar(int myArray[MIN_SIZE(10)]);  */
+#if (defined(__clang__) || __GNUC_PREREQ__(4, 6)) && \
+    (!defined(__STDC_VERSION__) || (__STDC_VERSION__ >= 199901))
+#define MIN_SIZE(x) static (x)
+#else
+#define MIN_SIZE(x) (x)
 #endif
 
 /* static_assert shim.  */
