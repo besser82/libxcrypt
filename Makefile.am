@@ -4,7 +4,8 @@
 # Author: Thorsten Kukuk <kukuk@suse.de>
 #
 
-AUTOMAKE_OPTIONS = 1.14 gnits dist-bzip2 dist-xz
+AUTOMAKE_OPTIONS = 1.14 gnits dist-bzip2 dist-xz \
+	filename-length-max=99
 ACLOCAL_AMFLAGS = -I m4
 
 AM_CFLAGS = $(WARN_CFLAGS)
