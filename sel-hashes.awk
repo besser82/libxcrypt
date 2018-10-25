@@ -21,7 +21,7 @@ BEGIN {
     enable_all       = 0
     enable_strong    = 0
     enable_glibc     = 0
-    enable_altlinux  = 0
+    enable_alt       = 0
     enable_freebsd   = 0
     enable_netbsd    = 0
     enable_openbsd   = 0
@@ -39,8 +39,8 @@ BEGIN {
             enable_strong = 1
         } else if (h == "glibc") {
             enable_glibc = 1
-        } else if (h == "altlinux") {
-            enable_altlinux = 1
+        } else if (h == "alt") {
+            enable_alt = 1
         } else if (h == "freebsd") {
             enable_freebsd = 1
         } else if (h == "netbsd") {
@@ -60,10 +60,10 @@ BEGIN {
             selected_hashes[h] = 1
         }
     }
-    if (enable_all && (enable_strong   || enable_glibc   || enable_some    || \
-                       enable_altlinux || enable_freebsd || enable_netbsd  || \
-                       enable_openbsd  || enable_osx     || enable_owl     || \
-                       enable_solaris  || enable_suse)) {
+    if (enable_all && (enable_strong  || enable_glibc   || enable_some   || \
+                       enable_alt     || enable_freebsd || enable_netbsd || \
+                       enable_openbsd || enable_osx     || enable_owl    || \
+                       enable_solaris || enable_suse)) {
         error = 1
         exit 1
     }
@@ -86,7 +86,7 @@ BEGIN {
                 enabled_hashes[$1] = 1
             } else if (flag == "GLIBC" && enable_glibc) {
                 enabled_hashes[$1] = 1
-            } else if (flag == "ALTLINUX" && enable_altlinux) {
+            } else if (flag == "ALT" && enable_alt) {
                 enabled_hashes[$1] = 1
             } else if (flag == "FREEBSD" && enable_freebsd) {
                 enabled_hashes[$1] = 1

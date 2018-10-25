@@ -28,12 +28,12 @@
 # DES) must be last.
 #
 #name    gs_suffix  h_prefix  nrbytes  flags
-yescrypt :          $y$       16       STRONG,ALTLINUX,DEFAULT
+yescrypt :          $y$       16       STRONG,ALT,DEFAULT
 scrypt   :          $7$       16       STRONG
-bcrypt   _a         $2a$      16       STRONG,ALTLINUX,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
-bcrypt   _b         $2b$      16       STRONG,ALTLINUX,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
-bcrypt   _x         $2x$      16       STRONG,ALTLINUX,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
-bcrypt   _y         $2y$      16       STRONG,ALTLINUX,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
+bcrypt   _a         $2a$      16       STRONG,ALT,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
+bcrypt   _b         $2b$      16       STRONG,ALT,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
+bcrypt   _x         $2x$      16       STRONG,ALT,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
+bcrypt   _y         $2y$      16       STRONG,ALT,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
 sha512   :          $6$       15       STRONG,GLIBC,FREEBSD,SOLARIS
 sha256   :          $5$       15       STRONG,GLIBC,FREEBSD,SOLARIS
 md5      :          $1$       9        GLIBC,FREEBSD,NETBSD,OPENBSD,SOLARIS

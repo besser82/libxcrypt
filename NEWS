@@ -12,6 +12,8 @@ Version 4.2.3
   md5 implementation in the public domain.
 * 'make dist' now generates bzip2 and xz compressed tarballs along
   with the default gzip compressed tarball.
+* The group 'altlinux' has been renamed to 'alt' in --enable-hashes,
+  as the ALTLINUX distribution has been rebranded to ALT some time ago.
 
 Version 4.2.2
 * Convert existing manpages to BSD mdoc format.
