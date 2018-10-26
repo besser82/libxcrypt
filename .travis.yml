@@ -4,17 +4,32 @@ branches:
   except:
     - master
 
+git:
+  depth: false
+
 notifications:
   irc:
     channels:
       - "ircs://chat.freenode.net:6697/#libxcrypt"
     skip_join: true
 
-sudo: true
+dist: trusty
+sudo: required
 
 matrix:
   fast_finish: true
   include:
+    - name: "Coverity Scan"
+      if: tag =~ ^v(\d+\.)?(\d+\.)?(\d+)$
+      compiler: gcc
+      os: linux
+      env:
+        - CONF="--disable-werror --enable-obsolete-api --enable-hashes=all"
+        - PERFORM_COVERITY_SCAN="1"
+        - COVERITY_SCAN_PROJECT_NAME="$TRAVIS_REPO_SLUG"
+        - COVERITY_SCAN_BRANCH_PATTERN="^v(\d+\.)?(\d+\.)?(\d+)$"
+        - COVERITY_SCAN_BUILD_COMMAND_PREPEND="./bootstrap && ./configure $CONF"
+        - COVERITY_SCAN_BUILD_COMMAND="make -j$NPROCS"
     - name: "Fedora Rawhide, GCC, Codecov"
       compiler: gcc
       os: linux
@@ -194,45 +209,13 @@ matrix:
         - FCVER="latest"
 
 before_install:
-  - for i in `seq 0 99`; do docker pull fedora:$FCVER && i= && break || sleep 1; done; [ -z "$i" ]
-  - perl -pe 's/\$(\w+)/$ENV{$1}/g' .travis.env.in > travis.env
-  - docker run -t -d -P --env-file travis.env --name buildenv -v $HOME/.ccache:/root/.ccache -v $PWD:/opt/libxcrypt fedora:$FCVER /bin/sh -c "mkdir -p /opt/libxcrypt ; bash"
-  - docker exec -t buildenv /bin/sh -c "echo \"deltarpm=0\" >> /etc/dnf/dnf.conf"
-  - docker exec -t buildenv /bin/sh -c "echo \"install_weak_deps=0\" >> /etc/dnf/dnf.conf"
-  - docker exec -t buildenv /bin/sh -c "echo \"max_parallel_downloads=20\" >> /etc/dnf/dnf.conf"
-  - docker exec -t buildenv /bin/sh -c "echo \"\" >> /etc/dnf/dnf.conf"
-  - if [[ "$FCVER" == "rawhide" ]] ; then docker exec -t buildenv /bin/sh -c "cat /opt/libxcrypt/.travis.dnf.conf.rawhide_latest >> /etc/dnf/dnf.conf" ; fi
-  - docker exec -t buildenv /bin/sh -c 'for i in `seq 0 99`; do dnf makecache && i= && break || sleep 1; done; [ -z "$i" ]'
-  - docker exec -t buildenv /bin/sh -c 'for i in `seq 0 99`; do dnf -y upgrade && i= && break || sleep 1; done; [ -z "$i" ]'
-  - docker exec -t buildenv /bin/sh -c 'for i in `seq 0 99`; do dnf -y swap coreutils-single coreutils && i= && break || sleep 1; done; [ -z "$i" ]'
-  - docker exec -t buildenv /bin/sh -c 'for i in `seq 0 99`; do dnf -y groups install buildsys-build && i= && break || sleep 1; done; [ -z "$i" ]'
-  - docker exec -t buildenv /bin/sh -c 'for i in `seq 0 99`; do dnf -y install git libtool valgrind && i= && break || sleep 1; done; [ -z "$i" ]'
-  - if [[ "$CC" == "clang" ]]  ; then docker exec -t buildenv /bin/sh -c 'for i in `seq 0 99`; do dnf -y install clang && i= && break || sleep 1; done; [ -z "$i" ]' ; fi
-  - if [[ "$CODECOV" == "1" ]] ; then docker exec -t buildenv /bin/sh -c 'for i in `seq 0 99`; do dnf -y install lcov python3-pip && i= && break || sleep 1; done; [ -z "$i" ]' ; fi
-  - if [[ "$CODECOV" == "1" ]] ; then docker exec -t buildenv /bin/sh -c "pip3 install codecov" ; fi
-  - docker exec -t buildenv /bin/sh -c 'for i in `seq 0 99`; do dnf -y autoremove && i= && break || sleep 1; done; [ -z "$i" ]'
+  - ./.travis_before_install.sh
 
 before_script:
-  - docker exec -t buildenv /bin/sh -c "rpm -E %optflags" > cflags.txt
-  - docker exec -t buildenv /bin/sh -c "rpm -E %__global_ldflags" > ldflags.txt
-  - cat cflags.txt  | tr -d '\012\015' > cflags.txt.new  && mv -f cflags.txt.new cflags.txt
-  - cat ldflags.txt | tr -d '\012\015' > ldflags.txt.new && mv -f ldflags.txt.new ldflags.txt
-  - if [[ "$CC" == "clang" ]]     ; then sed -i -e 's![ \t]*-fcf-protection[ \t]*! -Wno-unused-command-line-argument!g' cflags.txt ; fi
-  - if [[ "$FCVER" == "latest" ]] ; then sed -i -e 's![ \t]*-mcet[ \t]*! !g' cflags.txt ; fi
+  - ./.travis_before_script.sh
 
 script:
-  - export CFLAGS="`cat cflags.txt`" ; export CXXFLAGS="$CFLAGS" ; echo $CFLAGS
-  - export LDFLAGS="`cat ldflags.txt`" ; echo $LDFLAGS
-  - export NPROCS="$((`nproc --all` * 2))" ; echo paralleism is $NPROCS
-  - if [[ "$CODECOV" == "1" ]] ; then export CFLAGS="-O0 -g --coverage" ; export CXXFLAGS="$CFLAGS" ; export LDFLAGS="--coverage" ; fi
-  - docker exec -t buildenv /bin/sh -c "cat /etc/redhat-release"
-  - docker exec -t buildenv /bin/sh -c "cd /opt/libxcrypt && ./bootstrap"
-  - docker exec -t buildenv /bin/sh -c "cd /opt/libxcrypt && CFLAGS=\"$CFLAGS\" CXXFLAGS=\"$CXXFLAGS\" LDFLAGS=\"$LDFLAGS\" ./configure --prefix=/opt/libxcrypt --disable-silent-rules --enable-shared --enable-static $CONF"
-  - docker exec -t buildenv /bin/sh -c "make -C /opt/libxcrypt -j$NPROCS"
-  - docker exec -t buildenv /bin/sh -c "make -C /opt/libxcrypt install"
-  - docker exec -t buildenv /bin/sh -c "(make -C /opt/libxcrypt -j$NPROCS check || (cat /opt/libxcrypt/test-suite.log && exit 1))"
-  - docker exec -t buildenv /bin/sh -c "(make -C /opt/libxcrypt -j$NPROCS check-valgrind-memcheck || (cat /opt/libxcrypt/test-suite-memcheck.log && exit 1))"
-  - if [[ "$DISTCHECK" == "1" ]] ; then docker exec -t buildenv /bin/sh -c "make -C /opt/libxcrypt -j$NPROCS distcheck"; fi
+  - ./.travis_script.sh
 
 after_success:
- - if [[ "$CODECOV" == "1" ]] ; then docker exec -t buildenv /bin/sh -c "cd /opt/libxcrypt && lcov --directory . --capture --output-file all_coverage.info && lcov --remove all_coverage.info '/usr/*' '*test*' > coverage.info && rm all_coverage.info && codecov -X gcov" ; fi
+  - ./.travis_after_success.sh
