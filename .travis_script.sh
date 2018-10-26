@@ -5,10 +5,11 @@ export NPROCS="$((`nproc --all` * 2))"
 echo paralleism is $NPROCS
 
 if [[ "$PERFORM_COVERITY_SCAN" == "1" ]]; then
-  export SHA="${TRAVIS_BRANCH}"
   curl -s "https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh" \
     --output /tmp/travisci_build_coverity_scan.sh
-  sed -i -e "s/201/200/g" /tmp/travisci_build_coverity_scan.sh
+  sed -i -e "s/--form version=\$SHA/--form version=\"${TRAVIS_BRANCH}\"/g" \
+    -e "s/--form description=\"Travis CI build\"/--form description=\"${SHA}\"/g" \
+    -e "s/201/200/g" /tmp/travisci_build_coverity_scan.sh
   bash /tmp/travisci_build_coverity_scan.sh
   exit 0
 fi
