@@ -347,6 +347,13 @@ extern void gensalt_yescrypt_rn
 #endif
 #endif
 
+/* Those are not present, if scrypt is selected, but yescrypt is not. */
+#if INCLUDE_scrypt && !INCLUDE_yescrypt
+#define crypt_yescrypt_rn _crypt_crypt_yescrypt_rn
+extern void crypt_yescrypt_rn (const char *, size_t, const char *,
+                size_t, uint8_t *, size_t, void *, size_t);
+#endif
+
 #include "crypt.h"
 
 #endif /* crypt-port.h */
