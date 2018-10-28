@@ -23,7 +23,7 @@
 
 #include <errno.h>
 
-#if INCLUDE_md5
+#if INCLUDE_md5crypt
 
 /* Define our magic string to mark salt for MD5 "encryption"
    replacement.  This is meant to be the same as for other MD5 based
@@ -61,7 +61,7 @@ static_assert (sizeof (struct md5_buffer) <= ALG_SPECIFIC_SIZE,
 /* This entry point is equivalent to the `crypt' function in Unix
    libcs.  */
 void
-crypt_md5_rn (const char *phrase, size_t phr_size,
+crypt_md5crypt_rn (const char *phrase, size_t phr_size,
               const char *setting, size_t ARG_UNUSED (set_size),
               uint8_t *output, size_t out_size,
               void *scratch, size_t scr_size)
@@ -213,7 +213,7 @@ crypt_md5_rn (const char *phrase, size_t phr_size,
 }
 
 void
-gensalt_md5_rn (unsigned long count,
+gensalt_md5crypt_rn (unsigned long count,
                 const uint8_t *rbytes, size_t nrbytes,
                 uint8_t *output, size_t output_size)
 {

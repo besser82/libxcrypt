@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-#if INCLUDE_nthash
+#if INCLUDE_nt
 
 static const struct
 {

@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#if INCLUDE_sha256 || INCLUDE_scrypt || INCLUDE_yescrypt || \
+#if INCLUDE_sha256crypt || INCLUDE_scrypt || INCLUDE_yescrypt || \
     INCLUDE_gost_yescrypt
 
 static const struct

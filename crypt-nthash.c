@@ -23,7 +23,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * The bogus 'gensalt_nthash_rn' function and all modifications to the other
+ * The bogus 'gensalt_nt_rn' function and all modifications to the other
  * parts of this file are
  *
  * Copyright (c) 2017 Björn Esser <besser82@fedoraproject.org>
@@ -42,14 +42,14 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 
-#if INCLUDE_nthash
+#if INCLUDE_nt
 
 /*
  * NT HASH = md4(str2unicode(phrase))
  */
 
 void
-crypt_nthash_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
+crypt_nt_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
                  const char *setting, size_t ARG_UNUSED (set_size),
                  uint8_t *output, size_t out_size,
                  void *scratch, size_t scr_size)
@@ -104,7 +104,7 @@ crypt_nthash_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
    magic string '$3$', so it can be used as
    SETTING for the crypt function.  */
 void
-gensalt_nthash_rn (unsigned long count,
+gensalt_nt_rn (unsigned long count,
                    const uint8_t *rbytes,
                    size_t nrbytes,
                    uint8_t *output,

@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if INCLUDE_sha1
+#if INCLUDE_sha1crypt
 
 /*
  * The default iterations - should take >0s on a fast CPU
@@ -81,7 +81,7 @@ to64 (uint8_t *s, unsigned long v, int n)
  * 			have been applied to <digest>.  The number
  * 			should vary slightly for each password to make
  * 			it harder to generate a dictionary of
- * 			pre-computed hashes.  See gensalt_sha1_rn.
+ * 			pre-computed hashes.  See gensalt_sha1crypt_rn.
  * 	<salt>		up to 64 bytes of random data, 8 bytes is
  * 			currently considered more than enough.
  *	<digest>	the hashed password.
@@ -93,7 +93,7 @@ to64 (uint8_t *s, unsigned long v, int n)
  * hmac key.
  */
 void
-crypt_sha1_rn (const char *phrase, size_t phr_size,
+crypt_sha1crypt_rn (const char *phrase, size_t phr_size,
                const char *setting, size_t ARG_UNUSED (set_size),
                uint8_t *output, size_t out_size,
                void *scratch, size_t scr_size)
@@ -197,7 +197,7 @@ crypt_sha1_rn (const char *phrase, size_t phr_size,
 /* Modified excerpt from:
    http://cvsweb.netbsd.org/bsdweb.cgi/~checkout~/src/lib/libcrypt/pw_gensalt.c */
 void
-gensalt_sha1_rn (unsigned long count,
+gensalt_sha1crypt_rn (unsigned long count,
                  const uint8_t *rbytes, size_t nrbytes,
                  uint8_t *output, size_t o_size)
 {

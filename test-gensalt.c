@@ -14,10 +14,10 @@ static const char *const entropy[] =
   0
 };
 
-#if INCLUDE_des || INCLUDE_des_big
+#if INCLUDE_descrypt || INCLUDE_bigcrypt
 static const char *const des_expected_output[] = { "Mp", "Pp", "ZH", "Uh"};
 #endif
-#if INCLUDE_des_xbsd
+#if INCLUDE_bsdicrypt
 static const char *const bsdi_expected_output[] =
 {
   "_J9..MJHn",
@@ -47,7 +47,7 @@ static const char *const bsdi_expected_output_h[] =
   "_zzzzUqGB"
 };
 #endif
-#if INCLUDE_md5
+#if INCLUDE_md5crypt
 static const char *const md5_expected_output[] =
 {
   "$1$MJHnaAke",
@@ -56,7 +56,7 @@ static const char *const md5_expected_output[] =
   "$1$UqGBkVu0"
 };
 #endif
-#if INCLUDE_nthash
+#if INCLUDE_nt
 static const char *const nthash_expected_output[] =
 {
   "$3$__not_used__c809a450df09a3",
@@ -88,7 +88,7 @@ static const char *const sunmd5_expected_output_h[] =
   "$md5,rounds=4294938668$p.5e9AQf$",
 };
 #endif
-#if INCLUDE_sha1
+#if INCLUDE_sha1crypt
 static const char *const sha1_expected_output[] =
 {
   "$sha1$248488$ggu.H673kaZ5$",
@@ -111,7 +111,7 @@ static const char *const sha1_expected_output_h[] =
   "$sha1$3486175838$1j.eVxRfNAPO$",
 };
 #endif
-#if INCLUDE_sha256
+#if INCLUDE_sha256crypt
 static const char *const sha256_expected_output[] =
 {
   "$5$MJHnaAkegEVYHsFK",
@@ -141,7 +141,7 @@ static const char *const sha256_expected_output_h[] =
   "$5$rounds=999999999$UqGBkVu01rurVZqg"
 };
 #endif
-#if INCLUDE_sha512
+#if INCLUDE_sha512crypt
 static const char *const sha512_expected_output[] =
 {
   "$6$MJHnaAkegEVYHsFK",
@@ -303,11 +303,11 @@ struct testcase
 
 static const struct testcase testcases[] =
 {
-#if INCLUDE_des || INCLUDE_des_big
+#if INCLUDE_descrypt || INCLUDE_bigcrypt
   { "",      des_expected_output,       2,  0, 0 },
   // DES doesn't have variable round count.
 #endif
-#if INCLUDE_des_xbsd
+#if INCLUDE_bsdicrypt
   { "_",     bsdi_expected_output,      9,  0, 0 },
   // BSDI/DES always emits a round count.
   // The _r expectation is used to verify that even inputs are
@@ -316,11 +316,11 @@ static const struct testcase testcases[] =
   { "_",     bsdi_expected_output_l,    9,  0, MIN_LINEAR_COST },
   { "_",     bsdi_expected_output_h,    9,  0, MAX_LINEAR_COST },
 #endif
-#if INCLUDE_md5
+#if INCLUDE_md5crypt
   { "$1$",   md5_expected_output,      11,  0, 0 },
   // MD5/BSD doesn't have variable round count.
 #endif
-#if INCLUDE_nthash
+#if INCLUDE_nt
   { "$3$",   nthash_expected_output,   29,  0, 0 },
   // NTHASH doesn't have variable round count.
 #endif
@@ -330,19 +330,19 @@ static const struct testcase testcases[] =
   { "$md5", sunmd5_expected_output_l,  27,  0, MIN_LINEAR_COST },
   { "$md5", sunmd5_expected_output_h,  32,  0, MAX_LINEAR_COST },
 #endif
-#if INCLUDE_sha1
+#if INCLUDE_sha1crypt
   { "$sha1", sha1_expected_output,     26, 34, 0 },
   // SHA1/PBKDF always emits a round count.
   { "$sha1", sha1_expected_output_l,   21, 29, MIN_LINEAR_COST },
   { "$sha1", sha1_expected_output_h,   30, 38, MAX_LINEAR_COST },
 #endif
-#if INCLUDE_sha256
+#if INCLUDE_sha256crypt
   { "$5$",   sha256_expected_output,   19,  0, 0 },
   { "$5$",   sha256_expected_output_r, 32,  0, 10191 },
   { "$5$",   sha256_expected_output_l, 31,  0, MIN_LINEAR_COST },
   { "$5$",   sha256_expected_output_h, 36,  0, MAX_LINEAR_COST },
 #endif
-#if INCLUDE_sha512
+#if INCLUDE_sha512crypt
   { "$6$",   sha512_expected_output,   19,  0, 0 },
   { "$6$",   sha512_expected_output_r, 32,  0, 10191 },
   { "$6$",   sha512_expected_output_l, 31,  0, MIN_LINEAR_COST },

@@ -8,6 +8,7 @@ Version 4.3.0
 * Remove all of the nonnull annotations, which are a questionable
   optimization that have caused problems in the past and may cause
   future problems on some systems.
+* Rename all hash methods to match naming in John the Ripper.
 
 Version 4.2.3
 * Add bootstrap script.  If building from a Git checkout instead of a
@@ -92,8 +93,8 @@ Version 4.1.0
   GNU libc.
 * Fix the leak of obtained random bytes.
 * Check expected output strings for deterministic methods.
-* Fix memory leak in crypt_sha1_rn.
-* Fix read of random bytes out of bounds in gensalt_sha1_rn.
+* Fix memory leak in crypt_sha1crypt_rn.
+* Fix read of random bytes out of bounds in gensalt_sha1crypt_rn.
 * Make it possible to disable individual hashes at configure time.
   The default is --enable-hashes=all.  --enable-hashes=strong is the
   equivalent of the old --disable-weak-hashes.  You could even do
@@ -102,7 +103,7 @@ Version 4.1.0
 * Make salt validation pickier.
 * Replace crypt-sunmd5.c with BSD-licensed cleanroom reimplementation.
 * Make crypt_gensalt for $sha1 deterministic.
-* Fix incorrect output-size computation in crypt_sha1_rn.
+* Fix incorrect output-size computation in crypt_sha1crypt_rn.
 * Add docs for SHA1, MD5/Sun, NTHASH.
 * Introduce CRYPT_GENSALT_IMPLEMENTS_* feature test macros.
 * Install libcrypt.pc symlink along with libxcrypt.pc.

@@ -34,7 +34,7 @@ struct testcase
 static const struct testcase testcases[] =
 {
   /* DES (traditional and/or bigcrypt) -- count is ignored */
-#if INCLUDE_des || INCLUDE_des_big
+#if INCLUDE_descrypt || INCLUDE_bigcrypt
   { "!a", 0, 0, 0 },            // invalid first character
   { "a!", 0, 0, 0 },            // invalid second character
   { "xx", 1, 0, 0 },            // doesn't accept variable counts
@@ -46,7 +46,7 @@ static const struct testcase testcases[] =
 #endif
 
   /* BSDi extended DES  */
-#if INCLUDE_des_xbsd
+#if INCLUDE_bsdicrypt
   { "_", 0,        2, 0 },      // inadequate rbytes
   { "_", 0,        0, 4 },      // inadequate osize
 #else
@@ -54,7 +54,7 @@ static const struct testcase testcases[] =
 #endif
 
   /* MD5 (FreeBSD) */
-#if INCLUDE_md5
+#if INCLUDE_md5crypt
   { "$1",  0, 0, 0 },           // truncated prefix
   { "$1$", 1, 0, 0 },           // doesn't accept variable counts
   { "$1$", 0, 2, 0 },           // inadequate rbytes
@@ -74,7 +74,7 @@ static const struct testcase testcases[] =
 #endif
 
   /* NTHASH */
-#if INCLUDE_nthash
+#if INCLUDE_nt
   { "$3",  0, 0, 0 },           // truncated prefix
   { "$3$", 1, 0, 0 },           // doesn't accept variable counts
   { "$3$", 0, 0, 4 },           // inadequate osize
@@ -83,7 +83,7 @@ static const struct testcase testcases[] =
 #endif
 
   /* SHA1 */
-#if INCLUDE_sha1
+#if INCLUDE_sha1crypt
   { "$s",   0, 0, 0 },          // truncated prefix
   { "$sh",  0, 0, 0 },
   { "$sha", 0, 0, 0 },
@@ -94,7 +94,7 @@ static const struct testcase testcases[] =
 #endif
 
   /* SHA256 */
-#if INCLUDE_sha256
+#if INCLUDE_sha256crypt
   { "$5",  0,          0, 0 },  // truncated prefix
   { "$5$", 0,          2, 0 },  // inadequate rbytes
   { "$5$", 0,          0, 4 },  // inadequate osize
@@ -103,7 +103,7 @@ static const struct testcase testcases[] =
 #endif
 
   /* SHA512 */
-#if INCLUDE_sha512
+#if INCLUDE_sha512crypt
   { "$6",  0,          0, 0 },  // truncated prefix
   { "$6$", 0,          2, 0 },  // inadequate rbytes
   { "$6$", 0,          0, 4 },  // inadequate osize
@@ -246,7 +246,7 @@ test_single_characters (void)
 
   for (int i = 1; i < 256; i++)
     {
-#ifdef INCLUDE_des_xbsd
+#ifdef INCLUDE_bsdicrypt
       if (i == '_') continue;
 #endif
       s[0] = (char)i;

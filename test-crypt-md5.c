@@ -1,6 +1,6 @@
 #include "crypt-port.h"
 
-#if INCLUDE_md5
+#if INCLUDE_md5crypt
 
 int
 main (void)

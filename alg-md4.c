@@ -37,7 +37,7 @@
 
 #include "crypt-port.h"
 
-#if INCLUDE_nthash
+#if INCLUDE_nt
 
 #include "alg-md4.h"
 

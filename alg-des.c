@@ -60,7 +60,7 @@
 
 #include "crypt-port.h"
 
-#if INCLUDE_des || INCLUDE_des_big || INCLUDE_des_xbsd
+#if INCLUDE_descrypt || INCLUDE_bigcrypt || INCLUDE_bsdicrypt
 
 #include "alg-des.h"
 #include "byteorder.h"

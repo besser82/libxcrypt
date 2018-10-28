@@ -37,7 +37,7 @@
 
 #include "crypt-port.h"
 
-#if INCLUDE_md5 || INCLUDE_sunmd5
+#if INCLUDE_md5crypt || INCLUDE_sunmd5
 
 #include "alg-md5.h"
 

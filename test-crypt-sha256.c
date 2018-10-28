@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-#if INCLUDE_sha256
+#if INCLUDE_sha256crypt
 
 static const struct
 {

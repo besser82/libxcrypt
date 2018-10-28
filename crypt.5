@@ -202,7 +202,7 @@ It exists for historical reasons only.
 The alternative prefixes "$2a$" and "$2x$"
 provide bug-compatibility with crypt_blowfish 1.0.4 and earlier,
 which incorrectly processed characters with the 8th bit set.
-.Ss SHA-2-512
+.Ss sha512crypt
 A hash based on SHA-2 with 512-bit output,
 originally developed by Ulrich Drepper for GNU libc.
 Supported on Linux but not common elsewhere.
@@ -210,7 +210,7 @@ Acceptable for new hashes.
 The default CPU time cost parameter is 5000,
 which is too low for modern hardware.
 .hash "$6$" "\e$6\e$(rounds=[1-9][0-9]+\e$)?[./0-9A-Za-z]{1,16}\e$[./0-9A-Za-z]{86}" unlimited 8 512 512 "6 to 96" "1000 to 999,999,999"
-.Ss SHA-2-256
+.Ss sha256crypt
 A hash based on SHA-2 with 256-bit output,
 originally developed by Ulrich Drepper for GNU libc.
 Supported on Linux but not common elsewhere.
@@ -218,14 +218,14 @@ Acceptable for new hashes.
 The default CPU time cost parameter is 5000,
 which is too low for modern hardware.
 .hash "$5$" "\e$5\e$(rounds=[1-9][0-9]+\e$)?[./0-9A-Za-z]{1,16}\e$[./0-9A-Za-z]{43}" unlimited 8 256 256 "6 to 96" "1000 to 999,999,999"
-.Ss SHA-1
+.Ss sha1crypt
 A hash based on HMAC-SHA1.
 Originally developed by Simon Gerraty for NetBSD.
 Not as weak as the DES-based hashes below,
 but SHA1 is so cheap on modern hardware
 that it should not be used for new hashes.
 .hash "$sha1" "\e$sha1\e$[1-9][0-9]+\e$[./0-9A-Za-z]{1,64}\e$[./0-9A-Za-z]{8,64}[./0-9A-Za-z]{32}" unlimited 8 160 160 "6 to 384" "4 to 4,294,967,295"
-.Ss MD5 (Sun)
+.Ss SunMD5
 A hash based on the MD5 algorithm,
 with additional cleverness to make precomputation difficult,
 originally developed by Alec David Muffet for Solaris.
@@ -234,7 +234,7 @@ Not as weak as the DES-based hashes below,
 but MD5 is so cheap on modern hardware
 that it should not be used for new hashes.
 .hash "$md5" "\e$md5(,rounds=[1-9][0-9]+)?\e$[./0-9A-Za-z]{8}\e${1,2}[./0-9A-Za-z]{22}" unlimited 8 128 128 48 "4096 to 4,294,963,199"
-.Ss MD5 (FreeBSD)
+.Ss md5crypt
 A hash based on the MD5 algorithm, originally developed by
 Poul-Henning Kamp for FreeBSD.
 Supported on most free Unixes and newer versions of Solaris.
@@ -243,7 +243,7 @@ but MD5 is so cheap on modern hardware
 that it should not be used for new hashes.
 CPU time cost is not adjustable.
 .hash "$1$" "\e$1\e$[^$]{1,8}\e$[./0-9A-Za-z]{22}" unlimited 8 128 128 "6 to 48" 1000
-.Ss BSDI extended DES
+.Ss bsdicrypt (BSDI extended DES)
 A weak extension of traditional DES,
 which eliminates the length limit,
 increases the salt size,
@@ -262,7 +262,7 @@ and it does this in a crude way that allows attackers to
 guess chunks of a long passphrase in parallel.
 It should not be used for new hashes.
 .hash "" "[./0-9A-Za-z]{13,178}" 128 7 "up to 896" "up to 1024" 12 25
-.Ss Traditional DES
+.Ss descrypt (Traditional DES)
 The original hashing method from Unix V7, based on the DES block cipher.
 Because DES is cheap on modern hardware,
 because there are only 4096 possible salts and 2**56 possible hashes,
@@ -273,7 +273,7 @@ passphrase hashed with this method.
 It should only be used if you absolutely have to generate hashes
 that will work on an old operating system that supports nothing else.
 .hash "" "[./0-9A-Za-z]{13}" 8 7 56 64 12 25
-.Ss NTHASH
+.Ss NT
 The hashing method used for network authentication
 in some versions of the SMB/CIFS protocol.
 Available, for cross-compatibility's sake, on FreeBSD.

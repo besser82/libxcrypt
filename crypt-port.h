@@ -247,7 +247,7 @@ _xcrypt_strcpy_or_abort (void *dst, const size_t d_size,
 
 #define get_random_bytes         _crypt_get_random_bytes
 
-#if INCLUDE_des || INCLUDE_des_xbsd || INCLUDE_des_big
+#if INCLUDE_descrypt || INCLUDE_bsdicrypt || INCLUDE_bigcrypt
 #define des_crypt_block          _crypt_des_crypt_block
 #define des_set_key              _crypt_des_set_key
 #define des_set_salt             _crypt_des_set_salt
@@ -263,33 +263,33 @@ _xcrypt_strcpy_or_abort (void *dst, const size_t d_size,
 #define psbox                    _crypt_psbox
 #endif
 
-#if INCLUDE_nthash
+#if INCLUDE_nt
 #define MD4_Init   _crypt_MD4_Init
 #define MD4_Update _crypt_MD4_Update
 #define MD4_Final  _crypt_MD4_Final
 #endif
 
-#if INCLUDE_md5 || INCLUDE_sunmd5
+#if INCLUDE_md5crypt || INCLUDE_sunmd5
 #define MD5_Init   _crypt_MD5_Init
 #define MD5_Update _crypt_MD5_Update
 #define MD5_Final  _crypt_MD5_Final
 #endif
 
-#if INCLUDE_sha1
+#if INCLUDE_sha1crypt
 #define hmac_sha1_process_data   _crypt_hmac_sha1_process_data
 #define sha1_finish_ctx          _crypt_sha1_finish_ctx
 #define sha1_init_ctx            _crypt_sha1_init_ctx
 #define sha1_process_bytes       _crypt_sha1_process_bytes
 #endif
 
-#if INCLUDE_sha512
+#if INCLUDE_sha512crypt
 #define libcperciva_SHA512_Init   _crypt_SHA512_Init
 #define libcperciva_SHA512_Update _crypt_SHA512_Update
 #define libcperciva_SHA512_Final  _crypt_SHA512_Final
 #define libcperciva_SHA512_Buf    _crypt_SHA512_Buf
 #endif
 
-#if INCLUDE_md5 || INCLUDE_sha256 || INCLUDE_sha512
+#if INCLUDE_md5crypt || INCLUDE_sha256crypt || INCLUDE_sha512crypt
 #define gensalt_sha_rn           _crypt_gensalt_sha_rn
 #endif
 
@@ -309,7 +309,7 @@ _xcrypt_strcpy_or_abort (void *dst, const size_t d_size,
 #define libcperciva_HMAC_SHA256_Buf _crypt_HMAC_SHA256_Buf
 #endif
 
-#if INCLUDE_sha256 || INCLUDE_scrypt || INCLUDE_yescrypt || \
+#if INCLUDE_sha256crypt || INCLUDE_scrypt || INCLUDE_yescrypt || \
     INCLUDE_gost_yescrypt
 #define libcperciva_SHA256_Init  _crypt_SHA256_Init
 #define libcperciva_SHA256_Update _crypt_SHA256_Update
@@ -336,9 +336,9 @@ extern void gensalt_yescrypt_rn
 #endif
 
 /* Those are not present, if des-big is selected, but des is not. */
-#if INCLUDE_des_big && !INCLUDE_des
-#define gensalt_des_rn _crypt_gensalt_des_rn
-extern void gensalt_des_rn
+#if INCLUDE_bigcrypt && !INCLUDE_descrypt
+#define gensalt_descrypt_rn _crypt_gensalt_descrypt_rn
+extern void gensalt_descrypt_rn
   (unsigned long, const uint8_t *, size_t, uint8_t *, size_t);
 #endif
 

@@ -216,47 +216,47 @@ matrix:
       env:
         - CONF="--disable-obsolete-api --enable-hashes=bcrypt"
         - FCVER="rawhide"
-    - name: "Fedora Rawhide, GCC, des only"
+    - name: "Fedora Rawhide, GCC, bigcrypt only"
       compiler: gcc
       os: linux
       services: docker
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=des"
+        - CONF="--disable-obsolete-api --enable-hashes=bigcrypt"
         - FCVER="rawhide"
-    - name: "Fedora Rawhide, GCC, des_big only"
+    - name: "Fedora Rawhide, GCC, bsdicrypt only"
       compiler: gcc
       os: linux
       services: docker
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=des_big"
+        - CONF="--disable-obsolete-api --enable-hashes=bsdicrypt"
         - FCVER="rawhide"
-    - name: "Fedora Rawhide, GCC, des_xbsd only"
+    - name: "Fedora Rawhide, GCC, descrypt only"
       compiler: gcc
       os: linux
       services: docker
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=des_xbsd"
+        - CONF="--disable-obsolete-api --enable-hashes=descrypt"
         - FCVER="rawhide"
-    - name: "Fedora Rawhide, GCC, gost_yescrypt only"
+    - name: "Fedora Rawhide, GCC, gost-yescrypt only"
       compiler: gcc
       os: linux
       services: docker
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=gost_yescrypt"
+        - CONF="--disable-obsolete-api --enable-hashes=gost-yescrypt"
         - FCVER="rawhide"
-    - name: "Fedora Rawhide, GCC, md5 only"
+    - name: "Fedora Rawhide, GCC, md5crypt only"
       compiler: gcc
       os: linux
       services: docker
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=md5"
+        - CONF="--disable-obsolete-api --enable-hashes=md5crypt"
         - FCVER="rawhide"
-    - name: "Fedora Rawhide, GCC, nthash only"
+    - name: "Fedora Rawhide, GCC, nt only"
       compiler: gcc
       os: linux
       services: docker
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=nthash"
+        - CONF="--disable-obsolete-api --enable-hashes=nt"
         - FCVER="rawhide"
     - name: "Fedora Rawhide, GCC, scrypt only"
       compiler: gcc
@@ -265,26 +265,26 @@ matrix:
       env:
         - CONF="--disable-obsolete-api --enable-hashes=scrypt"
         - FCVER="rawhide"
-    - name: "Fedora Rawhide, GCC, sha1 only"
+    - name: "Fedora Rawhide, GCC, sha1crypt only"
       compiler: gcc
       os: linux
       services: docker
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=sha1"
+        - CONF="--disable-obsolete-api --enable-hashes=sha1crypt"
         - FCVER="rawhide"
-    - name: "Fedora Rawhide, GCC, sha256 only"
+    - name: "Fedora Rawhide, GCC, sha256crypt only"
       compiler: gcc
       os: linux
       services: docker
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=sha256"
+        - CONF="--disable-obsolete-api --enable-hashes=sha256crypt"
         - FCVER="rawhide"
-    - name: "Fedora Rawhide, GCC, sha512 only"
+    - name: "Fedora Rawhide, GCC, sha512crypt only"
       compiler: gcc
       os: linux
       services: docker
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=sha512"
+        - CONF="--disable-obsolete-api --enable-hashes=sha512crypt"
         - FCVER="rawhide"
     - name: "Fedora Rawhide, GCC, sunmd5 only"
       compiler: gcc

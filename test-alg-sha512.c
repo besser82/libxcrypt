@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#if INCLUDE_sha512
+#if INCLUDE_sha512crypt
 
 static const struct
 {

@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if INCLUDE_sha256
+#if INCLUDE_sha256crypt
 
 /* Define our magic string to mark salt for SHA256 "encryption"
    replacement.  */
@@ -85,7 +85,7 @@ SHA256_Update_recycled (SHA256_CTX *ctx,
 }
 
 void
-crypt_sha256_rn (const char *phrase, size_t phr_size,
+crypt_sha256crypt_rn (const char *phrase, size_t phr_size,
                  const char *setting, size_t ARG_UNUSED (set_size),
                  uint8_t *output, size_t out_size,
                  void *scratch, size_t scr_size)
@@ -295,7 +295,7 @@ crypt_sha256_rn (const char *phrase, size_t phr_size,
 }
 
 void
-gensalt_sha256_rn (unsigned long count,
+gensalt_sha256crypt_rn (unsigned long count,
                    const uint8_t *rbytes, size_t nrbytes,
                    uint8_t *output, size_t output_size)
 {

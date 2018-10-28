@@ -49,7 +49,7 @@
 #include "crypt-port.h"
 #include "alg-des.h"
 
-#if INCLUDE_des || INCLUDE_des_xbsd || INCLUDE_des_big
+#if INCLUDE_descrypt || INCLUDE_bsdicrypt || INCLUDE_bigcrypt
 
 const uint8_t m_sbox[4][4096] =
 {

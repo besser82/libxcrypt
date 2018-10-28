@@ -76,7 +76,7 @@ static const struct hashfn hash_algorithms[] =
   HASH_ALGORITHM_TABLE_ENTRIES
 };
 
-#if INCLUDE_des || INCLUDE_des_big
+#if INCLUDE_descrypt || INCLUDE_bigcrypt
 static int
 is_des_salt_char (char c)
 {
@@ -98,7 +98,7 @@ get_hashfn (const char *setting)
           if (!strncmp (setting, h->prefix, h->plen))
             return h;
         }
-#if INCLUDE_des || INCLUDE_des_big
+#if INCLUDE_descrypt || INCLUDE_bigcrypt
       else
         {
           if (setting[0] == '\0' ||

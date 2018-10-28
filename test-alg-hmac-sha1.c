@@ -33,7 +33,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if INCLUDE_sha1
+#if INCLUDE_sha1crypt
 
 #define HASH_LENGTH 20
 

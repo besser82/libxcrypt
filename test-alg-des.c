@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 
-#if INCLUDE_des || INCLUDE_des_xbsd || INCLUDE_des_big
+#if INCLUDE_descrypt || INCLUDE_bsdicrypt || INCLUDE_bigcrypt
 
 static void
 v_print (const unsigned char v[8])

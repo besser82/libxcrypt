@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#if INCLUDE_md5 || INCLUDE_sunmd5
+#if INCLUDE_md5crypt || INCLUDE_sunmd5
 
 static const struct
 {

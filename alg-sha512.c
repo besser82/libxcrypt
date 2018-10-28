@@ -27,7 +27,7 @@
 
 #include "crypt-port.h"
 
-#if INCLUDE_sha512
+#if INCLUDE_sha512crypt
 
 #include "alg-sha512.h"
 #include "alg-yescrypt-sysendian.h"

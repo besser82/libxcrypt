@@ -49,7 +49,7 @@
 
 #include <errno.h>
 
-#if INCLUDE_des || INCLUDE_des_xbsd || INCLUDE_des_big
+#if INCLUDE_descrypt || INCLUDE_bsdicrypt || INCLUDE_bigcrypt
 
 #define DES_TRD_OUTPUT_LEN 14                /* SShhhhhhhhhhh0 */
 #define DES_EXT_OUTPUT_LEN 21                /* _CCCCSSSShhhhhhhhhhh0 */
@@ -146,10 +146,10 @@ des_gen_hash (struct des_ctx *ctx, uint32_t count, uint8_t *output,
 }
 #endif
 
-#if INCLUDE_des
+#if INCLUDE_descrypt
 /* The original UNIX DES-based password hash, no extensions.  */
 void
-crypt_des_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
+crypt_descrypt_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
               const char *setting, size_t ARG_UNUSED (set_size),
               uint8_t *output, size_t out_size,
               void *scratch, size_t scr_size)
@@ -209,7 +209,7 @@ crypt_des_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
 }
 #endif
 
-#if INCLUDE_des_big
+#if INCLUDE_bigcrypt
 /* This algorithm is algorithm 0 (default) shipped with the C2 secure
    implementation of Digital UNIX.
 
@@ -226,9 +226,9 @@ crypt_des_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
    (that is, the password can be no more than 128 characters long).
 
    Andy Phillips <atp@mssl.ucl.ac.uk>  */
-#if INCLUDE_des
+#if INCLUDE_descrypt
 void
-crypt_des_big_rn (const char *phrase, size_t phr_size,
+crypt_bigcrypt_rn (const char *phrase, size_t phr_size,
                   const char *setting, size_t set_size,
                   uint8_t *output, size_t out_size,
                   void *scratch, size_t scr_size)
@@ -239,13 +239,13 @@ crypt_des_big_rn (const char *phrase, size_t phr_size,
      of 'phrase' are significant).  */
   if (set_size <= 13)
     {
-      crypt_des_rn (phrase, phr_size, setting, set_size,
+      crypt_descrypt_rn (phrase, phr_size, setting, set_size,
                     output, out_size, scratch, scr_size);
       return;
     }
 #else
 void
-crypt_des_big_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
+crypt_bigcrypt_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
                   const char *setting, size_t set_size,
                   uint8_t *output, size_t out_size,
                   void *scratch, size_t scr_size)
@@ -317,12 +317,12 @@ crypt_des_big_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
 }
 #endif
 
-#if INCLUDE_des_xbsd
+#if INCLUDE_bsdicrypt
 /* crypt_rn() entry point for BSD-style extended DES hashes.  These
    permit long passwords and have more salt and a controllable iteration
    count, but are still unacceptably weak by modern standards.  */
 void
-crypt_des_xbsd_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
+crypt_bsdicrypt_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
                    const char *setting, size_t set_size,
                    uint8_t *output, size_t out_size,
                    void *scratch, size_t scr_size)
@@ -406,9 +406,9 @@ crypt_des_xbsd_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
 }
 #endif
 
-#if INCLUDE_des || INCLUDE_des_big
+#if INCLUDE_descrypt || INCLUDE_bigcrypt
 void
-gensalt_des_rn (unsigned long count,
+gensalt_descrypt_rn (unsigned long count,
                 const uint8_t *rbytes, size_t nrbytes,
                 uint8_t *output, size_t output_size)
 {
@@ -428,14 +428,14 @@ gensalt_des_rn (unsigned long count,
   output[1] = ascii64[(unsigned int) rbytes[1] & 0x3f];
   output[2] = '\0';
 }
-#if INCLUDE_des_big
-strong_alias (gensalt_des_rn, gensalt_des_big_rn);
+#if INCLUDE_bigcrypt
+strong_alias (gensalt_descrypt_rn, gensalt_bigcrypt_rn);
 #endif
 #endif
 
-#if INCLUDE_des_xbsd
+#if INCLUDE_bsdicrypt
 void
-gensalt_des_xbsd_rn (unsigned long count,
+gensalt_bsdicrypt_rn (unsigned long count,
                      const uint8_t *rbytes, size_t nrbytes,
                      uint8_t *output, size_t output_size)
 {

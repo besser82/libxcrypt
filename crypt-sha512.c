@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if INCLUDE_sha512
+#if INCLUDE_sha512crypt
 
 /* Define our magic string to mark salt for SHA512 "encryption"
    replacement.  */
@@ -72,7 +72,7 @@ static_assert (sizeof (struct sha512_buffer) <= ALG_SPECIFIC_SIZE,
 static const char b64t[] =
   "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-/* Subroutine of _xcrypt_crypt_sha512_rn: Feed CTX with LEN bytes of a
+/* Subroutine of _xcrypt_crypt_sha512crypt_rn: Feed CTX with LEN bytes of a
    virtual byte sequence consisting of BLOCK repeated over and over
    indefinitely.  */
 static void
@@ -86,7 +86,7 @@ sha512_process_recycled_bytes (unsigned char block[64], size_t len,
 }
 
 void
-crypt_sha512_rn (const char *phrase, size_t phr_size,
+crypt_sha512crypt_rn (const char *phrase, size_t phr_size,
                  const char *setting, size_t ARG_UNUSED (set_size),
                  uint8_t *output, size_t out_size,
                  void *scratch, size_t scr_size)
@@ -311,7 +311,7 @@ crypt_sha512_rn (const char *phrase, size_t phr_size,
 }
 
 void
-gensalt_sha512_rn (unsigned long count,
+gensalt_sha512crypt_rn (unsigned long count,
                    const uint8_t *rbytes, size_t nrbytes,
                    uint8_t *output, size_t output_size)
 {
