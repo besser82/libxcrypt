@@ -347,6 +347,13 @@ extern void gensalt_yescrypt_rn
 #endif
 #endif
 
+/* Those are not present, if des-big is selected, but des is not. */
+#if INCLUDE_des_big && !INCLUDE_des
+#define gensalt_des_rn _crypt_gensalt_des_rn
+extern void gensalt_des_rn
+  (unsigned long, const uint8_t *, size_t, uint8_t *, size_t);
+#endif
+
 /* Those are not present, if scrypt is selected, but yescrypt is not. */
 #if INCLUDE_scrypt && !INCLUDE_yescrypt
 #define crypt_yescrypt_rn _crypt_crypt_yescrypt_rn

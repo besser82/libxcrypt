@@ -70,15 +70,15 @@ static const struct testcase testcases[] =
   { "*DES (trad.), 2nd char invalid {",     2, "M{" },
 #endif
 #if INCLUDE_des_big
-  { "DES (bigcrypt)",                       2, "Mp............" },
-  { "*DES (bigcrypt), 1st char invalid -",  2, "-p............" },
-  { "*DES (bigcrypt), 2nd char invalid -",  2, "M-............" },
-  { "*DES (bigcrypt), 1st char invalid :",  2, ":p............" },
-  { "*DES (bigcrypt), 2nd char invalid :",  2, "M:............" },
-  { "*DES (bigcrypt), 1st char invalid [",  2, "[p............" },
-  { "*DES (bigcrypt), 2nd char invalid [",  2, "M[............" },
-  { "*DES (bigcrypt), 1st char invalid {",  2, "{p............" },
-  { "*DES (bigcrypt), 2nd char invalid {",  2, "M{............" },
+  { "DES (bigcrypt)",                       14, "Mp............" },
+  { "*DES (bigcrypt), 1st char invalid -",  14, "-p............" },
+  { "*DES (bigcrypt), 2nd char invalid -",  14, "M-............" },
+  { "*DES (bigcrypt), 1st char invalid :",  14, ":p............" },
+  { "*DES (bigcrypt), 2nd char invalid :",  14, "M:............" },
+  { "*DES (bigcrypt), 1st char invalid [",  14, "[p............" },
+  { "*DES (bigcrypt), 2nd char invalid [",  14, "M[............" },
+  { "*DES (bigcrypt), 1st char invalid {",  14, "{p............" },
+  { "*DES (bigcrypt), 2nd char invalid {",  14, "M{............" },
 #endif
 #if INCLUDE_des_xbsd
   { "DES (BSDi)",                           9, "_J9..MJHn" },
@@ -425,10 +425,19 @@ test_one_case (const struct testcase *t,
 
       /* However, an invalid character anywhere within the prefix should
          cause hashing to fail.  */
-      for (size_t i = 1; i < t->plen; i++)
+      size_t plen = t->plen;
+
+      /* des_big only values the first two characters of the setting,
+         but needs strlen(setting) >= 14.  */
+      const char *des_big_label = "DES (bigcrypt)";
+      if (!strcmp (t->label, des_big_label))
         {
-          p = page + pagesize - (t->plen + 2 - i);
-          memcpy (p, goodhash, t->plen - i);
+          plen = 2;
+        }
+      for (size_t i = 1; i < plen; i++)
+        {
+          p = page + pagesize - (plen + 2 - i);
+          memcpy (p, goodhash, plen - i);
           if (!test_one_setting (t->label, p, cd, false))
             return false;
         }
