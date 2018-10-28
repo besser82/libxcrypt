@@ -207,6 +207,97 @@ matrix:
       env:
         - CONF="--enable-obsolete-api=glibc --enable-hashes=strong,glibc"
         - FCVER="latest"
+    - name: "Fedora Rawhide, GCC, bcrypt only"
+      compiler: gcc
+      os: linux
+      services: docker
+      env:
+        - CONF="--disable-obsolete-api --enable-hashes=bcrypt"
+        - FCVER="rawhide"
+    - name: "Fedora Rawhide, GCC, des only"
+      compiler: gcc
+      os: linux
+      services: docker
+      env:
+        - CONF="--disable-obsolete-api --enable-hashes=des"
+        - FCVER="rawhide"
+    - name: "Fedora Rawhide, GCC, des_big only"
+      compiler: gcc
+      os: linux
+      services: docker
+      env:
+        - CONF="--disable-obsolete-api --enable-hashes=des_big"
+        - FCVER="rawhide"
+    - name: "Fedora Rawhide, GCC, des_xbsd only"
+      compiler: gcc
+      os: linux
+      services: docker
+      env:
+        - CONF="--disable-obsolete-api --enable-hashes=des_xbsd"
+        - FCVER="rawhide"
+    - name: "Fedora Rawhide, GCC, gost_yescrypt only"
+      compiler: gcc
+      os: linux
+      services: docker
+      env:
+        - CONF="--disable-obsolete-api --enable-hashes=gost_yescrypt"
+        - FCVER="rawhide"
+    - name: "Fedora Rawhide, GCC, md5 only"
+      compiler: gcc
+      os: linux
+      services: docker
+      env:
+        - CONF="--disable-obsolete-api --enable-hashes=md5"
+        - FCVER="rawhide"
+    - name: "Fedora Rawhide, GCC, nthash only"
+      compiler: gcc
+      os: linux
+      services: docker
+      env:
+        - CONF="--disable-obsolete-api --enable-hashes=nthash"
+        - FCVER="rawhide"
+    - name: "Fedora Rawhide, GCC, scrypt only"
+      compiler: gcc
+      os: linux
+      services: docker
+      env:
+        - CONF="--disable-obsolete-api --enable-hashes=scrypt"
+        - FCVER="rawhide"
+    - name: "Fedora Rawhide, GCC, sha1 only"
+      compiler: gcc
+      os: linux
+      services: docker
+      env:
+        - CONF="--disable-obsolete-api --enable-hashes=sha1"
+        - FCVER="rawhide"
+    - name: "Fedora Rawhide, GCC, sha256 only"
+      compiler: gcc
+      os: linux
+      services: docker
+      env:
+        - CONF="--disable-obsolete-api --enable-hashes=sha256"
+        - FCVER="rawhide"
+    - name: "Fedora Rawhide, GCC, sha512 only"
+      compiler: gcc
+      os: linux
+      services: docker
+      env:
+        - CONF="--disable-obsolete-api --enable-hashes=sha512"
+        - FCVER="rawhide"
+    - name: "Fedora Rawhide, GCC, sunmd5 only"
+      compiler: gcc
+      os: linux
+      services: docker
+      env:
+        - CONF="--disable-obsolete-api --enable-hashes=sunmd5"
+        - FCVER="rawhide"
+    - name: "Fedora Rawhide, GCC, yescrypt only"
+      compiler: gcc
+      os: linux
+      services: docker
+      env:
+        - CONF="--disable-obsolete-api --enable-hashes=yescrypt"
+        - FCVER="rawhide"
 
 before_install:
   - ./.travis_before_install.sh
