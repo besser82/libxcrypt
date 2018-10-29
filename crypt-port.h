@@ -62,6 +62,83 @@
 #define MIN_SIZE(x) (x)
 #endif
 
+/* Macros for detecting endianness of the system at compile time.  */
+#if !(defined XCRYPT_BE_ARCH || defined XCRYPT_LE_ARCH) && \
+     (defined __ARMEB__ || defined __THUMBEB__ || defined __AARCH64EB__ || \
+      defined _MIPSEB || defined __MIPSEB || defined __MIPSEB__ || \
+     (defined __BYTE_ORDER__ && defined __ORDER_BIG_ENDIAN__ && \
+         __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__) || \
+     (defined __BYTE_ORDER__ && defined __BIG_ENDIAN__ && \
+         __BYTE_ORDER__ == __BIG_ENDIAN__) || \
+     (defined __BYTE_ORDER && defined __ORDER_BIG_ENDIAN && \
+         __BYTE_ORDER == __ORDER_BIG_ENDIAN) || \
+     (defined __BYTE_ORDER && defined __BIG_ENDIAN && \
+         __BYTE_ORDER == __BIG_ENDIAN) || \
+     (defined BYTE_ORDER && defined ORDER_BIG_ENDIAN && \
+         BYTE_ORDER == ORDER_BIG_ENDIAN) || \
+     (defined BYTE_ORDER && defined BIG_ENDIAN && \
+         BYTE_ORDER == BIG_ENDIAN) || \
+     (defined __FLOAT_WORD_ORDER__ && defined __ORDER_BIG_ENDIAN__ && \
+         __FLOAT_WORD_ORDER__ == __ORDER_BIG_ENDIAN__) || \
+     (defined __FLOAT_WORD_ORDER__ && defined __BIG_ENDIAN__ && \
+         __FLOAT_WORD_ORDER__ == __BIG_ENDIAN__) || \
+     (defined __FLOAT_WORD_ORDER && defined __ORDER_BIG_ENDIAN && \
+         __FLOAT_WORD_ORDER == __ORDER_BIG_ENDIAN) || \
+     (defined __FLOAT_WORD_ORDER && defined __BIG_ENDIAN && \
+         __FLOAT_WORD_ORDER == __BIG_ENDIAN) || \
+     (defined FLOAT_WORD_ORDER && defined ORDER_BIG_ENDIAN && \
+         FLOAT_WORD_ORDER == ORDER_BIG_ENDIAN) || \
+     (defined FLOAT_WORD_ORDER && defined BIG_ENDIAN && \
+         FLOAT_WORD_ORDER == BIG_ENDIAN) || \
+      defined __BIG_ENDIAN__)
+#define XCRYPT_BE_ARCH 1
+#endif
+
+#if !(defined XCRYPT_BE_ARCH || defined XCRYPT_LE_ARCH) && \
+     (defined __ARMEL__ || defined __THUMBEL__ || defined __AARCH64EL__ || \
+      defined _MIPSEL || defined __MIPSEL || defined __MIPSEL__ || \
+     (defined __BYTE_ORDER__ && defined __ORDER_LITTLE_ENDIAN__ && \
+         __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__) || \
+     (defined __BYTE_ORDER__ && defined __LITTLE_ENDIAN__ && \
+         __BYTE_ORDER__ == __LITTLE_ENDIAN__) || \
+     (defined __BYTE_ORDER && defined __ORDER_LITTLE_ENDIAN && \
+         __BYTE_ORDER == __ORDER_LITTLE_ENDIAN) || \
+     (defined __BYTE_ORDER && defined __LITTLE_ENDIAN && \
+         __BYTE_ORDER == __LITTLE_ENDIAN) || \
+     (defined BYTE_ORDER && defined ORDER_LITTLE_ENDIAN && \
+         BYTE_ORDER == ORDER_LITTLE_ENDIAN) || \
+     (defined BYTE_ORDER && defined LITTLE_ENDIAN && \
+         BYTE_ORDER == LITTLE_ENDIAN) || \
+     (defined __FLOAT_WORD_ORDER__ && defined __ORDER_LITTLE_ENDIAN__ && \
+         __FLOAT_WORD_ORDER__ == __ORDER_LITTLE_ENDIAN__) || \
+     (defined __FLOAT_WORD_ORDER__ && defined __LITTLE_ENDIAN__ && \
+         __FLOAT_WORD_ORDER__ == __LITTLE_ENDIAN__) || \
+     (defined __FLOAT_WORD_ORDER && defined __ORDER_LITTLE_ENDIAN && \
+         __FLOAT_WORD_ORDER == __ORDER_LITTLE_ENDIAN) || \
+     (defined __FLOAT_WORD_ORDER && defined __LITTLE_ENDIAN && \
+         __FLOAT_WORD_ORDER == __LITTLE_ENDIAN) || \
+     (defined FLOAT_WORD_ORDER && defined ORDER_LITTLE_ENDIAN && \
+         FLOAT_WORD_ORDER == ORDER_LITTLE_ENDIAN) || \
+     (defined FLOAT_WORD_ORDER && defined LITTLE_ENDIAN && \
+         FLOAT_WORD_ORDER == LITTLE_ENDIAN) || \
+      defined __LITTLE_ENDIAN__)
+#define XCRYPT_LE_ARCH 1
+#endif
+
+#if defined(XCRYPT_BE_ARCH) && !defined(XCRYPT_LE_ARCH) && !defined(XCRYPT_USE_BIGENDIAN)
+# define XCRYPT_USE_BIGENDIAN 1
+#endif
+#if defined(XCRYPT_LE_ARCH) && !defined(XCRYPT_BE_ARCH) && !defined(XCRYPT_USE_BIGENDIAN)
+# define XCRYPT_USE_BIGENDIAN 0
+#endif
+
+#if defined(XCRYPT_BE_ARCH) && defined(XCRYPT_LE_ARCH)
+# error "Cannot compile libxcrypt on a system which has different endians the same time!"
+#endif
+#if !defined(XCRYPT_USE_BIGENDIAN)
+# error "Cannot compile libxcrypt on a system with unknown endianness!"
+#endif
+
 /* static_assert shim.  */
 #ifdef HAVE_STATIC_ASSERT_IN_ASSERT_H
 /* nothing to do */
@@ -229,7 +306,7 @@ _xcrypt_strcpy_or_abort (void *dst, const size_t d_size,
 #if defined __MMX__ && __MMX__ >= 1
 #define __GOST3411_HAS_MMX__ 1
 #endif
-#if IS_BIGENDIAN
+#if XCRYPT_USE_BIGENDIAN
 #define __GOST3411_BIG_ENDIAN__ 1
 #else
 #define __GOST3411_LITTLE_ENDIAN__ 1

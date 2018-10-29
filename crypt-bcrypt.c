@@ -63,7 +63,7 @@ typedef uint32_t BF_word;
 typedef int32_t BF_word_signed;
 
 /* Set the int_to_cpu function according to the system's endianness */
-#if IS_BIGENDIAN
+#if XCRYPT_USE_BIGENDIAN
 #define BF_WORD_TO_CPU(x)               be32_to_cpu (x)
 #else
 #define BF_WORD_TO_CPU(x)               le32_to_cpu (x)
@@ -458,7 +458,7 @@ BF_encode (unsigned char *dst, const BF_word * src, int size)
   while (sptr < end);
 }
 
-#if IS_BIGENDIAN
+#if XCRYPT_USE_BIGENDIAN
 static void
 BF_swap (ARG_UNUSED(BF_word * x), ARG_UNUSED(int count))
 {

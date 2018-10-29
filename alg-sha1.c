@@ -81,7 +81,7 @@ modified for use with libxcrypt
 /* blk0() and blk() perform the initial expand. */
 /* I got the idea of expanding during the round function from SSLeay */
 /* FIXME: can we do this in an endian-proof way? */
-#if IS_BIGENDIAN
+#if XCRYPT_USE_BIGENDIAN
 #define blk0(i) block.l[i]
 #else
 #define blk0(i) (block.l[i] = (rol(block.l[i],24)&0xFF00FF00) \

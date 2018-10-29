@@ -32,7 +32,7 @@
 #include "alg-sha512.h"
 #include "alg-yescrypt-sysendian.h"
 
-#if IS_BIGENDIAN
+#if XCRYPT_USE_BIGENDIAN
 /* Copy a vector of big-endian uint64_t into a vector of bytes */
 #define be64enc_vect(dst, src, len)	\
 	memcpy((void *)dst, (const void *)src, (size_t)len)
@@ -41,7 +41,7 @@
 #define be64dec_vect(dst, src, len)	\
 	memcpy((void *)dst, (const void *)src, (size_t)len)
 
-#else /* IS_BIGENDIAN */
+#else /* XCRYPT_USE_BIGENDIAN */
 
 /*
  * Encode a length len/4 vector of (uint64_t) into a length len vector of
@@ -69,7 +69,7 @@ be64dec_vect(uint64_t *dst, const unsigned char *src, size_t len)
 		dst[i] = be64dec(src + i * 8);
 }
 
-#endif /* IS_BIGENDIAN */
+#endif /* XCRYPT_USE_BIGENDIAN */
 
 /* SHA512 round constants. */
 static const uint64_t K[80] = {
