@@ -39,8 +39,11 @@ docker exec -t buildenv /bin/sh \
   -c "make -C /opt/libxcrypt install"
 docker exec -t buildenv /bin/sh \
   -c "(make -C /opt/libxcrypt -j$NPROCS check || (cat /opt/libxcrypt/test-suite.log && exit 1))"
-docker exec -t buildenv /bin/sh \
-  -c "(make -C /opt/libxcrypt -j$NPROCS check-valgrind-memcheck || (cat /opt/libxcrypt/test-suite-memcheck.log && exit 1))"
+
+if [[ "$VALGRIND" == "1" ]]; then
+  docker exec -t buildenv /bin/sh \
+    -c "(make -C /opt/libxcrypt -j$NPROCS check-valgrind-memcheck || (cat /opt/libxcrypt/test-suite-memcheck.log && exit 1))"
+fi
 
 if [[ "$DISTCHECK" == "1" ]]; then
   docker exec -t buildenv /bin/sh \

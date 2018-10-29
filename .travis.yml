@@ -38,7 +38,7 @@ matrix:
         - CONF="--enable-obsolete-api --enable-hashes=all"
         - FCVER="rawhide"
         - CODECOV=1
-    - name: "Fedora Rawhide, GCC, all hashes, obsolete API"
+    - name: "Fedora Rawhide, GCC, all hashes, obsolete API, Valgrind"
       compiler: gcc
       os: linux
       services: docker
@@ -46,13 +46,15 @@ matrix:
         - CONF="--enable-obsolete-api --enable-hashes=all"
         - FCVER="rawhide"
         - DISTCHECK=1
-    - name: "Fedora Rawhide, Clang, all hashes, obsolete API"
+        - VALGRIND=1
+    - name: "Fedora Rawhide, Clang, all hashes, obsolete API, Valgrind"
       compiler: clang
       os: linux
       services: docker
       env:
         - CONF="--enable-obsolete-api --enable-hashes=all"
         - FCVER="rawhide"
+        - VALGRIND=1
     - name: "Fedora stable, GCC, all hashes, obsolete API"
       compiler: gcc
       os: linux
