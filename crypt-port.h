@@ -228,8 +228,17 @@ _xcrypt_strcpy_or_abort (void *dst, const size_t d_size,
 
 /* Define ALIASNAME as a strong alias for NAME.  */
 #define strong_alias(name, aliasname) _strong_alias(name, aliasname)
-#define _strong_alias(name, aliasname) \
+
+/* Darwin doesn't support alias attributes.  */
+#ifndef __APPLE__
+# define _strong_alias(name, aliasname) \
   extern __typeof (name) aliasname __attribute__ ((alias (#name)))
+#else
+# define _strong_alias(name, aliasname) \
+  __asm__(".globl _" #aliasname); \
+  __asm__(".set _" #aliasname ", _" #name); \
+  extern __typeof(name) aliasname
+#endif
 
 /* Set the symbol version for EXTNAME, which uses INTNAME as its
    implementation.  */

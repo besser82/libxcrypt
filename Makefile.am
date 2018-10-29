@@ -176,7 +176,7 @@ check_PROGRAMS = \
 	test-crypt-pbkdf1-sha1 test-crypt-scrypt test-crypt-sha256 \
 	test-crypt-sha512 test-crypt-sunmd5 test-crypt-yescrypt \
 	test-byteorder test-badsalt test-badsetting test-gensalt \
-	test-crypt-badargs test-short-outbuf \
+	test-crypt-badargs test-short-outbuf test-compile-strong-alias \
         test-getrandom-interface test-getrandom-fallbacks
 
 if ENABLE_OBSOLETE_API
