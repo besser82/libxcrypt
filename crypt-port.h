@@ -43,12 +43,6 @@
 #define __THROW /* nothing */
 #endif
 
-/* Version of __GNUC_PREREQ with trailing underscores for BSD
-   compatibility.  */
-#ifndef __GNUC_PREREQ__
-# define __GNUC_PREREQ__(ma, mi) __GNUC_PREREQ(ma, mi)
-#endif
-
 /* While actually compiling the library, suppress the __nonnull tags
    on the functions in crypt.h, so that internal checks for NULL are
    not deleted by the compiler.  */
@@ -67,8 +61,8 @@
    not all compiler support it properly.  Define MIN_SIZE appropriately
    so headers using it can be compiled using any compiler.
    Use like this:  void bar(int myArray[MIN_SIZE(10)]);  */
-#if (defined(__clang__) || __GNUC_PREREQ__(4, 6)) && \
-    (!defined(__STDC_VERSION__) || (__STDC_VERSION__ >= 199901))
+#if (defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L) && \
+    ((defined __GNUC__ && __GNUC__ > 4) || defined __clang__)
 #define MIN_SIZE(x) static (x)
 #else
 #define MIN_SIZE(x) (x)
