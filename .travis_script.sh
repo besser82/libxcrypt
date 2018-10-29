@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-export NPROCS="$((`nproc --all` * 2))"
+export NPROCS="$((`nproc --all 2>/dev/null || sysctl -n hw.ncpu` * 2))"
 echo paralleism is $NPROCS
 
 if [[ "$PERFORM_COVERITY_SCAN" == "1" ]]; then
@@ -11,6 +11,18 @@ if [[ "$PERFORM_COVERITY_SCAN" == "1" ]]; then
     -e "s/--form description=\"Travis CI build\"/--form description=\"${SHA}\"/g" \
     -e "s/201/200/g" /tmp/travisci_build_coverity_scan.sh
   bash /tmp/travisci_build_coverity_scan.sh
+  exit 0
+fi
+
+if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+  export CFLAGS="-O2 -g -arch i386 -arch x86_64"
+  export CXXFLAGS="$CFLAGS"
+  export LDFLAGS="-arch i386 -arch x86_64"
+  ./bootstrap
+  ./configure --disable-silent-rules --enable-shared --enable-static $CONF
+  make -j$NPROCS
+  make install DESTDIR="/opt/libxcrypt"
+  make check -j$NPROCS || (cat test-suite.log && exit 1)
   exit 0
 fi
 

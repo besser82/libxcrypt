@@ -1,5 +1,13 @@
 language: C
 
+addons:
+  homebrew:
+    packages:
+      - autoconf
+      - automake
+      - libtool
+      - pkg-config
+
 branches:
   except:
     - master
@@ -17,6 +25,8 @@ dist: trusty
 sudo: required
 
 matrix:
+  allow_failures:
+    - os: osx
   fast_finish: true
   include:
     - name: "Coverity Scan"
@@ -69,6 +79,11 @@ matrix:
       env:
         - CONF="--enable-obsolete-api --enable-hashes=all"
         - FCVER="latest"
+    - name: "macOS, Clang, all hashes, no obsolete API"
+      compiler: clang
+      os: osx
+      env:
+        - CONF="--disable-obsolete-api --enable-hashes=all"
     - name: "Fedora Rawhide, GCC, all hashes, obsolete API, no failure-tokens"
       compiler: gcc
       os: linux

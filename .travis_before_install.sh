@@ -11,6 +11,10 @@ if [[ "$PERFORM_COVERITY_SCAN" == "1" ]]; then
   exit 0
 fi
 
+if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+  exit 0
+fi
+
 for i in `seq 0 99`; do
   docker pull fedora:$FCVER && i= && break || sleep 1
 done; [ -z "$i" ]
@@ -53,9 +57,6 @@ fi
 if [[ "$CODECOV" == "1" ]]; then
   docker exec -t buildenv /bin/sh \
   -c 'for i in `seq 0 99`; do dnf -y install lcov python3-pip && i= && break || sleep 1; done; [ -z "$i" ]'
-fi
-
-if [[ "$CODECOV" == "1" ]]; then
   docker exec -t buildenv /bin/sh -c "pip3 install codecov"
 fi
 
