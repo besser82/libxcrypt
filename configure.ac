@@ -96,15 +96,6 @@ __END_DECLS
     [ac_cv_header_sys_cdefs_begin_end_decls=yes],
     [ac_cv_header_sys_cdefs_begin_end_decls=no])
   ])
-  AC_CACHE_CHECK([whether sys/cdefs.h defines __nonnull],
-                 [ac_cv_header_sys_cdefs_nonnull], [
-    AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
-#include <sys/cdefs.h>
-extern char *foo(char *, char *) __nonnull ((1, 2));
-    ]])],
-    [ac_cv_header_sys_cdefs_nonnull=yes],
-    [ac_cv_header_sys_cdefs_nonnull=no])
-  ])
   AC_CACHE_CHECK([whether sys/cdefs.h defines __THROW],
                  [ac_cv_header_sys_cdefs_THROW], [
     AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
@@ -116,16 +107,11 @@ extern void foo(void) __THROW;
   ])],
 dnl AS_IF else
  [ac_cv_header_sys_cdefs_begin_end_decls=no
-  ac_cv_header_sys_cdefs_nonnull=no
   ac_cv_header_sys_cdefs_THROW=no])
 
 if test $ac_cv_header_sys_cdefs_begin_end_decls = yes; then
   AC_DEFINE([HAVE_SYS_CDEFS_BEGIN_END_DECLS], 1,
     [Define if <sys/cdefs.h> defines __BEGIN_DECLS and __END_DECLS.])
-fi
-if test $ac_cv_header_sys_cdefs_nonnull = yes; then
-  AC_DEFINE([HAVE_SYS_CDEFS_NONNULL], 1,
-    [Define if <sys/cdefs.h> defines __nonnull.])
 fi
 if test $ac_cv_header_sys_cdefs_THROW = yes; then
   AC_DEFINE([HAVE_SYS_CDEFS_THROW], 1,

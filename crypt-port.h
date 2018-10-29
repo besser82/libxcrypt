@@ -43,12 +43,6 @@
 #define __THROW /* nothing */
 #endif
 
-/* While actually compiling the library, suppress the __nonnull tags
-   on the functions in crypt.h, so that internal checks for NULL are
-   not deleted by the compiler.  */
-#undef __nonnull
-#define __nonnull(param) /* nothing */
-
 /* Suppression of unused-argument warnings.  */
 #if defined __GNUC__ && __GNUC__ >= 3
 # define ARG_UNUSED(x) x __attribute__ ((__unused__))
