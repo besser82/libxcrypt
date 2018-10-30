@@ -216,7 +216,7 @@ AC_ARG_ENABLE([hashes],
          The default is 'all'.
          Note: if binary compatibility with any historic libcrypt is
          desired (i.e. any --enable-obsolete-api setting other than
-         'no'), the 'des' hash must be enabled.]),
+         'no'), the 'descrypt' hash must be enabled.]),
     [hashes_selected=`echo $enableval | $SED -e 's!-!_!g'`],
     [hashes_selected=all]
 )
@@ -233,7 +233,7 @@ AC_SUBST([hashes_enabled])
 # If the traditional DES hash is disabled, then the obsolete APIs are
 # implicitly disabled.
 case "$hashes_enabled" in
-    *,des,*) ;;
+    *,descrypt,*) ;;
     *)
        if test x"$COMPAT_ABI" != xno; then
          AC_MSG_WARN(
