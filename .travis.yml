@@ -79,11 +79,11 @@ matrix:
       env:
         - CONF="--enable-obsolete-api --enable-hashes=all"
         - FCVER="latest"
-    - name: "macOS, Clang, all hashes, no obsolete API"
+    - name: "macOS, Clang, all hashes, obsolete API"
       compiler: clang
       os: osx
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=all"
+        - CONF="--enable-obsolete-api --enable-hashes=all"
     - name: "Fedora Rawhide, GCC, all hashes, obsolete API, no failure-tokens"
       compiler: gcc
       os: linux
