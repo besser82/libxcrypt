@@ -464,7 +464,37 @@ main (void)
                      tcase->prefix, tcase->rounds, ent, salt);
 
           XCRYPT_STRCPY_OR_ABORT (prev_output, CRYPT_GENSALT_OUTPUT_SIZE, salt);
-        }
+
+	  /* Test if crypt works with this salt. */
+	  if (!tcase->rounds)
+	    {
+#define PASSW "alexander"
+	      static struct crypt_data a, b;
+	      if (!crypt_rn (PASSW, salt, &a, sizeof(a)))
+		{
+		  fprintf (stderr, "ERROR: %s/%u -> crypt(gensalt) fail\n",
+			   tcase->prefix, ent);
+		  status = 1;
+		}
+	      else if (!crypt_rn (PASSW, a.output, &b, sizeof(b)))
+		{
+		  fprintf (stderr, "ERROR: %s/%u -> cryptn(crypt(gensalt)) fail\n",
+			   tcase->prefix, ent);
+		  status = 1;
+		}
+	      else if (strcmp (a.output, b.output))
+		{
+		  fprintf (stderr, "ERROR: %s/%u -> crypt(gensalt) != crypt(crypt(gensalt))\n",
+			   tcase->prefix, ent);
+		  status = 1;
+		}
+	      else
+		{
+		  fprintf (stderr, "   ok: %s/%u -> crypt works with this salt\n",
+			   tcase->prefix, ent);
+		}
+	    }
+	}
     }
 
   /* Currently, passing a null pointer as the prefix argument to
