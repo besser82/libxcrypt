@@ -11,16 +11,18 @@ static const struct
   const char *input;
 } tests[] =
 {
-#if INCLUDE_descrypt
+#if INCLUDE_descrypt || INCLUDE_bigcrypt
   /* traditional-DES test vectors from John the Ripper */
   { "CC", "CCNf8Sbh3HDfQ", "U*U*U*U*" },
-  { "CC", "CCNf8Sbh3HDfQ", "U*U*U*U*ignored" },
   { "CC", "CCX.K.MFy4Ois", "U*U***U" },
   { "CC", "CC4rMpbg9AMZ.", "U*U***U*" },
-  { "CC", "CC4rMpbg9AMZ.", "U*U***U*ignored" },
   { "CC", "CC4rMpbg9AMZ.", "\xd5\xaa\xd5\xaa\xaa\xaa\xd5\xaa" },
   { "XX", "XXxzOu6maQKqQ", "*U*U*U*U" },
   { "SD", "SDbsugeBiC58A", "" },
+#if INCLUDE_descrypt
+  { "CC", "CCNf8Sbh3HDfQ", "U*U*U*U*ignored" },
+  { "CC", "CC4rMpbg9AMZ.", "U*U***U*ignored" },
+#endif
 #endif
 
 #if INCLUDE_bsdicrypt
