@@ -478,7 +478,7 @@ main (void)
 		}
 	      else if (!crypt_rn (PASSW, a.output, &b, sizeof(b)))
 		{
-		  fprintf (stderr, "ERROR: %s/%u -> cryptn(crypt(gensalt)) fail\n",
+		  fprintf (stderr, "ERROR: %s/%u -> crypt(crypt(gensalt)) fail\n",
 			   tcase->prefix, ent);
 		  status = 1;
 		}
