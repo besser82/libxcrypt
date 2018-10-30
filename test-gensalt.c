@@ -14,8 +14,17 @@ static const char *const entropy[] =
   0
 };
 
-#if INCLUDE_descrypt || INCLUDE_bigcrypt
+#if INCLUDE_descrypt
 static const char *const des_expected_output[] = { "Mp", "Pp", "ZH", "Uh"};
+#endif
+#if INCLUDE_bigcrypt && !INCLUDE_descrypt
+static const char *const big_expected_output[] =
+{
+  "Mp............",
+  "Pp............",
+  "ZH............",
+  "Uh............"
+};
 #endif
 #if INCLUDE_bsdicrypt
 static const char *const bsdi_expected_output[] =
@@ -303,9 +312,13 @@ struct testcase
 
 static const struct testcase testcases[] =
 {
-#if INCLUDE_descrypt || INCLUDE_bigcrypt
+#if INCLUDE_descrypt
   { "",      des_expected_output,       2,  0, 0 },
   // DES doesn't have variable round count.
+#endif
+#if INCLUDE_bigcrypt && !INCLUDE_descrypt
+  { "",      big_expected_output,       14,  0, 0 },
+  // bigcrypt doesn't have variable round count.
 #endif
 #if INCLUDE_bsdicrypt
   { "_",     bsdi_expected_output,      9,  0, 0 },

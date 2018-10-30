@@ -429,7 +429,28 @@ gensalt_descrypt_rn (unsigned long count,
   output[2] = '\0';
 }
 #if INCLUDE_bigcrypt
-strong_alias (gensalt_descrypt_rn, gensalt_bigcrypt_rn);
+void
+gensalt_bigcrypt_rn (unsigned long count,
+                const uint8_t *rbytes, size_t nrbytes,
+                uint8_t *output, size_t output_size)
+{
+#if !INCLUDE_descrypt
+  /* We need descrypt + 12 bytes.  */
+  if (output_size < 3 + 12)
+    {
+      errno = ERANGE;
+      return;
+    }
+#endif
+
+  /* Same setting string as descrypt, but...  */
+  gensalt_descrypt_rn (count, rbytes, nrbytes, output, output_size);
+
+#if !INCLUDE_descrypt
+  /* ... add 12 trailing characters to signalize bigcrypt.  */
+  XCRYPT_STRCPY_OR_ABORT (output + 2, output_size - 2, "............");
+#endif
+}
 #endif
 #endif
 

@@ -9,6 +9,8 @@ Version 4.3.0
   optimization that have caused problems in the past and may cause
   future problems on some systems.
 * Rename all hash methods to match naming in John the Ripper.
+* Fix gensalt for bigcrypt if descrypt hash method is not selected
+  at compile time.
 
 Version 4.2.3
 * Add bootstrap script.  If building from a Git checkout instead of a
