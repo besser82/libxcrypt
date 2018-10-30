@@ -70,10 +70,14 @@ else
 libcrypt_la_VERSION = 2:0:0
 endif
 
-libcrypt_la_LDFLAGS = \
-	-version-info $(libcrypt_la_VERSION) \
-	-Wl,--version-script=libcrypt.map \
-	-Wl,-z,defs -Wl,-z,text
+libcrypt_la_LDFLAGS = -version-info $(libcrypt_la_VERSION)
+
+if HAVE_VSCRIPT
+libcrypt_la_LDFLAGS += $(VSCRIPT_LDFLAGS),$(builddir)/libcrypt.map
+endif
+
+libcrypt_la_LDFLAGS += -Wl,-z,defs -Wl,-z,text
+
 libcrypt_la_CPPFLAGS = $(AM_CPPFLAGS) -DIN_LIBCRYPT
 
 CONFIG_STATUS_DEPENDENCIES = libcrypt.minver
