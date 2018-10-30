@@ -86,6 +86,9 @@ source tree.  For specific licensing terms consult the files themselves.
  * Copyright <vt at altlinux.org>; 0-clause BSD:
    crypt-yescrypt.c, test-crypt-yescrypt.c
 
+ * Copyright Kevin Cernekee; BSD alike:
+   m4/ax_check_vscript.m4
+
  * Copyright holders unknown, no statement of license (all of these
    files are part of the testsuite and do not contribute to the
    installed library or its headers):

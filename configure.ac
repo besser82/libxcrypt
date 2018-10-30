@@ -125,6 +125,7 @@ zw_C_ALIGNOF
 zw_C_MAX_ALIGN_T
 zw_C_STATIC_ASSERT
 zw_PROG_LD_WRAP
+AX_CHECK_VSCRIPT
 
 # Checks for library functions.
 AC_CHECK_FUNCS_ONCE([
