@@ -24,10 +24,10 @@
 #include "alg-gost3411-2012-ref.h"
 #endif
 
-ALIGN(16) typedef union GOST34112012_uint512_u
+ALIGN(16) typedef union gost34112012_uint512_u
 {
     unsigned long long QWORD[8];
-} GOST34112012_uint512_u;
+} gost34112012_uint512_u;
 
 #include "alg-gost3411-2012-const.h"
 #include "alg-gost3411-2012-precalc.h"
@@ -35,10 +35,10 @@ ALIGN(16) typedef union GOST34112012_uint512_u
 ALIGN(16) typedef struct GOST34112012Context
 {
     ALIGN(16) unsigned char buffer[64];
-    ALIGN(16) GOST34112012_uint512_u hash;
-    ALIGN(16) GOST34112012_uint512_u h;
-    ALIGN(16) GOST34112012_uint512_u N;
-    ALIGN(16) GOST34112012_uint512_u Sigma;
+    ALIGN(16) gost34112012_uint512_u hash;
+    ALIGN(16) gost34112012_uint512_u h;
+    ALIGN(16) gost34112012_uint512_u N;
+    ALIGN(16) gost34112012_uint512_u Sigma;
     size_t bufsize;
     unsigned int digest_size;
 } GOST34112012Context;
