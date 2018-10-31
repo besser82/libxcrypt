@@ -127,52 +127,45 @@ zw_C_STATIC_ASSERT
 zw_PROG_LD_WRAP
 AX_CHECK_VSCRIPT
 
-# check how fail linking is undefined symbols remain
-FAIL_UNDEF=yes
+# FIXME: This only checks whether the linker accepts either
+# -Wl,-z,defs or -Wl,--no-undefined.  It doesn't check that the switch
+# actually does what we want it to do.
+AC_CACHE_CHECK([how to make linking fail when undefined symbols remain],
+  [ac_cv_ld_no_undefined], [
+  ac_cv_ld_no_undefined=unknown
+  SAVED_LDFLAGS="$LDFLAGS"
+  LDFLAGS="$SAVED_LDFLAGS -Wl,-z,defs"
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([], [int i = 1;])],
+    [ac_cv_ld_no_undefined=-Wl,-z,defs])
+  if test "x$ac_cv_ld_no_undefined" = xunknown; then
+    LDFLAGS="$SAVED_LDFLAGS -Wl,--no-undefined"
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([], [int i = 1;])],
+      [ac_cv_ld_no_undefined=-Wl,--no-undefined])
+  fi
+  LDFLAGS="$SAVED_LDFLAGS"])
 
-AC_MSG_CHECKING([how to fail linking when undefined symbols remain])
-
-SAVED_LDFLAGS="$LDFLAGS"
-LDFLAGS="$SAVED_LDFLAGS -Wl,-z,defs"
-AC_LINK_IFELSE([AC_LANG_PROGRAM([], [int i = 1;])],
-  [UNDEF_FLAG=-Wl,-z,defs; AC_MSG_RESULT([yes (-z,defs)])], [])
-if test "x$UNDEF_FLAG" = "x"; then
-  LDFLAGS="$SAVED_LDFLAGS -Wl,--no-undefined"
-  AC_LINK_IFELSE([AC_LANG_PROGRAM([], [int i =1;])],
-    [UNDEF_FLAG=-Wl,--no-undefined,; AC_MSG_RESULT([yes (--no-undefined)])], [])
+UNDEF_FLAG=
+if test "x$ac_cv_ld_no_undefined" != xunknown; then
+  UNDEF_FLAG="$ac_cv_ld_no_undefined"
 fi
-LDFLAGS="$SAVED_LDFLAGS"
+AC_SUBST([UNDEF_FLAG])
 
-if test "x$UNDEF_FLAG" = "x"; then
-  FAIL_UNDEF=no
-  AC_MSG_RESULT(no)
+# FIXME: This only checks whether the linker accepts -Wl,-z,text.
+# It doesn't check that the switch actually does what we want it to do.
+AC_CACHE_CHECK([how to make linking fail when there are text relocations],
+  [ac_cv_ld_no_textrel], [
+  ac_cv_ld_no_textrel=unknown
+  SAVED_LDFLAGS="$LDFLAGS"
+  LDFLAGS="$SAVED_LDFLAGS -Wl,-z,text"
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([], [int i = 1;])],
+    [ac_cv_ld_no_textrel=-Wl,-z,text])
+  LDFLAGS="$SAVED_LDFLAGS"])
+
+TEXT_RELOC_FLAG=
+if test "x$ac_cv_ld_no_textrel" != xunknown; then
+  TEXT_RELOC_FLAG="$ac_cv_ld_no_textrel"
 fi
-
-AC_MSG_CHECKING([whether to fail linking when undefined symbols remain])
-AC_MSG_RESULT($FAIL_UNDEF)
-AM_CONDITIONAL(FAIL_UNDEF, test "x$FAIL_UNDEF" = "xyes")
-AC_SUBST(FAIL_UNDEF)
-AC_SUBST(UNDEF_FLAG)
-
-# check whether ld supports -z,text
-TEXT_RELOC=yes
-
-AC_MSG_CHECKING([whether the linker understands '-z,text'])
-
-SAVED_LDFLAGS="$LDFLAGS"
-LDFLAGS="$SAVED_LDFLAGS -Wl,-z,text"
-AC_LINK_IFELSE([AC_LANG_PROGRAM([], [int i = 1;])],
-  [TEXT_RELOC_FLAG=-Wl,-z,defs; AC_MSG_RESULT([yes])], [])
-LDFLAGS="$SAVED_LDFLAGS"
-
-if test "x$TEXT_RELOC_FLAG" = "x"; then
-  TEXT_RELOC=no
-  AC_MSG_RESULT(no)
-fi
-
-AM_CONDITIONAL(TEXT_RELOC, test "x$TEXT_RELOC" = "xyes")
-AC_SUBST(TEXT_RELOC)
-AC_SUBST(TEXT_RELOC_FLAG)
+AC_SUBST([TEXT_RELOC_FLAG])
 
 # Checks for library functions.
 AC_CHECK_FUNCS_ONCE([
