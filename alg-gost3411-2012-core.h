@@ -35,10 +35,10 @@ ALIGN(16) typedef union GOST34112012_uint512_u
 ALIGN(16) typedef struct GOST34112012Context
 {
     ALIGN(16) unsigned char buffer[64];
-    ALIGN(16) union GOST34112012_uint512_u hash;
-    ALIGN(16) union GOST34112012_uint512_u h;
-    ALIGN(16) union GOST34112012_uint512_u N;
-    ALIGN(16) union GOST34112012_uint512_u Sigma;
+    ALIGN(16) GOST34112012_uint512_u hash;
+    ALIGN(16) GOST34112012_uint512_u h;
+    ALIGN(16) GOST34112012_uint512_u N;
+    ALIGN(16) GOST34112012_uint512_u Sigma;
     size_t bufsize;
     unsigned int digest_size;
 } GOST34112012Context;
