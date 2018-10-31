@@ -154,6 +154,26 @@ AM_CONDITIONAL(FAIL_UNDEF, test "x$FAIL_UNDEF" = "xyes")
 AC_SUBST(FAIL_UNDEF)
 AC_SUBST(UNDEF_FLAG)
 
+# check whether ld supports -z,text
+TEXT_RELOC=yes
+
+AC_MSG_CHECKING([whether the linker understands '-z,text'])
+
+SAVED_LDFLAGS="$LDFLAGS"
+LDFLAGS="$SAVED_LDFLAGS -Wl,-z,text"
+AC_LINK_IFELSE([AC_LANG_PROGRAM([], [int i = 1;])],
+  [TEXT_RELOC_FLAG=-Wl,-z,defs; AC_MSG_RESULT([yes])], [])
+LDFLAGS="$SAVED_LDFLAGS"
+
+if test "x$TEXT_RELOC_FLAG" = "x"; then
+  TEXT_RELOC=no
+  AC_MSG_RESULT(no)
+fi
+
+AM_CONDITIONAL(TEXT_RELOC, test "x$TEXT_RELOC" = "xyes")
+AC_SUBST(TEXT_RELOC)
+AC_SUBST(TEXT_RELOC_FLAG)
+
 # Checks for library functions.
 AC_CHECK_FUNCS_ONCE([
   arc4random_buf
