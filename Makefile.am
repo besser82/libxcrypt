@@ -76,7 +76,7 @@ if HAVE_VSCRIPT
 libcrypt_la_LDFLAGS += $(VSCRIPT_LDFLAGS),$(builddir)/libcrypt.map
 endif
 
-libcrypt_la_LDFLAGS += -Wl,-z,defs -Wl,-z,text
+libcrypt_la_LDFLAGS += $(UNDEF_FLAG) -Wl,-z,text
 
 libcrypt_la_CPPFLAGS = $(AM_CPPFLAGS) -DIN_LIBCRYPT
 

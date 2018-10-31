@@ -127,6 +127,33 @@ zw_C_STATIC_ASSERT
 zw_PROG_LD_WRAP
 AX_CHECK_VSCRIPT
 
+# check how fail linking is undefined symbols remain
+FAIL_UNDEF=yes
+
+AC_MSG_CHECKING([how to fail linking when undefined symbols remain])
+
+SAVED_LDFLAGS="$LDFLAGS"
+LDFLAGS="$SAVED_LDFLAGS -Wl,-z,defs"
+AC_LINK_IFELSE([AC_LANG_PROGRAM([], [int i = 1;])],
+  [UNDEF_FLAG=-Wl,-z,defs; AC_MSG_RESULT([yes (-z,defs)])], [])
+if test "x$UNDEF_FLAG" = "x"; then
+  LDFLAGS="$SAVED_LDFLAGS -Wl,--no-undefined"
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([], [int i =1;])],
+    [UNDEF_FLAG=-Wl,--no-undefined,; AC_MSG_RESULT([yes (--no-undefined)])], [])
+fi
+LDFLAGS="$SAVED_LDFLAGS"
+
+if test "x$UNDEF_FLAG" = "x"; then
+  FAIL_UNDEF=no
+  AC_MSG_RESULT(no)
+fi
+
+AC_MSG_CHECKING([whether to fail linking when undefined symbols remain])
+AC_MSG_RESULT($FAIL_UNDEF)
+AM_CONDITIONAL(FAIL_UNDEF, test "x$FAIL_UNDEF" = "xyes")
+AC_SUBST(FAIL_UNDEF)
+AC_SUBST(UNDEF_FLAG)
+
 # Checks for library functions.
 AC_CHECK_FUNCS_ONCE([
   arc4random_buf
