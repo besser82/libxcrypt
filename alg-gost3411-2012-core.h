@@ -24,7 +24,7 @@
 #include "alg-gost3411-2012-ref.h"
 #endif
 
-ALIGN(16) union GOST34112012_uint512_u
+ALIGN(16) typedef union GOST34112012_uint512_u
 {
     unsigned long long QWORD[8];
 } GOST34112012_uint512_u;

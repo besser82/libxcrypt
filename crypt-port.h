@@ -399,7 +399,6 @@ _xcrypt_strcpy_or_abort (void *dst, const size_t d_size,
 #define GOST34112012Update     _crypt_GOST34112012_Update
 #define GOST34112012Final      _crypt_GOST34112012_Final
 #define GOST34112012Cleanup    _crypt_GOST34112012_Cleanup
-#define GOST34112012_uint512_u _crypt_GOST34112012_uint512_u
 #define gost_hash256           _crypt_gost_hash256
 #define gost_hmac256           _crypt_gost_hmac256
 

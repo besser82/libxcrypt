@@ -177,7 +177,7 @@ stage3(GOST34112012Context *CTX)
     g(&(CTX->h), &buffer0, (const unsigned char *) &(CTX->N));
 
     g(&(CTX->h), &buffer0, (const unsigned char *) &(CTX->Sigma));
-    memcpy(&(CTX->hash), &(CTX->h), sizeof GOST34112012_uint512_u);
+    memcpy(&(CTX->hash), &(CTX->h), sizeof (GOST34112012_uint512_u));
 }
 
 void
