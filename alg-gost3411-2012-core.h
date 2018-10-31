@@ -8,10 +8,12 @@
 #ifndef _CRYPT_ALG_GOST3411_2012_CORE_H
 #define _CRYPT_ALG_GOST3411_2012_CORE_H
 
+#ifndef ALIGN
 #if defined _MSC_VER
 #define ALIGN(x) __declspec(align(x))
 #else
 #define ALIGN(x) __attribute__ ((__aligned__(x)))
+#endif
 #endif
 
 #if defined   __GOST3411_HAS_SSE41__
