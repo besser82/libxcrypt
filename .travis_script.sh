@@ -21,7 +21,7 @@ if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
   ./bootstrap
   ./configure --disable-silent-rules --enable-shared --enable-static $CONF
   make -j$NPROCS
-  make install DESTDIR="/opt/libxcrypt"
+  make install DESTDIR="$(PWD)/install_test_libxcrypt"
   make check -j$NPROCS || (cat test-suite.log && exit 1)
   exit 0
 fi
