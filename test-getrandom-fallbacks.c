@@ -14,7 +14,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include <limits.h>
 
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>

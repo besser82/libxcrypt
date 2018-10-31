@@ -49,14 +49,6 @@ AC_SYS_LARGEFILE
 zw_SIMPLE_ENABLE_WARNINGS
 LT_INIT
 
-# Check for system's endianness
-AC_C_BIGENDIAN(
-  AC_DEFINE(XCRYPT_BE_ARCH, 1, [System is bigendian.]),
-  AC_DEFINE(XCRYPT_LE_ARCH, 1, [System is littleendian.]),
-  AC_MSG_WARN([Relying on macros defined in "crypt-port.h" to detect system's endianness.]),
-  AC_MSG_WARN([Relying on macros defined in "crypt-port.h" to detect system's endianness.])
-)
-
 # One of the test scripts needs to use -dD.
 AC_CACHE_CHECK([whether the preprocessor ($CPP) supports -dD],
   [ac_cv_prog_cc_dD],
@@ -127,6 +119,7 @@ fi
 zw_C_ALIGNAS
 zw_C_ALIGNOF
 zw_C_MAX_ALIGN_T
+zw_C_ENDIANNESS
 zw_C_STATIC_ASSERT
 zw_PROG_LD_WRAP
 AX_CHECK_VSCRIPT

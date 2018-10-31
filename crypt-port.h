@@ -32,11 +32,21 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
+#include <limits.h>
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
 #ifdef HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
+#endif
+#ifdef HAVE_ENDIAN_H
+#include <endian.h>
+#endif
+#ifdef HAVE_SYS_ENDIAN_H
+#include <sys/endian.h>
+#endif
+#ifdef HAVE_SYS_PARAM_H
+#include <sys/param.h>
 #endif
 
 #ifndef HAVE_SYS_CDEFS_THROW
@@ -62,81 +72,15 @@
 #define MIN_SIZE(x) (x)
 #endif
 
-/* Macros for detecting endianness of the system at compile time.  */
-#if !(defined XCRYPT_BE_ARCH || defined XCRYPT_LE_ARCH) && \
-     (defined __ARMEB__ || defined __THUMBEB__ || defined __AARCH64EB__ || \
-      defined _MIPSEB || defined __MIPSEB || defined __MIPSEB__ || \
-     (defined __BYTE_ORDER__ && defined __ORDER_BIG_ENDIAN__ && \
-         __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__) || \
-     (defined __BYTE_ORDER__ && defined __BIG_ENDIAN__ && \
-         __BYTE_ORDER__ == __BIG_ENDIAN__) || \
-     (defined __BYTE_ORDER && defined __ORDER_BIG_ENDIAN && \
-         __BYTE_ORDER == __ORDER_BIG_ENDIAN) || \
-     (defined __BYTE_ORDER && defined __BIG_ENDIAN && \
-         __BYTE_ORDER == __BIG_ENDIAN) || \
-     (defined BYTE_ORDER && defined ORDER_BIG_ENDIAN && \
-         BYTE_ORDER == ORDER_BIG_ENDIAN) || \
-     (defined BYTE_ORDER && defined BIG_ENDIAN && \
-         BYTE_ORDER == BIG_ENDIAN) || \
-     (defined __FLOAT_WORD_ORDER__ && defined __ORDER_BIG_ENDIAN__ && \
-         __FLOAT_WORD_ORDER__ == __ORDER_BIG_ENDIAN__) || \
-     (defined __FLOAT_WORD_ORDER__ && defined __BIG_ENDIAN__ && \
-         __FLOAT_WORD_ORDER__ == __BIG_ENDIAN__) || \
-     (defined __FLOAT_WORD_ORDER && defined __ORDER_BIG_ENDIAN && \
-         __FLOAT_WORD_ORDER == __ORDER_BIG_ENDIAN) || \
-     (defined __FLOAT_WORD_ORDER && defined __BIG_ENDIAN && \
-         __FLOAT_WORD_ORDER == __BIG_ENDIAN) || \
-     (defined FLOAT_WORD_ORDER && defined ORDER_BIG_ENDIAN && \
-         FLOAT_WORD_ORDER == ORDER_BIG_ENDIAN) || \
-     (defined FLOAT_WORD_ORDER && defined BIG_ENDIAN && \
-         FLOAT_WORD_ORDER == BIG_ENDIAN) || \
-      defined __BIG_ENDIAN__)
-#define XCRYPT_BE_ARCH 1
-#endif
-
-#if !(defined XCRYPT_BE_ARCH || defined XCRYPT_LE_ARCH) && \
-     (defined __ARMEL__ || defined __THUMBEL__ || defined __AARCH64EL__ || \
-      defined _MIPSEL || defined __MIPSEL || defined __MIPSEL__ || \
-     (defined __BYTE_ORDER__ && defined __ORDER_LITTLE_ENDIAN__ && \
-         __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__) || \
-     (defined __BYTE_ORDER__ && defined __LITTLE_ENDIAN__ && \
-         __BYTE_ORDER__ == __LITTLE_ENDIAN__) || \
-     (defined __BYTE_ORDER && defined __ORDER_LITTLE_ENDIAN && \
-         __BYTE_ORDER == __ORDER_LITTLE_ENDIAN) || \
-     (defined __BYTE_ORDER && defined __LITTLE_ENDIAN && \
-         __BYTE_ORDER == __LITTLE_ENDIAN) || \
-     (defined BYTE_ORDER && defined ORDER_LITTLE_ENDIAN && \
-         BYTE_ORDER == ORDER_LITTLE_ENDIAN) || \
-     (defined BYTE_ORDER && defined LITTLE_ENDIAN && \
-         BYTE_ORDER == LITTLE_ENDIAN) || \
-     (defined __FLOAT_WORD_ORDER__ && defined __ORDER_LITTLE_ENDIAN__ && \
-         __FLOAT_WORD_ORDER__ == __ORDER_LITTLE_ENDIAN__) || \
-     (defined __FLOAT_WORD_ORDER__ && defined __LITTLE_ENDIAN__ && \
-         __FLOAT_WORD_ORDER__ == __LITTLE_ENDIAN__) || \
-     (defined __FLOAT_WORD_ORDER && defined __ORDER_LITTLE_ENDIAN && \
-         __FLOAT_WORD_ORDER == __ORDER_LITTLE_ENDIAN) || \
-     (defined __FLOAT_WORD_ORDER && defined __LITTLE_ENDIAN && \
-         __FLOAT_WORD_ORDER == __LITTLE_ENDIAN) || \
-     (defined FLOAT_WORD_ORDER && defined ORDER_LITTLE_ENDIAN && \
-         FLOAT_WORD_ORDER == ORDER_LITTLE_ENDIAN) || \
-     (defined FLOAT_WORD_ORDER && defined LITTLE_ENDIAN && \
-         FLOAT_WORD_ORDER == LITTLE_ENDIAN) || \
-      defined __LITTLE_ENDIAN__)
-#define XCRYPT_LE_ARCH 1
-#endif
-
-#if defined(XCRYPT_BE_ARCH) && !defined(XCRYPT_LE_ARCH) && !defined(XCRYPT_USE_BIGENDIAN)
+/* Detect system endianness.  */
+#if ENDIANNESS_IS_BIG
 # define XCRYPT_USE_BIGENDIAN 1
-#endif
-#if defined(XCRYPT_LE_ARCH) && !defined(XCRYPT_BE_ARCH) && !defined(XCRYPT_USE_BIGENDIAN)
+#elif ENDIANNESS_IS_LITTLE
 # define XCRYPT_USE_BIGENDIAN 0
-#endif
-
-#if defined(XCRYPT_BE_ARCH) && defined(XCRYPT_LE_ARCH)
-# error "Cannot compile libxcrypt on a system which has different endians the same time!"
-#endif
-#if !defined(XCRYPT_USE_BIGENDIAN)
-# error "Cannot compile libxcrypt on a system with unknown endianness!"
+#elif ENDIANNESS_IS_PDP
+# error "Byte-order sensitive code in libxcrypt does not support PDP-endianness"
+#else
+# error "Unable to determine byte ordering"
 #endif
 
 /* static_assert shim.  */
@@ -168,8 +112,11 @@ typedef union
 } max_align_t;
 #endif
 
-/* Several files expect the traditional definitions of these macros.  */
+/* Several files expect the traditional definitions of these macros.
+   (We don't trust sys/param.h to define them correctly.)  */
+#undef MIN
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#undef MAX
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
 /* ARRAY_SIZE is used in tests.  */

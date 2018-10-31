@@ -21,7 +21,6 @@
 
 #include <errno.h>
 #include <stdlib.h>
-#include <limits.h>
 
 /* The internal storage area within struct crypt_data is used as
    follows.  We don't know what alignment the algorithm modules will

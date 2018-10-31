@@ -3,7 +3,6 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <limits.h>
 
 static const char *const entropy[] =
 {
