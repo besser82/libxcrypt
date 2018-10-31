@@ -28,7 +28,11 @@ AC_PROG_CC
 
 # Dependencies
 PKG_PROG_PKG_CONFIG
-PKG_INSTALLDIR
+if $PKG_CONFIG --atleast-pkgconfig-version 0.27; then
+  PKG_INSTALLDIR
+else
+  PKG_INSTALLDIR_COMPAT
+fi
 
 # C99 language and library features are used unconditionally.
 # Don't even try to build with an older compiler.

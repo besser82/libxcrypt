@@ -5,9 +5,6 @@ if [[ "$PERFORM_COVERITY_SCAN" == "1" ]]; then
   echo -n | openssl s_client -connect 'scan.coverity.com:443' | \
   sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | \
   sudo tee -a /etc/ssl/certs/ca-
-  curl 'http://de.archive.ubuntu.com/ubuntu/pool/main/p/pkg-config/pkg-config_0.29.1-0ubuntu1_amd64.deb' \
-    --output /tmp/pkg-config_0.29.1-0ubuntu1_amd64.deb
-  sudo apt --yes install /tmp/pkg-config_0.29.1-0ubuntu1_amd64.deb
   exit 0
 fi
 
