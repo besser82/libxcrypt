@@ -264,7 +264,7 @@ static void memxor(unsigned char *dst, unsigned char *src, size_t size)
 		*dst++ ^= *src++;
 }
 
-static void encrypt(unsigned char *data, size_t datalen,
+static void yescrypt_sha256_cipher(unsigned char *data, size_t datalen,
     const yescrypt_binary_t *key, encrypt_dir_t dir)
 {
 	SHA256_CTX ctx;
@@ -443,7 +443,7 @@ uint8_t *yescrypt_r(const yescrypt_shared_t *shared, yescrypt_local_t *local,
 		salt = saltbin;
 
 		if (key)
-			encrypt(saltbin, saltlen, key, ENC);
+			yescrypt_sha256_cipher(saltbin, saltlen, key, ENC);
 	}
 
 	need = prefixlen + saltstrlen + 1 + HASH_LEN + 1;
@@ -456,7 +456,7 @@ uint8_t *yescrypt_r(const yescrypt_shared_t *shared, yescrypt_local_t *local,
 
 	if (key) {
 		insecure_memzero(saltbin, sizeof(saltbin));
-		encrypt(hashbin, sizeof(hashbin), key, ENC);
+		yescrypt_sha256_cipher(hashbin, sizeof(hashbin), key, ENC);
 	}
 
 	dst = buf;
