@@ -56,7 +56,7 @@ struct des_ctx
 };
 
 extern void des_set_key (struct des_ctx *restrict ctx,
-                         const unsigned char *key);
+                         const unsigned char key[MIN_SIZE(8)]);
 extern void des_set_salt (struct des_ctx *restrict ctx,
                           uint32_t salt);
 extern void des_crypt_block (struct des_ctx *restrict ctx,

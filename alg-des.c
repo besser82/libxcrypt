@@ -71,13 +71,14 @@ static const uint8_t key_shifts[16] =
 };
 
 void
-des_set_key (struct des_ctx *restrict ctx, const unsigned char *key)
+des_set_key (struct des_ctx *restrict ctx,
+             const unsigned char key[MIN_SIZE(8)])
 {
   uint32_t rawkey0, rawkey1, k0, k1, t0, t1;
   int shifts, round;
 
-  rawkey0 = be32_to_cpu (key);
-  rawkey1 = be32_to_cpu (key + 4);
+  rawkey0 = be32_to_cpu (&key[0]);
+  rawkey1 = be32_to_cpu (&key[4]);
 
   /* Do key permutation and split into two 28-bit subkeys.  */
   k0 = key_perm_maskl[0][rawkey0 >> 25]
