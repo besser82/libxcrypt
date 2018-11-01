@@ -46,7 +46,7 @@ libcrypt_la_SOURCES = \
 	crypt-gensalt-static.c crypt-gensalt.c crypt-gost-yescrypt.c \
 	crypt-md5.c crypt-nthash.c crypt-pbkdf1-sha1.c crypt-scrypt.c \
 	crypt-sha256.c crypt-sha512.c crypt-static.c crypt-sunmd5.c \
-	crypt-yescrypt.c randombytes.c
+	crypt-yescrypt.c randombytes.c crypt-common.c
 
 EXTRA_DIST += alg-yescrypt-platform.c
 
@@ -220,7 +220,7 @@ test_crypt_sunmd5_LDADD = libcrypt.la
 test_crypt_yescrypt_LDADD = libcrypt.la
 test_badsalt_LDADD = libcrypt.la
 test_badsetting_LDADD = libcrypt.la
-test_gensalt_LDADD = libcrypt.la
+test_gensalt_LDADD = crypt-common.lo libcrypt.la
 test_des_obsolete_LDADD = libcrypt.la
 test_des_obsolete_r_LDADD = libcrypt.la
 test_crypt_badargs_LDADD = libcrypt.la
@@ -243,7 +243,7 @@ test_alg_sha512_LDADD = alg-sha512.lo
 test_crypt_gost_yescrypt_LDADD = alg-gost3411-2012-core.lo \
 	alg-gost3411-2012-hmac.lo alg-sha256.lo \
 	alg-yescrypt-common.lo alg-yescrypt-opt.lo \
-	crypt-yescrypt.lo libcrypt.la
+	crypt-yescrypt.lo crypt-common.lo libcrypt.la
 
 test_getrandom_interface_LDADD = randombytes.lo
 test_getrandom_fallbacks_LDADD = randombytes.lo

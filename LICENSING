@@ -53,7 +53,7 @@ source tree.  For specific licensing terms consult the files themselves.
    crypt-scrypt.c
 
  * Copyright Björn Esser; 0-clause BSD:
-   test-compile-strong-alias.c test-short-outbuf.c
+   crypt-common.c test-compile-strong-alias.c test-short-outbuf.c
 
  * Copyright Michael Bretterklieber, Björn Esser et al.; 2-clause BSD:
    crypt-nthash.c
