@@ -8,12 +8,10 @@
 #ifndef _CRYPT_ALG_GOST3411_2012_CORE_H
 #define _CRYPT_ALG_GOST3411_2012_CORE_H
 
-#ifndef ALIGN
 #if defined _MSC_VER
-#define ALIGN(x) __declspec(align(x))
+#define GOST3411_ALIGN(x) __declspec(align(x))
 #else
-#define ALIGN(x) __attribute__ ((__aligned__(x)))
-#endif
+#define GOST3411_ALIGN(x) __attribute__ ((__aligned__(x)))
 #endif
 
 #if defined   __GOST3411_HAS_SSE41__
@@ -26,7 +24,7 @@
 #include "alg-gost3411-2012-ref.h"
 #endif
 
-ALIGN(16) typedef union gost34112012_uint512_u
+GOST3411_ALIGN(16) typedef union gost34112012_uint512_u
 {
     unsigned long long QWORD[8];
 } gost34112012_uint512_u;
@@ -34,13 +32,13 @@ ALIGN(16) typedef union gost34112012_uint512_u
 #include "alg-gost3411-2012-const.h"
 #include "alg-gost3411-2012-precalc.h"
 
-ALIGN(16) typedef struct GOST34112012Context
+GOST3411_ALIGN(16) typedef struct GOST34112012Context
 {
-    ALIGN(16) unsigned char buffer[64];
-    ALIGN(16) gost34112012_uint512_u hash;
-    ALIGN(16) gost34112012_uint512_u h;
-    ALIGN(16) gost34112012_uint512_u N;
-    ALIGN(16) gost34112012_uint512_u Sigma;
+    GOST3411_ALIGN(16) unsigned char buffer[64];
+    GOST3411_ALIGN(16) gost34112012_uint512_u hash;
+    GOST3411_ALIGN(16) gost34112012_uint512_u h;
+    GOST3411_ALIGN(16) gost34112012_uint512_u N;
+    GOST3411_ALIGN(16) gost34112012_uint512_u Sigma;
     size_t bufsize;
     unsigned int digest_size;
 } GOST34112012Context;
