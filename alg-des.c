@@ -81,19 +81,19 @@ des_set_key (struct des_ctx *restrict ctx,
   rawkey1 = be32_to_cpu (&key[4]);
 
   /* Do key permutation and split into two 28-bit subkeys.  */
-  k0 = key_perm_maskl[0][rawkey0 >> 25]
+  k0 = key_perm_maskl[0][(rawkey0 >> 25) & 0x7f]
        | key_perm_maskl[1][(rawkey0 >> 17) & 0x7f]
        | key_perm_maskl[2][(rawkey0 >> 9) & 0x7f]
        | key_perm_maskl[3][(rawkey0 >> 1) & 0x7f]
-       | key_perm_maskl[4][rawkey1 >> 25]
+       | key_perm_maskl[4][(rawkey1 >> 25) & 0x7f]
        | key_perm_maskl[5][(rawkey1 >> 17) & 0x7f]
        | key_perm_maskl[6][(rawkey1 >> 9) & 0x7f]
        | key_perm_maskl[7][(rawkey1 >> 1) & 0x7f];
-  k1 = key_perm_maskr[0][rawkey0 >> 25]
+  k1 = key_perm_maskr[0][(rawkey0 >> 25) & 0x7f]
        | key_perm_maskr[1][(rawkey0 >> 17) & 0x7f]
        | key_perm_maskr[2][(rawkey0 >> 9) & 0x7f]
        | key_perm_maskr[3][(rawkey0 >> 1) & 0x7f]
-       | key_perm_maskr[4][rawkey1 >> 25]
+       | key_perm_maskr[4][(rawkey1 >> 25) & 0x7f]
        | key_perm_maskr[5][(rawkey1 >> 17) & 0x7f]
        | key_perm_maskr[6][(rawkey1 >> 9) & 0x7f]
        | key_perm_maskr[7][(rawkey1 >> 1) & 0x7f];
