@@ -22,6 +22,10 @@ AH_TOP(
 AH_BOTTOM(
 [#endif /* config.h */])
 
+# PKG_INSTALLDIR may not be defined, but we have a
+# compatibility replacement.
+m4_pattern_allow([PKG_INSTALLDIR])
+
 # Checks for programs.
 AC_CANONICAL_HOST
 AC_PROG_CC
