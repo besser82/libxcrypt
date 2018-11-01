@@ -1086,9 +1086,17 @@ static void smix(uint8_t *B, size_t r, uint32_t N, uint32_t p, uint32_t t,
 				HMAC_SHA256_Buf(Bp + (128 * r - 64), 64,
 				    passwd, 32, passwd);
 		}
-		smix1(Bp, r, Np, flags, Vp, NROM, VROM, XYp, ctx_i);
-		smix2(Bp, r, p2floor(Np), Nloop_rw, flags, Vp,
-		    NROM, VROM, XYp, ctx_i);
+		if (ctx_i) {
+			smix1(Bp, r, Np, flags, Vp, NROM, VROM,
+			    XYp, ctx_i);
+			smix2(Bp, r, p2floor(Np), Nloop_rw, flags, Vp,
+			    NROM, VROM, XYp, ctx_i);
+		} else {
+			smix1(Bp, r, Np, flags, Vp, 0, NULL,
+			    XYp, NULL);
+			smix2(Bp, r, p2floor(Np), Nloop_rw, flags, Vp,
+			    0, NULL, XYp, NULL);
+		}
 	}
 
 	if (Nloop_all > Nloop_rw) {
