@@ -66,11 +66,7 @@ static void *alloc_region(yescrypt_region_t *region, size_t size)
 	if (base == MAP_FAILED)
 		base = NULL;
 	aligned = base;
-#elif defined(HAVE_POSIX_MEMALIGN)
-	if ((errno = posix_memalign((void **)&base, 64, size)) != 0)
-		base = NULL;
-	aligned = base;
-#else
+#else /* mmap not available */
 	base = aligned = NULL;
 	if (size + 63 < size) {
 		errno = ENOMEM;

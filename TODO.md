@@ -21,11 +21,6 @@ It was last updated 20 October 2018.
   * Make sure the symbol versioning macros work with all of the
     compilers that anyone needs (they use GCC extensions that clang
     also supports).
-  * `alg-yescrypt-common.c` contains #ifdeffage for use of
-    `posix_memalign` that isn’t wired up to autoconf
-    * possibly this should just be removed; does anything have
-      `posix_memalign` but not `mmap`? it’s only a compile-time
-      fallback, not a runtime fallback
 
 * Hardening
   * bcrypt-like selftest/memory scribble for all hashing methods
