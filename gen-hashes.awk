@@ -156,8 +156,6 @@ END {
     print ""
     if (hash_enabled[default_hash]) {
         print "#define HASH_ALGORITHM_DEFAULT \"" default_prefix "\""
-    } else {
-        print "#define HASH_ALGORITHM_DEFAULT 0"
     }
     print ""
     print "#endif /* crypt-hashes.h */"

@@ -263,14 +263,16 @@ crypt_gensalt_rn (const char *prefix, unsigned long count,
 
   /* If the prefix is 0, that means to use the current best default.
      Note that this is different from the behavior when the prefix is
-     "", which selects DES.  HASH_ALGORITHM_DEFAULT is null when the
-     current default algorithm was disabled at configure time.  */
-  if (!prefix)
-    prefix = HASH_ALGORITHM_DEFAULT;
+     "", which selects DES.  HASH_ALGORITHM_DEFAULT is not defined when
+     the current default algorithm was disabled at configure time.  */
   if (!prefix)
     {
+#if defined HASH_ALGORITHM_DEFAULT
+      prefix = HASH_ALGORITHM_DEFAULT;
+#else
       errno = EINVAL;
       return 0;
+#endif
     }
 
   const struct hashfn *h = get_hashfn (prefix);
