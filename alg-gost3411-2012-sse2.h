@@ -42,10 +42,10 @@
 
 #define UNLOAD(P, xmm0, xmm1, xmm2, xmm3) { \
     __m128i *__m128p = (__m128i *) &P[0]; \
-    _mm_store_si128(&__m128p[0], xmm0); \
-    _mm_store_si128(&__m128p[1], xmm1); \
-    _mm_store_si128(&__m128p[2], xmm2); \
-    _mm_store_si128(&__m128p[3], xmm3); \
+    _mm_storeu_si128(&__m128p[0], xmm0); \
+    _mm_storeu_si128(&__m128p[1], xmm1); \
+    _mm_storeu_si128(&__m128p[2], xmm2); \
+    _mm_storeu_si128(&__m128p[3], xmm3); \
 }
 
 #define X128R(xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7) { \
