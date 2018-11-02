@@ -797,21 +797,13 @@ static inline uint32_t integerify(const salsa20_blk_t *B, size_t r)
 }
 
 /**
- * smix1(B, r, N, flags, V, NROM, VROM, XY, ctx):
- * Compute first loop of B = SMix_r(B, N).  The input B must be 128r bytes in
- * length; the temporary storage V must be 128rN bytes in length; the temporary
- * storage XY must be 128r+64 bytes in length.  N must be even and at least 4.
- * The array V must be aligned to a multiple of 64 bytes, and arrays B and XY
- * to a multiple of at least 16 bytes.
+ * smix_init(B, r, X, Y)
+ * Perform the initial round of decodes and salsa20 shuffles used by both
+ * smix1 and smix2.
  */
-static void smix1(uint8_t *B, size_t r, uint32_t N, yescrypt_flags_t flags,
-    salsa20_blk_t *V, uint32_t NROM, const salsa20_blk_t *VROM,
-    salsa20_blk_t *XY, pwxform_ctx_t *ctx)
+static void smix_init(uint8_t *B, size_t r, salsa20_blk_t *X, salsa20_blk_t *Y)
 {
-	size_t s = 2 * r;
-	salsa20_blk_t *X = V, *Y = &V[s];
-	uint32_t i, j;
-
+	uint32_t i;
 	for (i = 0; i < 2 * r; i++) {
 		const salsa20_blk_t *src = (salsa20_blk_t *)&B[i * 64];
 		salsa20_blk_t *tmp = Y;
@@ -820,173 +812,17 @@ static void smix1(uint8_t *B, size_t r, uint32_t N, yescrypt_flags_t flags,
 		for (k = 0; k < 16; k++)
 			tmp->w[k] = le32dec(&src->w[k]);
 		salsa20_simd_shuffle(tmp, dst);
-	}
-
-	if (VROM) {
-		uint32_t n;
-		const salsa20_blk_t *V_j;
-
-		V_j = &VROM[(NROM - 1) * s];
-		j = blockmix_xor(X, V_j, Y, r, 1, ctx) & (NROM - 1);
-		V_j = &VROM[j * s];
-		X = Y + s;
-		j = blockmix_xor(Y, V_j, X, r, 1, ctx);
-
-		for (n = 2; n < N; n <<= 1) {
-			uint32_t m = (n < N / 2) ? n : (N - 1 - n);
-			for (i = 1; i < m; i += 2) {
-				j &= n - 1;
-				j += i - 1;
-				V_j = &V[j * s];
-				Y = X + s;
-				j = blockmix_xor(X, V_j, Y, r, 0, ctx) & (NROM - 1);
-				V_j = &VROM[j * s];
-				X = Y + s;
-				j = blockmix_xor(Y, V_j, X, r, 1, ctx);
-			}
-		}
-		n >>= 1;
-
-		j &= n - 1;
-		j += N - 2 - n;
-		V_j = &V[j * s];
-		Y = X + s;
-		j = blockmix_xor(X, V_j, Y, r, 0, ctx) & (NROM - 1);
-		V_j = &VROM[j * s];
-		blockmix_xor(Y, V_j, XY, r, 1, ctx);
-	} else if (flags & YESCRYPT_RW) {
-		uint32_t n;
-		salsa20_blk_t *V_j;
-
-		blockmix(X, Y, r, ctx);
-		X = Y + s;
-		blockmix(Y, X, r, ctx);
-		j = integerify(X, r);
-
-		for (n = 2; n < N; n <<= 1) {
-			uint32_t m = (n < N / 2) ? n : (N - 1 - n);
-			for (i = 1; i < m; i += 2) {
-				Y = X + s;
-				j &= n - 1;
-				j += i - 1;
-				V_j = &V[j * s];
-				j = blockmix_xor(X, V_j, Y, r, 0, ctx);
-				j &= n - 1;
-				j += i;
-				V_j = &V[j * s];
-				X = Y + s;
-				j = blockmix_xor(Y, V_j, X, r, 0, ctx);
-			}
-		}
-		n >>= 1;
-
-		j &= n - 1;
-		j += N - 2 - n;
-		V_j = &V[j * s];
-		Y = X + s;
-		j = blockmix_xor(X, V_j, Y, r, 0, ctx);
-		j &= n - 1;
-		j += N - 1 - n;
-		V_j = &V[j * s];
-		blockmix_xor(Y, V_j, XY, r, 0, ctx);
-	} else {
-		N -= 2;
-		do {
-			blockmix_salsa8(X, Y, r);
-			X = Y + s;
-			blockmix_salsa8(Y, X, r);
-			Y = X + s;
-		} while ((N -= 2));
-
-		blockmix_salsa8(X, Y, r);
-		blockmix_salsa8(Y, XY, r);
-	}
-
-	for (i = 0; i < 2 * r; i++) {
-		const salsa20_blk_t *src = &XY[i];
-		salsa20_blk_t *tmp = &XY[s];
-		salsa20_blk_t *dst = (salsa20_blk_t *)&B[i * 64];
-		size_t k;
-		for (k = 0; k < 16; k++)
-			le32enc(&tmp->w[k], src->w[k]);
-		salsa20_simd_unshuffle(tmp, dst);
 	}
 }
 
 /**
- * smix2(B, r, N, Nloop, flags, V, NROM, VROM, XY, ctx):
- * Compute second loop of B = SMix_r(B, N).  The input B must be 128r bytes in
- * length; the temporary storage V must be 128rN bytes in length; the temporary
- * storage XY must be 256r bytes in length.  N must be a power of 2 and at
- * least 2.  Nloop must be even.  The array V must be aligned to a multiple of
- * 64 bytes, and arrays B and XY to a multiple of at least 16 bytes.
+ * smix_final(B, r, X, Y)
+ * Perform the final round of encodes and salsa20 unshuffles used by both
+ * smix1 and smix2.
  */
-static void smix2(uint8_t *B, size_t r, uint32_t N, uint64_t Nloop,
-    yescrypt_flags_t flags, salsa20_blk_t *V, uint32_t NROM,
-    const salsa20_blk_t *VROM, salsa20_blk_t *XY, pwxform_ctx_t *ctx)
+static void smix_final(uint8_t *B, size_t r, salsa20_blk_t *X, salsa20_blk_t *Y)
 {
-	size_t s = 2 * r;
-	salsa20_blk_t *X = XY, *Y = &XY[s];
-	uint32_t i, j;
-
-	if (Nloop == 0)
-		return;
-
-	for (i = 0; i < 2 * r; i++) {
-		const salsa20_blk_t *src = (salsa20_blk_t *)&B[i * 64];
-		salsa20_blk_t *tmp = Y;
-		salsa20_blk_t *dst = &X[i];
-		size_t k;
-		for (k = 0; k < 16; k++)
-			tmp->w[k] = le32dec(&src->w[k]);
-		salsa20_simd_shuffle(tmp, dst);
-	}
-
-	j = integerify(X, r) & (N - 1);
-
-/*
- * Normally, VROM implies YESCRYPT_RW, but we check for these separately
- * because our SMix resets YESCRYPT_RW for the smix2() calls operating on the
- * entire V when p > 1.
- */
-	if (VROM && (flags & YESCRYPT_RW)) {
-		do {
-			salsa20_blk_t *V_j = &V[j * s];
-			const salsa20_blk_t *VROM_j;
-			j = blockmix_xor_save(X, V_j, r, ctx) & (NROM - 1);
-			VROM_j = &VROM[j * s];
-			j = blockmix_xor(X, VROM_j, X, r, 1, ctx) & (N - 1);
-		} while (Nloop -= 2);
-	} else if (VROM) {
-		do {
-			const salsa20_blk_t *V_j = &V[j * s];
-			j = blockmix_xor(X, V_j, X, r, 0, ctx) & (NROM - 1);
-			V_j = &VROM[j * s];
-			j = blockmix_xor(X, V_j, X, r, 1, ctx) & (N - 1);
-		} while (Nloop -= 2);
-	} else if (flags & YESCRYPT_RW) {
-		do {
-			salsa20_blk_t *V_j = &V[j * s];
-			j = blockmix_xor_save(X, V_j, r, ctx) & (N - 1);
-			V_j = &V[j * s];
-			j = blockmix_xor_save(X, V_j, r, ctx) & (N - 1);
-		} while (Nloop -= 2);
-	} else if (ctx) {
-		do {
-			const salsa20_blk_t *V_j = &V[j * s];
-			j = blockmix_xor(X, V_j, X, r, 0, ctx) & (N - 1);
-			V_j = &V[j * s];
-			j = blockmix_xor(X, V_j, X, r, 0, ctx) & (N - 1);
-		} while (Nloop -= 2);
-	} else {
-		do {
-			const salsa20_blk_t *V_j = &V[j * s];
-			j = blockmix_salsa8_xor(X, V_j, Y, r) & (N - 1);
-			V_j = &V[j * s];
-			j = blockmix_salsa8_xor(Y, V_j, X, r) & (N - 1);
-		} while (Nloop -= 2);
-	}
-
+	uint32_t i;
 	for (i = 0; i < 2 * r; i++) {
 		const salsa20_blk_t *src = &X[i];
 		salsa20_blk_t *tmp = Y;
@@ -996,6 +832,316 @@ static void smix2(uint8_t *B, size_t r, uint32_t N, uint64_t Nloop,
 			le32enc(&tmp->w[k], src->w[k]);
 		salsa20_simd_unshuffle(tmp, dst);
 	}
+
+}
+
+/**
+ * smix1_rom(B, r, N, V, NROM, VROM, XY, ctx):
+ * Compute first loop of B = SMix_r(B, N) with a ROM present.
+ * The input B must be 128r bytes in length; the temporary storage V
+ * must be 128rN bytes in length; the temporary storage XY must be
+ * 128r+64 bytes in length.  N must be even and at least 4.  The array
+ * V must be aligned to a multiple of 64 bytes, and arrays B and XY to
+ * a multiple of at least 16 bytes.
+ */
+static void smix1_rom(uint8_t *B, size_t r, uint32_t N,
+    salsa20_blk_t *V, uint32_t NROM, const salsa20_blk_t *VROM,
+    salsa20_blk_t *XY, pwxform_ctx_t *ctx)
+{
+	size_t s = 2 * r;
+	salsa20_blk_t *X = V, *Y = &V[s];
+	uint32_t i, j;
+
+	smix_init(B, r, X, Y);
+
+	uint32_t n;
+	const salsa20_blk_t *V_j;
+
+	V_j = &VROM[(NROM - 1) * s];
+	j = blockmix_xor(X, V_j, Y, r, 1, ctx) & (NROM - 1);
+	V_j = &VROM[j * s];
+	X = Y + s;
+	j = blockmix_xor(Y, V_j, X, r, 1, ctx);
+
+	for (n = 2; n < N; n <<= 1) {
+		uint32_t m = (n < N / 2) ? n : (N - 1 - n);
+		for (i = 1; i < m; i += 2) {
+			j &= n - 1;
+			j += i - 1;
+			V_j = &V[j * s];
+			Y = X + s;
+			j = blockmix_xor(X, V_j, Y, r, 0, ctx) & (NROM - 1);
+			V_j = &VROM[j * s];
+			X = Y + s;
+			j = blockmix_xor(Y, V_j, X, r, 1, ctx);
+		}
+	}
+	n >>= 1;
+
+	j &= n - 1;
+	j += N - 2 - n;
+	V_j = &V[j * s];
+	Y = X + s;
+	j = blockmix_xor(X, V_j, Y, r, 0, ctx) & (NROM - 1);
+	V_j = &VROM[j * s];
+	blockmix_xor(Y, V_j, XY, r, 1, ctx);
+	smix_final(B, r, XY, &XY[s]);
+}
+
+/**
+ * smix1_rw(B, r, N, V, XY, ctx):
+ * Compute first loop of B = SMix_r(B, N) in YESCRYPT_RW mode with no ROM.
+ * The input B must be 128r bytes in length; the temporary storage V
+ * must be 128rN bytes in length; the temporary storage XY must be
+ * 128r+64 bytes in length.  N must be even and at least 4.  The array
+ * V must be aligned to a multiple of 64 bytes, and arrays B and XY to
+ * a multiple of at least 16 bytes.
+ */
+static void smix1_rw(uint8_t *B, size_t r, uint32_t N,
+    salsa20_blk_t *V, salsa20_blk_t *XY, pwxform_ctx_t *ctx)
+{
+	size_t s = 2 * r;
+	salsa20_blk_t *X = V, *Y = &V[s];
+	uint32_t i, j;
+
+	smix_init(B, r, X, Y);
+
+	uint32_t n;
+	salsa20_blk_t *V_j;
+
+	blockmix(X, Y, r, ctx);
+	X = Y + s;
+	blockmix(Y, X, r, ctx);
+	j = integerify(X, r);
+
+	for (n = 2; n < N; n <<= 1) {
+		uint32_t m = (n < N / 2) ? n : (N - 1 - n);
+		for (i = 1; i < m; i += 2) {
+			Y = X + s;
+			j &= n - 1;
+			j += i - 1;
+			V_j = &V[j * s];
+			j = blockmix_xor(X, V_j, Y, r, 0, ctx);
+			j &= n - 1;
+			j += i;
+			V_j = &V[j * s];
+			X = Y + s;
+			j = blockmix_xor(Y, V_j, X, r, 0, ctx);
+		}
+	}
+	n >>= 1;
+
+	j &= n - 1;
+	j += N - 2 - n;
+	V_j = &V[j * s];
+	Y = X + s;
+	j = blockmix_xor(X, V_j, Y, r, 0, ctx);
+	j &= n - 1;
+	j += N - 1 - n;
+	V_j = &V[j * s];
+	blockmix_xor(Y, V_j, XY, r, 0, ctx);
+
+	smix_final(B, r, XY, &XY[s]);
+}
+
+/**
+ * smix1_worm(B, r, N, V, XY):
+ * Compute first loop of B = SMix_r(B, N) in YESCRYPT_WORM or classic
+ * scrypt mode.
+ * The input B must be 128r bytes in length; the temporary storage V
+ * must be 128rN bytes in length; the temporary storage XY must be
+ * 128r+64 bytes in length.  N must be even and at least 4.  The array
+ * V must be aligned to a multiple of 64 bytes, and arrays B and XY to
+ * a multiple of at least 16 bytes.
+ */
+static void smix1_worm(uint8_t *B, size_t r, uint32_t N,
+    salsa20_blk_t *V, salsa20_blk_t *XY)
+{
+	size_t s = 2 * r;
+	salsa20_blk_t *X = V, *Y = &V[s];
+
+	smix_init(B, r, X, Y);
+
+	N -= 2;
+	do {
+		blockmix_salsa8(X, Y, r);
+		X = Y + s;
+		blockmix_salsa8(Y, X, r);
+		Y = X + s;
+	} while ((N -= 2));
+
+	blockmix_salsa8(X, Y, r);
+	blockmix_salsa8(Y, XY, r);
+
+	smix_final(B, r, XY, &XY[s]);
+}
+
+
+/**
+ * smix2_rom(B, r, N, Nloop, V, NROM, VROM, XY, ctx):
+ * Compute second loop of B = SMix_r(B, N) in YESCRYPT_RW mode with a ROM.
+ * The input B must be 128r bytes in length; the temporary storage V must be
+ * 128rN bytes in length; the temporary storage XY must be 256r bytes in
+ * length.  N must be a power of 2 and at least 2.  Nloop must be even.  The
+ * array V must be aligned to a multiple of 64 bytes, and arrays B and XY to a
+ * multiple of at least 16 bytes.
+ */
+static void smix2_rom(uint8_t *B, size_t r, uint32_t N, uint64_t Nloop,
+    salsa20_blk_t *V, uint32_t NROM, const salsa20_blk_t *VROM,
+    salsa20_blk_t *XY, pwxform_ctx_t *ctx)
+{
+	size_t s = 2 * r;
+	salsa20_blk_t *X = XY, *Y = &XY[s];
+	uint32_t j;
+
+	if (Nloop == 0)
+		return;
+
+	smix_init(B, r, X, Y);
+	j = integerify(X, r) & (N - 1);
+
+	do {
+		salsa20_blk_t *V_j = &V[j * s];
+		const salsa20_blk_t *VROM_j;
+		j = blockmix_xor_save(X, V_j, r, ctx) & (NROM - 1);
+		VROM_j = &VROM[j * s];
+		j = blockmix_xor(X, VROM_j, X, r, 1, ctx) & (N - 1);
+	} while (Nloop -= 2);
+
+	smix_final(B, r, X, Y);
+}
+
+/**
+ * smix2_romro(B, r, N, Nloop, V, NROM, VROM, XY, ctx):
+ * Compute second loop of B = SMix_r(B, N) in pseudo-WORM mode with ROM and
+ * context.  (This is used only when Nloop_all > Nloop_rw, i.e. for the
+ * smix2() calls operating on the entire V when p > 1.)
+ * The input B must be 128r bytes in length; the temporary storage V must be
+ * 128rN bytes in length; the temporary storage XY must be 256r bytes in
+ * length.  N must be a power of 2 and at least 2.  Nloop must be even.  The
+ * array V must be aligned to a multiple of 64 bytes, and arrays B and XY to a
+ * multiple of at least 16 bytes.
+ */
+static void smix2_romro(uint8_t *B, size_t r, uint32_t N, uint64_t Nloop,
+    salsa20_blk_t *V, uint32_t NROM, const salsa20_blk_t *VROM,
+    salsa20_blk_t *XY, pwxform_ctx_t *ctx)
+{
+	size_t s = 2 * r;
+	salsa20_blk_t *X = XY, *Y = &XY[s];
+	uint32_t j;
+
+	if (Nloop == 0)
+		return;
+
+	smix_init(B, r, X, Y);
+	j = integerify(X, r) & (N - 1);
+
+	do {
+		const salsa20_blk_t *V_j = &V[j * s];
+		j = blockmix_xor(X, V_j, X, r, 0, ctx) & (NROM - 1);
+		V_j = &VROM[j * s];
+		j = blockmix_xor(X, V_j, X, r, 1, ctx) & (N - 1);
+	} while (Nloop -= 2);
+
+	smix_final(B, r, X, Y);
+}
+
+/**
+ * smix2_rw(B, r, N, Nloop, V, XY, ctx):
+ * Compute second loop of B = SMix_r(B, N) in YESCRYPT_RW mode with no ROM.
+ * The input B must be 128r bytes in length; the temporary storage V must be
+ * 128rN bytes in length; the temporary storage XY must be 256r bytes in
+ * length.  N must be a power of 2 and at least 2.  Nloop must be even.  The
+ * array V must be aligned to a multiple of 64 bytes, and arrays B and XY to a
+ * multiple of at least 16 bytes.
+ */
+static void smix2_rw(uint8_t *B, size_t r, uint32_t N, uint64_t Nloop,
+    salsa20_blk_t *V, salsa20_blk_t *XY, pwxform_ctx_t *ctx)
+{
+	size_t s = 2 * r;
+	salsa20_blk_t *X = XY, *Y = &XY[s];
+	uint32_t j;
+
+	if (Nloop == 0)
+		return;
+
+	smix_init(B, r, X, Y);
+	j = integerify(X, r) & (N - 1);
+
+	do {
+		salsa20_blk_t *V_j = &V[j * s];
+		j = blockmix_xor_save(X, V_j, r, ctx) & (N - 1);
+		V_j = &V[j * s];
+		j = blockmix_xor_save(X, V_j, r, ctx) & (N - 1);
+	} while (Nloop -= 2);
+
+	smix_final(B, r, X, Y);
+}
+
+/**
+ * smix2_rwro(B, r, N, Nloop, V, XY, ctx):
+ * Compute second loop of B = SMix_r(B, N) in pseudo-WORM mode with context.
+ * (This is used only when Nloop_all > Nloop_rw, i.e. for the smix2() calls
+ * operating on the entire V when p > 1.)
+ * The input B must be 128r bytes in length; the temporary storage V must be
+ * 128rN bytes in length; the temporary storage XY must be 256r bytes in
+ * length.  N must be a power of 2 and at least 2.  Nloop must be even.  The
+ * array V must be aligned to a multiple of 64 bytes, and arrays B and XY to a
+ * multiple of at least 16 bytes.
+ */
+static void smix2_rwro(uint8_t *B, size_t r, uint32_t N, uint64_t Nloop,
+    salsa20_blk_t *V, salsa20_blk_t *XY, pwxform_ctx_t *ctx)
+{
+	size_t s = 2 * r;
+	salsa20_blk_t *X = XY, *Y = &XY[s];
+	uint32_t j;
+
+	if (Nloop == 0)
+		return;
+
+	smix_init(B, r, X, Y);
+	j = integerify(X, r) & (N - 1);
+
+	do {
+		const salsa20_blk_t *V_j = &V[j * s];
+		j = blockmix_xor(X, V_j, X, r, 0, ctx) & (N - 1);
+		V_j = &V[j * s];
+		j = blockmix_xor(X, V_j, X, r, 0, ctx) & (N - 1);
+	} while (Nloop -= 2);
+
+	smix_final(B, r, X, Y);
+}
+
+/**
+ * smix2_worm(B, r, N, Nloop, V, XY, ctx):
+ * Compute second loop of B = SMix_r(B, N) in YESCRYPT_WORM mode.
+ * The input B must be 128r bytes in length; the temporary storage V must be
+ * 128rN bytes in length; the temporary storage XY must be 256r bytes in
+ * length.  N must be a power of 2 and at least 2.  Nloop must be even.  The
+ * array V must be aligned to a multiple of 64 bytes, and arrays B and XY to a
+ * multiple of at least 16 bytes.
+ */
+static void smix2_worm(uint8_t *B, size_t r, uint32_t N, uint64_t Nloop,
+    salsa20_blk_t *V, salsa20_blk_t *XY)
+{
+	size_t s = 2 * r;
+	salsa20_blk_t *X = XY, *Y = &XY[s];
+	uint32_t j;
+
+	if (Nloop == 0)
+		return;
+
+	smix_init(B, r, X, Y);
+	j = integerify(X, r) & (N - 1);
+
+	do {
+		const salsa20_blk_t *V_j = &V[j * s];
+		j = blockmix_salsa8_xor(X, V_j, Y, r) & (N - 1);
+		V_j = &V[j * s];
+		j = blockmix_salsa8_xor(Y, V_j, X, r) & (N - 1);
+	} while (Nloop -= 2);
+
+	smix_final(B, r, X, Y);
 }
 
 /**
@@ -1072,12 +1218,12 @@ static void smix(uint8_t *B, size_t r, uint32_t N, uint32_t p, uint32_t t,
 #else
 		salsa20_blk_t *XYp = XY;
 #endif
-		pwxform_ctx_t *ctx_i = NULL;
 		if (flags & YESCRYPT_RW) {
 			uint8_t *Si = S + i * Salloc;
-			smix1(Bp, 1, Sbytes / 128, 0 /* no flags */,
-			    (salsa20_blk_t *)Si, 0, NULL, XYp, NULL);
-			ctx_i = (pwxform_ctx_t *)(Si + Sbytes);
+			smix1_worm(Bp, 1, Sbytes / 128,
+				   (salsa20_blk_t *)Si, XYp);
+
+			pwxform_ctx_t *ctx_i = (pwxform_ctx_t *)(Si + Sbytes);
 			ctx_i->S2 = Si;
 			ctx_i->S1 = Si + Sbytes / 3;
 			ctx_i->S0 = Si + Sbytes / 3 * 2;
@@ -1085,10 +1231,21 @@ static void smix(uint8_t *B, size_t r, uint32_t N, uint32_t p, uint32_t t,
 			if (i == 0)
 				HMAC_SHA256_Buf(Bp + (128 * r - 64), 64,
 				    passwd, 32, passwd);
+
+			if (VROM) {
+				smix1_rom(Bp, r, Np, Vp, NROM, VROM,
+					  XYp, ctx_i);
+				smix2_rom(Bp, r, p2floor(Np), Nloop_rw,
+					  Vp, NROM, VROM, XYp, ctx_i);
+			} else {
+				smix1_rw(Bp, r, Np, Vp, XYp, ctx_i);
+				smix2_rw(Bp, r, p2floor(Np), Nloop_rw,
+					 Vp, XYp, ctx_i);
+			}
+		} else {
+			smix1_worm(Bp, r, Np, Vp, XYp);
+			smix2_worm(Bp, r, p2floor(Np), Nloop_rw, Vp, XYp);
 		}
-		smix1(Bp, r, Np, flags, Vp, NROM, VROM, XYp, ctx_i);
-		smix2(Bp, r, p2floor(Np), Nloop_rw, flags, Vp,
-		    NROM, VROM, XYp, ctx_i);
 	}
 
 	if (Nloop_all > Nloop_rw) {
@@ -1102,13 +1259,23 @@ static void smix(uint8_t *B, size_t r, uint32_t N, uint32_t p, uint32_t t,
 #else
 			salsa20_blk_t *XYp = XY;
 #endif
-			pwxform_ctx_t *ctx_i = NULL;
 			if (flags & YESCRYPT_RW) {
 				uint8_t *Si = S + i * Salloc;
-				ctx_i = (pwxform_ctx_t *)(Si + Sbytes);
+				pwxform_ctx_t *ctx_i =
+					(pwxform_ctx_t *)(Si + Sbytes);
+				if (VROM) {
+					smix2_romro(Bp, r, N,
+						    Nloop_all - Nloop_rw,
+						    V, NROM, VROM, XYp, ctx_i);
+				} else {
+					smix2_rwro(Bp, r, N,
+						   Nloop_all - Nloop_rw,
+						   V, XYp, ctx_i);
+				}
+			} else {
+				smix2_worm(Bp, r, N, Nloop_all - Nloop_rw,
+					   V, XYp);
 			}
-			smix2(Bp, r, N, Nloop_all - Nloop_rw,
-			    flags & ~YESCRYPT_RW, V, NROM, VROM, XYp, ctx_i);
 		}
 	}
 #ifdef _OPENMP
