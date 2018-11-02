@@ -39,9 +39,8 @@ source tree.  For specific licensing terms consult the files themselves.
 
  * Copyright Alexey Degtyarev; 2-clause BSD:
    alg-gost3411-2012-const.h, alg-gost3411-2012-core.c,
-   alg-gost3411-2012-core.h, alg-gost3411-2012-mmx.h,
-   alg-gost3411-2012-precalc.h, alg-gost3411-2012-ref.h,
-   alg-gost3411-2012-sse2.h, alg-gost3411-2012-sse41.h
+   alg-gost3411-2012-core.h, alg-gost3411-2012-precalc.h,
+   alg-gost3411-2012-ref.h
 
  * Copyright Vitaly Chikunov, Björn Esser; 0-clause BSD:
    alg-gost3411-2012-hmac.c, alg-gost3411-2012-hmac.h,

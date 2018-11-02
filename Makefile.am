@@ -28,12 +28,11 @@ nodist_include_HEADERS = crypt.h
 nodist_noinst_HEADERS = crypt-hashes.h crypt-symbol-vers.h
 noinst_HEADERS = \
 	alg-des.h alg-gost3411-2012-const.h alg-gost3411-2012-core.h \
-	alg-gost3411-2012-hmac.h alg-gost3411-2012-mmx.h \
-	alg-gost3411-2012-precalc.h alg-gost3411-2012-ref.h \
-	alg-gost3411-2012-sse2.h alg-gost3411-2012-sse41.h \
-	alg-hmac-sha1.h alg-md4.h alg-md5.h alg-sha1.h alg-sha256.h \
-	alg-sha512.h alg-yescrypt.h alg-yescrypt-sysendian.h byteorder.h \
-	crypt-obsolete.h crypt-private.h crypt-port.h test-des-cases.h
+	alg-gost3411-2012-hmac.h alg-gost3411-2012-precalc.h \
+	alg-gost3411-2012-ref.h alg-hmac-sha1.h alg-md4.h alg-md5.h \
+	alg-sha1.h alg-sha256.h alg-sha512.h alg-yescrypt.h \
+	alg-yescrypt-sysendian.h byteorder.h crypt-obsolete.h \
+	crypt-private.h crypt-port.h test-des-cases.h
 
 noinst_PROGRAMS = gen-des-tables
 

@@ -253,15 +253,6 @@ _xcrypt_strcpy_or_abort (void *dst, const size_t d_size,
 
 /* Define configuration macros used during compile-time by the
    GOST R 34.11-2012 "Streebog" hash function.  */
-#if defined __SSE4_1__ && __SSE4_1__ >= 1
-#define __GOST3411_HAS_SSE41__ 1
-#endif
-#if defined __SSE2__ && __SSE2__ >= 1
-#define __GOST3411_HAS_SSE2__ 1
-#endif
-#if defined __MMX__ && __MMX__ >= 1
-#define __GOST3411_HAS_MMX__ 1
-#endif
 #if XCRYPT_USE_BIGENDIAN
 #define __GOST3411_BIG_ENDIAN__ 1
 #else
