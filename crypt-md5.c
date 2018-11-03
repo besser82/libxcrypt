@@ -18,7 +18,6 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include "crypt-port.h"
-#include "crypt-private.h"
 #include "alg-md5.h"
 
 #include <errno.h>

@@ -93,8 +93,8 @@ It was last updated 20 October 2018.
   * Replace crypt-md5.c with original md5crypt from FreeBSD?
   * Other files subject to the (L)GPL are crypt.c, crypt-static.c,
     crypt-gensalt-static.c, crypt-obsolete.h, crypt-port.h,
-    crypt-private.h, test-badsalt.c.  It is not clear to me how much
-    material originally assigned to the FSF remains in these files.
+    test-badsalt.c.  It is not clear to me how much material originally
+    assigned to the FSF remains in these files.
     Several of them are API definitions and trivial wrappers that
     could not be meaningfully changed without breaking them (so are
     arguably uncopyrightable).

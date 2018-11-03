@@ -44,7 +44,6 @@
  */
 
 #include "crypt-port.h"
-#include "crypt-private.h"
 #include "byteorder.h"
 
 #include <errno.h>

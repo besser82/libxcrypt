@@ -26,7 +26,6 @@
 #undef YESCRYPT_INTERNAL
 
 #include "alg-gost3411-2012-hmac.h"
-#include "crypt-private.h"
 
 #include <errno.h>
 

@@ -21,7 +21,6 @@
 
 #if INCLUDE_gost_yescrypt
 
-#include "crypt-private.h"
 #include "alg-gost3411-2012-hmac.h"
 
 #include <stdio.h>

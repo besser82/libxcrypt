@@ -32,7 +32,7 @@ noinst_HEADERS = \
 	alg-gost3411-2012-ref.h alg-hmac-sha1.h alg-md4.h alg-md5.h \
 	alg-sha1.h alg-sha256.h alg-sha512.h alg-yescrypt.h \
 	alg-yescrypt-sysendian.h byteorder.h crypt-obsolete.h \
-	crypt-private.h crypt-port.h test-des-cases.h
+	crypt-port.h test-des-cases.h
 
 noinst_PROGRAMS = gen-des-tables
 

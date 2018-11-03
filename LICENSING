@@ -12,8 +12,7 @@ source tree.  For specific licensing terms consult the files themselves.
    crypt.c, crypt-static.c, crypt-gensalt-static.c, crypt-port.h
 
  * Copyright Free Software Foundation, Inc.; LGPL (v2.1 or later):
-   crypt.h, crypt-obsolete.h, crypt-private.h
-   crypt-md5.c,
+   crypt.h, crypt-obsolete.h, crypt-md5.c,
    test-badsalt.c, test-crypt-nonnull.c
 
  * Copyright David Burren et al.; 3-clause BSD:

@@ -19,7 +19,6 @@
 
 #include "crypt-port.h"
 #include "crypt-hashes.h"
-#include "crypt-private.h"
 
 #include <errno.h>
 

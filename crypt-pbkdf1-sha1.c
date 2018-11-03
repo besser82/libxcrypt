@@ -28,7 +28,6 @@
  */
 
 #include "crypt-port.h"
-#include "crypt-private.h"
 #include "alg-hmac-sha1.h"
 #include "byteorder.h"
 

@@ -35,7 +35,6 @@
 
 #include "crypt-port.h"
 #include "alg-md4.h"
-#include "crypt-private.h"
 
 #include <errno.h>
 #include <stdio.h>

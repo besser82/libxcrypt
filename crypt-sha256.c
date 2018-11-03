@@ -16,7 +16,6 @@
  */
 
 #include "crypt-port.h"
-#include "crypt-private.h"
 #include "alg-sha256.h"
 
 #include <errno.h>

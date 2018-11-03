@@ -44,7 +44,6 @@
  */
 
 #include "crypt-port.h"
-#include "crypt-private.h"
 #include "alg-des.h"
 
 #include <errno.h>

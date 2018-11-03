@@ -361,6 +361,23 @@ extern void crypt_yescrypt_rn (const char *, size_t, const char *,
                 size_t, uint8_t *, size_t, void *, size_t);
 #endif
 
+/* Utility functions */
+bool get_random_bytes (void *buf, size_t buflen);
+
+extern void gensalt_sha_rn (char tag, size_t maxsalt, unsigned long defcount,
+                            unsigned long mincount, unsigned long maxcount,
+                            unsigned long count,
+                            const uint8_t *rbytes, size_t nrbytes,
+                            uint8_t *output, size_t output_size);
+
+/* Calculate the size of a base64 encoding of N bytes:
+   6 bits per output byte, rounded up.  */
+#define BASE64_LEN(bytes) ((((bytes) * 8) + 5) / 6)
+
+/* The "scratch" area passed to each of the individual hash functions is
+   this big.  */
+#define ALG_SPECIFIC_SIZE 8192
+
 #include "crypt.h"
 
 #endif /* crypt-port.h */
