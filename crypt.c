@@ -33,8 +33,7 @@ struct crypt_internal
   char alignas (max_align_t) alg_specific[ALG_SPECIFIC_SIZE];
 };
 
-static_assert(sizeof (struct crypt_internal) +
-              MAX (alignof (struct crypt_internal), 16)
+static_assert(sizeof (struct crypt_internal) + alignof (struct crypt_internal)
               <= CRYPT_DATA_INTERNAL_SIZE,
               "crypt_data.internal is too small for crypt_internal");
 
@@ -45,7 +44,7 @@ static inline struct crypt_internal *
 get_internal (struct crypt_data *data)
 {
   uintptr_t internalp = (uintptr_t) data->internal;
-  const uintptr_t align = MAX (alignof (struct crypt_internal), 16);
+  const uintptr_t align = alignof (struct crypt_internal);
   internalp = (internalp + align - 1) & ~(align - 1);
   return (struct crypt_internal *)internalp;
 }
