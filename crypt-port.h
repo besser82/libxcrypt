@@ -139,7 +139,7 @@ typedef union
 #else
 /* The best hope we have in this case.  */
 #define INCLUDE_XCRYPT_SECURE_MEMSET 1
-extern void _crypt_secure_memset (s, len);
+extern void _crypt_secure_memset (void *, size_t);
 #define XCRYPT_SECURE_MEMSET(s, len) \
   _crypt_secure_memset (s, len)
 #endif
@@ -152,8 +152,7 @@ extern void _crypt_secure_memset (s, len);
    The trailing bytes of d_size will be filled with '\0'.
    dst and src must not be NULL.  Returns strlen (src).  */
 extern size_t
-_crypt_strcpy_or_abort (void *dst, const size_t d_size,
-                        const void *src);
+_crypt_strcpy_or_abort (void *, const size_t, const void *);
 #define XCRYPT_STRCPY_OR_ABORT(dst, d_size, src) \
   _crypt_strcpy_or_abort (dst, d_size, src)
 
