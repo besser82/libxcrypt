@@ -78,9 +78,9 @@ static int
 test_crypt_raw (int m, int p, int s)
 {
   char output[CRYPT_OUTPUT_SIZE];
-  char scratch[ALG_SPECIFIC_SIZE];
   char pass[CRYPT_MAX_PASSPHRASE_SIZE];
   char pref[CRYPT_GENSALT_OUTPUT_SIZE];
+  GOST3411_ALIGN(16) char scratch[ALG_SPECIFIC_SIZE];
   char *salt;
 
   test_mode = m;
