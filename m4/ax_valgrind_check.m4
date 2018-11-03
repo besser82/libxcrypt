@@ -89,7 +89,7 @@ AC_DEFUN([AX_VALGRIND_CHECK],[
 
 	AS_IF([test "$enable_valgrind" != "no"],[
 		# Check for Valgrind.
-		AC_CHECK_PROG([VALGRIND],[valgrind],[valgrind])
+		AC_PATH_PROG([VALGRIND],[valgrind])
 		AS_IF([test "$VALGRIND" = ""],[
 			AS_IF([test "$enable_valgrind" = "yes"],[
 				AC_MSG_ERROR([Could not find valgrind; either install it or reconfigure with --disable-valgrind])
