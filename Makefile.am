@@ -85,7 +85,7 @@ CLEANFILES = Makefile.deps.T Makefile.deps \
 	libcrypt.map libcrypt.map.T \
 	crypt-symbol-vers.h crypt-symbol-vers.h.T \
 	crypt-hashes.h crypt-hashes.h.T \
-	crypt.h crypt.h.T
+	crypt.h crypt.h.T *.gcda *.gcno
 
 DISTCLEANFILES = .deps/*.Plo
 

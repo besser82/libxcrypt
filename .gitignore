@@ -97,3 +97,7 @@ vgcore.*
 # Patch
 *.orig
 *.rej
+
+# Coverage
+all_coverage.info
+coverage.info

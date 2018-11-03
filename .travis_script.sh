@@ -15,18 +15,17 @@ if [[ "$PERFORM_COVERITY_SCAN" == "1" ]]; then
 fi
 
 if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-  export CFLAGS="-O2 -g -arch i386 -arch x86_64"
+  export CFLAGS="-O2 -g -arch i386 -arch x86_64 --coverage"
   export CXXFLAGS="$CFLAGS"
-  export LDFLAGS="-arch i386 -arch x86_64"
+  export LDFLAGS="-arch i386 -arch x86_64 -lprofile_rt"
 elif [[ "$CODECOV" == "1" ]]; then
   export CFLAGS="-O0 -g --coverage"
   export CXXFLAGS="$CFLAGS"
-  export LDFLAGS="--coverage"
 else
   export DEB_BUILD_MAINT_OPTIONS="hardening=+all"
   export CPPFLAGS="$(dpkg-buildflags --get CPPFLAGS)"
-  export CFLAGS="$(dpkg-buildflags --get CFLAGS)"
-  export CXXFLAGS="$(dpkg-buildflags --get CXXFLAGS)"
+  export CFLAGS="$(dpkg-buildflags --get CFLAGS) --coverage"
+  export CXXFLAGS="$(dpkg-buildflags --get CXXFLAGS) --coverage"
   export LDFLAGS="$(dpkg-buildflags --get LDFLAGS)"
 fi
 

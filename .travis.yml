@@ -53,18 +53,22 @@ matrix:
         - COVERITY_SCAN_BRANCH_PATTERN="^v(\d+\.)?(\d+\.)?(\d+)$"
         - COVERITY_SCAN_BUILD_COMMAND_PREPEND="./bootstrap && ./configure $CONF"
         - COVERITY_SCAN_BUILD_COMMAND="make -j$NPROCS"
-    - name: "GCC, Codecov"
-      compiler: gcc
-      os: linux
-      env:
-        - CONF="--enable-obsolete-api --enable-hashes=all"
-        - CODECOV=1
     - name: "GCC, Distcheck"
       compiler: gcc
       os: linux
       env:
         - CONF="--enable-obsolete-api --enable-hashes=all"
         - DISTCHECK=1
+    - name: "GCC, Unoptimized build for Codecov"
+      compiler: gcc
+      os: linux
+      env:
+        - CONF="--enable-obsolete-api --enable-hashes=all"
+    - name: "Clang, Unoptimized build for Codecov"
+      compiler: clang
+      os: linux
+      env:
+        - CONF="--enable-obsolete-api --enable-hashes=all"
     - name: "GCC, all hashes, obsolete API, Valgrind"
       compiler: gcc
       os: linux
