@@ -1,6 +1,15 @@
 language: C
 
 addons:
+  apt:
+    packages:
+      - autoconf
+      - automake
+      - gawk
+      - lcov
+      - libtool
+      - pkg-config
+      - valgrind
   homebrew:
     packages:
       - autoconf
@@ -12,6 +21,10 @@ branches:
   except:
     - master
 
+cache:
+  - ccache
+  - pip
+
 git:
   depth: false
 
@@ -22,7 +35,7 @@ notifications:
     skip_join: true
 
 dist: trusty
-sudo: required
+sudo: false
 
 matrix:
   allow_failures:
@@ -40,284 +53,156 @@ matrix:
         - COVERITY_SCAN_BRANCH_PATTERN="^v(\d+\.)?(\d+\.)?(\d+)$"
         - COVERITY_SCAN_BUILD_COMMAND_PREPEND="./bootstrap && ./configure $CONF"
         - COVERITY_SCAN_BUILD_COMMAND="make -j$NPROCS"
-    - name: "Fedora Rawhide, GCC, Codecov"
+    - name: "GCC, Codecov"
       compiler: gcc
       os: linux
-      services: docker
       env:
         - CONF="--enable-obsolete-api --enable-hashes=all"
-        - FCVER="rawhide"
         - CODECOV=1
-    - name: "Fedora Rawhide, GCC, all hashes, obsolete API, Valgrind"
+    - name: "GCC, Distcheck"
       compiler: gcc
       os: linux
-      services: docker
       env:
         - CONF="--enable-obsolete-api --enable-hashes=all"
-        - FCVER="rawhide"
         - DISTCHECK=1
-        - VALGRIND=1
-    - name: "Fedora Rawhide, Clang, all hashes, obsolete API, Valgrind"
-      compiler: clang
-      os: linux
-      services: docker
-      env:
-        - CONF="--enable-obsolete-api --enable-hashes=all"
-        - FCVER="rawhide"
-        - VALGRIND=1
-    - name: "Fedora stable, GCC, all hashes, obsolete API"
+    - name: "GCC, all hashes, obsolete API, Valgrind"
       compiler: gcc
       os: linux
-      services: docker
       env:
-        - CONF="--enable-obsolete-api --enable-hashes=all"
-        - FCVER="latest"
-    - name: "Fedora stable, Clang, all hashes, obsolete API"
+        - CONF="--enable-obsolete-api --enable-hashes=all --enable-valgrind-memcheck"
+        - VALGRIND=1
+    - name: "Clang, all hashes, obsolete API, Valgrind"
       compiler: clang
       os: linux
-      services: docker
       env:
-        - CONF="--enable-obsolete-api --enable-hashes=all"
-        - FCVER="latest"
+        - CONF="--enable-obsolete-api --enable-hashes=all --enable-valgrind-memcheck"
+        - VALGRIND=1
     - name: "macOS, Clang, all hashes, obsolete API"
       compiler: clang
       os: osx
       env:
         - CONF="--enable-obsolete-api --enable-hashes=all"
-    - name: "Fedora Rawhide, GCC, all hashes, obsolete API, no failure-tokens"
+    - name: "GCC, all hashes, obsolete API, no failure-tokens"
       compiler: gcc
       os: linux
-      services: docker
       env:
         - CONF="--disable-failure-tokens --enable-obsolete-api --enable-hashes=all"
         - FCVER="rawhide"
-    - name: "Fedora Rawhide, Clang, all hashes, obsolete API, no failure-tokens"
+    - name: "Clang, all hashes, obsolete API, no failure-tokens"
       compiler: clang
       os: linux
-      services: docker
       env:
         - CONF="--disable-failure-tokens --enable-obsolete-api --enable-hashes=all"
         - FCVER="rawhide"
-    - name: "Fedora stable, GCC, all hashes, obsolete API, no failure-tokens"
+    - name: "GCC, all hashes, no obsolete API"
       compiler: gcc
       os: linux
-      services: docker
-      env:
-        - CONF="--disable-failure-tokens --enable-obsolete-api --enable-hashes=all"
-        - FCVER="latest"
-    - name: "Fedora stable, Clang, all hashes, obsolete API, no failure-tokens"
-      compiler: clang
-      os: linux
-      services: docker
-      env:
-        - CONF="--disable-failure-tokens --enable-obsolete-api --enable-hashes=all"
-        - FCVER="latest"
-    - name: "Fedora Rawhide, GCC, all hashes, no obsolete API"
-      compiler: gcc
-      os: linux
-      services: docker
       env:
         - CONF="--disable-obsolete-api --enable-hashes=all"
-        - FCVER="rawhide"
-    - name: "Fedora Rawhide, Clang, all hashes, no obsolete API"
+    - name: "Clang, all hashes, no obsolete API"
       compiler: clang
       os: linux
-      services: docker
       env:
         - CONF="--disable-obsolete-api --enable-hashes=all"
-        - FCVER="rawhide"
-    - name: "Fedora stable, GCC, all hashes, no obsolete API"
+    - name: "GCC, strong hashes, no obsolete API"
       compiler: gcc
       os: linux
-      services: docker
-      env:
-        - CONF="--disable-obsolete-api --enable-hashes=all"
-        - FCVER="latest"
-    - name: "Fedora stable, Clang, all hashes, no obsolete API"
-      compiler: clang
-      os: linux
-      services: docker
-      env:
-        - CONF="--disable-obsolete-api --enable-hashes=all"
-        - FCVER="latest"
-    - name: "Fedora Rawhide, GCC, strong hashes, no obsolete API"
-      compiler: gcc
-      os: linux
-      services: docker
       env:
         - CONF="--disable-obsolete-api --enable-hashes=strong"
-        - FCVER="rawhide"
-    - name: "Fedora Rawhide, Clang, strong hashes, no obsolete API"
+    - name: "Clang, strong hashes, no obsolete API"
       compiler: clang
       os: linux
-      services: docker
       env:
         - CONF="--disable-obsolete-api --enable-hashes=strong"
-        - FCVER="rawhide"
-    - name: "Fedora stable, GCC, strong hashes, no obsolete API"
+    - name: "GCC, glibc hashes, obsolete API"
       compiler: gcc
       os: linux
-      services: docker
-      env:
-        - CONF="--disable-obsolete-api --enable-hashes=strong"
-        - FCVER="latest"
-    - name: "Fedora stable, Clang, strong hashes, no obsolete API"
-      compiler: clang
-      os: linux
-      services: docker
-      env:
-        - CONF="--disable-obsolete-api --enable-hashes=strong"
-        - FCVER="latest"
-    - name: "Fedora Rawhide, GCC, glibc hashes, obsolete API"
-      compiler: gcc
-      os: linux
-      services: docker
       env:
         - CONF="--enable-obsolete-api --enable-hashes=glibc"
-        - FCVER="rawhide"
-    - name: "Fedora Rawhide, Clang, glibc hashes, obsolete API"
+    - name: "Clang, glibc hashes, obsolete API"
       compiler: clang
       os: linux
-      services: docker
       env:
         - CONF="--enable-obsolete-api --enable-hashes=glibc"
-        - FCVER="rawhide"
-    - name: "Fedora stable, GCC, glibc hashes, obsolete API"
+    - name: "GCC, glibc and strong hashes, obsolete API for glibc"
       compiler: gcc
       os: linux
-      services: docker
       env:
-        - CONF="--enable-obsolete-api --enable-hashes=glibc"
-        - FCVER="latest"
-    - name: "Fedora stable, Clang, glibc hashes, obsolete API"
+        - CONF="--enable-obsolete-api=glibc --enable-hashes=strong,glibc"
+    - name: "Clang, glibc and strong hashes, obsolete API for glibc"
       compiler: clang
       os: linux
-      services: docker
       env:
-        - CONF="--enable-obsolete-api --enable-hashes=glibc"
-        - FCVER="latest"
-    - name: "Fedora Rawhide, GCC, glibc and strong hashes, obsolete API for glibc"
+        - CONF="--enable-obsolete-api=glibc --enable-hashes=strong,glibc"
+    - name: "GCC, bcrypt only"
       compiler: gcc
       os: linux
-      services: docker
-      env:
-        - CONF="--enable-obsolete-api=glibc --enable-hashes=strong,glibc"
-        - FCVER="rawhide"
-    - name: "Fedora Rawhide, Clang, glibc and strong hashes, obsolete API for glibc"
-      compiler: clang
-      os: linux
-      services: docker
-      env:
-        - CONF="--enable-obsolete-api=glibc --enable-hashes=strong,glibc"
-        - FCVER="rawhide"
-    - name: "Fedora stable, GCC, glibc and strong hashes, obsolete API for glibc"
-      compiler: gcc
-      os: linux
-      services: docker
-      env:
-        - CONF="--enable-obsolete-api=glibc --enable-hashes=strong,glibc"
-        - FCVER="latest"
-    - name: "Fedora stable, Clang, glibc and strong hashes, obsolete API for glibc"
-      compiler: clang
-      os: linux
-      services: docker
-      env:
-        - CONF="--enable-obsolete-api=glibc --enable-hashes=strong,glibc"
-        - FCVER="latest"
-    - name: "Fedora Rawhide, GCC, bcrypt only"
-      compiler: gcc
-      os: linux
-      services: docker
       env:
         - CONF="--disable-obsolete-api --enable-hashes=bcrypt"
-        - FCVER="rawhide"
-    - name: "Fedora Rawhide, GCC, bigcrypt only"
+    - name: "GCC, bigcrypt only"
       compiler: gcc
       os: linux
-      services: docker
       env:
         - CONF="--disable-obsolete-api --enable-hashes=bigcrypt"
-        - FCVER="rawhide"
-    - name: "Fedora Rawhide, GCC, bsdicrypt only"
+    - name: "GCC, bsdicrypt only"
       compiler: gcc
       os: linux
-      services: docker
       env:
         - CONF="--disable-obsolete-api --enable-hashes=bsdicrypt"
-        - FCVER="rawhide"
-    - name: "Fedora Rawhide, GCC, descrypt only"
+    - name: "GCC, descrypt only"
       compiler: gcc
       os: linux
-      services: docker
       env:
         - CONF="--disable-obsolete-api --enable-hashes=descrypt"
-        - FCVER="rawhide"
-    - name: "Fedora Rawhide, GCC, gost-yescrypt only"
+    - name: "GCC, gost-yescrypt only"
       compiler: gcc
       os: linux
-      services: docker
       env:
         - CONF="--disable-obsolete-api --enable-hashes=gost-yescrypt"
         - FCVER="rawhide"
-    - name: "Fedora Rawhide, GCC, md5crypt only"
+    - name: "GCC, md5crypt only"
       compiler: gcc
       os: linux
-      services: docker
       env:
         - CONF="--disable-obsolete-api --enable-hashes=md5crypt"
-        - FCVER="rawhide"
-    - name: "Fedora Rawhide, GCC, nt only"
+    - name: "GCC, nt only"
       compiler: gcc
       os: linux
-      services: docker
       env:
         - CONF="--disable-obsolete-api --enable-hashes=nt"
-        - FCVER="rawhide"
-    - name: "Fedora Rawhide, GCC, scrypt only"
+    - name: "GCC, scrypt only"
       compiler: gcc
       os: linux
-      services: docker
       env:
         - CONF="--disable-obsolete-api --enable-hashes=scrypt"
-        - FCVER="rawhide"
-    - name: "Fedora Rawhide, GCC, sha1crypt only"
+    - name: "GCC, sha1crypt only"
       compiler: gcc
       os: linux
-      services: docker
       env:
         - CONF="--disable-obsolete-api --enable-hashes=sha1crypt"
-        - FCVER="rawhide"
-    - name: "Fedora Rawhide, GCC, sha256crypt only"
+    - name: "GCC, sha256crypt only"
       compiler: gcc
       os: linux
-      services: docker
       env:
         - CONF="--disable-obsolete-api --enable-hashes=sha256crypt"
-        - FCVER="rawhide"
-    - name: "Fedora Rawhide, GCC, sha512crypt only"
+    - name: "GCC, sha512crypt only"
       compiler: gcc
       os: linux
-      services: docker
       env:
         - CONF="--disable-obsolete-api --enable-hashes=sha512crypt"
-        - FCVER="rawhide"
-    - name: "Fedora Rawhide, GCC, sunmd5 only"
+    - name: "GCC, sunmd5 only"
       compiler: gcc
       os: linux
-      services: docker
       env:
         - CONF="--disable-obsolete-api --enable-hashes=sunmd5"
-        - FCVER="rawhide"
-    - name: "Fedora Rawhide, GCC, yescrypt only"
+    - name: "GCC, yescrypt only"
       compiler: gcc
       os: linux
-      services: docker
       env:
         - CONF="--disable-obsolete-api --enable-hashes=yescrypt"
-        - FCVER="rawhide"
 
-before_install:
-  - ./.travis_before_install.sh
+install:
+  - ./.travis_install.sh
 
 before_script:
   - ./.travis_before_script.sh

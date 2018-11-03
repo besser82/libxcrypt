@@ -1,5 +1,5 @@
 #!/bin/bash
 set -e
 
-./bootstrap
+pip install --user codecov
 exit 0
