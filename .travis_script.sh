@@ -43,5 +43,3 @@ if [[ "$VALGRIND" == "1" ]]; then
   make -j$NPROCS check-valgrind-memcheck || \
     (cat test-suite-memcheck.log && exit 1)
 fi
-
-exit 0

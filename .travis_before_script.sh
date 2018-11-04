@@ -2,4 +2,3 @@
 set -e
 
 ./bootstrap
-exit 0
