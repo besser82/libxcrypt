@@ -36,8 +36,8 @@ make install DESTDIR="${PWD}/install_test_libxcrypt"
 make check -j$NPROCS || (cat test-suite.log && exit 1)
 
 if [[ "$VALGRIND" == "1" ]]; then
-make -j$NPROCS check-valgrind-memcheck || \
-  (cat test-suite-memcheck.log && exit 1)
+  make -j$NPROCS check-valgrind-memcheck || \
+    (cat test-suite-memcheck.log && exit 1)
 fi
 
 if [[ "$DISTCHECK" == "1" ]]; then
