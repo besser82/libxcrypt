@@ -31,16 +31,17 @@ fi
 
 ./configure --disable-silent-rules --enable-shared --enable-static \
   $CONF || (cat config.log && exit 1)
-make -j$NPROCS
-make check -j$NPROCS || (cat test-suite.log && exit 1)
+
+if [[ "$DISTCHECK" == "1" ]]; then
+  make -j$NPROCS distcheck
+else
+  make -j$NPROCS
+  make check -j$NPROCS || (cat test-suite.log && exit 1)
+fi
 
 if [[ "$VALGRIND" == "1" ]]; then
   make -j$NPROCS check-valgrind-memcheck || \
     (cat test-suite-memcheck.log && exit 1)
-fi
-
-if [[ "$DISTCHECK" == "1" ]]; then
-  make -j$NPROCS distcheck
 fi
 
 exit 0
