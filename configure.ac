@@ -226,7 +226,9 @@ AC_ARG_ENABLE([obsolete-api],
          be linked against the obsolete APIs (bigcrypt, fcrypt, encrypt, setkey)
          in any case. [default=yes]]
     ),
-    [case "${enableval}" in
+    [enableval="`AS_ECHO("$enableval") |
+       $SED -e 'y!ABCDEFGHIJKLMNOPQRSTUVWXYZ-!abcdefghijklmnopqrstuvwxyz_!'`"
+     case "${enableval}" in
         alt|glibc|owl)
             enable_obsolete_api=1
             enable_compat_suse=0
@@ -260,7 +262,8 @@ AC_ARG_ENABLE([hashes],
          Note: if binary compatibility with any historic libcrypt is
          desired (i.e. any --enable-obsolete-api setting other than
          'no'), the 'descrypt' hash must be enabled.]),
-    [hashes_selected=`echo $enableval | $SED -e 's!-!_!g'`],
+    [hashes_selected="`AS_ECHO("$enableval") |
+      $SED -e 'y!ABCDEFGHIJKLMNOPQRSTUVWXYZ-!abcdefghijklmnopqrstuvwxyz_!'`"],
     [hashes_selected=all]
 )
 # This code must run after AC_PROG_AWK.

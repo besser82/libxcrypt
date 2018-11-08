@@ -9,6 +9,10 @@ Version 4.3.0
   optimization that have caused problems in the past and may cause
   future problems on some systems.
 * Rename all hash methods to match naming in John the Ripper.
+* Make the configure switches --enable-obsolete-api and
+  --enable-hashes process their arguments case-insensitively; for
+  instance, "--enable-hashes=OpenBSD" and "--enable-hashes=openbsd"
+  are now understood as synonymous.
 * Fix gensalt for bigcrypt if descrypt hash method is not selected
   at compile time.
 * Fix the bigcrypt hash method to reject too short settings and/or
