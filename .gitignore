@@ -1,5 +1,4 @@
 # http://www.gnu.org/software/automake
-
 /Makefile
 /Makefile.deps
 /Makefile.in
@@ -8,7 +7,6 @@
 /INSTALL
 
 # http://www.gnu.org/software/autoconf
-
 /autom4te.cache
 /aclocal.m4
 /m4/compile
@@ -35,7 +33,6 @@
 /libxcrypt.pc
 
 # compiler output
-
 *.gcda
 *.gcno
 *.la
@@ -44,6 +41,7 @@
 *.o
 *.so
 *.trs
+*.T
 /crypt.h
 /crypt-hashes.h
 /crypt-symbol-vers.h
@@ -85,11 +83,9 @@
 /test-short-outbuf
 
 # backup-files
-
 *~
 
 # archives
-
 *.tar*
 
 # Valgrind
