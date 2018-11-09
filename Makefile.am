@@ -116,6 +116,10 @@ crypt.h: crypt.h.in crypt-hashes.h crypt-symbol-vers.h gen-crypt-h.awk config.h
 	$(AM_V_GEN)LC_ALL=C $(AWK) \
 	  -f $(srcdir)/gen-crypt-h.awk config.h $(builddir)/crypt.h.in \
 	  > crypt.h.T
+	$(AM_V_GEN)LC_ALL=C \
+	$(GREP) -q "#define HASH_ALGORITHM_DEFAULT" crypt-hashes.h && \
+	$(SED) -i -e "s/@DEFAULT_PREFIX_ENABLED@/1/g" crypt.h.T || \
+	$(SED) -i -e "s/@DEFAULT_PREFIX_ENABLED@/0/g" crypt.h.T
 	$(AM_V_at)mv -f crypt.h.T crypt.h
 
 crypt-hashes.h: hashes.lst gen-hashes.awk Makefile

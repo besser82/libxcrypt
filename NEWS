@@ -20,6 +20,8 @@ Version 4.3.0
   at compile time.
 * Implement crypt_checksalt, which can be used by portable users of
   libxcrypt to check whether the desired hash method is supported.
+* Fix the definition of 'CRYPT_GENSALT_IMPLEMENTS_DEFAULT_PREFIX'
+  to reflect whether the default prefix is available or not.
 
 Version 4.2.3
 * Add bootstrap script.  If building from a Git checkout instead of a

@@ -202,7 +202,7 @@ extern int crypt_checksalt (const char *__setting);
 /* These macros could be checked by portable users of crypt_gensalt*
    functions to find out whether null pointers could be specified
    as PREFIX and RBYTES arguments.  */
-#define CRYPT_GENSALT_IMPLEMENTS_DEFAULT_PREFIX 1
+#define CRYPT_GENSALT_IMPLEMENTS_DEFAULT_PREFIX @DEFAULT_PREFIX_ENABLED@
 #define CRYPT_GENSALT_IMPLEMENTS_AUTO_ENTROPY   1
 
 /* These macros can be checked by portable users of the crypt_checksalt
