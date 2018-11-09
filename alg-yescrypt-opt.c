@@ -1072,6 +1072,7 @@ static void smix(uint8_t *B, size_t r, uint32_t N, uint32_t p, uint32_t t,
 #else
 		salsa20_blk_t *XYp = XY;
 #endif
+		// coverity[assign_zero]
 		pwxform_ctx_t *ctx_i = NULL;
 		if (flags & YESCRYPT_RW) {
 			uint8_t *Si = S + i * Salloc;
@@ -1086,7 +1087,9 @@ static void smix(uint8_t *B, size_t r, uint32_t N, uint32_t p, uint32_t t,
 				HMAC_SHA256_Buf(Bp + (128 * r - 64), 64,
 				    passwd, 32, passwd);
 		}
+		// coverity[var_deref_model : FALSE]
 		smix1(Bp, r, Np, flags, Vp, NROM, VROM, XYp, ctx_i);
+		// coverity[var_deref_model : FALSE]
 		smix2(Bp, r, p2floor(Np), Nloop_rw, flags, Vp,
 		    NROM, VROM, XYp, ctx_i);
 	}
