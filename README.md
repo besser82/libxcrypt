@@ -7,11 +7,12 @@ README for libxcrypt
 
 libxcrypt is a modern library for one-way hashing of passwords.  It
 supports a wide variety of both modern and historical hashing methods:
-yescrypt, bcrypt, SHA-2-512, SHA-2-256, SHA-1, MD5 (two variants),
-DES (three variants), and NTHASH.  It provides the traditional Unix
-`crypt` and `crypt_r` interfaces, as well as a set of extended
-interfaces pioneered by Openwall Linux, `crypt_rn`, `crypt_ra`,
-`crypt_gensalt`, `crypt_gensalt_rn`, and `crypt_gensalt_ra`.
+yescrypt, gost-yescrypt, scrypt, bcrypt, sha512crypt, sha256crypt,
+md5crypt, SunMD5, sha1crypt, NT, bsdicrypt, bigcrypt, and descrypt.
+It provides the traditional Unix `crypt` and `crypt_r` interfaces, as
+well as a set of extended interfaces pioneered by Openwall Linux,
+`crypt_rn`, `crypt_ra`, `crypt_gensalt`, `crypt_gensalt_rn`, and
+`crypt_gensalt_ra`.
 
 libxcrypt is intended to be used by `login(1)`, `passwd(1)`, and other
 similar programs; that is, to hash a small number of passwords during
@@ -135,7 +136,7 @@ without backward compatibility constraints are encouraged to use
 `--enable-hashes=strong`, which enables only the hash functions that
 are strong enough to be safe for newly hashed passwords.
 
-The original implementation of the SUNMD5 hashing algorithm has a bug,
+The original implementation of the SunMD5 hashing algorithm has a bug,
 which is mimicked by libxcrypt to be fully compatible with hashes
 generated on (Open)Solaris.  According to the only existing
 [documentation of this algorithm][2], its hashes were supposed to have
@@ -153,25 +154,26 @@ configuration string that ends with `$`.  It returns the intended
 original format and checksum only if there is at least one letter
 after the `$`, e.g. `$md5[,rounds=%u]$<salt>$x`.
 
-The NTHASH algorithm, in its original implementation, never came with
-any `gensalt` function, because the algorithm does not use any.
-libxcrypt ships a bogus `gensalt` function for the NTHASH algorithm,
-which simply returns `$3$__not_used__XXXXXXXXXXXXXX`, where the `X`s
-stand for some more or less random salt.  There is no difference in
-the resulting hash returned by the `crypt` function, whether using
-one of the hashes returned by `gensalt` or simply using `$3$` as a
-setting for hashing a password with NTHASH.
+The NT algorithm, in its original implementation, never came with any
+`gensalt` function, because the algorithm does not use any.  libxcrypt
+ships a bogus `gensalt` function for the NTHASH algorithm, which
+simply returns `$3$__not_used__XXXXXXXXXXXXXX`, where the `X`s stand
+for some more or less random salt.  There is no difference in the
+resulting hash returned by the `crypt` function, whether using one of
+the hashes returned by `gensalt` or simply using `$3$` as a setting
+for hashing a password with NT.
 
 glibc’s libcrypt could optionally be configured to use Mozilla’s NSS
-library’s implementations of the cryptographic primitives MD5,
-SHA-2-256, and SHA-2-512.  This option is not available in libxcrypt,
-because we do not currently believe it is a desirable option.  The
-stated rationale for the option was to source all cryptographic
-primitives from a library that has undergone FIPS certification, but
-we believe FIPS certification would need to cover all of libxcrypt
-itself to have any meaningful value.  Moreover, the strongest hashing
-methods, yescrypt and bcrypt, use cryptographic primitives that are
-not available from NSS, so the certification would not cover any part
-of what will hopefully be the most used code paths.
+library’s implementations of the cryptographic primitives md5crypt,
+sha256crypt, and sha512crypt.  This option is not available in
+libxcrypt, because we do not currently believe it is a desirable
+option.  The stated rationale for the option was to source all
+cryptographic primitives from a library that has undergone FIPS
+certification, but we believe FIPS certification would need to cover
+all of libxcrypt itself to have any meaningful value.  Moreover, the
+strongest hashing methods, yescrypt and bcrypt, use cryptographic
+primitives that are not available from NSS, so the certification
+would not cover any part of what will hopefully be the most used code
+paths.
 
 [2]: https://dropsafe.crypticide.com/article/1389
