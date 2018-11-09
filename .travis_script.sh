@@ -5,9 +5,10 @@ export NPROCS="$((`nproc --all 2>/dev/null || sysctl -n hw.ncpu` * 2))"
 echo paralleism is $NPROCS
 
 if [[ "$PERFORM_COVERITY_SCAN" == "1" ]]; then
+  TAG_VERSION="`echo ${TRAVIS_BRANCH} | sed -e 's/^v//g'`"
   curl -s "https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh" \
     --output /tmp/travisci_build_coverity_scan.sh
-  sed -i -e "s/--form version=\$SHA/--form version=\"${TRAVIS_BRANCH}\"/g" \
+  sed -i -e "s/--form version=\$SHA/--form version=\"${TAG_VERSION}\"/g" \
     -e "s/--form description=\"Travis CI build\"/--form description=\"${SHA}\"/g" \
     -e "s/201/200/g" /tmp/travisci_build_coverity_scan.sh
   bash /tmp/travisci_build_coverity_scan.sh
