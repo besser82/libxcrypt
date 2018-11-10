@@ -3,6 +3,8 @@ libxcrypt NEWS -- history of user-visible changes.
 Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
+Version 4.3.2
+
 Version 4.3.1
 * Reduce the number of methods that can be the default for new hashes.
   We don’t want to accidentally encourage use of gost-yescrypt,
