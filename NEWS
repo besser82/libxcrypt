@@ -4,6 +4,10 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.3.1
+* Reduce the number of methods that can be the default for new hashes.
+  We don’t want to be accidentally encouraging use of gost-yescrypt,
+  scrypt, or the bug-compatibility bcrypt variants by people who do
+  not have a specific need for them.
 
 Version 4.3.0
 * Implement the gost-yescrypt ($gy$) hashing algorithm.
