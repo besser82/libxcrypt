@@ -123,11 +123,49 @@ static const struct testcase testcases[] =
   { "$2b$", 0,  2, 0 },         // inadequate rbytes
   { "$2b$", 0,  0, 4 },         // inadequate osize
 #else
-  { "$2a$", 0, 0, 0 },
   { "$2b$", 0, 0, 0 },
+#endif
+#if INCLUDE_bcrypt_a
+  { "$2",   0,  0, 0 },         // truncated prefix
+  { "$2a",  0,  0, 0 },
+  { "$2b",  0,  0, 0 },
+  { "$2x",  0,  0, 0 },
+  { "$2y",  0,  0, 0 },
+  { "$2a$", 3,  0, 0 },         // too small
+  { "$2a$", 32, 0, 0 },         // too large
+  { "$2a$", 0,  2, 0 },         // inadequate rbytes
+  { "$2a$", 0,  0, 4 },         // inadequate osize
+#else
+  { "$2a$", 0, 0, 0 },
+#endif
+#if INCLUDE_bcrypt_x
+  { "$2",   0,  0, 0 },         // truncated prefix
+  { "$2a",  0,  0, 0 },
+  { "$2b",  0,  0, 0 },
+  { "$2x",  0,  0, 0 },
+  { "$2y",  0,  0, 0 },
+  { "$2x$", 3,  0, 0 },         // too small
+  { "$2x$", 32, 0, 0 },         // too large
+  { "$2x$", 0,  2, 0 },         // inadequate rbytes
+  { "$2x$", 0,  0, 4 },         // inadequate osize
+#else
   { "$2x$", 0, 0, 0 },
+#endif
+#if INCLUDE_bcrypt_y
+  { "$2",   0,  0, 0 },         // truncated prefix
+  { "$2a",  0,  0, 0 },
+  { "$2b",  0,  0, 0 },
+  { "$2x",  0,  0, 0 },
+  { "$2y",  0,  0, 0 },
+  { "$2y$", 3,  0, 0 },         // too small
+  { "$2y$", 32, 0, 0 },         // too large
+  { "$2y$", 0,  2, 0 },         // inadequate rbytes
+  { "$2y$", 0,  0, 4 },         // inadequate osize
+#else
   { "$2y$", 0, 0, 0 },
 #endif
+
+  /* yescrypt */
 #if INCLUDE_yescrypt
   { "$y",   0,  0, 0 },         // truncated prefix
   { "$y$",  32, 0, 0 },         // too large
@@ -136,6 +174,8 @@ static const struct testcase testcases[] =
 #else
   { "$y$",  0, 0, 0 },
 #endif
+
+  /* scrypt */
 #if INCLUDE_scrypt
   { "$7",   0,  0, 0 },         // truncated prefix
   { "$7$",  3,  0, 0 },         // too small
@@ -145,6 +185,8 @@ static const struct testcase testcases[] =
 #else
   { "$7$",  0, 0, 0 },
 #endif
+
+  /* gost-yescrypt */
 #if INCLUDE_gost_yescrypt
   { "$gy",  0,  0, 0 },         // truncated prefix
   { "$gy$", 32, 0, 0 },         // too large
