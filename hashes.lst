@@ -40,12 +40,12 @@
 yescrypt      :          $y$       16       STRONG,DEFAULT,ALT
 gost_yescrypt :          $gy$      16       STRONG,ALT
 scrypt        :          $7$       16       STRONG
-bcrypt        _b         $2b$      16       STRONG,DEFAULT,ALT,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
 bcrypt        _a         $2a$      16       STRONG,ALT,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
+bcrypt        _b         $2b$      16       STRONG,DEFAULT,ALT,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
 bcrypt        _y         $2y$      16       STRONG,ALT,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
 bcrypt        _x         $2x$      16       STRONG,ALT,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
 sha512crypt   :          $6$       15       STRONG,DEFAULT,GLIBC,FREEBSD,SOLARIS
-sha256crypt   :          $5$       15       STRONG,DEFAULT,GLIBC,FREEBSD,SOLARIS
+sha256crypt   :          $5$       15       GLIBC,FREEBSD,SOLARIS
 sha1crypt     :          $sha1     20       NETBSD
 sunmd5        :          $md5      8        SOLARIS
 md5crypt      :          $1$       9        GLIBC,FREEBSD,NETBSD,OPENBSD,SOLARIS
