@@ -400,8 +400,6 @@ static const struct testcase testcases[] =
 # define EXPECTED_DEFAULT_PREFIX "$2b$"
 #elif INCLUDE_sha512crypt
 # define EXPECTED_DEFAULT_PREFIX "$6$"
-#elif INCLUDE_sha256crypt
-# define EXPECTED_DEFAULT_PREFIX "$5$"
 #endif
 
 #if CRYPT_GENSALT_IMPLEMENTS_DEFAULT_PREFIX
