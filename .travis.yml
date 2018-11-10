@@ -143,6 +143,21 @@ matrix:
       os: linux
       env:
         - CONF="--disable-obsolete-api --enable-hashes=bcrypt"
+    - name: "GCC, bcrypt_a only"
+      compiler: gcc
+      os: linux
+      env:
+        - CONF="--disable-obsolete-api --enable-hashes=bcrypt_a"
+    - name: "GCC, bcrypt_x only"
+      compiler: gcc
+      os: linux
+      env:
+        - CONF="--disable-obsolete-api --enable-hashes=bcrypt_x"
+    - name: "GCC, bcrypt_y only"
+      compiler: gcc
+      os: linux
+      env:
+        - CONF="--disable-obsolete-api --enable-hashes=bcrypt_y"
     - name: "GCC, bigcrypt only"
       compiler: gcc
       os: linux
