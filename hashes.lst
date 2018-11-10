@@ -8,12 +8,10 @@
 # strings; the number of bytes of random data that crypt_gensalt
 # should draw from the OS when its caller doesn't supply any; and a
 # comma-separated list of flags.  The current set of possible flags
-# is: DEFAULT means this is the hash to use when no prefix was
-# supplied to crypt_gensalt.  STRONG means the hash is still
-# considered strong enough to use for newly hashed passwords.
-# FREEBSD, GLIBC, NETBSD, OPENBSD, OSX, and SOLARIS mean that the hash
-# was historically supported by crypt() as provided by that operating
-# system / C library.
+# is: STRONG means the hash is still considered strong enough to use
+# for newly hashed passwords.  FREEBSD, GLIBC, NETBSD, OPENBSD, OSX,
+# and SOLARIS mean that the hash was historically supported by crypt()
+# as provided by that operating system / C library.
 #
 # Fields are separated by whitespace. Lines beginning with # are
 # ignored; # is not otherwise significant.  Multiple flags are
@@ -21,25 +19,31 @@
 # is actually understood as an empty string; colon is used for this
 # purpose because it cannot be part of a hash prefix or a C identifier.
 #
-# Note: All entries with the same name should be consecutive.
+# All entries with the same name should be consecutive.
 #
-# Note: crypt() checks prefixes in the order they appear in this file,
+# crypt() checks prefixes in the order they appear in this file,
 # and the first match wins.  Therefore, the empty prefix (traditional
 # DES) must be last.
 #
+# When the prefix argument to crypt_gensalt() is a null pointer, it
+# will use the first of the entries in this file that has a STRONG
+# flag and that was enabled at configure time.  Therefore, the list
+# should be kept in decreasing order of strength, and for hashes with
+# variants (bcrypt) the preferred variant should be first.
+#
 #name         gs_suffix  h_prefix  nrbytes  flags
-yescrypt      :          $y$       16       STRONG,ALT,DEFAULT
+yescrypt      :          $y$       16       STRONG,ALT
 gost_yescrypt :          $gy$      16       STRONG,ALT
 scrypt        :          $7$       16       STRONG
-bcrypt        _a         $2a$      16       STRONG,ALT,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
 bcrypt        _b         $2b$      16       STRONG,ALT,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
-bcrypt        _x         $2x$      16       STRONG,ALT,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
+bcrypt        _a         $2a$      16       STRONG,ALT,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
 bcrypt        _y         $2y$      16       STRONG,ALT,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
+bcrypt        _x         $2x$      16       STRONG,ALT,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
 sha512crypt   :          $6$       15       STRONG,GLIBC,FREEBSD,SOLARIS
 sha256crypt   :          $5$       15       STRONG,GLIBC,FREEBSD,SOLARIS
-md5crypt      :          $1$       9        GLIBC,FREEBSD,NETBSD,OPENBSD,SOLARIS
-sunmd5        :          $md5      8        SOLARIS
 sha1crypt     :          $sha1     20       NETBSD
+sunmd5        :          $md5      8        SOLARIS
+md5crypt      :          $1$       9        GLIBC,FREEBSD,NETBSD,OPENBSD,SOLARIS
 nt            :          $3$       7        FREEBSD
 bsdicrypt     :          _         3        FREEBSD,NETBSD,OPENBSD,OSX
 bigcrypt      :          :         2        :

@@ -393,6 +393,31 @@ static const struct testcase testcases[] =
   { 0, 0, 0, 0, 0 }
 };
 
+/* The "best available" hashing method.  */
+#if INCLUDE_yescrypt
+# define EXPECTED_DEFAULT_PREFIX "$y$"
+#elif INCLUDE_gost_yescrypt
+# define EXPECTED_DEFAULT_PREFIX "$gy$"
+#elif INCLUDE_scrypt
+# define EXPECTED_DEFAULT_PREFIX "$7$"
+#elif INCLUDE_bcrypt
+# define EXPECTED_DEFAULT_PREFIX "$2b$"
+#elif INCLUDE_sha512crypt
+# define EXPECTED_DEFAULT_PREFIX "$6$"
+#elif INCLUDE_sha256crypt
+# define EXPECTED_DEFAULT_PREFIX "$5$"
+#endif
+
+#if CRYPT_GENSALT_IMPLEMENTS_DEFAULT_PREFIX
+# ifndef EXPECTED_DEFAULT_PREFIX
+#  error "Which hashing algorithm is the default?"
+# endif
+#else
+# ifdef EXPECTED_DEFAULT_PREFIX
+#  error "Default hashing algorithm should be available"
+# endif
+#endif
+
 int
 main (void)
 {
@@ -495,13 +520,12 @@ main (void)
 	    }
 	}
     }
-
-  /* Currently, passing a null pointer as the prefix argument to
-     crypt_gensalt is supposed to produce a yescrypt setting
-     string.  */
+#if CRYPT_GENSALT_IMPLEMENTS_DEFAULT_PREFIX
+  /* Passing a null pointer as the prefix argument to crypt_gensalt is
+     supposed to tell it to use the "best available" hashing method.  */
   {
     char *setting1, *setting2;
-    setting1 = crypt_gensalt_ra ("$y$", 0, entropy[0], 16);
+    setting1 = crypt_gensalt_ra (EXPECTED_DEFAULT_PREFIX, 0, entropy[0], 16);
     setting2 = crypt_gensalt_ra (0, 0, entropy[0], 16);
     if ((setting1 == 0 && setting2 != 0) ||
         (setting1 != 0 && setting2 == 0) ||
@@ -516,6 +540,17 @@ main (void)
     free (setting1);
     free (setting2);
   }
+#else
+  {
+    char *setting = crypt_gensalt_ra (0, 0, entropy[0], 16);
+    if (setting)
+      {
+        printf ("FAILED: crypt_gensalt null -> %s (null expected)\n", setting);
+        status = 1;
+      }
+    free (setting);
+  }
+#endif
 
 #if INCLUDE_bcrypt
   /* FIXME: This test is a little too specific.  It used to be in
