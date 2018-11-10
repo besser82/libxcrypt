@@ -1,5 +1,4 @@
-# This file is read by genhashes.awk and by the configure script.
-#
+# This file is read by gen-hashes.awk and sel-hashes.awk.
 # It lists, for each supported hash algorithm, the name to be used to
 # enable or disable it at configure time, which is also part of the
 # name used for the 'crypt_fn' and 'gensalt_fn' entry points to the
@@ -7,11 +6,23 @@
 # 'gensalt_fn'; the prefix used to identify the algorithm in hash
 # strings; the number of bytes of random data that crypt_gensalt
 # should draw from the OS when its caller doesn't supply any; and a
-# comma-separated list of flags.  The current set of possible flags
-# is: STRONG means the hash is still considered strong enough to use
-# for newly hashed passwords.  FREEBSD, GLIBC, NETBSD, OPENBSD, OSX,
-# and SOLARIS mean that the hash was historically supported by crypt()
-# as provided by that operating system / C library.
+# comma-separated list of flags.
+#
+# The current set of possible flags is: STRONG means the hash is still
+# considered strong enough to use for newly hashed passwords; this is
+# the set of hashes that will be enabled when the library is
+# configured with --enable-hashes=strong.  DEFAULT means that this
+# hash may be used as the default for newly hashed passwords;
+# when crypt_gensalt is called with a null pointer for its prefix
+# argument, it will use the first hash in this file that was enabled
+# and has a DEFAULT flag.  Hashes that are not STRONG should never be
+# marked DEFAULT.  If you change the set of DEFAULT hashes you must also
+# update test-gensalt.c to match.
+#
+# ALT, FREEBSD, GLIBC, NETBSD, OPENBSD, OSX, OWL, SOLARIS, and SUSE
+# mean that the hash was historically supported by crypt() as provided
+# by that operating system / C library.  These are also recognized by
+# --enable-hashes as sets of hashes that can be enabled.
 #
 # Fields are separated by whitespace. Lines beginning with # are
 # ignored; # is not otherwise significant.  Multiple flags are
@@ -19,28 +30,22 @@
 # is actually understood as an empty string; colon is used for this
 # purpose because it cannot be part of a hash prefix or a C identifier.
 #
-# All entries with the same name should be consecutive.
-#
-# crypt() checks prefixes in the order they appear in this file,
-# and the first match wins.  Therefore, the empty prefix (traditional
-# DES) must be last.
-#
-# When the prefix argument to crypt_gensalt() is a null pointer, it
-# will use the first of the entries in this file that has a STRONG
-# flag and that was enabled at configure time.  Therefore, the list
-# should be kept in decreasing order of strength, and for hashes with
-# variants (bcrypt) the preferred variant should be first.
+# crypt() checks prefixes in the order they appear in this list, and
+# the first match wins.  Therefore: The list should be kept in
+# decreasing order of cryptographic strength.  All entries with the
+# same name should be consecutive.  Hashes that use an empty prefix
+# (bigcrypt and descrypt) must be last.
 #
 #name         gs_suffix  h_prefix  nrbytes  flags
-yescrypt      :          $y$       16       STRONG,ALT
+yescrypt      :          $y$       16       STRONG,DEFAULT,ALT
 gost_yescrypt :          $gy$      16       STRONG,ALT
 scrypt        :          $7$       16       STRONG
-bcrypt        _b         $2b$      16       STRONG,ALT,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
+bcrypt        _b         $2b$      16       STRONG,DEFAULT,ALT,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
 bcrypt        _a         $2a$      16       STRONG,ALT,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
 bcrypt        _y         $2y$      16       STRONG,ALT,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
 bcrypt        _x         $2x$      16       STRONG,ALT,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE
-sha512crypt   :          $6$       15       STRONG,GLIBC,FREEBSD,SOLARIS
-sha256crypt   :          $5$       15       STRONG,GLIBC,FREEBSD,SOLARIS
+sha512crypt   :          $6$       15       STRONG,DEFAULT,GLIBC,FREEBSD,SOLARIS
+sha256crypt   :          $5$       15       STRONG,DEFAULT,GLIBC,FREEBSD,SOLARIS
 sha1crypt     :          $sha1     20       NETBSD
 sunmd5        :          $md5      8        SOLARIS
 md5crypt      :          $1$       9        GLIBC,FREEBSD,NETBSD,OPENBSD,SOLARIS

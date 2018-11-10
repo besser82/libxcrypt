@@ -396,10 +396,6 @@ static const struct testcase testcases[] =
 /* The "best available" hashing method.  */
 #if INCLUDE_yescrypt
 # define EXPECTED_DEFAULT_PREFIX "$y$"
-#elif INCLUDE_gost_yescrypt
-# define EXPECTED_DEFAULT_PREFIX "$gy$"
-#elif INCLUDE_scrypt
-# define EXPECTED_DEFAULT_PREFIX "$7$"
 #elif INCLUDE_bcrypt
 # define EXPECTED_DEFAULT_PREFIX "$2b$"
 #elif INCLUDE_sha512crypt

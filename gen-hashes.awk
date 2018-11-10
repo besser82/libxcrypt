@@ -30,7 +30,7 @@ BEGIN {
     if (!($1 in hash_enabled)) {
         output_order[next_output++] = $1
         hash_enabled[$1] = 0
-        strong_prefix[$1] = ""
+        default_cand[$1] = ""
     }
     if ($1 == ":") {
         printf("%s:%d: name cannot be blank\n", FILENAME, NR)
@@ -71,11 +71,11 @@ BEGIN {
     split($5, flags, ",")
     for (i in flags) {
         flag = flags[i]
-        if (flag == "STRONG") {
-            if (strong_prefix[$1] == "") {
-                strong_prefix[$1] = $3
+        if (flag == "DEFAULT") {
+            if (default_cand[$1] == "") {
+                default_cand[$1] = $3
             }
-        } else if (flag == "GLIBC"   || \
+        } else if (flag == "STRONG"  || flag == "GLIBC"   || \
                    flag == "ALT"     || flag == "FREEBSD" || \
                    flag == "NETBSD"  || flag == "OPENBSD" || \
                    flag == "OSX"     || flag == "OWL"     || \
@@ -113,8 +113,8 @@ END {
     for (i in output_order) {
         hash = output_order[i]
         printf("#define INCLUDE_%-13s %d\n", hash, hash_enabled[hash])
-        if (hash_enabled[hash] && strong_prefix[hash] != "" && default_prefix == "") {
-            default_prefix = strong_prefix[hash]
+        if (hash_enabled[hash] && default_cand[hash] != "" && default_prefix == "") {
+            default_prefix = default_cand[hash]
         }
     }
 
