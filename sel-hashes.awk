@@ -79,7 +79,7 @@ BEGIN {
     } else {
         enabled_hashes[$1] = 0
 
-        split($5, flags, ",")
+        split($4, flags, ",")
         for (i in flags) {
             flag = flags[i]
             if (flag == "STRONG" && enable_strong) {

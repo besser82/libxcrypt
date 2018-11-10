@@ -180,13 +180,6 @@ static const char *const sha512_expected_output_h[] =
 };
 #endif
 #if INCLUDE_bcrypt
-static const char *const bcrypt_a_expected_output[] =
-{
-  "$2a$05$UBVLHeMpJ/QQCv3XqJx8zO",
-  "$2a$05$kxUgPcrmlm9XoOjvxCyfP.",
-  "$2a$05$HPNDjKMRFdR7zC87CMSmA.",
-  "$2a$05$mAyzaIeJu41dWUkxEbn8hO"
-};
 static const char *const bcrypt_b_expected_output[] =
 {
   "$2b$05$UBVLHeMpJ/QQCv3XqJx8zO",
@@ -208,6 +201,17 @@ static const char *const bcrypt_b_expected_output_h[] =
   "$2b$31$HPNDjKMRFdR7zC87CMSmA.",
   "$2b$31$mAyzaIeJu41dWUkxEbn8hO"
 };
+#endif
+#if INCLUDE_bcrypt_a
+static const char *const bcrypt_a_expected_output[] =
+{
+  "$2a$05$UBVLHeMpJ/QQCv3XqJx8zO",
+  "$2a$05$kxUgPcrmlm9XoOjvxCyfP.",
+  "$2a$05$HPNDjKMRFdR7zC87CMSmA.",
+  "$2a$05$mAyzaIeJu41dWUkxEbn8hO"
+};
+#endif
+#if INCLUDE_bcrypt_x
 static const char *const bcrypt_x_expected_output[] =
 {
   "$2x$05$UBVLHeMpJ/QQCv3XqJx8zO",
@@ -215,6 +219,8 @@ static const char *const bcrypt_x_expected_output[] =
   "$2x$05$HPNDjKMRFdR7zC87CMSmA.",
   "$2x$05$mAyzaIeJu41dWUkxEbn8hO"
 };
+#endif
+#if INCLUDE_bcrypt_y
 static const char *const bcrypt_y_expected_output[] =
 {
   "$2y$05$UBVLHeMpJ/QQCv3XqJx8zO",
@@ -367,12 +373,17 @@ static const struct testcase testcases[] =
   // values outside the documented range are errors.
   { "$2b$",  bcrypt_b_expected_output_l, 29,  0, 4 },
   { "$2b$",  bcrypt_b_expected_output_h, 29,  0, 31 },
-
+#endif
   // Salt generation for legacy bcrypt variants uses the same code as
   // the 'b' variant, so we don't bother testing them on non-default
   // rounds.
+#if INCLUDE_bcrypt_a
   { "$2a$",  bcrypt_a_expected_output, 29,  0, 0 },
+#endif
+#if INCLUDE_bcrypt_x
   { "$2x$",  bcrypt_x_expected_output, 29,  0, 0 },
+#endif
+#if INCLUDE_bcrypt_y
   { "$2y$",  bcrypt_y_expected_output, 29,  0, 0 },
 #endif
 #if INCLUDE_yescrypt
@@ -546,7 +557,7 @@ main (void)
   }
 #endif
 
-#if INCLUDE_bcrypt
+#if INCLUDE_bcrypt_a
   /* FIXME: This test is a little too specific.  It used to be in
      test-bcrypt.c and I'm not sure what it's meant to be testing.  */
   {

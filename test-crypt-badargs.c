@@ -55,10 +55,16 @@ static const char *settings[] =
   "$6$MJHnaAkegEVYHsFK",
   "$6$rounds=10191$MJHnaAkegEVYHsFK",
 #endif
-#if INCLUDE_bcrypt
+#if INCLUDE_bcrypt_a
   "$2a$05$UBVLHeMpJ/QQCv3XqJx8zO",
+#endif
+#if INCLUDE_bcrypt
   "$2b$05$UBVLHeMpJ/QQCv3XqJx8zO",
+#endif
+#if INCLUDE_bcrypt_x
   "$2x$05$UBVLHeMpJ/QQCv3XqJx8zO",
+#endif
+#if INCLUDE_bcrypt_y
   "$2y$05$UBVLHeMpJ/QQCv3XqJx8zO",
 #endif
 #if INCLUDE_yescrypt

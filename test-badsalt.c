@@ -168,18 +168,24 @@ static const struct testcase testcases[] =
   { "*SHA-512 (rounds) invalid rounds 6",  38, "$6$rounds=4294967295$MJHnaAkegEVYHsFK$" },
 #endif
 #if INCLUDE_bcrypt
-  { "bcrypt (a04)",                        29, "$2a$04$UBVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (a04) invalid char",          29, "$2a$04$:BVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (a04) invalid rounds 1",      29, "$2a$:4$UBVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (a04) invalid rounds 2",      29, "$2a$0:$UBVLHeMpJ/QQCv3XqJx8zO" },
   { "bcrypt (b04)",                        29, "$2b$04$UBVLHeMpJ/QQCv3XqJx8zO" },
   { "*bcrypt (b04) invalid char",          29, "$2b$04$:BVLHeMpJ/QQCv3XqJx8zO" },
   { "*bcrypt (b04) invalid rounds 1",      29, "$2b$:4$UBVLHeMpJ/QQCv3XqJx8zO" },
   { "*bcrypt (b04) invalid rounds 2",      29, "$2b$0:$UBVLHeMpJ/QQCv3XqJx8zO" },
+#endif
+#if INCLUDE_bcrypt_a
+  { "bcrypt (a04)",                        29, "$2a$04$UBVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (a04) invalid char",          29, "$2a$04$:BVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (a04) invalid rounds 1",      29, "$2a$:4$UBVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (a04) invalid rounds 2",      29, "$2a$0:$UBVLHeMpJ/QQCv3XqJx8zO" },
+#endif
+#if INCLUDE_bcrypt_x
   { "bcrypt (x04)",                        29, "$2x$04$UBVLHeMpJ/QQCv3XqJx8zO" },
   { "*bcrypt (x04) invalid char",          29, "$2x$04$:BVLHeMpJ/QQCv3XqJx8zO" },
   { "*bcrypt (x04) invalid rounds 1",      29, "$2x$:4$UBVLHeMpJ/QQCv3XqJx8zO" },
   { "*bcrypt (x04) invalid rounds 2",      29, "$2x$0:$UBVLHeMpJ/QQCv3XqJx8zO" },
+#endif
+#if INCLUDE_bcrypt_y
   { "bcrypt (y04)",                        29, "$2y$04$UBVLHeMpJ/QQCv3XqJx8zO" },
   { "*bcrypt (y04) invalid char",          29, "$2y$04$:BVLHeMpJ/QQCv3XqJx8zO" },
   { "*bcrypt (y04) invalid rounds 1",      29, "$2y$:4$UBVLHeMpJ/QQCv3XqJx8zO" },

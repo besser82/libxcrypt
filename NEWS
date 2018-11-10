@@ -5,11 +5,18 @@ Please send bug reports, questions and suggestions to
 
 Version 4.3.1
 * Reduce the number of methods that can be the default for new hashes.
-  We don’t want to be accidentally encouraging use of gost-yescrypt,
+  We don’t want to accidentally encourage use of gost-yescrypt,
   scrypt, or the bug-compatibility bcrypt variants by people who do
   not have a specific need for them.
 * sha256crypt ($5$) is not considered to be strong anymore.  Thus
   it was dropped from the STRONG and DEFAULT sets.
+* The four variants of bcrypt ($2b$, $2a$, $2y$, $2x$) are now
+  independently selectable at configure time.  The $2x$ variant has
+  been dropped from the STRONG set, because it has a severe bug
+  causing it to be easy to find collisions for some passwords.  The
+  $2x$ and $2y$ variants have been dropped from the FreeBSD, NetBSD,
+  OpenBSD, and Solaris compatibility sets, because those operating
+  systems never supported those variants.
 
 Version 4.3.0
 * Implement the gost-yescrypt ($gy$) hashing algorithm.

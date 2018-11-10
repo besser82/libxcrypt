@@ -49,7 +49,7 @@
 #include <errno.h>
 #include <stdio.h>
 
-#if INCLUDE_bcrypt
+#if INCLUDE_bcrypt || INCLUDE_bcrypt_a || INCLUDE_bcrypt_x || INCLUDE_bcrypt_y
 
 #if defined(__i386__) || defined(__x86_64__) || \
     defined(__alpha__) || defined(__hppa__)
@@ -868,11 +868,10 @@ BF_crypt (const char *key, const char *setting, unsigned char *output,
  * The performance cost of this quick self-test is around 0.6% at the "$2a$08"
  * setting.
  */
-void
-crypt_bcrypt_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
-                 const char *setting, size_t ARG_UNUSED (set_size),
-                 uint8_t *output, size_t out_size,
-                 void *scratch, size_t scr_size)
+static void
+BF_full_crypt (const char *phrase, const char *setting,
+               uint8_t *output, size_t out_size,
+               void *scratch, size_t scr_size)
 {
   /* This shouldn't ever happen, but...  */
   if (out_size < BF_HASH_LENGTH || scr_size < sizeof (struct BF_buffer))
@@ -978,6 +977,37 @@ BF_gensalt (char subtype, unsigned long count,
   output[7 + 22] = '\0';
 }
 
+#endif
+
+#if INCLUDE_bcrypt
+void
+crypt_bcrypt_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
+                 const char *setting, size_t ARG_UNUSED (set_size),
+                 uint8_t *output, size_t out_size,
+                 void *scratch, size_t scr_size)
+{
+  BF_full_crypt (phrase, setting, output, out_size, scratch, scr_size);
+}
+
+void
+gensalt_bcrypt_rn (unsigned long count,
+                   const uint8_t *rbytes, size_t nrbytes,
+                   uint8_t *output, size_t o_size)
+{
+  BF_gensalt ('b', count, rbytes, nrbytes, output, o_size);
+}
+#endif
+
+#if INCLUDE_bcrypt_a
+void
+crypt_bcrypt_a_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
+                   const char *setting, size_t ARG_UNUSED (set_size),
+                   uint8_t *output, size_t out_size,
+                   void *scratch, size_t scr_size)
+{
+  BF_full_crypt (phrase, setting, output, out_size, scratch, scr_size);
+}
+
 void
 gensalt_bcrypt_a_rn (unsigned long count,
                      const uint8_t *rbytes, size_t nrbytes,
@@ -985,13 +1015,16 @@ gensalt_bcrypt_a_rn (unsigned long count,
 {
   BF_gensalt ('a', count, rbytes, nrbytes, output, o_size);
 }
+#endif
 
+#if INCLUDE_bcrypt_x
 void
-gensalt_bcrypt_b_rn (unsigned long count,
-                     const uint8_t *rbytes, size_t nrbytes,
-                     uint8_t *output, size_t o_size)
+crypt_bcrypt_x_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
+                   const char *setting, size_t ARG_UNUSED (set_size),
+                   uint8_t *output, size_t out_size,
+                   void *scratch, size_t scr_size)
 {
-  BF_gensalt ('b', count, rbytes, nrbytes, output, o_size);
+  BF_full_crypt (phrase, setting, output, out_size, scratch, scr_size);
 }
 
 void
@@ -1001,6 +1034,17 @@ gensalt_bcrypt_x_rn (unsigned long count,
 {
   BF_gensalt ('x', count, rbytes, nrbytes, output, o_size);
 }
+#endif
+
+#if INCLUDE_bcrypt_y
+void
+crypt_bcrypt_y_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
+                   const char *setting, size_t ARG_UNUSED (set_size),
+                   uint8_t *output, size_t out_size,
+                   void *scratch, size_t scr_size)
+{
+  BF_full_crypt (phrase, setting, output, out_size, scratch, scr_size);
+}
 
 void
 gensalt_bcrypt_y_rn (unsigned long count,
@@ -1009,5 +1053,4 @@ gensalt_bcrypt_y_rn (unsigned long count,
 {
   BF_gensalt ('y', count, rbytes, nrbytes, output, o_size);
 }
-
 #endif

@@ -74,14 +74,23 @@ static const struct testcase testcases[] =
   { "$6$",   CRYPT_SALT_INVALID, CRYPT_SALT_INVALID, CRYPT_SALT_INVALID },
 #endif
 #if INCLUDE_bcrypt
-  { "$2a$",  CRYPT_SALT_OK,      CRYPT_SALT_OK,      CRYPT_SALT_OK      },
   { "$2b$",  CRYPT_SALT_OK,      CRYPT_SALT_OK,      CRYPT_SALT_OK      },
-  { "$2x$",  CRYPT_SALT_OK,      CRYPT_SALT_OK,      CRYPT_SALT_OK      },
-  { "$2y$",  CRYPT_SALT_OK,      CRYPT_SALT_OK,      CRYPT_SALT_OK      },
+#else
+  { "$2b$",  CRYPT_SALT_INVALID, CRYPT_SALT_INVALID, CRYPT_SALT_INVALID },
+#endif
+#if INCLUDE_bcrypt_a
+  { "$2a$",  CRYPT_SALT_OK,      CRYPT_SALT_OK,      CRYPT_SALT_OK      },
 #else
   { "$2a$",  CRYPT_SALT_INVALID, CRYPT_SALT_INVALID, CRYPT_SALT_INVALID },
-  { "$2b$",  CRYPT_SALT_INVALID, CRYPT_SALT_INVALID, CRYPT_SALT_INVALID },
+#endif
+#if INCLUDE_bcrypt_x
+  { "$2x$",  CRYPT_SALT_OK,      CRYPT_SALT_OK,      CRYPT_SALT_OK      },
+#else
   { "$2x$",  CRYPT_SALT_INVALID, CRYPT_SALT_INVALID, CRYPT_SALT_INVALID },
+#endif
+#if INCLUDE_bcrypt_y
+  { "$2y$",  CRYPT_SALT_OK,      CRYPT_SALT_OK,      CRYPT_SALT_OK      },
+#else
   { "$2y$",  CRYPT_SALT_INVALID, CRYPT_SALT_INVALID, CRYPT_SALT_INVALID },
 #endif
 #if INCLUDE_yescrypt
