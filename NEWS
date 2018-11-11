@@ -3,6 +3,8 @@ libxcrypt NEWS -- history of user-visible changes.
 Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
+Version 4.3.4
+
 Version 4.3.3
 * Add an alias for crypt_gensalt_r.
   The function was available in older versions (v3.1.1 and earlier)
