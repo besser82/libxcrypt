@@ -119,7 +119,7 @@ gensalt_nt_rn (unsigned long count,
      At least 1 byte of RBYTES is needed
      to calculate the MD4 hash used in the
      fake salt.  */
-  if ((o_size < 29) || (nrbytes < 1))
+  if ((o_size < 30) || (nrbytes < 1))
     {
       errno = ERANGE;
       return;
@@ -142,9 +142,10 @@ gensalt_nt_rn (unsigned long count,
 
   for (i = 0; i < 7; i++)
     sprintf (&(hashstr[i * 2]), "%02x", hashbuf[i]);
+  hashstr[14] = '\0';
 
-  memcpy (output, salt, 15);
-  memcpy (output + 15, hashstr, 14+1);
+  XCRYPT_STRCPY_OR_ABORT (output, o_size, salt);
+  XCRYPT_STRCPY_OR_ABORT (output + 15, o_size - 15, hashstr);
 }
 
 #endif
