@@ -144,7 +144,7 @@ gensalt_nt_rn (unsigned long count,
     sprintf (&(hashstr[i * 2]), "%02x", hashbuf[i]);
 
   memcpy (output, salt, 15);
-  memcpy (output + 15, hashstr, 14);
+  memcpy (output + 15, hashstr, 14+1);
 }
 
 #endif

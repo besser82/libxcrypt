@@ -8,11 +8,10 @@
    details.  */
 
 #include "crypt-port.h"
-#include <crypt.h>
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 /* Supply 64 bytes of "random" data to each gensalt call, for
    determinism.  */
