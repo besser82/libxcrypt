@@ -4,6 +4,10 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.3.3
+* Add an alias for crypt_gensalt_r.
+  The function was available in older versions (v3.1.1 and earlier)
+  of libxcrypt.  It has the same semantics and the same prototype as
+  the crypt_gensalt_rn function.
 
 Version 4.3.2
 * Fix the gensalt function for the NT hashing method ($3$) to

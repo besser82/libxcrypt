@@ -315,6 +315,12 @@ crypt_gensalt_rn (const char *prefix, unsigned long count,
   return output[0] == '*' ? 0 : output;
 }
 SYMVER_crypt_gensalt_rn;
+
+#if INCLUDE_crypt_gensalt_r
+/* For code compatibility with older versions (v3.1.1 and earlier).  */
+strong_alias (crypt_gensalt_rn, crypt_gensalt_r);
+SYMVER_crypt_gensalt_r;
+#endif
 #endif
 
 #if INCLUDE_crypt_gensalt_ra

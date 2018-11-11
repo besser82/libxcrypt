@@ -178,6 +178,13 @@ extern char *crypt_gensalt_rn (const char *__prefix, unsigned long __count,
                                char *__output, int __output_size)
 __THROW;
 
+/* Identical to crypt_gensalt_rn.  Kept for code compatibility with
+   older versions (v3.1.1 and earlier) of libxcrypt.  */
+extern char *crypt_gensalt_r (const char *__prefix, unsigned long __count,
+                              const char *__rbytes, int __nrbytes,
+                              char *__output, int __output_size)
+__THROW;
+
 /* Another thread-safe version of crypt_gensalt; the generated setting
    string is in storage allocated by malloc, and should be deallocated
    with free when it is no longer needed.  */
