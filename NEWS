@@ -3,6 +3,8 @@ libxcrypt NEWS -- history of user-visible changes.
 Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
+Version 4.3.3
+
 Version 4.3.2
 * Fix the gensalt function for the NT hashing method ($3$) to
   properly terminate its output string.  The output buffer for the
