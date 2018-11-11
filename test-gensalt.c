@@ -211,15 +211,6 @@ static const char *const bcrypt_a_expected_output[] =
   "$2a$05$mAyzaIeJu41dWUkxEbn8hO"
 };
 #endif
-#if INCLUDE_bcrypt_x
-static const char *const bcrypt_x_expected_output[] =
-{
-  "$2x$05$UBVLHeMpJ/QQCv3XqJx8zO",
-  "$2x$05$kxUgPcrmlm9XoOjvxCyfP.",
-  "$2x$05$HPNDjKMRFdR7zC87CMSmA.",
-  "$2x$05$mAyzaIeJu41dWUkxEbn8hO"
-};
-#endif
 #if INCLUDE_bcrypt_y
 static const char *const bcrypt_y_expected_output[] =
 {
@@ -379,9 +370,6 @@ static const struct testcase testcases[] =
   // rounds.
 #if INCLUDE_bcrypt_a
   { "$2a$",  bcrypt_a_expected_output, 29,  0, 0 },
-#endif
-#if INCLUDE_bcrypt_x
-  { "$2x$",  bcrypt_x_expected_output, 29,  0, 0 },
 #endif
 #if INCLUDE_bcrypt_y
   { "$2y$",  bcrypt_y_expected_output, 29,  0, 0 },

@@ -28,7 +28,7 @@ static_assert(sizeof rbytes2 == N_RBYTES + 1, "rbytes2 is wrong length");
 
 struct testcase
 {
-  const char prefix[8];
+  const char *prefix;
   unsigned long count1;
   unsigned long count2;
 };
@@ -73,9 +73,6 @@ static const struct testcase testcases[] =
 #if INCLUDE_bcrypt_a
   { "$2a$", 7, 11 },
 #endif
-#if INCLUDE_bcrypt_x
-  { "$2x$", 7, 11 },
-#endif
 #if INCLUDE_scrypt
   { "$7$", 7, 11, },
 #endif
@@ -85,6 +82,7 @@ static const struct testcase testcases[] =
 #if INCLUDE_gost_yescrypt
   { "$gy$", 7, 11, },
 #endif
+  { 0, 0, 0, }
 };
 
 static int
@@ -149,7 +147,7 @@ main(void)
   char sref[6][CRYPT_GENSALT_OUTPUT_SIZE];
   char stst[CRYPT_GENSALT_OUTPUT_SIZE];
 
-  for (size_t i = 0; i < ARRAY_SIZE(testcases); i++)
+  for (size_t i = 0; testcases[i].prefix; i++)
     {
       const char *prefix   = testcases[i].prefix;
       unsigned long count1 = testcases[i].count1;

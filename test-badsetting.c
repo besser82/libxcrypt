@@ -143,10 +143,7 @@ static const struct testcase testcases[] =
   { "$2b",  0,  0, 0 },
   { "$2x",  0,  0, 0 },
   { "$2y",  0,  0, 0 },
-  { "$2x$", 3,  0, 0 },         // too small
-  { "$2x$", 32, 0, 0 },         // too large
-  { "$2x$", 0,  2, 0 },         // inadequate rbytes
-  { "$2x$", 0,  0, 4 },         // inadequate osize
+  { "$2x$", 0,  0, 0 },         // cannot be used
 #else
   { "$2x$", 0, 0, 0 },
 #endif

@@ -941,7 +941,9 @@ BF_full_crypt (const char *phrase, const char *setting,
   memcpy (output, buffer->re_output, BF_HASH_LENGTH);
   errno = save_errno;
 }
+#endif
 
+#if INCLUDE_bcrypt || INCLUDE_bcrypt_a || INCLUDE_bcrypt_y
 static void
 BF_gensalt (char subtype, unsigned long count,
             const uint8_t *rbytes, size_t nrbytes,
@@ -951,7 +953,7 @@ BF_gensalt (char subtype, unsigned long count,
     count = 5;
   if (nrbytes < 16 ||
       count < 4 || count > 31 ||
-      (subtype != 'a' && subtype != 'b' && subtype != 'x' && subtype != 'y'))
+      (subtype != 'a' && subtype != 'b' && subtype != 'y'))
     {
       errno = EINVAL;
       return;
@@ -976,7 +978,6 @@ BF_gensalt (char subtype, unsigned long count,
   BF_encode (&output[7], aligned_rbytes, 16);
   output[7 + 22] = '\0';
 }
-
 #endif
 
 #if INCLUDE_bcrypt
@@ -1028,11 +1029,15 @@ crypt_bcrypt_x_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
 }
 
 void
-gensalt_bcrypt_x_rn (unsigned long count,
-                     const uint8_t *rbytes, size_t nrbytes,
-                     uint8_t *output, size_t o_size)
+gensalt_bcrypt_x_rn (ARG_UNUSED(unsigned long count),
+                     ARG_UNUSED(const uint8_t *rbytes),
+                     ARG_UNUSED(size_t nrbytes),
+                     ARG_UNUSED(uint8_t *output),
+                     ARG_UNUSED(size_t o_size))
 {
-  BF_gensalt ('x', count, rbytes, nrbytes, output, o_size);
+  /* The prefix '$2x$' MUST NOT be used for computing new hashes.  */
+  errno = EINVAL;
+  return;
 }
 #endif
 

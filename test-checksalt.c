@@ -84,7 +84,7 @@ static const struct testcase testcases[] =
   { "$2a$",  CRYPT_SALT_INVALID, CRYPT_SALT_INVALID, CRYPT_SALT_INVALID },
 #endif
 #if INCLUDE_bcrypt_x
-  { "$2x$",  CRYPT_SALT_OK,      CRYPT_SALT_OK,      CRYPT_SALT_OK      },
+  { "$2x$",  CRYPT_SALT_OK,      CRYPT_SALT_INVALID, CRYPT_SALT_INVALID },
 #else
   { "$2x$",  CRYPT_SALT_INVALID, CRYPT_SALT_INVALID, CRYPT_SALT_INVALID },
 #endif
