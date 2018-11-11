@@ -4,6 +4,9 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.3.2
+* Fix the gensalt function for the NT hashing method ($3$) to
+  properly terminate its output string.  The output buffer for the
+  returned string must be at least 30 bytes long.
 
 Version 4.3.1
 * Reduce the number of methods that can be the default for new hashes.
