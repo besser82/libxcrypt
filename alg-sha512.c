@@ -204,7 +204,7 @@ SHA512_Transform(uint64_t * state, const unsigned char block[SHA512_BLOCK_LENGTH
 		state[i] += S[i];
 }
 
-static unsigned char PAD[SHA512_BLOCK_LENGTH] = {
+static const unsigned char PAD[SHA512_BLOCK_LENGTH] = {
 	0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
