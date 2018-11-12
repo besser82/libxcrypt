@@ -123,6 +123,19 @@ typedef union
 /* ARRAY_SIZE is used in tests.  */
 #define ARRAY_SIZE(a_)  (sizeof (a_) / sizeof ((a_)[0]))
 
+/* Thread local storage needs a way to be destructed, when the thread
+   is terminated.  Using a weak defined function from glibc >= 2.18
+   is the only way we currently know about.  */
+#if defined __GLIBC__ && ((__GLIBC__ == 2 && \
+    defined __GLIBC_MINOR__ && __GLIBC_MINOR__ >= 18) || \
+    __GLIBC__ >= 3)
+#define HAVE_GLIBC_CXA_THREAD_ATEXIT_IMPL 1
+extern int __cxa_thread_atexit_impl (void (*func) (void *), void *arg,
+                                     void *d);
+#else
+#define HAVE_GLIBC_CXA_THREAD_ATEXIT_IMPL 0
+#endif
+
 /* Provide a guaranteed way to erase sensitive memory at the best we
    can, given the possibilities of the system.  */
 #if defined HAVE_MEMSET_S

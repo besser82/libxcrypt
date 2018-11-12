@@ -36,6 +36,9 @@ crypt_gensalt (const char *prefix, unsigned long count,
       obuf = malloc (CRYPT_GENSALT_OUTPUT_SIZE);
       if (!obuf)
         return 0;
+#if HAVE_GLIBC_CXA_THREAD_ATEXIT_IMPL
+      __cxa_thread_atexit_impl (free, obuf, obuf);
+#endif
     }
 
   return crypt_gensalt_rn (prefix, count, rbytes, nrbytes,

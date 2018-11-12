@@ -49,6 +49,9 @@ crypt (const char *key, const char *setting)
           return 0;
 #endif
         }
+#if HAVE_GLIBC_CXA_THREAD_ATEXIT_IMPL
+      __cxa_thread_atexit_impl (free, nr_crypt_ctx, nr_crypt_ctx);
+#endif
     }
 
   return crypt_r (key, setting, nr_crypt_ctx);
