@@ -17,19 +17,29 @@
 #include "crypt-port.h"
 #include "xcrypt.h"
 
+#include <stdlib.h>
+
 /* The functions that use global state objects are isolated in their
    own files so that a statically-linked program that doesn't use them
    will not have the state objects in its data segment.  */
 
 #if INCLUDE_crypt_gensalt
+
+static THREAD_LOCAL char *obuf;
+
 char *
 crypt_gensalt (const char *prefix, unsigned long count,
                const char *rbytes, int nrbytes)
 {
-  static char output[CRYPT_GENSALT_OUTPUT_SIZE];
+  if (!obuf) /* first call in this thread */
+    {
+      obuf = malloc (CRYPT_GENSALT_OUTPUT_SIZE);
+      if (!obuf)
+        return 0;
+    }
 
-  return crypt_gensalt_rn (prefix, count,
-                           rbytes, nrbytes, output, sizeof (output));
+  return crypt_gensalt_rn (prefix, count, rbytes, nrbytes,
+                           obuf, CRYPT_GENSALT_OUTPUT_SIZE);
 }
 SYMVER_crypt_gensalt;
 #endif

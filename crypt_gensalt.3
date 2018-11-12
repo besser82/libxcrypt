@@ -130,12 +130,12 @@ to an appropriate error code.
 places its result in a static storage area,
 which will be overwritten by subsequent calls to
 .Nm crypt_gensalt .
-It is not safe to call
+In this version of libcrypt,
+the static storage area is allocated separately for each thread,
+but portable code should not call
 .Nm crypt_gensalt
 from multiple threads simultaneously.
-However, it
-.Em is
-safe to pass the string returned by
+It is safe to pass the string returned by
 .Nm crypt_gensalt
 directly to
 .Nm crypt
@@ -227,6 +227,15 @@ A function with the name
 .Nm crypt_gensalt
 also exists on Solaris 10 and newer, but its prototype and semantics differ.
 .Pp
+Some implementations of
+.Nm crypt_gensalt
+use a single storage area for all callers,
+even in the presence of threads.
+This library uses per-thread storage areas,
+but portable code should avoid calling
+.Nm crypt_gensalt
+from multiple threads simultaneously.
+.Pp
 The default prefix and auto entropy features are available since libxcrypt
 version 4.0.0.  Portable software can use feature test macros to find out
 whether null pointers can be used for the
@@ -247,13 +256,29 @@ l l l.
 Interface	Attribute	Value
 T{
 .Nm crypt_gensalt
-T}	Thread safety	MT-Unsafe race:crypt_gensalt
+T}	Thread safety	MT-Safe*
 T{
 .Nm crypt_gensalt_rn ,
 .Nm crypt_gensalt_ra
 T}	Thread safety	MT-Safe
 .TE
-.sp
+.Pp
+\&* In this implementation.
+See
+.Sx PORTABILITY NOTES .
+.Sh BUGS
+The per-thread storage area used by
+.Nm crypt_gensalt
+is allocated using
+.Xr malloc 3
+upon the first call in each thread.
+There is no way to arrange for it to be deallocated at an appropriate time,
+so it is never deallocated.
+Programs that call
+.Nm crypt_gensalt
+from many short-lived threads will suffer a memory leak of
+.Dv CRYPT_GENSALT_OUTPUT_SIZE
+bytes for each thread.
 .Sh SEE ALSO
 .Xr crypt 3 ,
 .Xr getpass 3 ,

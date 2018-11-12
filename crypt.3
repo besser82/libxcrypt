@@ -218,7 +218,9 @@ for more detail on the format of hashed passphrases.
 places its result in a static storage area,
 which will be overwritten by subsequent calls to
 .Nm crypt .
-It is not safe to call
+In this version of libcrypt,
+the static storage area is allocated separately for each thread,
+but portable code should not call
 .Nm crypt
 from multiple threads simultaneously.
 .Pp
@@ -311,6 +313,15 @@ is included in POSIX, but
 and
 .Nm crypt_ra
 are not part of any standard.
+.Pp
+POSIX permits
+.Nm crypt
+to use a single storage area for all callers,
+even in the presence of threads.
+This library uses per-thread storage areas,
+but portable code should avoid calling
+.Nm crypt
+from multiple threads simultaneously.
 .Pp
 POSIX does not specify any hashing methods,
 and does not require hashed passphrases to be portable between systems.
@@ -414,6 +425,19 @@ has no way of knowing how much memory to allocate.
 does the allocation itself,
 but can only make a single call to
 .Xr malloc 3 .
+.Pp
+The per-thread storage area used by
+.Nm crypt
+is allocated using
+.Xr malloc 3
+upon the first call in each thread.
+There is no way to arrange for it to be deallocated at an appropriate time,
+so it is never deallocated.
+Programs that call
+.Nm crypt
+from many short-lived threads will suffer a memory leak of
+.Li sizeof (struct crypt_data)
+bytes for each thread.
 .Sh ATTRIBUTES
 For an explanation of the terms used in this section, see
 .Xr attributes 7 .
@@ -424,14 +448,17 @@ l l l.
 Interface	Attribute	Value
 T{
 .Nm crypt
-T}	Thread safety	MT-Unsafe race:crypt
+T}	Thread safety	MT-Safe*
 T{
 .Nm crypt_r ,
 .Nm crypt_rn ,
 .Nm crypt_ra
 T}	Thread safety	MT-Safe
 .TE
-.sp
+.Pp
+\&* In this implementation.
+See
+.Sx PORTABILITY NOTES .
 .Sh HISTORY
 A rotor-based
 .Nm crypt
