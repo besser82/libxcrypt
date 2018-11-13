@@ -15,6 +15,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include "crypt-port.h"
+#include "xcrypt.h"
 
 /* The functions that use global state objects are isolated in their
    own files so that a statically-linked program that doesn't use them
@@ -36,4 +37,10 @@ SYMVER_crypt;
 #if INCLUDE_fcrypt
 strong_alias (crypt, fcrypt);
 SYMVER_fcrypt;
+#endif
+
+/* For code compatibility with older versions (v3.1.1 and earlier).  */
+#if INCLUDE_crypt && INCLUDE_xcrypt
+strong_alias (crypt, xcrypt);
+SYMVER_xcrypt;
 #endif

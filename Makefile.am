@@ -25,6 +25,7 @@ notrans_dist_man3_MANS = \
 	crypt_gensalt_rn.3
 notrans_dist_man5_MANS = crypt.5
 
+include_HEADERS = xcrypt.h
 nodist_include_HEADERS = crypt.h
 nodist_noinst_HEADERS = crypt-hashes.h crypt-symbol-vers.h
 noinst_HEADERS = \

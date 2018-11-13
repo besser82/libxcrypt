@@ -17,6 +17,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include "crypt-port.h"
+#include "xcrypt.h"
 
 #include <errno.h>
 #include <stdlib.h>
@@ -242,6 +243,12 @@ crypt_r (const char *phrase, const char *setting, struct crypt_data *data)
 SYMVER_crypt_r;
 #endif
 
+/* For code compatibility with older versions (v3.1.1 and earlier).  */
+#if INCLUDE_crypt_r && INCLUDE_xcrypt_r
+strong_alias (crypt_r, xcrypt_r);
+SYMVER_xcrypt_r;
+#endif
+
 #if INCLUDE_crypt_gensalt_rn
 char *
 crypt_gensalt_rn (const char *prefix, unsigned long count,
@@ -315,12 +322,18 @@ crypt_gensalt_rn (const char *prefix, unsigned long count,
   return output[0] == '*' ? 0 : output;
 }
 SYMVER_crypt_gensalt_rn;
+#endif
 
-#if INCLUDE_crypt_gensalt_r
 /* For code compatibility with older versions (v3.1.1 and earlier).  */
+#if INCLUDE_crypt_gensalt_rn && INCLUDE_crypt_gensalt_r
 strong_alias (crypt_gensalt_rn, crypt_gensalt_r);
 SYMVER_crypt_gensalt_r;
 #endif
+
+/* For code compatibility with older versions (v3.1.1 and earlier).  */
+#if INCLUDE_crypt_gensalt_rn && INCLUDE_xcrypt_gensalt_r
+strong_alias (crypt_gensalt_rn, xcrypt_gensalt_r);
+SYMVER_xcrypt_gensalt_r;
 #endif
 
 #if INCLUDE_crypt_gensalt_ra

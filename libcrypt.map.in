@@ -19,9 +19,15 @@ crypt_gensalt_ra	XCRYPT_2.0	GLIBC_2.0:owl:suse	GLIBC_2.2.2:alt     OW_CRYPT_1.0:
 # Actively supported interfaces from libxcrypt.
 crypt_checksalt		XCRYPT_4.3
 
-# Interface for code compatibility with older versions
-# (v3.1.1 and earlier) of libxcrypt.
+# Interfaces for code compatibility with libxcrypt v3.1.1 and earlier.
+# They need to be exported as default symbols, although we take care they
+# are not linked by new compiled applications, so functions with similar
+# semantics of AC_CHECK_FUNCS will detect them as available.
 crypt_gensalt_r		XCRYPT_2.0
+xcrypt			XCRYPT_2.0
+xcrypt_r		XCRYPT_2.0
+xcrypt_gensalt		XCRYPT_2.0
+xcrypt_gensalt_r	XCRYPT_2.0
 
 # Deprecated interfaces, POSIX and otherwise; also present in GNU libc
 # since 2.0

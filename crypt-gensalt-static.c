@@ -15,6 +15,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include "crypt-port.h"
+#include "xcrypt.h"
 
 /* The functions that use global state objects are isolated in their
    own files so that a statically-linked program that doesn't use them
@@ -31,4 +32,10 @@ crypt_gensalt (const char *prefix, unsigned long count,
                            rbytes, nrbytes, output, sizeof (output));
 }
 SYMVER_crypt_gensalt;
+#endif
+
+/* For code compatibility with older versions (v3.1.1 and earlier).  */
+#if INCLUDE_crypt_gensalt && INCLUDE_xcrypt_gensalt
+strong_alias (crypt_gensalt, xcrypt_gensalt);
+SYMVER_xcrypt_gensalt;
 #endif

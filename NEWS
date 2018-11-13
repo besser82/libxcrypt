@@ -5,6 +5,12 @@ Please send bug reports, questions and suggestions to
 
 Version 4.3.4
 * --enable-hashes now supports 'fedora' as a group of hashing methods.
+* Add aliases for xcrypt{,_r} and xcrypt_gensalt{,_r}.
+  They were added for code compatibility with libxcrypt v3.1.1
+  and earlier.
+* Replace the prototype for the crypt_gensalt_r function with a
+  declaration through a macro, so new compiled applications link
+  against the identical crypt_gensalt_rn function directly.
 
 Version 4.3.3
 * Add an alias for crypt_gensalt_r.
