@@ -8,6 +8,13 @@ Version 4.3.4
 * Add aliases for xcrypt{,_r} and xcrypt_gensalt{,_r}.
   They were added for code compatibility with libxcrypt v3.1.1
   and earlier.
+* Install the <xcrypt.h> header file, declaring the previously named
+  aliases, and a symlink from libxcrypt.so to libcrypt.so, if a shared
+  library is build.  For static libraries a corresponding symlink for
+  the archive file will be installed.
+  The installation of the compatibility files can be disabled by
+  passing the '--disable-xcrypt-compat-files' flag to the configure
+  script.
 * Replace the prototype for the crypt_gensalt_r function with a
   declaration through a macro, so new compiled applications link
   against the identical crypt_gensalt_rn function directly.

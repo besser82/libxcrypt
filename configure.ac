@@ -212,6 +212,20 @@ AC_DEFINE_UNQUOTED([ENABLE_FAILURE_TOKENS], [$enable_failure_tokens],
   [Define to 1 if crypt and crypt_r should return a "failure token" on
    failure, or 0 if they should return NULL.])
 
+AC_ARG_ENABLE([xcrypt-compat-files],
+    AS_HELP_STRING(
+        [--disable-xcrypt-compat-files],
+        [Disable the installation of the <xcrypt.h> header file and the
+         libxcrypt.{a,so} compatibility symlinks.]
+    ),
+    [case "$enableval" in
+      yes) enable_xcrypt_compat_files=1;;
+       no) enable_xcrypt_compat_files=0;;
+        *) AC_MSG_ERROR([bad value ${enableval} for --enable-xcrypt-compat-files]);;
+     esac],
+    [enable_xcrypt_compat_files=1])
+AM_CONDITIONAL([ENABLE_XCRYPT_COMPAT_FILES], [test x"$enable_xcrypt_compat_files" = x1])
+
 AC_ARG_ENABLE([obsolete-api],
     AS_HELP_STRING(
         [--enable-obsolete-api[=ARG]],
