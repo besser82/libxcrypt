@@ -39,7 +39,7 @@
 # supported hashes).
 #
 #name          h_prefix  nrbytes  flags
-yescrypt       $y$       16       STRONG,DEFAULT,ALT
+yescrypt       $y$       16       STRONG,DEFAULT,ALT,FEDORA
 gost_yescrypt  $gy$      16       STRONG,ALT
 scrypt         $7$       16       STRONG
 bcrypt         $2b$      16       STRONG,DEFAULT,ALT,FREEBSD,NETBSD,OPENBSD,OWL,SOLARIS,SUSE

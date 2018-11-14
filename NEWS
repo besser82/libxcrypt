@@ -4,6 +4,7 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.3.4
+* --enable-hashes now supports 'fedora' as a group of hashing methods.
 
 Version 4.3.3
 * Add an alias for crypt_gensalt_r.

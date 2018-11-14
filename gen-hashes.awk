@@ -84,10 +84,11 @@ BEGIN {
         if (flag == "DEFAULT") {
             default_cand[$1] = $2
         } else if (flag == "STRONG"  || flag == "GLIBC"   || \
-                   flag == "ALT"     || flag == "FREEBSD" || \
-                   flag == "NETBSD"  || flag == "OPENBSD" || \
-                   flag == "OSX"     || flag == "OWL"     || \
-                   flag == "SOLARIS" || flag == "SUSE") {
+                   flag == "ALT"     || flag == "FEDORA"  || \
+                   flag == "FREEBSD" || flag == "NETBSD"  || \
+                   flag == "OPENBSD" || flag == "OSX"     || \
+                   flag == "OWL"     || flag == "SOLARIS" || \
+                   flag == "SUSE") {
             # handled in sel-hashes.awk
         } else {
             printf("%s:%d: unrecognized flag %s\n", FILENAME, NR, flag) \
