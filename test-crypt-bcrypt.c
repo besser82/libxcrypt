@@ -20,6 +20,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#if INCLUDE_bcrypt || INCLUDE_bcrypt_a || INCLUDE_bcrypt_x || INCLUDE_bcrypt_y
+
 static const char *tests[][3] =
 {
 #if INCLUDE_bcrypt_a
@@ -270,3 +272,13 @@ main (void)
   free (data);
   return status;
 }
+
+#else
+
+int
+main (void)
+{
+  return 77; /* UNSUPPORTED */
+}
+
+#endif /* INCLUDE_bcrypt* */
