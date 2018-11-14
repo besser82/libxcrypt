@@ -255,9 +255,9 @@ AC_ARG_ENABLE([hashes],
         [Select hash methods to support.  Acceptable values are
          'all' or a comma-separated list of names from the file
          'hashes.lst' and/or the keywords 'strong', 'alt',
-         'freebsd', 'glibc', 'netbsd', 'openbsd', 'osx', 'owl',
-         'solaris', and 'suse' which select groups of methods
-         as described in that file.
+         'fedora', 'freebsd', 'glibc', 'netbsd', 'openbsd',
+         'osx', 'owl', 'solaris', and 'suse' which select groups
+         of methods as described in that file.
          The default is 'all'.
          Note: if binary compatibility with any historic libcrypt is
          desired (i.e. any --enable-obsolete-api setting other than
