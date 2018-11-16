@@ -3,7 +3,10 @@ libxcrypt NEWS -- history of user-visible changes.
 Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
-Version 4.3.5
+Version 4.4.0
+* Implement the crypt_preferred_method function.
+  This function can be used as a convenience function to get the prefix
+  of the preferred hash method.
 
 Version 4.3.4
 * --enable-hashes now supports 'fedora' as a group of hashing methods.

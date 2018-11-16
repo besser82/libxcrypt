@@ -81,6 +81,7 @@
 /test-gensalt-extradata
 /test-getrandom-fallbacks
 /test-getrandom-interface
+/test-preferred-method
 /test-short-outbuf
 
 # backup-files

@@ -24,7 +24,7 @@ EXTRA_DIST = \
 notrans_dist_man3_MANS = \
 	crypt.3 crypt_r.3 crypt_ra.3 crypt_rn.3 \
 	crypt_checksalt.3 crypt_gensalt.3 crypt_gensalt_ra.3 \
-	crypt_gensalt_rn.3
+	crypt_gensalt_rn.3 crypt_preferred_method.3
 notrans_dist_man5_MANS = crypt.5
 
 nodist_include_HEADERS = crypt.h
@@ -226,7 +226,7 @@ check_PROGRAMS = \
 	test-crypt-pbkdf1-sha1 test-crypt-scrypt test-crypt-sha256 \
 	test-crypt-sha512 test-crypt-sunmd5 test-crypt-yescrypt \
 	test-byteorder test-badsalt test-badsetting test-gensalt \
-	test-gensalt-extradata \
+	test-gensalt-extradata test-preferred-method \
 	test-crypt-badargs test-short-outbuf test-compile-strong-alias \
         test-getrandom-interface test-getrandom-fallbacks
 
@@ -288,6 +288,7 @@ test_des_obsolete_LDADD = $(COMMON_TEST_OBJECTS)
 test_des_obsolete_r_LDADD = $(COMMON_TEST_OBJECTS)
 test_crypt_badargs_LDADD = $(COMMON_TEST_OBJECTS)
 test_short_outbuf_LDADD = $(COMMON_TEST_OBJECTS)
+test_preferred_method_LDADD = $(COMMON_TEST_OBJECTS)
 
 # These tests call internal APIs that may not be accessible from the
 # fully linked shared library.

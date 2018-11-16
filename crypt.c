@@ -374,3 +374,16 @@ crypt_checksalt (const char *setting)
 }
 SYMVER_crypt_checksalt;
 #endif
+
+#if INCLUDE_crypt_preferred_method
+const char *
+crypt_preferred_method (void)
+{
+#if defined HASH_ALGORITHM_DEFAULT
+      return HASH_ALGORITHM_DEFAULT;
+#else
+      return NULL;
+#endif
+}
+SYMVER_crypt_preferred_method;
+#endif

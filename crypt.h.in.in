@@ -214,15 +214,24 @@ extern int crypt_checksalt (const char *__setting);
 #define CRYPT_SALT_METHOD_LEGACY   3  /* NOT implemented, yet. */
 #define CRYPT_SALT_TOO_CHEAP       4  /* NOT implemented, yet. */
 
+/* Convenience function to get the prefix of the preferred hash method,
+   which is also used by the crypt_gensalt functions, if their given
+   prefix parameter is NULL.
+
+   The return value is string that equals the prefix of the preferred
+   hash method.  Otherwise, it is NULL.  */
+extern const char *crypt_preferred_method (void);
+
 /* These macros could be checked by portable users of crypt_gensalt*
    functions to find out whether null pointers could be specified
    as PREFIX and RBYTES arguments.  */
 #define CRYPT_GENSALT_IMPLEMENTS_DEFAULT_PREFIX @DEFAULT_PREFIX_ENABLED@
 #define CRYPT_GENSALT_IMPLEMENTS_AUTO_ENTROPY   1
 
-/* These macros can be checked by portable users of the crypt_checksalt
-   function to find out whether the function is implemented.  */
+/* These macros can be checked by portable users of libxcrypt
+   to find out whether the function is implemented.  */
 #define CRYPT_CHECKSALT_AVAILABLE 1
+#define CRYPT_PREFERRED_METHOD_AVAILABLE 1
 
 /* Version number split in single integers.  */
 #define XCRYPT_VERSION_MAJOR @XCRYPT_VERSION_MAJOR@

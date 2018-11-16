@@ -18,6 +18,7 @@ crypt_gensalt_ra	XCRYPT_2.0	GLIBC_2.0:owl:suse	GLIBC_2.2.2:alt     OW_CRYPT_1.0:
 
 # Actively supported interfaces from libxcrypt.
 crypt_checksalt		XCRYPT_4.3
+crypt_preferred_method	XCRYPT_4.4
 
 # Interfaces for code compatibility with libxcrypt v3.1.1 and earlier.
 # They need to be exported as default symbols, although we take care they
@@ -44,4 +45,4 @@ fcrypt			-		GLIBC_2.0
 %chain GLIBC_2.0 GLIBC_2.2 GLIBC_2.2.1 GLIBC_2.2.2 GLIBC_2.2.5 GLIBC_2.3
 %chain GLIBC_2.4 GLIBC_2.12 GLIBC_2.16 GLIBC_2.17 GLIBC_2.18 GLIBC_2.21
 %chain GLIBC_2.27
-%chain OW_CRYPT_1.0 XCRYPT_2.0 XCRYPT_4.3
+%chain OW_CRYPT_1.0 XCRYPT_2.0 XCRYPT_4.3 XCRYPT_4.4
