@@ -47,14 +47,14 @@
  * F and G are optimized compared to their RFC 1320 definitions, with the
  * optimization for F borrowed from Colin Plumb's MD5 implementation.
  */
-#define F(x, y, z)			((z) ^ ((x) & ((y) ^ (z))))
-#define G(x, y, z)			(((x) & ((y) | (z))) | ((y) & (z)))
-#define H(x, y, z)			((x) ^ (y) ^ (z))
+#define MD4_F(x, y, z)			((z) ^ ((x) & ((y) ^ (z))))
+#define MD4_G(x, y, z)			(((x) & ((y) | (z))) | ((y) & (z)))
+#define MD4_H(x, y, z)			((x) ^ (y) ^ (z))
 
 /*
  * The MD4 transformation for all three rounds.
  */
-#define STEP(f, a, b, c, d, x, s) \
+#define MD4_STEP(f, a, b, c, d, x, s) \
 	(a) += f((b), (c), (d)) + (x); \
 	(a) = (((a) << (s)) | (((a) & 0xffffffff) >> (32 - (s))));
 
@@ -74,18 +74,18 @@
  * their own translation unit avoids the problem.
  */
 #if 0 /* defined(__i386__) || defined(__x86_64__) || defined(__vax__) */
-#define SET(n) \
+#define MD4_SET(n) \
 	(*(const MD4_u32plus *)&ptr[(n) * 4])
-#define GET(n) \
-	SET(n)
+#define MD4_GET(n) \
+	MD4_SET(n)
 #else
-#define SET(n) \
+#define MD4_SET(n) \
 	(ctx->block[(n)] = \
 	(MD4_u32plus)ptr[(n) * 4] | \
 	((MD4_u32plus)ptr[(n) * 4 + 1] << 8) | \
 	((MD4_u32plus)ptr[(n) * 4 + 2] << 16) | \
 	((MD4_u32plus)ptr[(n) * 4 + 3] << 24))
-#define GET(n) \
+#define MD4_GET(n) \
 	(ctx->block[(n)])
 #endif
 
@@ -93,7 +93,7 @@
  * This processes one or more 64-byte data blocks, but does NOT update the bit
  * counters.  There are no alignment requirements.
  */
-static const void *body(MD4_CTX *ctx, const void *data, unsigned long size)
+static const void *MD4_body(MD4_CTX *ctx, const void *data, unsigned long size)
 {
 	const unsigned char *ptr;
 	MD4_u32plus a, b, c, d;
@@ -114,58 +114,58 @@ static const void *body(MD4_CTX *ctx, const void *data, unsigned long size)
 		saved_d = d;
 
 /* Round 1 */
-		STEP(F, a, b, c, d, SET(0), 3)
-		STEP(F, d, a, b, c, SET(1), 7)
-		STEP(F, c, d, a, b, SET(2), 11)
-		STEP(F, b, c, d, a, SET(3), 19)
-		STEP(F, a, b, c, d, SET(4), 3)
-		STEP(F, d, a, b, c, SET(5), 7)
-		STEP(F, c, d, a, b, SET(6), 11)
-		STEP(F, b, c, d, a, SET(7), 19)
-		STEP(F, a, b, c, d, SET(8), 3)
-		STEP(F, d, a, b, c, SET(9), 7)
-		STEP(F, c, d, a, b, SET(10), 11)
-		STEP(F, b, c, d, a, SET(11), 19)
-		STEP(F, a, b, c, d, SET(12), 3)
-		STEP(F, d, a, b, c, SET(13), 7)
-		STEP(F, c, d, a, b, SET(14), 11)
-		STEP(F, b, c, d, a, SET(15), 19)
+		MD4_STEP(MD4_F, a, b, c, d, MD4_SET(0), 3)
+		MD4_STEP(MD4_F, d, a, b, c, MD4_SET(1), 7)
+		MD4_STEP(MD4_F, c, d, a, b, MD4_SET(2), 11)
+		MD4_STEP(MD4_F, b, c, d, a, MD4_SET(3), 19)
+		MD4_STEP(MD4_F, a, b, c, d, MD4_SET(4), 3)
+		MD4_STEP(MD4_F, d, a, b, c, MD4_SET(5), 7)
+		MD4_STEP(MD4_F, c, d, a, b, MD4_SET(6), 11)
+		MD4_STEP(MD4_F, b, c, d, a, MD4_SET(7), 19)
+		MD4_STEP(MD4_F, a, b, c, d, MD4_SET(8), 3)
+		MD4_STEP(MD4_F, d, a, b, c, MD4_SET(9), 7)
+		MD4_STEP(MD4_F, c, d, a, b, MD4_SET(10), 11)
+		MD4_STEP(MD4_F, b, c, d, a, MD4_SET(11), 19)
+		MD4_STEP(MD4_F, a, b, c, d, MD4_SET(12), 3)
+		MD4_STEP(MD4_F, d, a, b, c, MD4_SET(13), 7)
+		MD4_STEP(MD4_F, c, d, a, b, MD4_SET(14), 11)
+		MD4_STEP(MD4_F, b, c, d, a, MD4_SET(15), 19)
 
 /* Round 2 */
-		STEP(G, a, b, c, d, GET(0) + ac1, 3)
-		STEP(G, d, a, b, c, GET(4) + ac1, 5)
-		STEP(G, c, d, a, b, GET(8) + ac1, 9)
-		STEP(G, b, c, d, a, GET(12) + ac1, 13)
-		STEP(G, a, b, c, d, GET(1) + ac1, 3)
-		STEP(G, d, a, b, c, GET(5) + ac1, 5)
-		STEP(G, c, d, a, b, GET(9) + ac1, 9)
-		STEP(G, b, c, d, a, GET(13) + ac1, 13)
-		STEP(G, a, b, c, d, GET(2) + ac1, 3)
-		STEP(G, d, a, b, c, GET(6) + ac1, 5)
-		STEP(G, c, d, a, b, GET(10) + ac1, 9)
-		STEP(G, b, c, d, a, GET(14) + ac1, 13)
-		STEP(G, a, b, c, d, GET(3) + ac1, 3)
-		STEP(G, d, a, b, c, GET(7) + ac1, 5)
-		STEP(G, c, d, a, b, GET(11) + ac1, 9)
-		STEP(G, b, c, d, a, GET(15) + ac1, 13)
+		MD4_STEP(MD4_G, a, b, c, d, MD4_GET(0) + ac1, 3)
+		MD4_STEP(MD4_G, d, a, b, c, MD4_GET(4) + ac1, 5)
+		MD4_STEP(MD4_G, c, d, a, b, MD4_GET(8) + ac1, 9)
+		MD4_STEP(MD4_G, b, c, d, a, MD4_GET(12) + ac1, 13)
+		MD4_STEP(MD4_G, a, b, c, d, MD4_GET(1) + ac1, 3)
+		MD4_STEP(MD4_G, d, a, b, c, MD4_GET(5) + ac1, 5)
+		MD4_STEP(MD4_G, c, d, a, b, MD4_GET(9) + ac1, 9)
+		MD4_STEP(MD4_G, b, c, d, a, MD4_GET(13) + ac1, 13)
+		MD4_STEP(MD4_G, a, b, c, d, MD4_GET(2) + ac1, 3)
+		MD4_STEP(MD4_G, d, a, b, c, MD4_GET(6) + ac1, 5)
+		MD4_STEP(MD4_G, c, d, a, b, MD4_GET(10) + ac1, 9)
+		MD4_STEP(MD4_G, b, c, d, a, MD4_GET(14) + ac1, 13)
+		MD4_STEP(MD4_G, a, b, c, d, MD4_GET(3) + ac1, 3)
+		MD4_STEP(MD4_G, d, a, b, c, MD4_GET(7) + ac1, 5)
+		MD4_STEP(MD4_G, c, d, a, b, MD4_GET(11) + ac1, 9)
+		MD4_STEP(MD4_G, b, c, d, a, MD4_GET(15) + ac1, 13)
 
 /* Round 3 */
-		STEP(H, a, b, c, d, GET(0) + ac2, 3)
-		STEP(H, d, a, b, c, GET(8) + ac2, 9)
-		STEP(H, c, d, a, b, GET(4) + ac2, 11)
-		STEP(H, b, c, d, a, GET(12) + ac2, 15)
-		STEP(H, a, b, c, d, GET(2) + ac2, 3)
-		STEP(H, d, a, b, c, GET(10) + ac2, 9)
-		STEP(H, c, d, a, b, GET(6) + ac2, 11)
-		STEP(H, b, c, d, a, GET(14) + ac2, 15)
-		STEP(H, a, b, c, d, GET(1) + ac2, 3)
-		STEP(H, d, a, b, c, GET(9) + ac2, 9)
-		STEP(H, c, d, a, b, GET(5) + ac2, 11)
-		STEP(H, b, c, d, a, GET(13) + ac2, 15)
-		STEP(H, a, b, c, d, GET(3) + ac2, 3)
-		STEP(H, d, a, b, c, GET(11) + ac2, 9)
-		STEP(H, c, d, a, b, GET(7) + ac2, 11)
-		STEP(H, b, c, d, a, GET(15) + ac2, 15)
+		MD4_STEP(MD4_H, a, b, c, d, MD4_GET(0) + ac2, 3)
+		MD4_STEP(MD4_H, d, a, b, c, MD4_GET(8) + ac2, 9)
+		MD4_STEP(MD4_H, c, d, a, b, MD4_GET(4) + ac2, 11)
+		MD4_STEP(MD4_H, b, c, d, a, MD4_GET(12) + ac2, 15)
+		MD4_STEP(MD4_H, a, b, c, d, MD4_GET(2) + ac2, 3)
+		MD4_STEP(MD4_H, d, a, b, c, MD4_GET(10) + ac2, 9)
+		MD4_STEP(MD4_H, c, d, a, b, MD4_GET(6) + ac2, 11)
+		MD4_STEP(MD4_H, b, c, d, a, MD4_GET(14) + ac2, 15)
+		MD4_STEP(MD4_H, a, b, c, d, MD4_GET(1) + ac2, 3)
+		MD4_STEP(MD4_H, d, a, b, c, MD4_GET(9) + ac2, 9)
+		MD4_STEP(MD4_H, c, d, a, b, MD4_GET(5) + ac2, 11)
+		MD4_STEP(MD4_H, b, c, d, a, MD4_GET(13) + ac2, 15)
+		MD4_STEP(MD4_H, a, b, c, d, MD4_GET(3) + ac2, 3)
+		MD4_STEP(MD4_H, d, a, b, c, MD4_GET(11) + ac2, 9)
+		MD4_STEP(MD4_H, c, d, a, b, MD4_GET(7) + ac2, 11)
+		MD4_STEP(MD4_H, b, c, d, a, MD4_GET(15) + ac2, 15)
 
 		a += saved_a;
 		b += saved_b;
@@ -217,18 +217,18 @@ void MD4_Update(MD4_CTX *ctx, const void *data, size_t size)
 		memcpy(&ctx->buffer[used], data, available);
 		data = (const unsigned char *)data + available;
 		size -= available;
-		body(ctx, ctx->buffer, 64);
+		MD4_body(ctx, ctx->buffer, 64);
 	}
 
 	if (size >= 64) {
-		data = body(ctx, data, size & ~(unsigned long)0x3f);
+		data = MD4_body(ctx, data, size & ~(unsigned long)0x3f);
 		size &= 0x3f;
 	}
 
 	memcpy(ctx->buffer, data, size);
 }
 
-#define OUT(dst, src) \
+#define MD4_OUT(dst, src) \
 	(dst)[0] = (unsigned char)(src); \
 	(dst)[1] = (unsigned char)((src) >> 8); \
 	(dst)[2] = (unsigned char)((src) >> 16); \
@@ -246,7 +246,7 @@ void MD4_Final(uint8_t result[16], MD4_CTX *ctx)
 
 	if (available < 8) {
 		memset(&ctx->buffer[used], 0, available);
-		body(ctx, ctx->buffer, 64);
+		MD4_body(ctx, ctx->buffer, 64);
 		used = 0;
 		available = 64;
 	}
@@ -254,15 +254,15 @@ void MD4_Final(uint8_t result[16], MD4_CTX *ctx)
 	memset(&ctx->buffer[used], 0, available - 8);
 
 	ctx->lo <<= 3;
-	OUT(&ctx->buffer[56], ctx->lo)
-	OUT(&ctx->buffer[60], ctx->hi)
+	MD4_OUT(&ctx->buffer[56], ctx->lo)
+	MD4_OUT(&ctx->buffer[60], ctx->hi)
 
-	body(ctx, ctx->buffer, 64);
+	MD4_body(ctx, ctx->buffer, 64);
 
-	OUT(&result[0], ctx->a)
-	OUT(&result[4], ctx->b)
-	OUT(&result[8], ctx->c)
-	OUT(&result[12], ctx->d)
+	MD4_OUT(&result[0], ctx->a)
+	MD4_OUT(&result[4], ctx->b)
+	MD4_OUT(&result[8], ctx->c)
+	MD4_OUT(&result[12], ctx->d)
 
 	XCRYPT_SECURE_MEMSET(ctx, sizeof(*ctx));
 }
