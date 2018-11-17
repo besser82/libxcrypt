@@ -32,7 +32,7 @@ static const char sha256_salt_prefix[] = "$5$";
 static const char sha256_rounds_prefix[] = "rounds=";
 
 /* Maximum salt string length.  */
-#define SALT_LEN_MAX 16
+#define SHA256_SALT_LEN_MAX 16
 /* Default number of rounds if not explicitly specified.  */
 #define ROUNDS_DEFAULT 5000
 /* Minimum number of rounds.  */
@@ -43,13 +43,13 @@ static const char sha256_rounds_prefix[] = "rounds=";
 /* The maximum possible length of a SHA256-hashed password string,
    including the terminating NUL character.  Prefix (including its NUL)
    + rounds tag ("rounds=$" = "rounds=\0") + strlen(ROUNDS_MAX)
-   + salt (up to SALT_LEN_MAX chars) + '$' + hash (43 chars).  */
+   + salt (up to SHA256_SALT_LEN_MAX chars) + '$' + hash (43 chars).  */
 
 #define LENGTH_OF_NUMBER(n) (sizeof #n - 1)
 
 #define SHA256_HASH_LENGTH \
   (sizeof (sha256_salt_prefix) + sizeof (sha256_rounds_prefix) + \
-   LENGTH_OF_NUMBER (ROUNDS_MAX) + SALT_LEN_MAX + 1 + 43)
+   LENGTH_OF_NUMBER (ROUNDS_MAX) + SHA256_SALT_LEN_MAX + 1 + 43)
 
 static_assert (SHA256_HASH_LENGTH <= CRYPT_OUTPUT_SIZE,
                "CRYPT_OUTPUT_SIZE is too small for SHA256");
@@ -150,8 +150,8 @@ crypt_sha256crypt_rn (const char *phrase, size_t phr_size,
       errno = EINVAL;
       return;
     }
-  if (salt_size > SALT_LEN_MAX)
-    salt_size = SALT_LEN_MAX;
+  if (salt_size > SHA256_SALT_LEN_MAX)
+    salt_size = SHA256_SALT_LEN_MAX;
 
   /* Compute alternate SHA256 sum with input PHRASE, SALT, and PHRASE.  The
      final result will be added to the first context.  */
@@ -298,8 +298,8 @@ gensalt_sha256crypt_rn (unsigned long count,
                    const uint8_t *rbytes, size_t nrbytes,
                    uint8_t *output, size_t output_size)
 {
-  gensalt_sha_rn ('5', SALT_LEN_MAX, ROUNDS_DEFAULT, ROUNDS_MIN, ROUNDS_MAX,
-                  count, rbytes, nrbytes, output, output_size);
+  gensalt_sha_rn ('5', SHA256_SALT_LEN_MAX, ROUNDS_DEFAULT, ROUNDS_MIN,
+                  ROUNDS_MAX, count, rbytes, nrbytes, output, output_size);
 }
 
 #endif

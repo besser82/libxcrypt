@@ -100,32 +100,32 @@ static const uint32_t Krnd[64] = {
 };
 
 /* Elementary functions used by SHA256 */
-#define Ch(x, y, z)	((x & (y ^ z)) ^ z)
-#define Maj(x, y, z)	((x & (y | z)) | (y & z))
-#define SHR(x, n)	(x >> n)
-#define ROTR(x, n)	((x >> n) | (x << (32 - n)))
-#define S0(x)		(ROTR(x, 2) ^ ROTR(x, 13) ^ ROTR(x, 22))
-#define S1(x)		(ROTR(x, 6) ^ ROTR(x, 11) ^ ROTR(x, 25))
-#define s0(x)		(ROTR(x, 7) ^ ROTR(x, 18) ^ SHR(x, 3))
-#define s1(x)		(ROTR(x, 17) ^ ROTR(x, 19) ^ SHR(x, 10))
+#define SHA256_Ch(x, y, z)	((x & (y ^ z)) ^ z)
+#define SHA256_Maj(x, y, z)	((x & (y | z)) | (y & z))
+#define SHA256_SHR(x, n)	(x >> n)
+#define SHA256_ROTR(x, n)	((x >> n) | (x << (32 - n)))
+#define SHA256_S0(x)		(SHA256_ROTR(x,  2) ^ SHA256_ROTR(x, 13) ^ SHA256_ROTR(x, 22))
+#define SHA256_S1(x)		(SHA256_ROTR(x,  6) ^ SHA256_ROTR(x, 11) ^ SHA256_ROTR(x, 25))
+#define SHA256_s0(x)		(SHA256_ROTR(x,  7) ^ SHA256_ROTR(x, 18) ^ SHA256_SHR(x,  3))
+#define SHA256_s1(x)		(SHA256_ROTR(x, 17) ^ SHA256_ROTR(x, 19) ^ SHA256_SHR(x, 10))
 
 /* SHA256 round function */
-#define RND(a, b, c, d, e, f, g, h, k)			\
-	h += S1(e) + Ch(e, f, g) + k;			\
+#define SHA256_RND(a, b, c, d, e, f, g, h, k)		\
+	h += SHA256_S1(e) + SHA256_Ch(e, f, g) + k;	\
 	d += h;						\
-	h += S0(a) + Maj(a, b, c);
+	h += SHA256_S0(a) + SHA256_Maj(a, b, c);
 
 /* Adjusted round function for rotating state */
-#define RNDr(S, W, i, ii)			\
-	RND(S[(64 - i) % 8], S[(65 - i) % 8],	\
-	    S[(66 - i) % 8], S[(67 - i) % 8],	\
-	    S[(68 - i) % 8], S[(69 - i) % 8],	\
-	    S[(70 - i) % 8], S[(71 - i) % 8],	\
+#define SHA256_RNDr(S, W, i, ii)			\
+	SHA256_RND(S[(64 - i) % 8], S[(65 - i) % 8],	\
+	    S[(66 - i) % 8], S[(67 - i) % 8],		\
+	    S[(68 - i) % 8], S[(69 - i) % 8],		\
+	    S[(70 - i) % 8], S[(71 - i) % 8],		\
 	    W[i + ii] + Krnd[i + ii])
 
 /* Message schedule computation */
-#define MSCH(W, ii, i)				\
-	W[i + ii + 16] = s1(W[i + ii + 14]) + W[i + ii + 9] + s0(W[i + ii + 1]) + W[i + ii]
+#define SHA256_MSCH(W, ii, i)				\
+	W[i + ii + 16] = SHA256_s1(W[i + ii + 14]) + W[i + ii + 9] + SHA256_s0(W[i + ii + 1]) + W[i + ii]
 
 /*
  * SHA256 block compression function.  The 256-bit state is transformed via
@@ -146,41 +146,41 @@ SHA256_Transform(uint32_t state[static restrict 8],
 
 	/* 3. Mix. */
 	for (i = 0; i < 64; i += 16) {
-		RNDr(S, W, 0, i);
-		RNDr(S, W, 1, i);
-		RNDr(S, W, 2, i);
-		RNDr(S, W, 3, i);
-		RNDr(S, W, 4, i);
-		RNDr(S, W, 5, i);
-		RNDr(S, W, 6, i);
-		RNDr(S, W, 7, i);
-		RNDr(S, W, 8, i);
-		RNDr(S, W, 9, i);
-		RNDr(S, W, 10, i);
-		RNDr(S, W, 11, i);
-		RNDr(S, W, 12, i);
-		RNDr(S, W, 13, i);
-		RNDr(S, W, 14, i);
-		RNDr(S, W, 15, i);
+		SHA256_RNDr(S, W, 0, i);
+		SHA256_RNDr(S, W, 1, i);
+		SHA256_RNDr(S, W, 2, i);
+		SHA256_RNDr(S, W, 3, i);
+		SHA256_RNDr(S, W, 4, i);
+		SHA256_RNDr(S, W, 5, i);
+		SHA256_RNDr(S, W, 6, i);
+		SHA256_RNDr(S, W, 7, i);
+		SHA256_RNDr(S, W, 8, i);
+		SHA256_RNDr(S, W, 9, i);
+		SHA256_RNDr(S, W, 10, i);
+		SHA256_RNDr(S, W, 11, i);
+		SHA256_RNDr(S, W, 12, i);
+		SHA256_RNDr(S, W, 13, i);
+		SHA256_RNDr(S, W, 14, i);
+		SHA256_RNDr(S, W, 15, i);
 
 		if (i == 48)
 			break;
-		MSCH(W, 0, i);
-		MSCH(W, 1, i);
-		MSCH(W, 2, i);
-		MSCH(W, 3, i);
-		MSCH(W, 4, i);
-		MSCH(W, 5, i);
-		MSCH(W, 6, i);
-		MSCH(W, 7, i);
-		MSCH(W, 8, i);
-		MSCH(W, 9, i);
-		MSCH(W, 10, i);
-		MSCH(W, 11, i);
-		MSCH(W, 12, i);
-		MSCH(W, 13, i);
-		MSCH(W, 14, i);
-		MSCH(W, 15, i);
+		SHA256_MSCH(W, 0, i);
+		SHA256_MSCH(W, 1, i);
+		SHA256_MSCH(W, 2, i);
+		SHA256_MSCH(W, 3, i);
+		SHA256_MSCH(W, 4, i);
+		SHA256_MSCH(W, 5, i);
+		SHA256_MSCH(W, 6, i);
+		SHA256_MSCH(W, 7, i);
+		SHA256_MSCH(W, 8, i);
+		SHA256_MSCH(W, 9, i);
+		SHA256_MSCH(W, 10, i);
+		SHA256_MSCH(W, 11, i);
+		SHA256_MSCH(W, 12, i);
+		SHA256_MSCH(W, 13, i);
+		SHA256_MSCH(W, 14, i);
+		SHA256_MSCH(W, 15, i);
 	}
 
 	/* 4. Mix local working variables into global state. */
@@ -194,7 +194,7 @@ SHA256_Transform(uint32_t state[static restrict 8],
 	state[7] += S[7];
 }
 
-static const uint8_t PAD[64] = {
+static const uint8_t SHA256_PAD[64] = {
 	0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -213,10 +213,10 @@ SHA256_Pad(SHA256_CTX * ctx, uint32_t tmp32[static restrict 72])
 	/* Pad to 56 mod 64, transforming if we finish a block en route. */
 	if (r < 56) {
 		/* Pad to 56 mod 64. */
-		memcpy(&ctx->buf[r], PAD, 56 - r);
+		memcpy(&ctx->buf[r], SHA256_PAD, 56 - r);
 	} else {
 		/* Finish the current block and mix. */
-		memcpy(&ctx->buf[r], PAD, 64 - r);
+		memcpy(&ctx->buf[r], SHA256_PAD, 64 - r);
 		SHA256_Transform(ctx->state, ctx->buf, &tmp32[0], &tmp32[64]);
 
 		/* The start of the final block is all zeroes. */
@@ -520,7 +520,7 @@ SHA256_Pad_Almost(SHA256_CTX * ctx, uint8_t len[static restrict 8],
 	be64enc(len, ctx->count);
 
 	/* Add 1--56 bytes so that the resulting length is 56 mod 64. */
-	_SHA256_Update(ctx, PAD, 56 - r, tmp32);
+	_SHA256_Update(ctx, SHA256_PAD, 56 - r, tmp32);
 
 	/* Add the terminating bit-count. */
 	ctx->buf[63] = len[7];
