@@ -81,6 +81,16 @@ matrix:
       env:
         - CONF="--enable-obsolete-api --enable-hashes=all --enable-valgrind-memcheck"
         - VALGRIND=1
+    - name: "GCC, all hashes, static lib"
+      compiler: gcc
+      os: linux
+      env:
+        - CONF="--disable-shared --enable-hashes=all"
+    - name: "Clang, all hashes, static lib"
+      compiler: clang
+      os: linux
+      env:
+        - CONF="--disable-shared --enable-hashes=all"
     - name: "macOS, Clang, all hashes, obsolete API"
       compiler: clang
       os: osx
@@ -91,13 +101,11 @@ matrix:
       os: linux
       env:
         - CONF="--disable-failure-tokens --enable-obsolete-api --enable-hashes=all"
-        - FCVER="rawhide"
     - name: "Clang, all hashes, obsolete API, no failure-tokens"
       compiler: clang
       os: linux
       env:
         - CONF="--disable-failure-tokens --enable-obsolete-api --enable-hashes=all"
-        - FCVER="rawhide"
     - name: "GCC, all hashes, no obsolete API"
       compiler: gcc
       os: linux
@@ -178,7 +186,6 @@ matrix:
       os: linux
       env:
         - CONF="--disable-obsolete-api --enable-hashes=gost-yescrypt"
-        - FCVER="rawhide"
     - name: "GCC, md5crypt only"
       compiler: gcc
       os: linux
