@@ -81,6 +81,16 @@ matrix:
       env:
         - CONF="--enable-obsolete-api --enable-hashes=all --enable-valgrind-memcheck"
         - VALGRIND=1
+    - name: "GCC, all hashes, obsolete API, unity build"
+      compiler: gcc
+      os: linux
+      env:
+        - CONF="--enable-obsolete-api --enable-hashes=all --enable-unity-build"
+    - name: "Clang, all hashes, obsolete API, unity build"
+      compiler: clang
+      os: linux
+      env:
+        - CONF="--enable-obsolete-api --enable-hashes=all --enable-unity-build"
     - name: "macOS, Clang, all hashes, obsolete API"
       compiler: clang
       os: osx

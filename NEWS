@@ -4,6 +4,12 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.3.5
+* Add configure option --enable-unity-build, which enables unfied
+  compilation of the source files.
+  Unity builds are a technique for cutting down build times.  Normally
+  we would run the compiler three times, once for each source file
+  individually; in a unity build we instead compile all these sources
+  within a single unit.
 
 Version 4.3.4
 * --enable-hashes now supports 'fedora' as a group of hashing methods.

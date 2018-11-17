@@ -16,8 +16,8 @@ TEST_EXTENSIONS = .sh
 EXTRA_DIST = \
 	LICENSING THANKS \
 	crypt.h.in.in libcrypt.map.in libcrypt.minver \
-	gen-map.awk gen-vers.awk gen-crypt-h.awk \
-	gen-hashes.awk sel-hashes.awk hashes.lst
+	gen-libcrypt_unity.sh.in gen-map.awk gen-vers.awk \
+	gen-crypt-h.awk gen-hashes.awk sel-hashes.awk hashes.lst
 
 notrans_dist_man3_MANS = \
 	crypt.3 crypt_r.3 crypt_ra.3 crypt_rn.3 \
@@ -45,7 +45,8 @@ endif
 noinst_PROGRAMS = gen-des-tables
 
 lib_LTLIBRARIES = libcrypt.la
-libcrypt_la_SOURCES = \
+
+LIBCRYPT_SOURCES = \
 	alg-des.c alg-des-tables.c alg-gost3411-2012-core.c \
 	alg-gost3411-2012-hmac.c alg-hmac-sha1.c alg-md4.c alg-md5.c \
 	alg-sha1.c alg-sha256.c alg-sha512.c alg-yescrypt-opt.c \
@@ -54,6 +55,13 @@ libcrypt_la_SOURCES = \
 	crypt-md5.c crypt-nthash.c crypt-pbkdf1-sha1.c crypt-scrypt.c \
 	crypt-sha256.c crypt-sha512.c crypt-static.c crypt-sunmd5.c \
 	crypt-yescrypt.c randombytes.c crypt-common.c
+
+if ENABLE_UNITY_BUILD
+BUILT_SOURCES = libcrypt_unity.c
+libcrypt_la_SOURCES = libcrypt_unity.c
+else
+libcrypt_la_SOURCES = $(LIBCRYPT_SOURCES)
+endif
 
 EXTRA_DIST += alg-yescrypt-platform.c
 
@@ -92,6 +100,7 @@ CONFIG_STATUS_DEPENDENCIES = libcrypt.minver
 EXTRA_libcrypt_la_DEPENDENCIES = libcrypt.map
 CLEANFILES = Makefile.deps.T Makefile.deps \
 	libcrypt.map libcrypt.map.T \
+	libcrypt_unity.c libcrypt_unity.c.T \
 	crypt-symbol-vers.h crypt-symbol-vers.h.T \
 	crypt-hashes.h crypt-hashes.h.T \
 	crypt.h crypt.h.T *.gcda *.gcno
@@ -99,7 +108,13 @@ CLEANFILES = Makefile.deps.T Makefile.deps \
 DISTCLEANFILES = .deps/*.Plo
 
 # Empty target to have needed headers pre-generated before any other target.
-Makefile.deps: crypt.h
+MAKEFILE_DEPS_TARGETS = crypt.h libcrypt.map
+
+if ENABLE_UNITY_BUILD
+MAKEFILE_DEPS_TARGETS += libcrypt_unity.c
+endif
+
+Makefile.deps: $(MAKEFILE_DEPS_TARGETS)
 	$(AM_V_GEN)LC_ALL=C echo "# Deps" > Makefile.deps.T
 	$(AM_V_at)mv -f Makefile.deps.T Makefile.deps
 
@@ -110,6 +125,14 @@ libcrypt.map: libcrypt.map.in gen-map.awk Makefile
 	  -v COMPAT_ABI=$(COMPAT_ABI) \
 	  -f $(srcdir)/gen-map.awk $(srcdir)/libcrypt.map.in > libcrypt.map.T
 	$(AM_V_at)mv -f libcrypt.map.T libcrypt.map
+
+libcrypt_unity.c: gen-libcrypt_unity.sh Makefile
+	$(AM_V_at)test -x $(builddir)/gen-libcrypt_unity.sh || \
+	  chmod +x $(builddir)/gen-libcrypt_unity.sh
+	$(AM_V_GEN)LC_ALL=C $(builddir)/gen-libcrypt_unity.sh \
+	  $(LIBCRYPT_SOURCES) | \
+	sort -u > libcrypt_unity.c.T
+	$(AM_V_at)mv -f libcrypt_unity.c.T libcrypt_unity.c
 
 crypt-symbol-vers.h: libcrypt.map.in gen-vers.awk Makefile
 	$(AM_V_GEN)LC_ALL=C $(AWK) \
@@ -122,7 +145,8 @@ crypt-symbol-vers.h: libcrypt.map.in gen-vers.awk Makefile
 
 crypt.h: crypt.h.in crypt-hashes.h crypt-symbol-vers.h gen-crypt-h.awk config.h
 	$(AM_V_GEN)LC_ALL=C $(AWK) \
-	  -f $(srcdir)/gen-crypt-h.awk config.h $(builddir)/crypt.h.in \
+	  -f $(srcdir)/gen-crypt-h.awk \
+	  $(builddir)/config.h $(builddir)/crypt.h.in \
 	  > crypt.h.T
 	$(AM_V_GEN)LC_ALL=C \
 	$(GREP) -q "#define HASH_ALGORITHM_DEFAULT" crypt-hashes.h && \
@@ -229,7 +253,7 @@ check_PROGRAMS = \
         test-getrandom-interface test-getrandom-fallbacks
 
 if ENABLE_OBSOLETE_API
-libcrypt_la_SOURCES += crypt-des-obsolete.c
+LIBCRYPT_SOURCES += crypt-des-obsolete.c
 check_PROGRAMS += test-des-obsolete test-des-obsolete_r
 endif
 
@@ -257,47 +281,81 @@ LOG_COMPILER = m4/skip-if-exec-format-error
 endif
 EXTRA_DIST += m4/skip-if-exec-format-error
 
-test_crypt_bcrypt_LDADD = crypt-common.lo libcrypt.la
-test_crypt_des_LDADD = crypt-common.lo libcrypt.la
-test_crypt_md5_LDADD = crypt-common.lo libcrypt.la
-test_crypt_nthash_LDADD = crypt-common.lo libcrypt.la
-test_crypt_pbkdf1_sha1_LDADD = crypt-common.lo libcrypt.la
-test_crypt_scrypt_LDADD = crypt-common.lo libcrypt.la
-test_crypt_sha256_LDADD = crypt-common.lo libcrypt.la
-test_crypt_sha512_LDADD = crypt-common.lo libcrypt.la
-test_crypt_sunmd5_LDADD = crypt-common.lo libcrypt.la
-test_crypt_yescrypt_LDADD = crypt-common.lo libcrypt.la
-test_badsalt_LDADD = crypt-common.lo libcrypt.la
-test_badsetting_LDADD = crypt-common.lo libcrypt.la
-test_gensalt_LDADD = crypt-common.lo libcrypt.la
-test_gensalt_extradata_LDADD = crypt-common.lo libcrypt.la
-test_checksalt_LDADD = crypt-common.lo libcrypt.la
-test_des_obsolete_LDADD = crypt-common.lo libcrypt.la
-test_des_obsolete_r_LDADD = crypt-common.lo libcrypt.la
-test_crypt_badargs_LDADD = crypt-common.lo libcrypt.la
-test_short_outbuf_LDADD = crypt-common.lo libcrypt.la
+
+if ENABLE_UNITY_BUILD
+COMMON_TEST_OBJECTS = libcrypt_la-libcrypt_unity.lo libcrypt.la
+else
+COMMON_TEST_OBJECTS = libcrypt_la-crypt-common.lo libcrypt.la
+endif
+
+test_crypt_bcrypt_LDADD = $(COMMON_TEST_OBJECTS)
+test_crypt_des_LDADD = $(COMMON_TEST_OBJECTS)
+test_crypt_md5_LDADD = $(COMMON_TEST_OBJECTS)
+test_crypt_nthash_LDADD = $(COMMON_TEST_OBJECTS)
+test_crypt_pbkdf1_sha1_LDADD = $(COMMON_TEST_OBJECTS)
+test_crypt_scrypt_LDADD = $(COMMON_TEST_OBJECTS)
+test_crypt_sha256_LDADD = $(COMMON_TEST_OBJECTS)
+test_crypt_sha512_LDADD = $(COMMON_TEST_OBJECTS)
+test_crypt_sunmd5_LDADD = $(COMMON_TEST_OBJECTS)
+test_crypt_yescrypt_LDADD = $(COMMON_TEST_OBJECTS)
+test_badsalt_LDADD = $(COMMON_TEST_OBJECTS)
+test_badsetting_LDADD = $(COMMON_TEST_OBJECTS)
+test_gensalt_LDADD = $(COMMON_TEST_OBJECTS)
+test_gensalt_extradata_LDADD = $(COMMON_TEST_OBJECTS)
+test_checksalt_LDADD = $(COMMON_TEST_OBJECTS)
+test_des_obsolete_LDADD = $(COMMON_TEST_OBJECTS)
+test_des_obsolete_r_LDADD = $(COMMON_TEST_OBJECTS)
+test_crypt_badargs_LDADD = $(COMMON_TEST_OBJECTS)
+test_short_outbuf_LDADD = $(COMMON_TEST_OBJECTS)
+
+test_alg_des_LDADD = $(COMMON_TEST_OBJECTS)
+test_alg_gost3411_2012_LDADD = $(COMMON_TEST_OBJECTS)
+test_alg_gost3411_2012_hmac_LDADD = $(COMMON_TEST_OBJECTS)
+test_alg_hmac_sha1_LDADD = $(COMMON_TEST_OBJECTS)
+test_alg_md4_LDADD = $(COMMON_TEST_OBJECTS)
+test_alg_md5_LDADD = $(COMMON_TEST_OBJECTS)
+test_alg_pbkdf_hmac_sha256_LDADD = $(COMMON_TEST_OBJECTS)
+test_alg_sha1_LDADD = $(COMMON_TEST_OBJECTS)
+test_alg_sha256_LDADD = $(COMMON_TEST_OBJECTS)
+test_alg_sha512_LDADD = $(COMMON_TEST_OBJECTS)
+test_crypt_gost_yescrypt_LDADD = $(COMMON_TEST_OBJECTS)
+
+test_getrandom_interface_LDADD = $(COMMON_TEST_OBJECTS)
+test_getrandom_fallbacks_LDADD = $(COMMON_TEST_OBJECTS)
 
 # These tests call internal APIs that may not be accessible from the
 # fully linked shared library.
-test_alg_des_LDADD = alg-des.lo alg-des-tables.lo crypt-common.lo
-test_alg_gost3411_2012_LDADD = alg-gost3411-2012-core.lo \
-	alg-gost3411-2012-hmac.lo crypt-common.lo
-test_alg_gost3411_2012_hmac_LDADD = alg-gost3411-2012-core.lo \
-	alg-gost3411-2012-hmac.lo crypt-common.lo
-test_alg_hmac_sha1_LDADD = alg-sha1.lo alg-hmac-sha1.lo crypt-common.lo
-test_alg_md4_LDADD = alg-md4.lo crypt-common.lo
-test_alg_md5_LDADD = alg-md5.lo crypt-common.lo
-test_alg_pbkdf_hmac_sha256_LDADD = alg-sha256.lo crypt-common.lo
-test_alg_sha1_LDADD = alg-sha1.lo crypt-common.lo
-test_alg_sha256_LDADD = alg-sha256.lo crypt-common.lo
-test_alg_sha512_LDADD = alg-sha512.lo crypt-common.lo
-test_crypt_gost_yescrypt_LDADD = alg-gost3411-2012-core.lo \
-	alg-gost3411-2012-hmac.lo alg-sha256.lo \
-	alg-yescrypt-common.lo alg-yescrypt-opt.lo \
-	crypt-yescrypt.lo crypt-common.lo libcrypt.la
+if !ENABLE_UNITY_BUILD
+test_alg_des_LDADD += \
+	libcrypt_la-alg-des.lo \
+	libcrypt_la-alg-des-tables.lo
+test_alg_gost3411_2012_LDADD += \
+	libcrypt_la-alg-gost3411-2012-core.lo \
+	libcrypt_la-alg-gost3411-2012-hmac.lo
+test_alg_gost3411_2012_hmac_LDADD += \
+	libcrypt_la-alg-gost3411-2012-core.lo \
+	libcrypt_la-alg-gost3411-2012-hmac.lo
+test_alg_hmac_sha1_LDADD += \
+	libcrypt_la-alg-sha1.lo \
+	libcrypt_la-alg-hmac-sha1.lo
+test_alg_md4_LDADD += libcrypt_la-alg-md4.lo
+test_alg_md5_LDADD += libcrypt_la-alg-md5.lo
+test_alg_pbkdf_hmac_sha256_LDADD += libcrypt_la-alg-sha256.lo
+test_alg_sha1_LDADD += libcrypt_la-alg-sha1.lo
+test_alg_sha256_LDADD += libcrypt_la-alg-sha256.lo
+test_alg_sha512_LDADD += libcrypt_la-alg-sha512.lo
+test_crypt_gost_yescrypt_LDADD += \
+	libcrypt_la-alg-gost3411-2012-core.lo \
+	libcrypt_la-alg-gost3411-2012-hmac.lo \
+	libcrypt_la-alg-sha256.lo \
+	libcrypt_la-alg-yescrypt-common.lo \
+	libcrypt_la-alg-yescrypt-opt.lo \
+	libcrypt_la-crypt-yescrypt.lo
 
-test_getrandom_interface_LDADD = crypt-common.lo randombytes.lo
-test_getrandom_fallbacks_LDADD = crypt-common.lo randombytes.lo
+test_getrandom_interface_LDADD += libcrypt_la-randombytes.lo
+test_getrandom_fallbacks_LDADD += libcrypt_la-randombytes.lo
+endif
+
 if HAVE_LD_WRAP
 test_getrandom_fallbacks_LDFLAGS = \
   -Wl,--wrap,getentropy -Wl,--wrap,getrandom -Wl,--wrap,syscall \

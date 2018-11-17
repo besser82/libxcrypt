@@ -30,6 +30,7 @@
 /m4/missing
 /stamp-h1
 /m4/test-driver
+/gen-libcrypt_unity.sh
 /libxcrypt.pc
 
 # compiler output
@@ -46,6 +47,7 @@
 /crypt-hashes.h
 /crypt-symbol-vers.h
 /libcrypt.map
+/libcrypt_unity.c
 /gen-des-tables
 /test-alg-des
 /test-alg-gost3411-2012

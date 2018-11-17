@@ -12,6 +12,7 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
   Makefile
   crypt.h.in
+  gen-libcrypt_unity.sh
   libxcrypt.pc
 ])
 AM_INIT_AUTOMAKE([tar-v7])
@@ -225,6 +226,30 @@ AC_ARG_ENABLE([xcrypt-compat-files],
      esac],
     [enable_xcrypt_compat_files=1])
 AM_CONDITIONAL([ENABLE_XCRYPT_COMPAT_FILES], [test x"$enable_xcrypt_compat_files" = x1])
+
+AC_ARG_ENABLE([unity-build],
+    AS_HELP_STRING(
+        [--enable-unity-build],
+        [When set to "yes", this option will enable unity builds.
+         Unity builds are a technique for cutting down build times.
+         The way it works is relatively straightforward.
+         Normally we would run the compiler three times, once for
+         each source file individually; in a unity build we instead
+         compile all these sources within a single unit.
+         Unity builds can also lead to faster code, because the
+         compiler can do more aggressive optimizations (e.g. inlining).
+         The downside is that incremental builds are as slow as full
+         rebuilds (because that is what they are).
+         Unity builds also use more memory, which may become an issue
+         in certain scenarios.]
+    ),
+    [case "$enableval" in
+      yes) enable_unity_build=1;;
+       no) enable_unity_build=0;;
+        *) AC_MSG_ERROR([bad value ${enableval} for --enable-unity-build]);;
+     esac],
+    [enable_unity_build=0])
+AM_CONDITIONAL([ENABLE_UNITY_BUILD], [test x"$enable_unity_build" = x1])
 
 AC_ARG_ENABLE([obsolete-api],
     AS_HELP_STRING(
