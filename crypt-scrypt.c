@@ -65,8 +65,8 @@ static const uint8_t ascii64[] =
   "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 static uint8_t *
-encode64_uint32 (uint8_t * dst, ssize_t dstlen,
-                 uint32_t src, uint32_t srcbits)
+scrypt_encode64_uint32 (uint8_t * dst, ssize_t dstlen,
+                        uint32_t src, uint32_t srcbits)
 {
   uint32_t bit;
 
@@ -87,8 +87,8 @@ encode64_uint32 (uint8_t * dst, ssize_t dstlen,
 }
 
 static uint8_t *
-encode64 (uint8_t * dst, ssize_t dstlen,
-          const uint8_t * src, size_t srclen)
+scrypt_encode64 (uint8_t * dst, ssize_t dstlen,
+                 const uint8_t * src, size_t srclen)
 {
   size_t i;
 
@@ -102,7 +102,7 @@ encode64 (uint8_t * dst, ssize_t dstlen,
           bits += 8;
         }
       while (bits < 24 && i < srclen);
-      dnext = encode64_uint32 (dst, dstlen, value, bits);
+      dnext = scrypt_encode64_uint32 (dst, dstlen, value, bits);
       if (!dnext)
         {
           errno = ERANGE;
@@ -117,7 +117,7 @@ encode64 (uint8_t * dst, ssize_t dstlen,
 }
 
 static uint32_t
-N2log2 (uint64_t N)
+scrypt_N2log2 (uint64_t N)
 {
   uint32_t N_log2;
 
@@ -218,21 +218,21 @@ gensalt_scrypt_rn (unsigned long count,
       outbuf[0] = '$';
       outbuf[1] = '7';
       outbuf[2] = '$';
-      outbuf[3] = ascii64[N2log2 (N)];
+      outbuf[3] = ascii64[scrypt_N2log2 (N)];
 
-      out_p = encode64_uint32 (out_p, out_s, r, 30);
+      out_p = scrypt_encode64_uint32 (out_p, out_s, r, 30);
       out_s -= (out_p - outbuf);
     }
 
   if (out_p && out_s > (ssize_t) BASE64_LEN (30))
     {
-      out_p = encode64_uint32 (out_p, out_s, p, 30);
+      out_p = scrypt_encode64_uint32 (out_p, out_s, p, 30);
       out_s -= (out_p - outbuf);
     }
 
   if (out_p && out_s > (ssize_t) BASE64_LEN (nrbytes))
     {
-      out_p = encode64 (out_p, out_s, rbytes, nrbytes);
+      out_p = scrypt_encode64 (out_p, out_s, rbytes, nrbytes);
     }
 
   if (out_p)
