@@ -74,11 +74,6 @@ static_assert (sizeof (struct des_buffer) <= ALG_SPECIFIC_SIZE,
                "ALG_SPECIFIC_SIZE is too small for DES");
 
 
-static const uint8_t ascii64[] =
-  "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-/* 0000000000111111111122222222223333333333444444444455555555556666 */
-/* 0123456789012345678901234567890123456789012345678901234567890123 */
-
 static inline int
 ascii_to_bin(char ch)
 {

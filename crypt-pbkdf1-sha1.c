@@ -54,9 +54,6 @@
 #define SHA1_SIZE 20         /* size of raw SHA1 digest, 160 bits */
 #define SHA1_OUTPUT_SIZE 28  /* size of base64-ed output string */
 
-static const uint8_t itoa64[] =
-  "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
 static inline void
 to64 (uint8_t *s, unsigned long v, int n)
 {

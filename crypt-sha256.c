@@ -67,10 +67,6 @@ static_assert (sizeof (struct sha256_buffer) <= ALG_SPECIFIC_SIZE,
                "ALG_SPECIFIC_SIZE is too small for SHA256");
 
 
-/* Table with characters for base64 transformation.  */
-static const char b64t[] =
-  "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
 /* Feed CTX with LEN bytes of a virtual byte sequence consisting of
    BLOCK repeated over and over indefinitely.  */
 static void
@@ -144,7 +140,7 @@ crypt_sha256crypt_rn (const char *phrase, size_t phr_size,
       rounds_custom = true;
     }
 
-  salt_size = strspn (salt, b64t);
+  salt_size = strspn (salt, (const char *) b64t);
   if (salt[salt_size] && salt[salt_size] != '$')
     {
       errno = EINVAL;
@@ -273,7 +269,7 @@ crypt_sha256crypt_rn (const char *phrase, size_t phr_size,
     int n = (N);                                        \
     while (n-- > 0)                                     \
       {                                                 \
-        *cp++ = b64t[w & 0x3f];                         \
+        *cp++ = (char) b64t[w & 0x3f];                  \
         w >>= 6;                                        \
       }                                                 \
   } while (0)

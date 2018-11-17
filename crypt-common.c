@@ -20,6 +20,11 @@
 
 #include "crypt-port.h"
 
+const unsigned char ascii64[65] =
+  "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+/* 0000000000111111111122222222223333333333444444444455555555556666 */
+/* 0123456789012345678901234567890123456789012345678901234567890123 */
+
 /* Provide a safe way to copy strings with the guarantee src,
    including its terminating '\0', will fit d_size bytes.
    The trailing bytes of d_size will be filled with '\0'.

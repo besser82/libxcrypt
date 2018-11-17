@@ -29,10 +29,6 @@
    encryption implementations.  */
 static const char md5_salt_prefix[] = "$1$";
 
-/* Table with characters for base64 transformation.  */
-static const char b64t[] =
-  "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
 /* The maximum length of an MD5 salt string (just the actual salt, not
    the entire prefix).  */
 #define MD5_SALT_LEN_MAX 8
@@ -87,7 +83,7 @@ crypt_md5crypt_rn (const char *phrase, size_t phr_size,
     /* Skip salt prefix.  */
     salt += sizeof (md5_salt_prefix) - 1;
 
-  salt_size = strspn (salt, b64t);
+  salt_size = strspn (salt, (const char *) b64t);
   if (salt[salt_size] && salt[salt_size] != '$')
     {
       errno = EINVAL;
@@ -195,7 +191,7 @@ crypt_md5crypt_rn (const char *phrase, size_t phr_size,
     int n = (N);                                        \
     while (n-- > 0)                                     \
       {                                                 \
-        *cp++ = b64t[w & 0x3f];                         \
+        *cp++ = (char) b64t[w & 0x3f];                  \
         w >>= 6;                                        \
       }                                                 \
   } while (0)

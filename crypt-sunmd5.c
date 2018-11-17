@@ -129,10 +129,6 @@ muffet_coin_toss (const uint8_t prev_digest[16], unsigned int round_count)
   return !!(get_nth_bit (prev_digest, x) ^ get_nth_bit (prev_digest, y));
 }
 
-/* itoa64 output utilities.  */
-static const unsigned char itoa64[] =
-  "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
 static inline void
 write_itoa64_4 (uint8_t *output,
                 unsigned int b0, unsigned int b1, unsigned int b2)
