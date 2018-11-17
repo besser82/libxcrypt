@@ -61,9 +61,6 @@ verify_salt (const char *setting, size_t set_size)
   return 1;
 }
 
-static const uint8_t ascii64[] =
-  "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
 static uint8_t *
 encode64_uint32 (uint8_t * dst, ssize_t dstlen,
                  uint32_t src, uint32_t srcbits)

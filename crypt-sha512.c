@@ -67,10 +67,6 @@ static_assert (sizeof (struct sha512_buffer) <= ALG_SPECIFIC_SIZE,
                "ALG_SPECIFIC_SIZE is too small for SHA512");
 
 
-/* Table with characters for base64 transformation.  */
-static const char b64t[] =
-  "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
 /* Subroutine of _xcrypt_crypt_sha512crypt_rn: Feed CTX with LEN bytes of a
    virtual byte sequence consisting of BLOCK repeated over and over
    indefinitely.  */

@@ -32,8 +32,8 @@ noinst_HEADERS = \
 	alg-gost3411-2012-hmac.h alg-gost3411-2012-precalc.h \
 	alg-gost3411-2012-ref.h alg-hmac-sha1.h alg-md4.h alg-md5.h \
 	alg-sha1.h alg-sha256.h alg-sha512.h alg-yescrypt.h \
-	alg-yescrypt-sysendian.h byteorder.h crypt-obsolete.h \
-	crypt-port.h test-des-cases.h
+	alg-yescrypt-sysendian.h byteorder.h crypt-common.h \
+	crypt-obsolete.h crypt-port.h test-des-cases.h
 
 if ENABLE_XCRYPT_COMPAT_FILES
 include_HEADERS = xcrypt.h

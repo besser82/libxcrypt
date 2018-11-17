@@ -67,10 +67,6 @@ static_assert (sizeof (struct sha256_buffer) <= ALG_SPECIFIC_SIZE,
                "ALG_SPECIFIC_SIZE is too small for SHA256");
 
 
-/* Table with characters for base64 transformation.  */
-static const char b64t[] =
-  "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
 /* Feed CTX with LEN bytes of a virtual byte sequence consisting of
    BLOCK repeated over and over indefinitely.  */
 static void

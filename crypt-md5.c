@@ -29,10 +29,6 @@
    encryption implementations.  */
 static const char md5_salt_prefix[] = "$1$";
 
-/* Table with characters for base64 transformation.  */
-static const char b64t[] =
-  "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
 /* The maximum length of an MD5 salt string (just the actual salt, not
    the entire prefix).  */
 #define SALT_LEN_MAX 8
