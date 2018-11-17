@@ -33,8 +33,8 @@ fi
 rm -fr build
 mkdir -p build
 pushd build
-../configure --disable-silent-rules --enable-shared --enable-static \
-  $CONF || (cat config.log && exit 1)
+../configure --disable-silent-rules $CONF || \
+  (cat config.log && exit 1)
 
 if [[ "$DISTCHECK" == "1" ]]; then
   make -j$NPROCS distcheck
