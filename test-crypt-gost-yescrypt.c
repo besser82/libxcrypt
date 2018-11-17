@@ -29,7 +29,23 @@
 static void
 test_outer_hmac (const uint8_t *k, size_t n, const uint8_t *t, size_t len,
                  uint8_t *out32, gost_hmac_256_t *gostbuf);
+
+/* use our redefined gost_hmac256 function */
 #define outer_gost_hmac256 test_outer_hmac
+
+/* avoid clashes with symbols from real build of libcrypt */
+#undef crypt_gost_yescrypt_rn
+#undef gensalt_gost_yescrypt_rn
+#define crypt_gost_yescrypt_rn _test_crypt_gost_yescrypt_rn
+#define gensalt_gost_yescrypt_rn _test_gensalt_gost_yescrypt_rn
+
+/* declare the needed prototypes again */
+extern void crypt_gost_yescrypt_rn (const char *, size_t, const char *,
+                size_t, uint8_t *, size_t, void *, size_t);
+extern void gensalt_gost_yescrypt_rn (unsigned long,
+                const uint8_t *, size_t, uint8_t *, size_t);
+
+/* include source file for customization */
 #include "crypt-gost-yescrypt.c"
 
 static int test_mode = 0;
