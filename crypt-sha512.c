@@ -32,7 +32,7 @@ static const char sha512_salt_prefix[] = "$6$";
 static const char sha512_rounds_prefix[] = "rounds=";
 
 /* Maximum salt string length.  */
-#define SALT_LEN_MAX 16
+#define SHA512_SALT_LEN_MAX 16
 /* Default number of rounds if not explicitly specified.  */
 #define ROUNDS_DEFAULT 5000
 /* Minimum number of rounds.  */
@@ -43,13 +43,13 @@ static const char sha512_rounds_prefix[] = "rounds=";
 /* The maximum possible length of a SHA512-hashed password string,
    including the terminating NUL character.  Prefix (including its NUL)
    + rounds tag ("rounds=$" = "rounds=\0") + strlen(ROUNDS_MAX)
-   + salt (up to SALT_LEN_MAX chars) + '$' + hash (86 chars).  */
+   + salt (up to SHA512_SALT_LEN_MAX chars) + '$' + hash (86 chars).  */
 
 #define LENGTH_OF_NUMBER(n) (sizeof #n - 1)
 
 #define SHA512_HASH_LENGTH \
   (sizeof (sha512_salt_prefix) + sizeof (sha512_rounds_prefix) + \
-   LENGTH_OF_NUMBER (ROUNDS_MAX) + SALT_LEN_MAX + 1 + 86)
+   LENGTH_OF_NUMBER (ROUNDS_MAX) + SHA512_SALT_LEN_MAX + 1 + 86)
 
 static_assert (SHA512_HASH_LENGTH <= CRYPT_OUTPUT_SIZE,
                "CRYPT_OUTPUT_SIZE is too small for SHA512");
@@ -151,8 +151,8 @@ crypt_sha512crypt_rn (const char *phrase, size_t phr_size,
       errno = EINVAL;
       return;
     }
-  if (salt_size > SALT_LEN_MAX)
-    salt_size = SALT_LEN_MAX;
+  if (salt_size > SHA512_SALT_LEN_MAX)
+    salt_size = SHA512_SALT_LEN_MAX;
   phr_size = strlen (phrase);
 
   /* Compute alternate SHA512 sum with input PHRASE, SALT, and PHRASE.  The
@@ -314,8 +314,8 @@ gensalt_sha512crypt_rn (unsigned long count,
                    const uint8_t *rbytes, size_t nrbytes,
                    uint8_t *output, size_t output_size)
 {
-  gensalt_sha_rn ('6', SALT_LEN_MAX, ROUNDS_DEFAULT, ROUNDS_MIN, ROUNDS_MAX,
-                  count, rbytes, nrbytes, output, output_size);
+  gensalt_sha_rn ('6', SHA512_SALT_LEN_MAX, ROUNDS_DEFAULT, ROUNDS_MIN,
+                  ROUNDS_MAX, count, rbytes, nrbytes, output, output_size);
 }
 
 #endif

@@ -116,32 +116,32 @@ static const uint64_t K[80] = {
 };
 
 /* Elementary functions used by SHA512 */
-#define Ch(x, y, z)	((x & (y ^ z)) ^ z)
-#define Maj(x, y, z)	((x & (y | z)) | (y & z))
-#define SHR(x, n)	(x >> n)
-#define ROTR(x, n)	((x >> n) | (x << (64 - n)))
-#define S0(x)		(ROTR(x, 28) ^ ROTR(x, 34) ^ ROTR(x, 39))
-#define S1(x)		(ROTR(x, 14) ^ ROTR(x, 18) ^ ROTR(x, 41))
-#define s0(x)		(ROTR(x, 1) ^ ROTR(x, 8) ^ SHR(x, 7))
-#define s1(x)		(ROTR(x, 19) ^ ROTR(x, 61) ^ SHR(x, 6))
+#define SHA512_Ch(x, y, z)	((x & (y ^ z)) ^ z)
+#define SHA512_Maj(x, y, z)	((x & (y | z)) | (y & z))
+#define SHA512_SHR(x, n)	(x >> n)
+#define SHA512_ROTR(x, n)	((x >> n) | (x << (64 - n)))
+#define SHA512_S0(x)		(SHA512_ROTR(x, 28) ^ SHA512_ROTR(x, 34) ^ SHA512_ROTR(x, 39))
+#define SHA512_S1(x)		(SHA512_ROTR(x, 14) ^ SHA512_ROTR(x, 18) ^ SHA512_ROTR(x, 41))
+#define SHA512_s0(x)		(SHA512_ROTR(x,  1) ^ SHA512_ROTR(x,  8) ^ SHA512_SHR(x, 7))
+#define SHA512_s1(x)		(SHA512_ROTR(x, 19) ^ SHA512_ROTR(x, 61) ^ SHA512_SHR(x, 6))
 
 /* SHA512 round function */
-#define RND(a, b, c, d, e, f, g, h, k)			\
-	h += S1(e) + Ch(e, f, g) + k;			\
+#define SHA512_RND(a, b, c, d, e, f, g, h, k)		\
+	h += SHA512_S1(e) + SHA512_Ch(e, f, g) + k;	\
 	d += h;						\
-	h += S0(a) + Maj(a, b, c);
+	h += SHA512_S0(a) + SHA512_Maj(a, b, c);
 
 /* Adjusted round function for rotating state */
-#define RNDr(S, W, i, ii)			\
-	RND(S[(80 - i) % 8], S[(81 - i) % 8],	\
-	    S[(82 - i) % 8], S[(83 - i) % 8],	\
-	    S[(84 - i) % 8], S[(85 - i) % 8],	\
-	    S[(86 - i) % 8], S[(87 - i) % 8],	\
+#define SHA512_RNDr(S, W, i, ii)			\
+	SHA512_RND(S[(80 - i) % 8], S[(81 - i) % 8],	\
+	    S[(82 - i) % 8], S[(83 - i) % 8],		\
+	    S[(84 - i) % 8], S[(85 - i) % 8],		\
+	    S[(86 - i) % 8], S[(87 - i) % 8],		\
 	    W[i + ii] + K[i + ii])
 
 /* Message schedule computation */
-#define MSCH(W, ii, i)				\
-	W[i + ii + 16] = s1(W[i + ii + 14]) + W[i + ii + 9] + s0(W[i + ii + 1]) + W[i + ii]
+#define SHA512_MSCH(W, ii, i)				\
+	W[i + ii + 16] = SHA512_s1(W[i + ii + 14]) + W[i + ii + 9] + SHA512_s0(W[i + ii + 1]) + W[i + ii]
 
 /*
  * SHA512 block compression function.  The 512-bit state is transformed via
@@ -162,41 +162,41 @@ SHA512_Transform(uint64_t * state, const unsigned char block[SHA512_BLOCK_LENGTH
 
 	/* 3. Mix. */
 	for (i = 0; i < 80; i += 16) {
-		RNDr(S, W, 0, i);
-		RNDr(S, W, 1, i);
-		RNDr(S, W, 2, i);
-		RNDr(S, W, 3, i);
-		RNDr(S, W, 4, i);
-		RNDr(S, W, 5, i);
-		RNDr(S, W, 6, i);
-		RNDr(S, W, 7, i);
-		RNDr(S, W, 8, i);
-		RNDr(S, W, 9, i);
-		RNDr(S, W, 10, i);
-		RNDr(S, W, 11, i);
-		RNDr(S, W, 12, i);
-		RNDr(S, W, 13, i);
-		RNDr(S, W, 14, i);
-		RNDr(S, W, 15, i);
+		SHA512_RNDr(S, W, 0, i);
+		SHA512_RNDr(S, W, 1, i);
+		SHA512_RNDr(S, W, 2, i);
+		SHA512_RNDr(S, W, 3, i);
+		SHA512_RNDr(S, W, 4, i);
+		SHA512_RNDr(S, W, 5, i);
+		SHA512_RNDr(S, W, 6, i);
+		SHA512_RNDr(S, W, 7, i);
+		SHA512_RNDr(S, W, 8, i);
+		SHA512_RNDr(S, W, 9, i);
+		SHA512_RNDr(S, W, 10, i);
+		SHA512_RNDr(S, W, 11, i);
+		SHA512_RNDr(S, W, 12, i);
+		SHA512_RNDr(S, W, 13, i);
+		SHA512_RNDr(S, W, 14, i);
+		SHA512_RNDr(S, W, 15, i);
 
 		if (i == 64)
 			break;
-		MSCH(W, 0, i);
-		MSCH(W, 1, i);
-		MSCH(W, 2, i);
-		MSCH(W, 3, i);
-		MSCH(W, 4, i);
-		MSCH(W, 5, i);
-		MSCH(W, 6, i);
-		MSCH(W, 7, i);
-		MSCH(W, 8, i);
-		MSCH(W, 9, i);
-		MSCH(W, 10, i);
-		MSCH(W, 11, i);
-		MSCH(W, 12, i);
-		MSCH(W, 13, i);
-		MSCH(W, 14, i);
-		MSCH(W, 15, i);
+		SHA512_MSCH(W, 0, i);
+		SHA512_MSCH(W, 1, i);
+		SHA512_MSCH(W, 2, i);
+		SHA512_MSCH(W, 3, i);
+		SHA512_MSCH(W, 4, i);
+		SHA512_MSCH(W, 5, i);
+		SHA512_MSCH(W, 6, i);
+		SHA512_MSCH(W, 7, i);
+		SHA512_MSCH(W, 8, i);
+		SHA512_MSCH(W, 9, i);
+		SHA512_MSCH(W, 10, i);
+		SHA512_MSCH(W, 11, i);
+		SHA512_MSCH(W, 12, i);
+		SHA512_MSCH(W, 13, i);
+		SHA512_MSCH(W, 14, i);
+		SHA512_MSCH(W, 15, i);
 	}
 
 	/* 4. Mix local working variables into global state */
@@ -204,7 +204,7 @@ SHA512_Transform(uint64_t * state, const unsigned char block[SHA512_BLOCK_LENGTH
 		state[i] += S[i];
 }
 
-static const unsigned char PAD[SHA512_BLOCK_LENGTH] = {
+static const unsigned char SHA512_PAD[SHA512_BLOCK_LENGTH] = {
 	0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -227,10 +227,10 @@ SHA512_Pad(SHA512_CTX * ctx)
 	/* Pad to 112 mod 128, transforming if we finish a block en route. */
 	if (r < 112) {
 		/* Pad to 112 mod 128. */
-		memcpy(&ctx->buf[r], PAD, 112 - r);
+		memcpy(&ctx->buf[r], SHA512_PAD, 112 - r);
 	} else {
 		/* Finish the current block and mix. */
-		memcpy(&ctx->buf[r], PAD, 128 - r);
+		memcpy(&ctx->buf[r], SHA512_PAD, 128 - r);
 		SHA512_Transform(ctx->state, ctx->buf);
 
 		/* The start of the final block is all zeroes. */
