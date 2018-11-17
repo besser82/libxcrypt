@@ -35,13 +35,13 @@ static const char b64t[] =
 
 /* The maximum length of an MD5 salt string (just the actual salt, not
    the entire prefix).  */
-#define SALT_LEN_MAX 8
+#define MD5_SALT_LEN_MAX 8
 
 /* The length of an MD5-hashed password string, including the
    terminating NUL character.  Prefix (including its NUL) + 8 bytes of
    salt + separator + 22 bytes of hashed password.  */
 #define MD5_HASH_LENGTH \
-  (sizeof (md5_salt_prefix) + SALT_LEN_MAX + 1 + 22)
+  (sizeof (md5_salt_prefix) + MD5_SALT_LEN_MAX + 1 + 22)
 
 static_assert (MD5_HASH_LENGTH <= CRYPT_OUTPUT_SIZE,
                "CRYPT_OUTPUT_SIZE is too small for MD5");
@@ -93,8 +93,8 @@ crypt_md5crypt_rn (const char *phrase, size_t phr_size,
       errno = EINVAL;
       return;
     }
-  if (salt_size > SALT_LEN_MAX)
-    salt_size = SALT_LEN_MAX;
+  if (salt_size > MD5_SALT_LEN_MAX)
+    salt_size = MD5_SALT_LEN_MAX;
 
   /* Compute alternate MD5 sum with input PHRASE, SALT, and PHRASE.  The
      final result will be added to the first context.  */
@@ -221,7 +221,7 @@ gensalt_md5crypt_rn (unsigned long count,
       errno = EINVAL;
       return;
     }
-  gensalt_sha_rn ('1', 8, 1000, 1000, 1000, 1000,
+  gensalt_sha_rn ('1', MD5_SALT_LEN_MAX, 1000, 1000, 1000, 1000,
                   rbytes, nrbytes, output, output_size);
 }
 
