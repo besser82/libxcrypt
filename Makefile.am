@@ -4,13 +4,15 @@
 # Author: Thorsten Kukuk <kukuk@suse.de>
 #
 
-AUTOMAKE_OPTIONS = 1.14 gnits dist-bzip2 dist-xz \
-	filename-length-max=99
+AUTOMAKE_OPTIONS = \
+	1.14 gnits dist-bzip2 dist-xz filename-length-max=99
+
 ACLOCAL_AMFLAGS = -I m4
 
 AM_CFLAGS = $(WARN_CFLAGS)
 
 @VALGRIND_CHECK_RULES@
+
 TEST_EXTENSIONS = .sh
 
 EXTRA_DIST = \
@@ -234,15 +236,19 @@ check_PROGRAMS += test-des-obsolete test-des-obsolete_r
 endif
 
 TESTS = $(check_PROGRAMS)
+
 if ENABLE_STATIC
 TESTS += test-symbols-static.sh
+
 if HAVE_CPP_dD
 TESTS += test-symbols-renames.sh
 endif
 endif
+
 if ENABLE_OBSOLETE_API
 TESTS += test-symbols-compat.sh
 endif
+
 EXTRA_DIST += test-symbols-static.sh test-symbols-compat.sh test-symbols-renames.sh
 
 AM_TESTS_ENVIRONMENT = \
@@ -255,49 +261,86 @@ AM_TESTS_ENVIRONMENT = \
 if CROSS_COMPILING
 LOG_COMPILER = m4/skip-if-exec-format-error
 endif
+
 EXTRA_DIST += m4/skip-if-exec-format-error
 
-test_crypt_bcrypt_LDADD = crypt-common.lo libcrypt.la
-test_crypt_des_LDADD = crypt-common.lo libcrypt.la
-test_crypt_md5_LDADD = crypt-common.lo libcrypt.la
-test_crypt_nthash_LDADD = crypt-common.lo libcrypt.la
-test_crypt_pbkdf1_sha1_LDADD = crypt-common.lo libcrypt.la
-test_crypt_scrypt_LDADD = crypt-common.lo libcrypt.la
-test_crypt_sha256_LDADD = crypt-common.lo libcrypt.la
-test_crypt_sha512_LDADD = crypt-common.lo libcrypt.la
-test_crypt_sunmd5_LDADD = crypt-common.lo libcrypt.la
-test_crypt_yescrypt_LDADD = crypt-common.lo libcrypt.la
-test_badsalt_LDADD = crypt-common.lo libcrypt.la
-test_badsetting_LDADD = crypt-common.lo libcrypt.la
-test_gensalt_LDADD = crypt-common.lo libcrypt.la
-test_gensalt_extradata_LDADD = crypt-common.lo libcrypt.la
-test_checksalt_LDADD = crypt-common.lo libcrypt.la
-test_des_obsolete_LDADD = crypt-common.lo libcrypt.la
-test_des_obsolete_r_LDADD = crypt-common.lo libcrypt.la
-test_crypt_badargs_LDADD = crypt-common.lo libcrypt.la
-test_short_outbuf_LDADD = crypt-common.lo libcrypt.la
+# Refer to object files that are linked into libxcrypt with the
+# qualified name, libcrypt_la-foobar.lo, to prevent them from
+# being compiled a second time.
+COMMON_TEST_OBJECTS = libcrypt_la-crypt-common.lo libcrypt.la
+
+test_crypt_bcrypt_LDADD = $(COMMON_TEST_OBJECTS)
+test_crypt_des_LDADD = $(COMMON_TEST_OBJECTS)
+test_crypt_md5_LDADD = $(COMMON_TEST_OBJECTS)
+test_crypt_nthash_LDADD = $(COMMON_TEST_OBJECTS)
+test_crypt_pbkdf1_sha1_LDADD = $(COMMON_TEST_OBJECTS)
+test_crypt_scrypt_LDADD = $(COMMON_TEST_OBJECTS)
+test_crypt_sha256_LDADD = $(COMMON_TEST_OBJECTS)
+test_crypt_sha512_LDADD = $(COMMON_TEST_OBJECTS)
+test_crypt_sunmd5_LDADD = $(COMMON_TEST_OBJECTS)
+test_crypt_yescrypt_LDADD = $(COMMON_TEST_OBJECTS)
+test_badsalt_LDADD = $(COMMON_TEST_OBJECTS)
+test_badsetting_LDADD = $(COMMON_TEST_OBJECTS)
+test_gensalt_LDADD = $(COMMON_TEST_OBJECTS)
+test_gensalt_extradata_LDADD = $(COMMON_TEST_OBJECTS)
+test_checksalt_LDADD = $(COMMON_TEST_OBJECTS)
+test_des_obsolete_LDADD = $(COMMON_TEST_OBJECTS)
+test_des_obsolete_r_LDADD = $(COMMON_TEST_OBJECTS)
+test_crypt_badargs_LDADD = $(COMMON_TEST_OBJECTS)
+test_short_outbuf_LDADD = $(COMMON_TEST_OBJECTS)
 
 # These tests call internal APIs that may not be accessible from the
 # fully linked shared library.
-test_alg_des_LDADD = alg-des.lo alg-des-tables.lo crypt-common.lo
-test_alg_gost3411_2012_LDADD = alg-gost3411-2012-core.lo \
-	alg-gost3411-2012-hmac.lo crypt-common.lo
-test_alg_gost3411_2012_hmac_LDADD = alg-gost3411-2012-core.lo \
-	alg-gost3411-2012-hmac.lo crypt-common.lo
-test_alg_hmac_sha1_LDADD = alg-sha1.lo alg-hmac-sha1.lo crypt-common.lo
-test_alg_md4_LDADD = alg-md4.lo crypt-common.lo
-test_alg_md5_LDADD = alg-md5.lo crypt-common.lo
-test_alg_pbkdf_hmac_sha256_LDADD = alg-sha256.lo crypt-common.lo
-test_alg_sha1_LDADD = alg-sha1.lo crypt-common.lo
-test_alg_sha256_LDADD = alg-sha256.lo crypt-common.lo
-test_alg_sha512_LDADD = alg-sha512.lo crypt-common.lo
-test_crypt_gost_yescrypt_LDADD = alg-gost3411-2012-core.lo \
-	alg-gost3411-2012-hmac.lo alg-sha256.lo \
-	alg-yescrypt-common.lo alg-yescrypt-opt.lo \
-	crypt-yescrypt.lo crypt-common.lo libcrypt.la
+test_alg_des_LDADD = \
+	libcrypt_la-alg-des.lo \
+	libcrypt_la-alg-des-tables.lo \
+	$(COMMON_TEST_OBJECTS)
+test_alg_gost3411_2012_LDADD = \
+	libcrypt_la-alg-gost3411-2012-core.lo \
+	libcrypt_la-alg-gost3411-2012-hmac.lo \
+	$(COMMON_TEST_OBJECTS)
+test_alg_gost3411_2012_hmac_LDADD = \
+	libcrypt_la-alg-gost3411-2012-core.lo \
+	libcrypt_la-alg-gost3411-2012-hmac.lo \
+	$(COMMON_TEST_OBJECTS)
+test_alg_hmac_sha1_LDADD = \
+	libcrypt_la-alg-sha1.lo \
+	libcrypt_la-alg-hmac-sha1.lo \
+	$(COMMON_TEST_OBJECTS)
+test_alg_md4_LDADD = \
+	libcrypt_la-alg-md4.lo \
+	$(COMMON_TEST_OBJECTS)
+test_alg_md5_LDADD = \
+	libcrypt_la-alg-md5.lo \
+	$(COMMON_TEST_OBJECTS)
+test_alg_pbkdf_hmac_sha256_LDADD = \
+	libcrypt_la-alg-sha256.lo \
+	$(COMMON_TEST_OBJECTS)
+test_alg_sha1_LDADD = \
+	libcrypt_la-alg-sha1.lo \
+	$(COMMON_TEST_OBJECTS)
+test_alg_sha256_LDADD = \
+	libcrypt_la-alg-sha256.lo \
+	$(COMMON_TEST_OBJECTS)
+test_alg_sha512_LDADD = \
+	libcrypt_la-alg-sha512.lo \
+	$(COMMON_TEST_OBJECTS)
+test_crypt_gost_yescrypt_LDADD = \
+	libcrypt_la-alg-gost3411-2012-core.lo \
+	libcrypt_la-alg-gost3411-2012-hmac.lo \
+	libcrypt_la-alg-sha256.lo \
+	libcrypt_la-alg-yescrypt-common.lo \
+	libcrypt_la-alg-yescrypt-opt.lo \
+	libcrypt_la-crypt-yescrypt.lo \
+	$(COMMON_TEST_OBJECTS)
 
-test_getrandom_interface_LDADD = crypt-common.lo randombytes.lo
-test_getrandom_fallbacks_LDADD = crypt-common.lo randombytes.lo
+test_getrandom_interface_LDADD = \
+	libcrypt_la-randombytes.lo \
+	$(COMMON_TEST_OBJECTS)
+test_getrandom_fallbacks_LDADD = \
+	libcrypt_la-randombytes.lo \
+	$(COMMON_TEST_OBJECTS)
+
 if HAVE_LD_WRAP
 test_getrandom_fallbacks_LDFLAGS = \
   -Wl,--wrap,getentropy -Wl,--wrap,getrandom -Wl,--wrap,syscall \
