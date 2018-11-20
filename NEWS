@@ -3,6 +3,8 @@ libxcrypt NEWS -- history of user-visible changes.
 Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
+Version 4.4.1
+
 Version 4.4.0
 * Implement the crypt_preferred_method function.
   This function can be used as a convenience function to get the prefix
