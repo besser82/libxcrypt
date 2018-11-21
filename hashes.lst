@@ -51,7 +51,7 @@ sha256crypt    $5$       15       GLIBC,FREEBSD,SOLARIS
 sha1crypt      $sha1     20       NETBSD
 sunmd5         $md5      8        SOLARIS
 md5crypt       $1$       9        GLIBC,FREEBSD,NETBSD,OPENBSD,SOLARIS
-nt             $3$       7        FREEBSD
+nt             $3$       2        FREEBSD
 bsdicrypt      _         3        FREEBSD,NETBSD,OPENBSD,OSX
 bigcrypt       :         2        :
 descrypt       :         2        GLIBC,FREEBSD,NETBSD,OPENBSD,SOLARIS,OSX
