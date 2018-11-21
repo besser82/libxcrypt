@@ -49,9 +49,9 @@
 
 void
 crypt_nt_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
-                 const char *setting, size_t ARG_UNUSED (set_size),
-                 uint8_t *output, size_t out_size,
-                 void *scratch, size_t scr_size)
+             const char *setting, size_t ARG_UNUSED (set_size),
+             uint8_t *output, size_t out_size,
+             void *scratch, size_t scr_size)
 {
   size_t unipwLen;
   int i;
@@ -86,7 +86,7 @@ crypt_nt_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
   MD4_Update (ctx, unipw, unipwLen*sizeof(uint16_t));
   MD4_Final (hash, ctx);
 
-  output = (uint8_t *)stpcpy ((char *)output, magic);
+  output += XCRYPT_STRCPY_OR_ABORT (output, out_size, magic);
   *output++ = '$';
   for (i = 0; i < 16; i++)
     {
