@@ -43,6 +43,58 @@
 
 #if INCLUDE_nt
 
+static uint8_t *
+encode64_uint32 (uint8_t * dst, ssize_t dstlen,
+                 uint32_t src, uint32_t srcbits)
+{
+  uint32_t bit;
+
+  for (bit = 0; bit < srcbits; bit += 6)
+    {
+      if (dstlen < 1)
+        {
+          errno = ERANGE;
+          return NULL;
+        }
+      *dst++ = ascii64[src & 0x3f];
+      dstlen--;
+      src >>= 6;
+    }
+
+  *dst = '\0';
+  return dst;
+}
+
+static uint8_t *
+encode64 (uint8_t * dst, ssize_t dstlen,
+          const uint8_t * src, size_t srclen)
+{
+  size_t i;
+
+  for (i = 0; i < srclen; )
+    {
+      uint8_t * dnext;
+      uint32_t value = 0, bits = 0;
+      do
+        {
+          value |= (uint32_t) src[i++] << bits;
+          bits += 8;
+        }
+      while (bits < 24 && i < srclen);
+      dnext = encode64_uint32 (dst, dstlen, value, bits);
+      if (!dnext)
+        {
+          errno = ERANGE;
+          return NULL;
+        }
+      dstlen -= (dnext - dst);
+      dst = dnext;
+    }
+
+  *dst = '\0';
+  return dst;
+}
+
 /*
  * NT HASH = md4(str2unicode(phrase))
  */
@@ -104,48 +156,49 @@ crypt_nt_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
    SETTING for the crypt function.  */
 void
 gensalt_nt_rn (unsigned long count,
-                   const uint8_t *rbytes,
-                   size_t nrbytes,
-                   uint8_t *output,
-                   size_t o_size)
+               const uint8_t *rbytes,
+               size_t nrbytes,
+               uint8_t *output,
+               size_t o_size)
 {
-  static const char *salt = "$3$__not_used__";
+  const char *salt = "$3$__not_used__";
+  const size_t saltlen = strlen (salt);
   MD4_CTX ctx;
   unsigned char hashbuf[16];
-  char hashstr[14 + 1];
-  unsigned long i;
+  size_t i;
 
   /* Minimal O_SIZE to store the fake salt.
      At least 1 byte of RBYTES is needed
      to calculate the MD4 hash used in the
      fake salt.  */
-  if ((o_size < 30) || (nrbytes < 1))
+  if ((o_size < saltlen + BASE64_LEN (sizeof (hashbuf)) + 1) ||
+      (nrbytes < 2))
     {
       errno = ERANGE;
       return;
     }
+
   if (count != 0)
     {
       errno = EINVAL;
       return;
     }
 
+  XCRYPT_STRCPY_OR_ABORT (output, o_size, salt);
+
   MD4_Init (&ctx);
-  for (i = 0; i < 20; i++)
+  for (i = 0; i < saltlen * nrbytes; i++)
     {
-      MD4_Update (&ctx, salt, (i % 15) + 1);
+      MD4_Update (&ctx, salt, (i % saltlen) + 1);
       MD4_Update (&ctx, rbytes, nrbytes);
-      MD4_Update (&ctx, salt, 15);
-      MD4_Update (&ctx, salt, 15 - (i % 15));
+      MD4_Update (&ctx, rbytes, nrbytes - (i % nrbytes));
+      MD4_Update (&ctx, salt, saltlen);
+      MD4_Update (&ctx, salt, saltlen - (i % saltlen));
     }
   MD4_Final (hashbuf, &ctx);
 
-  for (i = 0; i < 7; i++)
-    sprintf (&(hashstr[i * 2]), "%02x", hashbuf[i]);
-  hashstr[14] = '\0';
-
-  XCRYPT_STRCPY_OR_ABORT (output, o_size, salt);
-  XCRYPT_STRCPY_OR_ABORT (output + 15, o_size - 15, hashstr);
+  encode64 (output + saltlen, (ssize_t) (o_size - saltlen),
+            hashbuf, sizeof (hashbuf));
 }
 
 #endif
