@@ -4,6 +4,12 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.1
+* Change the output of the gensalt function for the NT hashing method
+  ($3$) to output a base64 encoded more or less random salt string.
+  The output buffer for the returned string must be at least 38 bytes
+  long.
+* Decrase the minimum required amount of random bytes for the NT
+  hashing method to 2 bytes.
 
 Version 4.4.0
 * Implement the crypt_preferred_method function.
