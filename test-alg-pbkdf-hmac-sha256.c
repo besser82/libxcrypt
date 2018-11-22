@@ -179,7 +179,9 @@ static int
 test_hmac_sha256 (void)
 {
   uint8_t output[32];
+  HMAC_SHA256_CTX ctx;
   int status = 0;
+  size_t j;
   for (size_t i = 0; i < ARRAY_SIZE (hmac_sha256_tests); i++)
     {
       const struct hmac_sha256_test *t = &hmac_sha256_tests[i];
@@ -188,7 +190,18 @@ test_hmac_sha256 (void)
                        output);
       if (memcmp (output, t->digest, 32))
         {
-          report_failure ("HMAC-SHA256", i, 32, t->digest, output);
+          report_failure ("HMAC-SHA256 (one shot)",
+                          i, 32, t->digest, output);
+          status = 1;
+        }
+      HMAC_SHA256_Init(&ctx, t->key, strlen (t->key));
+      for (j = 0; t->message[j] != '\0'; j++)
+        HMAC_SHA256_Update(&ctx, &t->message[j], 1);
+      HMAC_SHA256_Final(output, &ctx);
+      if (memcmp (output, t->digest, 32))
+        {
+          report_failure ("HMAC-SHA256 (incremental)",
+                          i, 32, t->digest, output);
           status = 1;
         }
     }
