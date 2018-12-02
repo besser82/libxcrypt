@@ -168,6 +168,13 @@ if test "x$ac_cv_ld_no_textrel" != xunknown; then
 fi
 AC_SUBST([TEXT_RELOC_FLAG])
 
+# FIXME: This only checks whether the compiler accepts -fno-plt.
+# It doesn't check that the switch actually does what we want it to do.
+AX_APPEND_COMPILE_FLAGS([-fno-plt], [OPTI_FLAGS])
+
+# Export compiler flags for optimization.
+AC_SUBST([OPTI_FLAGS])
+
 # Checks for library functions.
 AC_CHECK_FUNCS_ONCE([
   arc4random_buf
