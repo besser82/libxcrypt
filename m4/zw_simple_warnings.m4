@@ -26,50 +26,9 @@ dnl This is a cut-down version of the elaborate thing in the extras
 dnl archive, which we do not need nearly all of.
 dnl
 dnl Partly based on:
-dnl https://www.gnu.org/software/autoconf-archive/ax_append_flag.html
-dnl https://www.gnu.org/software/autoconf-archive/ax_check_compile_flag.html
-dnl https://www.gnu.org/software/autoconf-archive/ax_append_compile_flags.html
 dnl https://www.gnu.org/software/autoconf-archive/ax_compiler_flags_cflags.html
 
 AC_PREREQ(2.64)dnl for _AC_LANG_PREFIX and AS_VAR_IF
-
-AC_DEFUN([AX_CHECK_COMPILE_FLAG],
-[AS_VAR_PUSHDEF([CACHEVAR],[ax_cv_[]_AC_LANG_ABBREV[]_flags_$4_$1])dnl
-AC_CACHE_CHECK([whether _AC_LANG compiler accepts $1], CACHEVAR, [
-  ax_check_save_flags=$[]_AC_LANG_PREFIX[]FLAGS
-  _AC_LANG_PREFIX[]FLAGS="$[]_AC_LANG_PREFIX[]FLAGS $4 $1"
-  AC_COMPILE_IFELSE([m4_default([$5],[AC_LANG_PROGRAM()])],
-    [AS_VAR_SET(CACHEVAR,[yes])],
-    [AS_VAR_SET(CACHEVAR,[no])])
-  _AC_LANG_PREFIX[]FLAGS=$ax_check_save_flags])
-AS_VAR_IF(CACHEVAR,yes,
-  [m4_default([$2], :)],
-  [m4_default([$3], :)])
-AS_VAR_POPDEF([CACHEVAR])])
-
-AC_DEFUN([AX_APPEND_FLAG],
-[AS_VAR_PUSHDEF([FLAGS], [m4_default($2,_AC_LANG_PREFIX[FLAGS])])
-AS_VAR_SET_IF(FLAGS,[
-  AS_CASE([" AS_VAR_GET(FLAGS) "],
-    [*" $1 "*], [AC_RUN_LOG([: FLAGS already contains $1])],
-    [
-     AS_VAR_APPEND(FLAGS,[" $1"])
-     AC_RUN_LOG([: FLAGS="$FLAGS"])
-    ])
-  ],
-  [
-  AS_VAR_SET(FLAGS,[$1])
-  AC_RUN_LOG([: FLAGS="$FLAGS"])
-  ])
-AS_VAR_POPDEF([FLAGS])dnl
-])dnl AX_APPEND_FLAG
-
-AC_DEFUN([AX_APPEND_COMPILE_FLAGS],
-[for flag in $1; do
-  AX_CHECK_COMPILE_FLAG([$flag],
-    [AX_APPEND_FLAG([$flag], [$2])], [], [$3], [$4])
-done
-])
 
 AC_DEFUN([zw_SIMPLE_ENABLE_WARNINGS],
 [
@@ -170,8 +129,9 @@ AC_ARG_ENABLE(
            [$ax_candidate_warnings], [WARN_CFLAGS_FOR_BUILD],
            [$ax_compiler_flags_test])
 
-
        popdef([_AC_LANG_ABBREV])
+
+       AC_SUBST(WARN_CFLAGS_FOR_BUILD)
 
        cross_compiling=$save_cross_compiling
        ac_tool_prefix=$save_ac_tool_prefix

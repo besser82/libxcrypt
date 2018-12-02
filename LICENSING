@@ -88,6 +88,15 @@ source tree.  For specific licensing terms consult the files themselves.
  * Copyright Kevin Cernekee; BSD alike:
    m4/ax_check_vscript.m4
 
+ * Copyright Maarten Bosmans; BSD alike:
+   m4/ax_append_compile_flags.m4
+
+ * Copyright Guido U. Draheim, Maarten Bosmans; BSD alike:
+   m4/ax_append_flag.m4, m4/ax_check_compile_flag.m4
+
+ * Copyright Mike Frysinger; BSD alike:
+   m4/ax_require_defined.m4
+
  * Copyright Scott James Remnant, Dan Nicholson;
    GPL (v2 or later), with Autoconf exception:
    m4/pkg_installdir_compat.m4
