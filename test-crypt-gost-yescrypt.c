@@ -74,7 +74,7 @@ test_crypt (const char *p, const char *s, const char *m)
 }
 
 static int
-test_crypt_raw (int m, int p, int s)
+test_crypt_raw (int m, int p, int s, char **a, size_t *a_size)
 {
   char output[CRYPT_OUTPUT_SIZE];
   char pass[CRYPT_MAX_PASSPHRASE_SIZE];
@@ -101,18 +101,16 @@ test_crypt_raw (int m, int p, int s)
       return 1;
     }
   char *h = strrchr (output, '$') + 1;
-  static char *a = NULL;
-  static size_t a_size = 0;
-  if (a && strstr (a, h))
+  if (*a && strstr (*a, h))
     {
       fprintf (stderr, "ERROR: duplicated hash %s\n", output);
       return 1;
     }
   size_t len = strlen(h);
-  a = realloc (a, a_size + len + 1);
-  strcpy (a + a_size, h);
-  a_size += len;
-  a[a_size] = '\0';
+  *a = realloc (*a, *a_size + len + 1);
+  strcpy (*a + *a_size, h);
+  *a_size += len;
+  (*a)[*a_size] = '\0';
 
   return 0;
 }
@@ -163,12 +161,19 @@ main (void)
 
   int m, pp, ss;
   int etest = 0;
+  char **a = malloc (sizeof (char*));
+  size_t *a_size = malloc (sizeof (size_t));
+
+  *a = malloc (sizeof (char));
+  (*a)[0] = '\0';
+  *a_size = 0;
+
   for (m = 1; m < 3; m++)
     {
       for (pp = 0; pp < 22; pp++)
-        etest |= test_crypt_raw (m, pp, 0);
+        etest |= test_crypt_raw (m, pp, 0, a, a_size);
       for (ss = 0; ss < 22; ss++)
-        etest |= test_crypt_raw (m, pp, ss);
+        etest |= test_crypt_raw (m, pp, ss, a, a_size);
     }
   fprintf (stderr, "\n");
   if (etest)
@@ -176,6 +181,10 @@ main (void)
   else
     fprintf (stderr, "   ok: entropy test\n");
   result |= etest;
+
+  free (*a);
+  free (a);
+  free (a_size);
 
   return result;
 }
