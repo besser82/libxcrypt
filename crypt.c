@@ -304,9 +304,9 @@ crypt_gensalt_rn (const char *prefix, unsigned long count,
     }
 
   /* Individual gensalt functions will check for sufficient random bits
-     for their own breed of setting, but the shortest possible one has
-     64**2 = 4096 possibilities, which requires two bytes of input.  */
-  if (nrbytes < 2)
+     for their own breed of setting, but the smallest possible amount,
+     that can be specified explicitly is 1.  */
+  if (nrbytes < 1)
     {
       errno = EINVAL;
       return 0;

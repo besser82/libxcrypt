@@ -78,6 +78,7 @@
 /test-des-obsolete
 /test-des-obsolete_r
 /test-gensalt
+/test-gensalt-nthash
 /test-gensalt-extradata
 /test-getrandom-fallbacks
 /test-getrandom-interface

@@ -226,7 +226,7 @@ check_PROGRAMS = \
 	test-crypt-pbkdf1-sha1 test-crypt-scrypt test-crypt-sha256 \
 	test-crypt-sha512 test-crypt-sunmd5 test-crypt-yescrypt \
 	test-byteorder test-badsalt test-badsetting test-gensalt \
-	test-gensalt-extradata test-preferred-method \
+	test-gensalt-extradata test-gensalt-nthash test-preferred-method \
 	test-crypt-badargs test-short-outbuf test-compile-strong-alias \
         test-getrandom-interface test-getrandom-fallbacks
 
@@ -282,6 +282,7 @@ test_crypt_yescrypt_LDADD = $(COMMON_TEST_OBJECTS)
 test_badsalt_LDADD = $(COMMON_TEST_OBJECTS)
 test_badsetting_LDADD = $(COMMON_TEST_OBJECTS)
 test_gensalt_LDADD = $(COMMON_TEST_OBJECTS)
+test_gensalt_nthash_LDADD = $(COMMON_TEST_OBJECTS)
 test_gensalt_extradata_LDADD = $(COMMON_TEST_OBJECTS)
 test_checksalt_LDADD = $(COMMON_TEST_OBJECTS)
 test_des_obsolete_LDADD = $(COMMON_TEST_OBJECTS)

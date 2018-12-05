@@ -37,63 +37,10 @@
 #include "alg-md4.h"
 
 #include <errno.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <netinet/in.h>
 
 #if INCLUDE_nt
-
-static uint8_t *
-encode64_uint32 (uint8_t * dst, ssize_t dstlen,
-                 uint32_t src, uint32_t srcbits)
-{
-  uint32_t bit;
-
-  for (bit = 0; bit < srcbits; bit += 6)
-    {
-      if (dstlen < 1)
-        {
-          errno = ERANGE;
-          return NULL;
-        }
-      *dst++ = ascii64[src & 0x3f];
-      dstlen--;
-      src >>= 6;
-    }
-
-  *dst = '\0';
-  return dst;
-}
-
-static uint8_t *
-encode64 (uint8_t * dst, ssize_t dstlen,
-          const uint8_t * src, size_t srclen)
-{
-  size_t i;
-
-  for (i = 0; i < srclen; )
-    {
-      uint8_t * dnext;
-      uint32_t value = 0, bits = 0;
-      do
-        {
-          value |= (uint32_t) src[i++] << bits;
-          bits += 8;
-        }
-      while (bits < 24 && i < srclen);
-      dnext = encode64_uint32 (dst, dstlen, value, bits);
-      if (!dnext)
-        {
-          errno = ERANGE;
-          return NULL;
-        }
-      dstlen -= (dnext - dst);
-      dst = dnext;
-    }
-
-  *dst = '\0';
-  return dst;
-}
 
 /*
  * NT HASH = md4(str2unicode(phrase))
@@ -148,31 +95,19 @@ crypt_nt_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
   *output = '\0';
 }
 
-/* This function does not return any valid salt,
-   since the NTHASH crypt function simply ignores
-   any setting passed to it.  Anyways, the string
-   returned in OUTPUT will start with the correct
-   magic string '$3$', so it can be used as
-   SETTING for the crypt function.  */
+/* This function simply returns the magic string '$3$',
+   so it can be used as SETTING for the crypt function.  */
 void
 gensalt_nt_rn (unsigned long count,
-               const uint8_t *rbytes,
-               size_t nrbytes,
+               ARG_UNUSED(const uint8_t *rbytes),
+               ARG_UNUSED(size_t nrbytes),
                uint8_t *output,
                size_t o_size)
 {
-  const char *salt = "$3$__not_used__";
-  const size_t saltlen = strlen (salt);
-  MD4_CTX ctx;
-  unsigned char hashbuf[16];
-  size_t i;
+  const char *prefix = "$3$";
 
-  /* Minimal O_SIZE to store the fake salt.
-     At least 1 byte of RBYTES is needed
-     to calculate the MD4 hash used in the
-     fake salt.  */
-  if ((o_size < saltlen + BASE64_LEN (sizeof (hashbuf)) + 1) ||
-      (nrbytes < 2))
+  /* Minimal O_SIZE to store the prefix.  */
+  if (o_size < strlen (prefix) + 1)
     {
       errno = ERANGE;
       return;
@@ -184,21 +119,7 @@ gensalt_nt_rn (unsigned long count,
       return;
     }
 
-  XCRYPT_STRCPY_OR_ABORT (output, o_size, salt);
-
-  MD4_Init (&ctx);
-  for (i = 0; i < saltlen * nrbytes; i++)
-    {
-      MD4_Update (&ctx, salt, (i % saltlen) + 1);
-      MD4_Update (&ctx, rbytes, nrbytes);
-      MD4_Update (&ctx, rbytes, nrbytes - (i % nrbytes));
-      MD4_Update (&ctx, salt, saltlen);
-      MD4_Update (&ctx, salt, saltlen - (i % saltlen));
-    }
-  MD4_Final (hashbuf, &ctx);
-
-  encode64 (output + saltlen, (ssize_t) (o_size - saltlen),
-            hashbuf, sizeof (hashbuf));
+  XCRYPT_STRCPY_OR_ABORT (output, o_size, prefix);
 }
 
 #endif

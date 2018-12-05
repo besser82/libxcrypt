@@ -76,7 +76,7 @@ static const struct testcase testcases[] =
 #if INCLUDE_nt
   { "$3",  0, 0, 0 },           // truncated prefix
   { "$3$", 1, 0, 0 },           // doesn't accept variable counts
-  { "$3$", 0, 0, 4 },           // inadequate osize
+  { "$3$", 0, 0, 2 },           // inadequate osize
 #else
   { "$3$", 0, 0, 0 },
 #endif

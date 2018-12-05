@@ -157,11 +157,7 @@ after the `$`, e.g. `$md5[,rounds=%u]$<salt>$x`.
 The NT algorithm, in its original implementation, never came with any
 `gensalt` function, because the algorithm does not use any.  libxcrypt
 ships a bogus `gensalt` function for the NT algorithm, which simply
-returns `$3$__not_used__XXXXXXXXXXXXXX`, where the `X`s stand for some
-more or less random salt.  There is no difference in the resulting hash
-returned by the `crypt` function, whether using one of the hashes
-returned by `gensalt` or simply using `$3$` as a setting for hashing a
-password with NT.
+returns `$3$`.
 
 glibc’s libcrypt could optionally be configured to use Mozilla’s NSS
 library’s implementations of the cryptographic primitives md5crypt,
