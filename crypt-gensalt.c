@@ -15,9 +15,6 @@
 
 #if INCLUDE_md5crypt || INCLUDE_sha256crypt || INCLUDE_sha512crypt
 
-static const unsigned char _xcrypt_itoa64[64 + 1] =
-  "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
 void
 gensalt_sha_rn (char tag, size_t maxsalt, unsigned long defcount,
                 unsigned long mincount, unsigned long maxcount,
@@ -79,10 +76,10 @@ gensalt_sha_rn (char tag, size_t maxsalt, unsigned long defcount,
         ((unsigned long) (unsigned char) rbytes[used_rbytes + 1] <<  8) |
         ((unsigned long) (unsigned char) rbytes[used_rbytes + 2] << 16);
 
-      output[written + 0] = _xcrypt_itoa64[value & 0x3f];
-      output[written + 1] = _xcrypt_itoa64[(value >> 6) & 0x3f];
-      output[written + 2] = _xcrypt_itoa64[(value >> 12) & 0x3f];
-      output[written + 3] = _xcrypt_itoa64[(value >> 18) & 0x3f];
+      output[written + 0] = ascii64[value & 0x3f];
+      output[written + 1] = ascii64[(value >> 6) & 0x3f];
+      output[written + 2] = ascii64[(value >> 12) & 0x3f];
+      output[written + 3] = ascii64[(value >> 18) & 0x3f];
 
       written += 4;
       used_rbytes += 3;
