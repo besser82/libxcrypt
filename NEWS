@@ -3,6 +3,8 @@ libxcrypt NEWS -- history of user-visible changes.
 Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
+Version 4.4.2
+
 Version 4.4.1
 * Change the output of the gensalt function for the NT hashing method
   ($3$) to output just its prefix ($3$) instead of a fake salt.
