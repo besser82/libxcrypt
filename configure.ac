@@ -168,6 +168,40 @@ if test "x$ac_cv_ld_no_textrel" != xunknown; then
 fi
 AC_SUBST([TEXT_RELOC_FLAG])
 
+# FIXME: This only checks whether the linker accepts -Wl,-z,relro.
+# It doesn't check that the switch actually does what we want it to do.
+AC_CACHE_CHECK([how to link with read-only relocations],
+  [ac_cv_ld_relro], [
+  ac_cv_ld_relro=unknown
+  SAVED_LDFLAGS="$LDFLAGS"
+  LDFLAGS="$SAVED_LDFLAGS -Wl,-z,relro"
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([], [int i = 1;])],
+    [ac_cv_ld_relro=-Wl,-z,relro])
+  LDFLAGS="$SAVED_LDFLAGS"])
+
+RELRO_FLAG=
+if test "x$ac_cv_ld_relro" != xunknown; then
+  RELRO_FLAG="$ac_cv_ld_relro"
+fi
+AC_SUBST([RELRO_FLAG])
+
+# FIXME: This only checks whether the linker accepts -Wl,-z,now.
+# It doesn't check that the switch actually does what we want it to do.
+AC_CACHE_CHECK([how to link with immediate binding],
+  [ac_cv_ld_now], [
+  ac_cv_ld_now=unknown
+  SAVED_LDFLAGS="$LDFLAGS"
+  LDFLAGS="$SAVED_LDFLAGS -Wl,-z,now"
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([], [int i = 1;])],
+    [ac_cv_ld_now=-Wl,-z,now])
+  LDFLAGS="$SAVED_LDFLAGS"])
+
+BINDNOW_FLAG=
+if test "x$ac_cv_ld_now" != xunknown; then
+  BINDNOW_FLAG="$ac_cv_ld_now"
+fi
+AC_SUBST([BINDNOW_FLAG])
+
 # FIXME: This only checks whether the compiler accepts -fno-plt.
 # It doesn't check that the switch actually does what we want it to do.
 AX_APPEND_COMPILE_FLAGS([-fno-plt], [OPTI_FLAGS])

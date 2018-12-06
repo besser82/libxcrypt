@@ -10,6 +10,9 @@ Version 4.4.1
   long.
 * Decrase the minimum required amount of random bytes for the NT
   hashing method to 1 byte, which is actually not used.
+* The default linker flags now generate binaries with full read-only
+  relocations (including full read-only re-mapping of the GOT), if
+  supported by the linker and the system's native binary format.
 
 Version 4.4.0
 * Implement the crypt_preferred_method function.
