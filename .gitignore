@@ -57,6 +57,7 @@
 /test-alg-sha1
 /test-alg-sha256
 /test-alg-sha512
+/test-alg-yescrypt
 /test-badsalt
 /test-badsetting
 /test-bigcrypt

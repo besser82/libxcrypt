@@ -476,6 +476,94 @@ fail:
 	return NULL;
 }
 
+uint8_t *yescrypt(const uint8_t *passwd, const uint8_t *setting)
+{
+	/* prefix, '$', hash, NUL */
+	static uint8_t buf[PREFIX_LEN + 1 + HASH_LEN + 1];
+	yescrypt_local_t local;
+	uint8_t *retval;
+
+	if (yescrypt_init_local(&local))
+		return NULL;
+	retval = yescrypt_r(NULL, &local,
+	    passwd, strlen((char *)passwd), setting, NULL, buf, sizeof(buf));
+	if (yescrypt_free_local(&local))
+		return NULL;
+	return retval;
+}
+
+uint8_t *yescrypt_reencrypt(uint8_t *hash,
+    const yescrypt_binary_t *from_key,
+    const yescrypt_binary_t *to_key)
+{
+	uint8_t *retval = NULL, *saltstart, *hashstart;
+	const uint8_t *hashend;
+	unsigned char saltbin[64], hashbin[32];
+	size_t saltstrlen, saltlen, hashlen;
+
+	if (strncmp((char *)hash, "$y$", 3))
+		return NULL;
+
+	saltstart = NULL;
+	hashstart = (uint8_t *)strrchr((char *)hash, '$');
+	if (hashstart) {
+		if (hashstart > (uint8_t *)hash) {
+			saltstart = hashstart - 1;
+			while (*saltstart != '$' && saltstart > hash)
+				saltstart--;
+			if (*saltstart == '$')
+				saltstart++;
+		}
+		hashstart++;
+	} else {
+		hashstart = hash;
+	}
+	saltstrlen = saltstart ? (hashstart - 1 - saltstart) : 0;
+	if (saltstrlen > BYTES2CHARS(64) ||
+	    strlen((char *)hashstart) != HASH_LEN)
+		return NULL;
+
+	if (saltstrlen) {
+		const uint8_t *saltend;
+		saltlen = sizeof(saltbin);
+		saltend = decode64(saltbin, &saltlen, saltstart, saltstrlen);
+		if (!saltend || *saltend != '$' || saltlen < 1 || saltlen > 64)
+			goto out;
+
+		if (from_key)
+			yescrypt_sha256_cipher(saltbin, saltlen, from_key, ENC);
+		if (to_key)
+			yescrypt_sha256_cipher(saltbin, saltlen, to_key, DEC);
+	}
+
+	hashlen = sizeof(hashbin);
+	hashend = decode64(hashbin, &hashlen, hashstart, HASH_LEN);
+	if (!hashend || *hashend || hashlen != sizeof(hashbin))
+		goto out;
+
+	if (from_key)
+		yescrypt_sha256_cipher(hashbin, hashlen, from_key, DEC);
+	if (to_key)
+		yescrypt_sha256_cipher(hashbin, hashlen, to_key, ENC);
+
+	if (saltstrlen) {
+		if (!encode64(saltstart, saltstrlen + 1, saltbin, saltlen))
+			goto out; /* can't happen */
+		*(saltstart + saltstrlen) = '$';
+	}
+
+	if (!encode64(hashstart, HASH_LEN + 1, hashbin, hashlen))
+		goto out; /* can't happen */
+
+	retval = hash;
+
+out:
+	insecure_memzero(saltbin, sizeof(saltbin));
+	insecure_memzero(hashbin, sizeof(hashbin));
+
+	return retval;
+}
+
 static uint32_t N2log2(uint64_t N)
 {
 	uint32_t N_log2;
@@ -593,6 +681,31 @@ uint8_t *yescrypt_encode_params_r(const yescrypt_params_t *params,
 	*dst = 0; /* NUL termination */
 
 	return buf;
+}
+
+uint8_t *yescrypt_encode_params(const yescrypt_params_t *params,
+    const uint8_t *src, size_t srclen)
+{
+	/* prefix, NUL */
+	static uint8_t buf[PREFIX_LEN + 1];
+	return yescrypt_encode_params_r(params, src, srclen, buf, sizeof(buf));
+}
+
+int crypto_scrypt(const uint8_t *passwd, size_t passwdlen,
+    const uint8_t *salt, size_t saltlen, uint64_t N, uint32_t r, uint32_t p,
+    uint8_t *buf, size_t buflen)
+{
+	yescrypt_local_t local;
+	yescrypt_params_t params = { .flags = 0, .N = N, .r = r, .p = p };
+	int retval;
+
+	if (yescrypt_init_local(&local))
+		return -1;
+	retval = yescrypt_kdf(NULL, &local,
+	    passwd, passwdlen, salt, saltlen, &params, buf, buflen);
+	if (yescrypt_free_local(&local))
+		return -1;
+	return retval;
 }
 
 #endif /* INCLUDE_yescrypt || INCLUDE_scrypt || INCLUDE_gost_yescrypt */

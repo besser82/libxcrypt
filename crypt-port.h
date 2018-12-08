@@ -308,13 +308,20 @@ _crypt_strcpy_or_abort (void *, const size_t, const void *);
 
 #if INCLUDE_yescrypt || INCLUDE_scrypt || INCLUDE_gost_yescrypt
 #define PBKDF2_SHA256            _crypt_PBKDF2_SHA256
+#define crypto_scrypt            _crypt_crypto_scrypt
+#define yescrypt                 _crypt_yescrypt
+#define yescrypt_decode64        _crypt_yescrypt_decode64
+#define yescrypt_digest_shared   _crypt_yescrypt_digest_shared
+#define yescrypt_encode64        _crypt_yescrypt_encode64
+#define yescrypt_encode_params   _crypt_yescrypt_encode_params
 #define yescrypt_encode_params_r _crypt_yescrypt_encode_params_r
 #define yescrypt_free_local      _crypt_yescrypt_free_local
+#define yescrypt_free_shared     _crypt_yescrypt_free_shared
 #define yescrypt_init_local      _crypt_yescrypt_init_local
+#define yescrypt_init_shared     _crypt_yescrypt_init_shared
 #define yescrypt_kdf             _crypt_yescrypt_kdf
 #define yescrypt_r               _crypt_yescrypt_r
-#define yescrypt_decode64        _crypt_yescrypt_decode64
-#define yescrypt_encode64        _crypt_yescrypt_encode64
+#define yescrypt_reencrypt       _crypt_yescrypt_reencrypt
 
 #define libcperciva_HMAC_SHA256_Init _crypt_HMAC_SHA256_Init
 #define libcperciva_HMAC_SHA256_Update _crypt_HMAC_SHA256_Update

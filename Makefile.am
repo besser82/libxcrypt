@@ -223,14 +223,15 @@ check_PROGRAMS = \
 	test-alg-des test-alg-gost3411-2012 test-alg-gost3411-2012-hmac \
 	test-alg-hmac-sha1 test-alg-md4 test-alg-md5 \
 	test-alg-pbkdf-hmac-sha256 test-alg-sha1 test-alg-sha256 \
-	test-alg-sha512 test-checksalt test-crypt-bcrypt test-crypt-des \
-	test-crypt-gost-yescrypt test-crypt-md5 test-crypt-nthash \
-	test-crypt-pbkdf1-sha1 test-crypt-scrypt test-crypt-sha256 \
-	test-crypt-sha512 test-crypt-sunmd5 test-crypt-yescrypt \
-	test-byteorder test-badsalt test-badsetting test-gensalt \
-	test-gensalt-extradata test-gensalt-nthash test-preferred-method \
-	test-crypt-badargs test-short-outbuf test-compile-strong-alias \
-        test-getrandom-interface test-getrandom-fallbacks
+	test-alg-sha512 test-alg-yescrypt test-checksalt test-crypt-bcrypt \
+	test-crypt-des test-crypt-gost-yescrypt test-crypt-md5 \
+	test-crypt-nthash test-crypt-pbkdf1-sha1 test-crypt-scrypt \
+	test-crypt-sha256 test-crypt-sha512 test-crypt-sunmd5 \
+	test-crypt-yescrypt test-byteorder test-badsalt test-badsetting \
+	test-gensalt test-gensalt-extradata test-gensalt-nthash \
+	test-preferred-method test-crypt-badargs test-short-outbuf \
+	test-compile-strong-alias test-getrandom-interface \
+	test-getrandom-fallbacks
 
 if ENABLE_OBSOLETE_API
 libcrypt_la_SOURCES += crypt-des-obsolete.c
@@ -328,6 +329,11 @@ test_alg_sha256_LDADD = \
 	$(COMMON_TEST_OBJECTS)
 test_alg_sha512_LDADD = \
 	libcrypt_la-alg-sha512.lo \
+	$(COMMON_TEST_OBJECTS)
+test_alg_yescrypt_LDADD = \
+	libcrypt_la-alg-sha256.lo \
+	libcrypt_la-alg-yescrypt-common.lo \
+	libcrypt_la-alg-yescrypt-opt.lo \
 	$(COMMON_TEST_OBJECTS)
 test_crypt_gost_yescrypt_LDADD = \
 	libcrypt_la-alg-gost3411-2012-core.lo \

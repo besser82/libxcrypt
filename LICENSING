@@ -47,6 +47,9 @@ source tree.  For specific licensing terms consult the files themselves.
    test-alg-gost3411-2012-hmac.c, test-crypt-gost-yescrypt.c,
    test-crypt-scrypt.c
 
+ * Copyright Alexander Peslyak; 0-clause BSD:
+   test-alg-yescrypt.c
+
  * Copyright Alexander Peslyak, Björn Esser; 0-clause BSD:
    crypt-scrypt.c
 

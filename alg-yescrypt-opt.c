@@ -1418,6 +1418,109 @@ int yescrypt_kdf(const yescrypt_shared_t *shared, yescrypt_local_t *local,
 	return retval;
 }
 
+int yescrypt_init_shared(yescrypt_shared_t *shared,
+    const uint8_t *seed, size_t seedlen,
+    const yescrypt_params_t *params)
+{
+	yescrypt_params_t subparams;
+	yescrypt_shared_t half1, half2;
+	uint8_t salt[32];
+	uint64_t *tag;
+
+	subparams = *params;
+	subparams.flags |= YESCRYPT_INIT_SHARED;
+	subparams.N = params->NROM;
+	subparams.NROM = 0;
+
+	if (!(params->flags & YESCRYPT_RW) || params->N || params->g)
+		return -1;
+
+	if (params->flags & YESCRYPT_SHARED_PREALLOCATED) {
+		if (!shared->aligned || !shared->aligned_size)
+			return -1;
+
+/* Overwrite a possible old ROM tag before we overwrite the rest */
+		tag = (uint64_t *)
+		    ((uint8_t *)shared->aligned + shared->aligned_size - 48);
+		memset(tag, 0, 48);
+	} else {
+		init_region(shared);
+
+		subparams.flags |= YESCRYPT_ALLOC_ONLY;
+		if (yescrypt_kdf(NULL, shared, NULL, 0, NULL, 0, &subparams,
+		    NULL, 0) != -2 || !shared->aligned)
+			return -1;
+		subparams.flags -= YESCRYPT_ALLOC_ONLY;
+	}
+
+	subparams.N /= 2;
+
+	half1 = *shared;
+	half1.aligned_size /= 2;
+	half2 = half1;
+	half2.aligned = (uint8_t *)half2.aligned + half1.aligned_size;
+
+	if (yescrypt_kdf(NULL, &half1,
+	    seed, seedlen, (uint8_t *)"yescrypt-ROMhash", 16, &subparams,
+	    salt, sizeof(salt)))
+		goto fail;
+
+	subparams.NROM = subparams.N;
+
+	if (yescrypt_kdf(&half1, &half2,
+	    seed, seedlen, salt, sizeof(salt), &subparams, salt, sizeof(salt)))
+		goto fail;
+
+	if (yescrypt_kdf(&half2, &half1,
+	    seed, seedlen, salt, sizeof(salt), &subparams, salt, sizeof(salt)))
+		goto fail;
+
+	tag = (uint64_t *)
+	    ((uint8_t *)shared->aligned + shared->aligned_size - 48);
+	tag[0] = YESCRYPT_ROM_TAG1;
+	tag[1] = YESCRYPT_ROM_TAG2;
+	tag[2] = le64dec(salt);
+	tag[3] = le64dec(salt + 8);
+	tag[4] = le64dec(salt + 16);
+	tag[5] = le64dec(salt + 24);
+
+	insecure_memzero(salt, sizeof(salt));
+	return 0;
+
+fail:
+	insecure_memzero(salt, sizeof(salt));
+	if (!(params->flags & YESCRYPT_SHARED_PREALLOCATED))
+		free_region(shared);
+	return -1;
+}
+
+yescrypt_binary_t *yescrypt_digest_shared(yescrypt_shared_t *shared)
+{
+	static yescrypt_binary_t digest;
+	uint64_t *tag;
+
+	if (shared->aligned_size < 48)
+		return NULL;
+
+	tag = (uint64_t *)
+	    ((uint8_t *)shared->aligned + shared->aligned_size - 48);
+
+	if (tag[0] != YESCRYPT_ROM_TAG1 || tag[1] != YESCRYPT_ROM_TAG2)
+		return NULL;
+
+	le64enc(digest.uc, tag[2]);
+	le64enc(digest.uc + 8, tag[3]);
+	le64enc(digest.uc + 16, tag[4]);
+	le64enc(digest.uc + 24, tag[5]);
+
+	return &digest;
+}
+
+int yescrypt_free_shared(yescrypt_shared_t *shared)
+{
+	return free_region(shared);
+}
+
 int yescrypt_init_local(yescrypt_local_t *local)
 {
 	init_region(local);
