@@ -5,6 +5,7 @@ Please send bug reports, questions and suggestions to
 
 Version 4.4.2
 * Add test-alg-yescrypt for improved coverage.
+* Add x32 specific inline asm.
 
 Version 4.4.1
 * Change the output of the gensalt function for the NT hashing method
