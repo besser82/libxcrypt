@@ -81,10 +81,10 @@ static const char *const sunmd5_expected_output_l[] =
 };
 static const char *const sunmd5_expected_output_h[] =
 {
-  "$md5,rounds=4294920244$BPm.fm03$",
-  "$md5,rounds=4294937396$WKoucttX$",
-  "$md5,rounds=4294907154$3HtkHq/x$",
-  "$md5,rounds=4294938668$p.5e9AQf$",
+  "$md5,rounds=4294924340$BPm.fm03$",
+  "$md5,rounds=4294941492$WKoucttX$",
+  "$md5,rounds=4294911250$3HtkHq/x$",
+  "$md5,rounds=4294942764$p.5e9AQf$",
 };
 #endif
 #if INCLUDE_sha1crypt

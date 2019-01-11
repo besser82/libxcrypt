@@ -130,7 +130,7 @@ static const struct testcase testcases[] =
   { "*MD5 (Sun, rounds) invalid rounds 4", 22, "$md5,rounds=$1xMeE.at$"    },
   { "*MD5 (Sun, rounds) invalid rounds 5", 23, "$md5,rounds=0$1xMeE.at$"   },
   { "*MD5 (Sun, rounds) invalid rounds 6", 25, "$md5,rounds=012$1xMeE.at$" },
-  { "*MD5 (Sun, rounds) invalid rounds 7", 32, "$md5,rounds=4294967295$1xMeE.at$" },
+  { "*MD5 (Sun, rounds) invalid rounds 7", 32, "$md5,rounds=4294967296$1xMeE.at$" },
 #endif
 #if INCLUDE_nt
   { "NTHASH (bare)",                        3, "$3$"                           },
