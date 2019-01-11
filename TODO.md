@@ -10,8 +10,6 @@ It was last updated 20 October 2018.
   * Factor out the multiple implementations of HMAC and PBKDF
 
 * Testsuite improvements
-  * Line coverage is inadequate for `alg-yescrypt-common.c` and
-    `alg-yescrypt-opt.c`
   * Investigate branch coverage
   * Do some API fuzz testing and add missing cases to the testsuite
   * Many of the `test-crypt-*.c` files repeat more or less the same
