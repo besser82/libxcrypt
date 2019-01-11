@@ -42,7 +42,7 @@
 #define SUNMD5_SALT_LEN         8
 #define SUNMD5_MAX_SETTING_LEN  32 /* $md5,rounds=4294963199$12345678$ */
 #define SUNMD5_BARE_OUTPUT_LEN  22 /* not counting the setting or the NUL */
-#define SUNMD5_MAX_ROUNDS       (0xFFFFFFFFul - 4096)
+#define SUNMD5_MAX_ROUNDS       (0xFFFFFFFFul)
 
 /* At each round of the algorithm, this string (including the trailing
    NUL) may or may not be included in the input to MD5, depending on a
