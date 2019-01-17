@@ -303,15 +303,6 @@ crypt_gensalt_rn (const char *prefix, unsigned long count,
       nrbytes = internal_nrbytes = h->nrbytes;
     }
 
-  /* Individual gensalt functions will check for sufficient random bits
-     for their own breed of setting, but the smallest possible amount,
-     that can be specified explicitly is 1.  */
-  if (nrbytes < 1)
-    {
-      errno = EINVAL;
-      return 0;
-    }
-
   h->gensalt (count,
               (const unsigned char *)rbytes, (size_t)nrbytes,
               (unsigned char *)output, (size_t)output_size);

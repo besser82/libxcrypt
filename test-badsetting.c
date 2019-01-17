@@ -37,8 +37,7 @@ static const struct testcase testcases[] =
   { "!a", 0, 0, 0 },            // invalid first character
   { "a!", 0, 0, 0 },            // invalid second character
   { "xx", 1, 0, 0 },            // doesn't accept variable counts
-  { "xx", 0, 0, 0 },            // inadequate rbytes=0
-  { "xx", 0, 1, 0 },            // inadequate rbytes=1
+  { "xx", 0, 1, 0 },            // inadequate rbytes
   { "xx", 0, 0, 1 },            // inadequate osize
 #else
   { "",   0, 0, 0 },
