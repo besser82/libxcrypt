@@ -165,14 +165,26 @@ _crypt_strcpy_or_abort (void *, const size_t, const void *);
 #define strong_alias(name, aliasname) _strong_alias(name, aliasname)
 
 /* Darwin doesn't support alias attributes.  */
-#ifndef __APPLE__
-# define _strong_alias(name, aliasname) \
-  extern __typeof (name) aliasname __attribute__ ((alias (#name)))
+#ifdef __cplusplus
+# ifndef __APPLE__
+#  define _strong_alias(name, aliasname) \
+     extern __typeof (name) aliasname __THROW __attribute__ ((alias (#name)))
+# else
+#  define _strong_alias(name, aliasname) \
+     __THROW __asm__(".globl _" #aliasname); \
+     __THROW __asm__(".set _" #aliasname ", _" #name); \
+     extern __typeof(name) aliasname __THROW
+# endif
 #else
-# define _strong_alias(name, aliasname) \
-  __asm__(".globl _" #aliasname); \
-  __asm__(".set _" #aliasname ", _" #name); \
-  extern __typeof(name) aliasname
+# ifndef __APPLE__
+#  define _strong_alias(name, aliasname) \
+     extern __typeof (name) aliasname __attribute__ ((alias (#name))) __THROW
+# else
+#  define _strong_alias(name, aliasname) \
+     __asm__(".globl _" #aliasname) __THROW; \
+     __asm__(".set _" #aliasname ", _" #name) __THROW; \
+     extern __typeof(name) aliasname __THROW
+# endif
 #endif
 
 /* Set the symbol version for EXTNAME, which uses INTNAME as its
