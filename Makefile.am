@@ -19,9 +19,10 @@ TEST_EXTENSIONS = .sh
 
 EXTRA_DIST = \
 	LICENSING THANKS \
-	crypt.h.in.in libcrypt.map.in libcrypt.minver \
-	gen-map.awk gen-vers.awk gen-crypt-h.awk \
-	gen-hashes.awk sel-hashes.awk hashes.lst
+	crypt.h.in.in xcrypt.h.in libcrypt.map.in \
+	libcrypt.minver gen-map.awk gen-vers.awk \
+	gen-crypt-h.awk gen-hashes.awk sel-hashes.awk \
+	hashes.lst
 
 notrans_dist_man3_MANS = \
 	crypt.3 crypt_r.3 crypt_ra.3 crypt_rn.3 \
@@ -40,9 +41,9 @@ noinst_HEADERS = \
 	crypt-obsolete.h crypt-port.h test-des-cases.h
 
 if ENABLE_XCRYPT_COMPAT_FILES
-include_HEADERS = xcrypt.h
+nodist_include_HEADERS += xcrypt.h
 else
-noinst_HEADERS += xcrypt.h
+nodist_noinst_HEADERS += xcrypt.h
 endif
 
 
@@ -98,12 +99,13 @@ CLEANFILES = Makefile.deps.T Makefile.deps \
 	libcrypt.map libcrypt.map.T \
 	crypt-symbol-vers.h crypt-symbol-vers.h.T \
 	crypt-hashes.h crypt-hashes.h.T \
-	crypt.h crypt.h.T *.gcda *.gcno
+	crypt.h crypt.h.T xcrypt.h xcrypt.h.T \
+	*.gcda *.gcno
 
 DISTCLEANFILES = .deps/*.Plo
 
 # Empty target to have needed headers pre-generated before any other target.
-Makefile.deps: crypt.h
+Makefile.deps: xcrypt.h
 	$(AM_V_GEN)LC_ALL=C echo "# Deps" > Makefile.deps.T
 	$(AM_V_at)mv -f Makefile.deps.T Makefile.deps
 
@@ -114,6 +116,12 @@ libcrypt.map: libcrypt.map.in gen-map.awk Makefile
 	  -v COMPAT_ABI=$(COMPAT_ABI) \
 	  -f $(srcdir)/gen-map.awk $(srcdir)/libcrypt.map.in > libcrypt.map.T
 	$(AM_V_at)mv -f libcrypt.map.T libcrypt.map
+
+crypt-hashes.h: hashes.lst gen-hashes.awk Makefile
+	$(AM_V_GEN)LC_ALL=C $(AWK) -f $(srcdir)/gen-hashes.awk \
+	  -v ENABLED_HASHES=$(hashes_enabled) \
+	  $(srcdir)/hashes.lst > crypt-hashes.h.T
+	$(AM_V_at)mv -f crypt-hashes.h.T crypt-hashes.h
 
 crypt-symbol-vers.h: libcrypt.map.in gen-vers.awk Makefile
 	$(AM_V_GEN)LC_ALL=C $(AWK) \
@@ -134,11 +142,11 @@ crypt.h: crypt.h.in crypt-hashes.h crypt-symbol-vers.h gen-crypt-h.awk config.h
 	$(SED) -i -e "s/@DEFAULT_PREFIX_ENABLED@/0/g" crypt.h.T
 	$(AM_V_at)mv -f crypt.h.T crypt.h
 
-crypt-hashes.h: hashes.lst gen-hashes.awk Makefile
-	$(AM_V_GEN)LC_ALL=C $(AWK) -f $(srcdir)/gen-hashes.awk \
-	  -v ENABLED_HASHES=$(hashes_enabled) \
-	  $(srcdir)/hashes.lst > crypt-hashes.h.T
-	$(AM_V_at)mv -f crypt-hashes.h.T crypt-hashes.h
+xcrypt.h: crypt.h
+	$(AM_V_GEN)LC_ALL=C $(AWK) \
+	  -f $(srcdir)/gen-crypt-h.awk config.h $(srcdir)/xcrypt.h.in \
+	  > xcrypt.h.T
+	$(AM_V_at)mv -f xcrypt.h.T xcrypt.h
 
 install_exec_hook_targets =
 

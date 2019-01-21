@@ -22,6 +22,8 @@
 
 #include <crypt.h>
 
+/*HEADER*/
+
 /* Those are kept for code compatibility with older versions
    (v3.1.1 and earlier) of libxcrypt.
    We intentionally declare these functions using macros here,
@@ -51,5 +53,7 @@ extern char * __REDIRECT_NTH (xcrypt_gensalt_r, (const char *__prefix,
 #  define xcrypt_gensalt_r crypt_gensalt_rn
 # endif
 #endif
+
+/*TRAILER*/
 
 #endif /* xcrypt.h */

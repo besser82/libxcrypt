@@ -85,6 +85,7 @@
 /test-getrandom-interface
 /test-preferred-method
 /test-short-outbuf
+/xcrypt.h
 
 # backup-files
 *~

@@ -5,6 +5,7 @@ Please send bug reports, questions and suggestions to
 
 Version 4.4.3
 * Fix the value of SUNMD5_MAX_ROUNDS.
+* Add generated C++-guards to <xcrypt.h>.
 
 Version 4.4.2
 * Add test-alg-yescrypt for improved coverage.
