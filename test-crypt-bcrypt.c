@@ -189,6 +189,7 @@ main (void)
       int ok = !setting || hash[0] != '*';
       char s_buf[30];
       char o_buf[sizeof (struct crypt_data)];
+      const struct crypt_data *o_buf_ptr = (void *) o_buf;
       int errnm, match;
 
       if (!setting)
@@ -243,8 +244,8 @@ main (void)
         {
           printf ("FAIL: %d/crypt_rn: key=%s setting=%s: "
                   "xhash=%s xmagic=%s xerr=%d, p=%s obuf=%s err=%s\n",
-                  i, key, setting, hash, x, !ok, p, o_buf,
-                  strerror (errnm));
+                  i, key, setting, hash, x, !ok, p,
+                  o_buf_ptr->output, strerror (errnm));
           status = 1;
           continue;
         }
