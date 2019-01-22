@@ -105,7 +105,7 @@ CLEANFILES = Makefile.deps.T Makefile.deps \
 DISTCLEANFILES = .deps/*.Plo
 
 # Empty target to have needed headers pre-generated before any other target.
-Makefile.deps: xcrypt.h
+Makefile.deps: xcrypt.h libcrypt.map
 	$(AM_V_GEN)LC_ALL=C echo "# Deps" > Makefile.deps.T
 	$(AM_V_at)mv -f Makefile.deps.T Makefile.deps
 
@@ -132,7 +132,7 @@ crypt-symbol-vers.h: libcrypt.map.in gen-vers.awk Makefile
 	     $(srcdir)/libcrypt.map.in > crypt-symbol-vers.h.T
 	$(AM_V_at)mv -f crypt-symbol-vers.h.T crypt-symbol-vers.h
 
-crypt.h: crypt.h.in crypt-hashes.h crypt-symbol-vers.h gen-crypt-h.awk config.h
+crypt.h: crypt.h.in gen-crypt-h.awk config.h Makefile
 	$(AM_V_GEN)LC_ALL=C $(AWK) \
 	  -f $(srcdir)/gen-crypt-h.awk config.h $(builddir)/crypt.h.in \
 	  > crypt.h.T
@@ -142,7 +142,7 @@ crypt.h: crypt.h.in crypt-hashes.h crypt-symbol-vers.h gen-crypt-h.awk config.h
 	$(SED) -i -e "s/@DEFAULT_PREFIX_ENABLED@/0/g" crypt.h.T
 	$(AM_V_at)mv -f crypt.h.T crypt.h
 
-xcrypt.h: crypt.h
+xcrypt.h: crypt.h crypt-hashes.h crypt-symbol-vers.h
 	$(AM_V_GEN)LC_ALL=C $(AWK) \
 	  -f $(srcdir)/gen-crypt-h.awk config.h $(srcdir)/xcrypt.h.in \
 	  > xcrypt.h.T
