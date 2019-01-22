@@ -6,6 +6,18 @@ Please send bug reports, questions and suggestions to
 Version 4.4.3
 * Fix the value of SUNMD5_MAX_ROUNDS.
 * Add generated C++-guards to <xcrypt.h>.
+* Add --enable-obsolete-api-enosys configure option.
+  If enabled, this option replaces the obsolete APIs (fcrypt,
+  encrypt{,_r}, and setkey{,_r}) with stubs that set errno to
+  ENOSYS and return without performing any real operations.
+  This allows one to disable DEScrypt support while preserving
+  POSIX compliance.
+  For security reasons, the encrypt{,r} functions will also
+  overwrite their data-block argument with random bits.
+  The fcrypt function will always produce a failure token
+  (*0 or *1), unless the library was also configured with
+  --disable-failure-tokens, in which case it will always
+  return NULL.
 
 Version 4.4.2
 * Add test-alg-yescrypt for improved coverage.

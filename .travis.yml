@@ -95,6 +95,16 @@ matrix:
       os: osx
       env:
         - CONF="--enable-obsolete-api --enable-hashes=all"
+    - name: "GCC, all hashes, obsolete API, obsolete API ENOSYS"
+      compiler: gcc
+      os: linux
+      env:
+        - CONF="--enable-obsolete-api --enable-obsolete-api-enosys=yes --enable-hashes=all"
+    - name: "Clang, all hashes, obsolete API, obsolete API ENOSYS"
+      compiler: clang
+      os: linux
+      env:
+        - CONF="--enable-obsolete-api --enable-obsolete-api-enosys=yes --enable-hashes=all"
     - name: "GCC, all hashes, obsolete API, no failure-tokens"
       compiler: gcc
       os: linux
@@ -105,6 +115,16 @@ matrix:
       os: linux
       env:
         - CONF="--disable-failure-tokens --enable-obsolete-api --enable-hashes=all"
+    - name: "GCC, all hashes, obsolete API, obsolete API ENOSYS, no failure-tokens"
+      compiler: gcc
+      os: linux
+      env:
+        - CONF="--disable-failure-tokens --enable-obsolete-api --enable-obsolete-api-enosys=yes --enable-hashes=all"
+    - name: "Clang, all hashes, obsolete API, obsolete API ENOSYS, no failure-tokens"
+      compiler: clang
+      os: linux
+      env:
+        - CONF="--disable-failure-tokens --enable-obsolete-api --enable-obsolete-api-enosys=yes --enable-hashes=all"
     - name: "GCC, all hashes, no obsolete API"
       compiler: gcc
       os: linux

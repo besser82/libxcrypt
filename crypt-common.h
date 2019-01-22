@@ -1,4 +1,4 @@
-/* Copyright (C) 2018 Björn Esser <besser82@fedoraproject.org>
+/* Copyright (C) 2018-2019 Björn Esser <besser82@fedoraproject.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted.
@@ -29,5 +29,25 @@ const unsigned char ascii64[65];
 /* Same table gets used with other names in various places.  */
 #define b64t   ((const char *) ascii64)
 #define itoa64 ascii64
+
+/* For historical reasons, crypt and crypt_r are not expected ever
+   to return 0, and for internal implementation reasons (see
+   call_crypt_fn, in crypt.c), it is simpler if the individual
+   algorithms' crypt and gensalt functions return nothing.
+
+   This function generates a "failure token" in the output buffer,
+   which is guaranteed not to be equal to any valid password hash or
+   setting string, nor to the setting(+hash) string that was passed
+   in; thus, a subsequent blind attempt to authenticate someone by
+   comparing the output to a previously recorded hash string will
+   fail, even if that string is itself one of these "failure tokens".
+
+   We always call this function on the output buffer as the first
+   step.  If the individual algorithm's crypt or gensalt function
+   succeeds, it overwrites the failure token with real output;
+   otherwise the token is left intact, and the API functions that
+   _can_ return 0 on error notice it.  */
+extern void
+make_failure_token (const char *setting, char *output, int size);
 
 #endif /* crypt-common.h */

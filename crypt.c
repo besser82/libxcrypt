@@ -1,6 +1,7 @@
 /* High-level libcrypt interfaces.
 
    Copyright 2007-2017 Thorsten Kukuk and Zack Weinberg
+   Copyright 2018-2019 Björn Esser
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -107,50 +108,6 @@ get_hashfn (const char *setting)
 #endif
     }
   return 0;
-}
-
-/* For historical reasons, crypt and crypt_r are not expected ever to
-   return 0, and for internal implementation reasons (see
-   call_crypt_fn, below), it is simpler if the individual algorithms'
-   crypt and gensalt functions return nothing.
-
-   This function generates a "failure token" in the output buffer,
-   which is guaranteed not to be equal to any valid password hash or
-   setting string, nor to the setting(+hash) string that was passed
-   in; thus, a subsequent blind attempt to authenticate someone by
-   comparing the output to a previously recorded hash string will
-   fail, even if that string is itself one of these "failure tokens".
-
-   We always call this function on the output buffer as the first
-   step.  If the individual algorithm's crypt or gensalt function
-   succeeds, it overwrites the failure token with real output;
-   otherwise the token is left intact, and the API functions that
-   _can_ return 0 on error notice it.  */
-
-static void
-make_failure_token (const char *setting, char *output, int size)
-{
-  if (size >= 3)
-    {
-      output[0] = '*';
-      output[1] = '0';
-      output[2] = '\0';
-
-      if (setting && setting[0] == '*' && setting[1] == '0')
-        output[1] = '1';
-    }
-
-  /* If there's not enough space for the full failure token, do the
-     best we can.  */
-  else if (size == 2)
-    {
-      output[0] = '*';
-      output[1] = '\0';
-    }
-  else if (size == 1)
-    {
-      output[0] = '\0';
-    }
 }
 
 static void

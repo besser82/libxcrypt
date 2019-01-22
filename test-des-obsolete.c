@@ -12,6 +12,10 @@
 
 #include <stdio.h>
 
+#if ENABLE_OBSOLETE_API_ENOSYS
+#include <errno.h>
+#endif
+
 symver_ref("encrypt", encrypt, SYMVER_FLOOR);
 symver_ref("setkey", setkey, SYMVER_FLOOR);
 
@@ -28,6 +32,8 @@ expand (unsigned char ex[64], const unsigned char pk[8])
         ex[i*8 + j] = (t & (0x01u << (7 - j))) != 0;
     }
 }
+
+#if !ENABLE_OBSOLETE_API_ENOSYS
 
 static void
 ex_print (const unsigned char ex[64])
@@ -103,3 +109,95 @@ main (void)
 
   return status;
 }
+
+#else
+
+int
+main (void)
+{
+  unsigned char key[64], plain[64], cipher[64], answer[64];
+  const struct des_testcase *tc;
+  size_t t;
+  int status = 0;
+
+  for (t = 0; t < N_DES_TESTCASES; t++)
+    {
+      tc = &des_testcases[t];
+      expand (key, tc->key);
+      expand (plain, tc->plain);
+      expand (answer, tc->answer);
+
+      /* Explicitly reset errno as required by POSIX.  */
+      errno = 0;
+
+      setkey ((char *)key);
+
+      if (errno != ENOSYS)
+        {
+          status = 1;
+          printf ("FAIL: %s: errno does NOT equal ENOSYS.\n"
+                  "expected: %d, %s, got: %d, %s\n", "setkey",
+                  ENOSYS, strerror (ENOSYS), errno, strerror (errno));
+        }
+
+      memcpy (cipher, plain, 64);
+
+      /* Explicitly reset errno as required by POSIX.  */
+      errno = 0;
+
+      encrypt ((char *)cipher, 0);
+
+      if (memcmp (cipher, answer, 64) == 0)
+        {
+          status = 1;
+          printf ("FAIL: %s: still performs correct operation.\n",
+                  "encrypt");
+        }
+
+      if (memcmp (cipher, plain, 64) == 0)
+        {
+          status = 1;
+          printf ("FAIL: %s: data-block is has not changed.\n",
+                  "encrypt");
+        }
+
+      if (errno != ENOSYS)
+        {
+          status = 1;
+          printf ("FAIL: %s: errno does NOT equal ENOSYS.\n"
+                  "expected: %d, %s, got: %d, %s\n", "encrypt",
+                  ENOSYS, strerror (ENOSYS), errno, strerror (errno));
+        }
+
+      /* Explicitly reset errno as required by POSIX.  */
+      errno = 0;
+
+      encrypt ((char *)cipher, 1);
+
+      if (memcmp (cipher, plain, 64) == 0)
+        {
+          status = 1;
+          printf ("FAIL: %s: still performs correct operation.\n",
+                  "encrypt (decrypt)");
+        }
+
+      if (memcmp (cipher, answer, 64) == 0)
+        {
+          status = 1;
+          printf ("FAIL: %s: data-block is unchanged.\n",
+                  "encrypt (decrypt)");
+        }
+
+      if (errno != ENOSYS)
+        {
+          status = 1;
+          printf ("FAIL: %s: errno does NOT equal ENOSYS.\n"
+                  "expected: %d, %s, got: %d, %s\n", "encrypt (decrypt)",
+                  ENOSYS, strerror (ENOSYS), errno, strerror (errno));
+        }
+    }
+
+  return status;
+}
+
+#endif

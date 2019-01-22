@@ -1,4 +1,4 @@
-/* Copyright (C) 2018 Björn Esser <besser82@fedoraproject.org>
+/* Copyright (C) 2018-2019 Björn Esser <besser82@fedoraproject.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted.
@@ -53,3 +53,30 @@ _crypt_secure_memset (void *s, size_t len)
     *c++ = 0x00;
 }
 #endif
+
+/* Fill the output buffer with a failure token.  */
+void
+make_failure_token (const char *setting, char *output, int size)
+{
+  if (size >= 3)
+    {
+      output[0] = '*';
+      output[1] = '0';
+      output[2] = '\0';
+
+      if (setting && setting[0] == '*' && setting[1] == '0')
+        output[1] = '1';
+    }
+
+  /* If there's not enough space for the full failure token, do the
+     best we can.  */
+  else if (size == 2)
+    {
+      output[0] = '*';
+      output[1] = '\0';
+    }
+  else if (size == 1)
+    {
+      output[0] = '\0';
+    }
+}

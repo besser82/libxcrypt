@@ -15,6 +15,9 @@
  * Adapted for libxcrypt by Zack Weinberg, 2017
  *	see notes in des.c
  *
+ * Adapted for libxcrypt by Björn Esser, 2019
+ *	add function-stubs simply setting error to ENOSYS.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -48,8 +51,10 @@
 #include "crypt-port.h"
 #include "crypt-obsolete.h"
 #include "alg-des.h"
+#include <errno.h>
 
-#if INCLUDE_encrypt || INCLUDE_encrypt_r || INCLUDE_setkey || INCLUDE_setkey_r
+#if (INCLUDE_encrypt || INCLUDE_encrypt_r || INCLUDE_setkey || INCLUDE_setkey_r) && \
+    !ENABLE_OBSOLETE_API_ENOSYS
 
 static_assert(sizeof (struct des_ctx) + alignof (struct des_ctx)
               <= CRYPT_DATA_INTERNAL_SIZE,
@@ -102,7 +107,7 @@ pack_bits (unsigned char bitv[8], const char bytev[64])
 #endif
 
 /* Initialize DATA with a DES key, KEY, represented as a byte vector.  */
-#if INCLUDE_setkey_r || INCLUDE_setkey
+#if (INCLUDE_setkey_r || INCLUDE_setkey) && !ENABLE_OBSOLETE_API_ENOSYS
 static void
 do_setkey_r (const char *key, struct des_ctx *ctx)
 {
@@ -117,16 +122,21 @@ do_setkey_r (const char *key, struct des_ctx *ctx)
 
 #if INCLUDE_setkey_r
 void
-setkey_r (const char *key, struct crypt_data *data)
+setkey_r (ARG_UNUSED (const char *key), ARG_UNUSED (struct crypt_data *data))
 {
+#if ENABLE_OBSOLETE_API_ENOSYS
+  /* This function is not supported in this configuration.  */
+  errno = ENOSYS;
+#else
   do_setkey_r (key, get_des_ctx (data));
+#endif
 }
 SYMVER_setkey_r;
 #endif
 
 /* Encrypt or decrypt one DES block, BLOCK, using the key schedule in
    DATA.  BLOCK is processed in place.  */
-#if INCLUDE_encrypt_r || INCLUDE_encrypt
+#if (INCLUDE_encrypt_r || INCLUDE_encrypt) && !ENABLE_OBSOLETE_API_ENOSYS
 static void
 do_encrypt_r (char *block, int edflag, struct des_ctx *ctx)
 {
@@ -139,9 +149,22 @@ do_encrypt_r (char *block, int edflag, struct des_ctx *ctx)
 
 #if INCLUDE_encrypt_r
 void
-encrypt_r (char *block, int edflag, struct crypt_data *data)
+encrypt_r (char *block, ARG_UNUSED (int edflag),
+           ARG_UNUSED (struct crypt_data *data))
 {
+#if ENABLE_OBSOLETE_API_ENOSYS
+  /* Make sure sensitive data is erased in case
+     case get_random_bytes() fails.  */
+  XCRYPT_SECURE_MEMSET(block, 64);
+
+  /* Overwrite sensitive data with random data.  */
+  get_random_bytes(block, 64);
+
+  /* This function is not supported in this configuration.  */
+  errno = ENOSYS;
+#else
   do_encrypt_r (block, edflag, get_des_ctx (data));
+#endif
 }
 SYMVER_encrypt_r;
 #endif
@@ -152,24 +175,41 @@ SYMVER_encrypt_r;
    these do not get their own file because they're not compiled
    into the static library anyway.  */
 
-#if INCLUDE_setkey || INCLUDE_encrypt
+#if (INCLUDE_setkey || INCLUDE_encrypt) && !ENABLE_OBSOLETE_API_ENOSYS
 static struct des_ctx nr_encrypt_ctx;
 #endif
 
 #if INCLUDE_setkey
 void
-setkey (const char *key)
+setkey (ARG_UNUSED (const char *key))
 {
+#if ENABLE_OBSOLETE_API_ENOSYS
+  /* This function is not supported in this configuration.  */
+  errno = ENOSYS;
+#else
   do_setkey_r (key, &nr_encrypt_ctx);
+#endif
 }
 SYMVER_setkey;
 #endif
 
 #if INCLUDE_encrypt
 void
-encrypt (char *block, int edflag)
+encrypt (char *block, ARG_UNUSED (int edflag))
 {
+#if ENABLE_OBSOLETE_API_ENOSYS
+  /* Make sure sensitive data is erased in case
+     case get_random_bytes() fails.  */
+  XCRYPT_SECURE_MEMSET(block, 64);
+
+  /* Overwrite sensitive data with random data.  */
+  get_random_bytes(block, 64);
+
+  /* This function is not supported in this configuration.  */
+  errno = ENOSYS;
+#else
   do_encrypt_r (block, edflag, &nr_encrypt_ctx);
+#endif
 }
 SYMVER_encrypt;
 #endif

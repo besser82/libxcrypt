@@ -304,6 +304,27 @@ AC_ARG_ENABLE([obsolete-api],
 )
 AC_SUBST(COMPAT_ABI)
 
+AC_ARG_ENABLE([obsolete-api-enosys],
+    AS_HELP_STRING(
+        [--enable-obsolete-api-enosys[=ARG]],
+        [If set to "yes", this option replaces the obsolete APIs
+         (fcrypt, encrypt{,_r}, and setkey{,_r}) with stubs that
+         set errno to ENOSYS and return without performing any real
+         operations.  This allows one to disable descrypt support
+         while preserving POSIX compliance.  For security reasons,
+         the encrypt{,r} functions will also overwrite their data-block
+         argument with random bits.  The fcrypt function will always
+         produce a failure token (*0 or *1), unless the library was
+         also configured with --disable-failure-tokens, in which case
+         it will always return NULL. [default=no]]
+    ),
+    [case "$enableval" in
+      yes) enable_obsolete_api_enosys=1;;
+       no) enable_obsolete_api_enosys=0;;
+        *) AC_MSG_ERROR([bad value ${enableval} for --enable-obsolete-api-enosys]);;
+     esac],
+    [enable_obsolete_api_enosys=0])
+
 AC_ARG_ENABLE([hashes],
     AS_HELP_STRING(
         [--enable-hashes=HASHES],
@@ -331,20 +352,34 @@ if test x"$hashes_enabled" = x || test x"$hashes_enabled" = x,; then
 fi
 AC_SUBST([hashes_enabled])
 
+
 # If the traditional DES hash is disabled, then the obsolete APIs are
-# implicitly disabled.
+# implicitly disabled, except when stubs are requested.
 case "$hashes_enabled" in
     *,descrypt,*) ;;
     *)
-       if test x"$COMPAT_ABI" != xno; then
+       if test x"$COMPAT_ABI" != xno && \
+          test x"$enable_obsolete_api_enosys" != x1; then
          AC_MSG_WARN(
            [--enable-hashes=${hashes_selected} forces --enable-obsolete-api=no])
+         enable_obsolete_api=0
+         enable_compat_suse=0
+         COMPAT_ABI=no
        fi
-       enable_obsolete_api=0
-       enable_compat_suse=0
-       COMPAT_ABI=no
        ;;
 esac
+
+# If the obsolete APIs are disabled, the stubs implicitly disabled as well.
+if test x"$COMPAT_ABI" = xno && test x"$enable_obsolete_api_enosys" = x1; then
+  AC_MSG_WARN(
+    [--enable-obsolete-api=no implies --enable-obsolete-api-enosys=no.])
+  enable_obsolete_api_enosys=0
+fi
+
+# Export the value for ENABLE_OBSOLETE_API_ENOSYS.
+AC_DEFINE_UNQUOTED([ENABLE_OBSOLETE_API_ENOSYS], [$enable_obsolete_api_enosys],
+  [Define to 1 if fcrypt, encrypt{,_r}, setkey{,_r} should set errno to ENOSYS,
+   or 0 if they should perform real operations.])
 
 # The obsolete APIs are unconditionally excluded from the static library,
 # so if we are not building the shared library, we are effectively not

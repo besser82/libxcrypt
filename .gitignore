@@ -78,6 +78,7 @@
 /test-crypt-yescrypt
 /test-des-obsolete
 /test-des-obsolete_r
+/test-fcrypt-enosys
 /test-gensalt
 /test-gensalt-nthash
 /test-gensalt-extradata
