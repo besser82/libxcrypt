@@ -162,8 +162,15 @@ main (void)
       if (strcmp (dbuf, test->expect) != 0)
         {
           n = 1;
-          printf ("\nkey=%s, data=%s,\nresult=%s: %s\n",
-                  test->key, test->data, dbuf, test->expect);
+          printf ("\nkey=");
+          puts (test->key);
+          puts (", data=");
+          puts (test->data);
+          printf (",\nresult=");
+          puts (dbuf);
+          puts (": ");
+          puts (test->expect);
+          printf ("\n");
         }
     }
   return n;
