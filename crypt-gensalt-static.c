@@ -25,7 +25,7 @@
 
 #if INCLUDE_crypt_gensalt
 
-static THREAD_LOCAL char *obuf;
+static THREAD_LOCAL char *obuf = NULL;
 
 char *
 crypt_gensalt (const char *prefix, unsigned long count,

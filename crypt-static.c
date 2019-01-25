@@ -27,7 +27,7 @@
 
 #if INCLUDE_crypt || INCLUDE_fcrypt
 
-static THREAD_LOCAL struct crypt_data *nr_crypt_ctx;
+static THREAD_LOCAL struct crypt_data *nr_crypt_ctx = NULL;
 
 #if ENABLE_FAILURE_TOKENS
 static THREAD_LOCAL char failure_token_crypt[3];
