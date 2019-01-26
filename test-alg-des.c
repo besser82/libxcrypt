@@ -51,14 +51,14 @@ main (void)
     {
       tc = &des_testcases[t];
       des_set_key (&ctx, tc->key);
-      des_crypt_block (&ctx, got, tc->plain, 1, false);
+      des_crypt_block (&ctx, got, tc->plain, 0, false);
       if (memcmp (got, tc->answer, 8) != 0)
         {
           status = 1;
           report_failure (t, false, tc, got);
         }
 
-      des_crypt_block (&ctx, got, tc->answer, 1, true);
+      des_crypt_block (&ctx, got, tc->answer, 0, true);
       if (memcmp (got, tc->plain, 8) != 0)
         {
           status = 1;
