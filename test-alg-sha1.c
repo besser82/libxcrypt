@@ -27,7 +27,7 @@ const char *test_results[3] =
 };
 
 
-static inline void
+static void
 bin_to_hex (uint8_t *digest, char *output)
 {
   for (uint8_t i = 0; i < 20; ++i)
