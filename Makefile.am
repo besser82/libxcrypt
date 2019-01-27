@@ -237,9 +237,9 @@ check_PROGRAMS = \
 	test-crypt-sha256 test-crypt-sha512 test-crypt-sunmd5 \
 	test-crypt-yescrypt test-byteorder test-badsalt test-badsetting \
 	test-gensalt test-gensalt-extradata test-gensalt-nthash \
-	test-preferred-method test-crypt-badargs test-short-outbuf \
-	test-compile-strong-alias test-getrandom-interface \
-	test-getrandom-fallbacks
+	test-preferred-method test-crypt-badargs test-crypt-mt \
+	test-short-outbuf test-compile-strong-alias \
+	test-getrandom-interface test-getrandom-fallbacks
 
 if ENABLE_OBSOLETE_API
 libcrypt_la_SOURCES += crypt-des-obsolete.c
@@ -300,8 +300,13 @@ test_des_obsolete_LDADD = $(COMMON_TEST_OBJECTS)
 test_des_obsolete_r_LDADD = $(COMMON_TEST_OBJECTS)
 test_fcrypt_enosys_LDADD = $(COMMON_TEST_OBJECTS)
 test_crypt_badargs_LDADD = $(COMMON_TEST_OBJECTS)
+test_crypt_mt_LDADD = $(COMMON_TEST_OBJECTS)
 test_short_outbuf_LDADD = $(COMMON_TEST_OBJECTS)
 test_preferred_method_LDADD = $(COMMON_TEST_OBJECTS)
+
+# test-crypt-mt uses threads
+test_crypt_mt_CFLAGS = $(PTHREAD_CFLAGS)
+test_crypt_mt_LIBS = $(PTHREAD_LIBS)
 
 # These tests call internal APIs that may not be accessible from the
 # fully linked shared library.
@@ -372,7 +377,13 @@ endif
 # sufficient.
 include $(builddir)/Makefile.deps
 
-# Add additional targets
+# Additional targets
+
+# this target allows you to recompile all the test programs but not
+# run them
+check_PROGRAMS: $(check_PROGRAMS)
+phony_targets += check_PROGRAMS
+
 .PHONY: $(phony_targets)
 install-exec-hook: $(install_exec_hook_targets)
 uninstall-hook: $(uninstall_hook_targets)

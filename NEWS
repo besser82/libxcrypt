@@ -4,6 +4,18 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.4
+* crypt and crypt_gensalt now use per-thread storage areas for their
+  output, allocated upon the first call in each thread that uses them.
+  This makes it safe to call these functions from multiple threads
+  simultaneously (but consecutive calls will still clobber the
+  previous output).
+  This feature is a safety net against sloppy coding.  Programs are
+  still strongly encouraged to use the reentrant functions instead,
+  both because this safety net is not guaranteed by any standard
+  (although we are informed that Solaris also does this) and because
+  there is no way to arrange for the storage areas to be _deallocated_
+  at an appropriate time, so programs that call these functions from
+  many short-lived threads will have a memory leak.
 
 Version 4.4.3
 * Fix the value of SUNMD5_MAX_ROUNDS.

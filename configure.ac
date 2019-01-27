@@ -70,6 +70,17 @@ AC_CACHE_CHECK([whether the preprocessor ($CPP) supports -dD],
 AM_CONDITIONAL([HAVE_CPP_dD], [test $ac_cv_prog_cc_dD = yes])
 
 # Checks for libraries.
+# some tests are multithreaded
+AX_PTHREAD([# action-if-true
+  # this could be worked around with sufficient hackery in the Makefile,
+  # maybe, but considering it only affects (old versions of?) AIX, I can't
+  # be bothered.
+  if test x"$PTHREAD_CC" != x"$CC"; then
+    AC_MSG_ERROR([Automake does not support PTHREAD_CC different from CC.])
+  fi
+  AC_DEFINE([HAVE_PTHREAD],[1],
+      [Define if you have POSIX threads libraries and header files.])
+])
 
 # Checks for header files.
 AC_CHECK_HEADERS_ONCE(
@@ -120,6 +131,7 @@ if test $ac_cv_header_sys_cdefs_THROW = yes; then
 fi
 
 # Checks for typedefs, structures, and compiler characteristics.
+AX_TLS
 zw_C_ALIGNAS
 zw_C_ALIGNOF
 zw_C_MAX_ALIGN_T

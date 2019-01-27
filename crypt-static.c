@@ -1,4 +1,4 @@
-/* Copyright (C) 2007-2017 Thorsten Kukuk
+/* Copyright (C) 2007-2018 Thorsten Kukuk
    Copyright (C) 2019 Björn Esser
 
    This library is free software; you can redistribute it and/or
@@ -17,18 +17,44 @@
 
 #include "crypt-port.h"
 #include "xcrypt.h"
+
 #include <errno.h>
+#include <stdlib.h>
 
 /* The functions that use global state objects are isolated in their
    own files so that a statically-linked program that doesn't use them
    will not have the state objects in its data segment.  */
 
 #if INCLUDE_crypt || INCLUDE_fcrypt
+
+static THREAD_LOCAL struct crypt_data *nr_crypt_ctx = NULL;
+
+#if ENABLE_FAILURE_TOKENS
+static THREAD_LOCAL char failure_token_crypt[3];
+#endif
+
 char *
 crypt (const char *key, const char *setting)
 {
-  static struct crypt_data nr_crypt_ctx;
-  return crypt_r (key, setting, &nr_crypt_ctx);
+  if (!nr_crypt_ctx) /* first call in this thread */
+    {
+      nr_crypt_ctx = malloc (sizeof (struct crypt_data));
+      if (!nr_crypt_ctx)
+        {
+          /* malloc has already set errno */
+#if ENABLE_FAILURE_TOKENS
+          make_failure_token (setting, failure_token_crypt, 3);
+          return failure_token_crypt;
+#else
+          return 0;
+#endif
+        }
+#if HAVE_GLIBC_CXA_THREAD_ATEXIT_IMPL
+      __cxa_thread_atexit_impl (free, nr_crypt_ctx, nr_crypt_ctx);
+#endif
+    }
+
+  return crypt_r (key, setting, nr_crypt_ctx);
 }
 #endif
 
@@ -38,6 +64,11 @@ SYMVER_crypt;
 
 #if INCLUDE_fcrypt
 #if ENABLE_OBSOLETE_API_ENOSYS
+
+#if ENABLE_FAILURE_TOKENS
+static THREAD_LOCAL char failure_token_fcrypt[3];
+#endif
+
 char *
 fcrypt (ARG_UNUSED (const char *key), ARG_UNUSED (const char *setting))
 {
@@ -46,9 +77,8 @@ fcrypt (ARG_UNUSED (const char *key), ARG_UNUSED (const char *setting))
 
 #if ENABLE_FAILURE_TOKENS
   /* Return static buffer filled with a failure-token.  */
-  static char retval[3];
-  make_failure_token (setting, retval, 3);
-  return retval;
+  make_failure_token (setting, failure_token_fcrypt, 3);
+  return failure_token_fcrypt;
 #else
   return NULL;
 #endif
