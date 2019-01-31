@@ -68,6 +68,7 @@
 /test-crypt-bcrypt
 /test-crypt-des
 /test-crypt-gost-yescrypt
+/test-crypt-kat
 /test-crypt-md5
 /test-crypt-nthash
 /test-crypt-pbkdf1-sha1

@@ -55,25 +55,6 @@ test_outer_hmac (const uint8_t *k, size_t n, const uint8_t *t, size_t len,
 }
 
 static int
-test_crypt (const char *p, const char *s, const char *m)
-{
-  struct crypt_data output;
-
-  crypt_rn (p, s, &output, sizeof (output));
-  if (strcmp (m, output.output))
-    {
-      fprintf (stderr, "ERROR: %s %s -> %s\n\t(expected %s)\n",
-               p, s, output.output, m);
-      return 1;
-    }
-  else
-    {
-      fprintf (stderr, "   ok: %s %s -> %s\n", p, s, output.output);
-      return 0;
-    }
-}
-
-static int
 test_crypt_raw (int m, int p, int s, char **a, size_t *a_size)
 {
   char output[CRYPT_OUTPUT_SIZE];
@@ -119,38 +100,6 @@ int
 main (void)
 {
   int result = 0;
-
-#define SETTING "$gy$j9T$......."
-#define HASH_C  "yPMvF1AQ4HzCxBqCADRRM4wpsh9sOAHRICpnl3b0ey9"
-#define HASH_W  "wXIlofxt.RAR4/HFfjQhbCLHnKSOInhm3aglDjiTn78"
-#define RES_C   SETTING "$" HASH_C
-#define RES_W   SETTING "$" HASH_W
-
-  result |= test_crypt ("pleaseletmein", SETTING, RES_C);
-  result |= test_crypt ("pleaseletmein", SETTING "$", RES_C);
-  result |= test_crypt ("pleaseletmein", RES_C, RES_C);
-  result |= test_crypt ("pleaseletmein", RES_W, RES_C);
-  result |= !test_crypt ("pleaseletmein", RES_C, RES_W);
-  result |= !test_crypt ("pleaseletmein", RES_W, RES_W);
-
-#undef SETTING
-#undef HASH_C
-#undef HASH_W
-#define SETTING "$gy$jD5.7$LdJMENpBABJJ3hIHjB1Bi."
-#define HASH_C  "sMNUMCXbajS4xLo0qpnLO2n.3IkhA1XbbW5StOp3d51"
-#define HASH_W  "JvV8CtdDunFMSDUp1mCwKBTJZOifL9XoKq0xvsvEFW6"
-
-  result |= test_crypt("pleaseletmein", SETTING, RES_C);
-  result |= test_crypt("pleaseletmein", SETTING "$", RES_C);
-  result |= test_crypt("pleaseletmein", RES_C, RES_C);
-  result |= test_crypt("pleaseletmein", RES_W, RES_C);
-  result |= !test_crypt("pleaseletmein", RES_C, RES_W);
-  result |= !test_crypt("pleaseletmein", RES_W, RES_W);
-
-  result |= test_crypt("test", "$gy$", "*0");
-  result |= test_crypt("test", "*0", "*1");
-  result |= test_crypt("test", "*1", "*0");
-  result |= test_crypt("test", "*", "*0");
 
   /* Entropy tests
    * Replace left then right argument of outer hmac() with constant

@@ -172,24 +172,32 @@ static const struct testcase testcases[] =
   { "*bcrypt (b04) invalid char",          29, "$2b$04$:BVLHeMpJ/QQCv3XqJx8zO" },
   { "*bcrypt (b04) invalid rounds 1",      29, "$2b$:4$UBVLHeMpJ/QQCv3XqJx8zO" },
   { "*bcrypt (b04) invalid rounds 2",      29, "$2b$0:$UBVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (b) rounds too low",          29, "$2b$03$UBVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (b) rounds too high",         29, "$2b$32$UBVLHeMpJ/QQCv3XqJx8zO" },
 #endif
 #if INCLUDE_bcrypt_a
   { "bcrypt (a04)",                        29, "$2a$04$UBVLHeMpJ/QQCv3XqJx8zO" },
   { "*bcrypt (a04) invalid char",          29, "$2a$04$:BVLHeMpJ/QQCv3XqJx8zO" },
   { "*bcrypt (a04) invalid rounds 1",      29, "$2a$:4$UBVLHeMpJ/QQCv3XqJx8zO" },
   { "*bcrypt (a04) invalid rounds 2",      29, "$2a$0:$UBVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (a) rounds too low",          29, "$2a$03$UBVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (a) rounds too high",         29, "$2a$32$UBVLHeMpJ/QQCv3XqJx8zO" },
 #endif
 #if INCLUDE_bcrypt_x
   { "bcrypt (x04)",                        29, "$2x$04$UBVLHeMpJ/QQCv3XqJx8zO" },
   { "*bcrypt (x04) invalid char",          29, "$2x$04$:BVLHeMpJ/QQCv3XqJx8zO" },
   { "*bcrypt (x04) invalid rounds 1",      29, "$2x$:4$UBVLHeMpJ/QQCv3XqJx8zO" },
   { "*bcrypt (x04) invalid rounds 2",      29, "$2x$0:$UBVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (x) rounds too low",          29, "$2x$03$UBVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (x) rounds too high",         29, "$2x$32$UBVLHeMpJ/QQCv3XqJx8zO" },
 #endif
 #if INCLUDE_bcrypt_y
   { "bcrypt (y04)",                        29, "$2y$04$UBVLHeMpJ/QQCv3XqJx8zO" },
   { "*bcrypt (y04) invalid char",          29, "$2y$04$:BVLHeMpJ/QQCv3XqJx8zO" },
   { "*bcrypt (y04) invalid rounds 1",      29, "$2y$:4$UBVLHeMpJ/QQCv3XqJx8zO" },
   { "*bcrypt (y04) invalid rounds 2",      29, "$2y$0:$UBVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (y) rounds too low",          29, "$2y$03$UBVLHeMpJ/QQCv3XqJx8zO" },
+  { "*bcrypt (y) rounds too high",         29, "$2y$32$UBVLHeMpJ/QQCv3XqJx8zO" },
 #endif
 #if INCLUDE_yescrypt
   { "yescrypt",                            30, "$y$j9T$PKXc3hCOSyMqdaEQArI62/$" },

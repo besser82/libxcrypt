@@ -231,15 +231,17 @@ check_PROGRAMS = \
 	test-alg-des test-alg-gost3411-2012 test-alg-gost3411-2012-hmac \
 	test-alg-hmac-sha1 test-alg-md4 test-alg-md5 \
 	test-alg-pbkdf-hmac-sha256 test-alg-sha1 test-alg-sha256 \
-	test-alg-sha512 test-alg-yescrypt test-checksalt test-crypt-bcrypt \
-	test-crypt-des test-crypt-gost-yescrypt test-crypt-md5 \
-	test-crypt-nthash test-crypt-pbkdf1-sha1 test-crypt-scrypt \
-	test-crypt-sha256 test-crypt-sha512 test-crypt-sunmd5 \
-	test-crypt-yescrypt test-byteorder test-badsalt test-badsetting \
+	test-alg-sha512 test-alg-yescrypt test-checksalt \
+	test-crypt-kat \
+	test-crypt-gost-yescrypt \
+	test-byteorder test-badsalt test-badsetting \
 	test-gensalt test-gensalt-extradata test-gensalt-nthash \
 	test-preferred-method test-crypt-badargs test-short-outbuf \
 	test-compile-strong-alias test-getrandom-interface \
 	test-getrandom-fallbacks
+
+# headers used only by test programs
+noinst_HEADERS += test-crypt-kat.inc
 
 if ENABLE_OBSOLETE_API
 libcrypt_la_SOURCES += crypt-des-obsolete.c
@@ -280,16 +282,7 @@ EXTRA_DIST += m4/skip-if-exec-format-error
 # being compiled a second time.
 COMMON_TEST_OBJECTS = libcrypt_la-crypt-common.lo libcrypt.la
 
-test_crypt_bcrypt_LDADD = $(COMMON_TEST_OBJECTS)
-test_crypt_des_LDADD = $(COMMON_TEST_OBJECTS)
-test_crypt_md5_LDADD = $(COMMON_TEST_OBJECTS)
-test_crypt_nthash_LDADD = $(COMMON_TEST_OBJECTS)
-test_crypt_pbkdf1_sha1_LDADD = $(COMMON_TEST_OBJECTS)
-test_crypt_scrypt_LDADD = $(COMMON_TEST_OBJECTS)
-test_crypt_sha256_LDADD = $(COMMON_TEST_OBJECTS)
-test_crypt_sha512_LDADD = $(COMMON_TEST_OBJECTS)
-test_crypt_sunmd5_LDADD = $(COMMON_TEST_OBJECTS)
-test_crypt_yescrypt_LDADD = $(COMMON_TEST_OBJECTS)
+test_crypt_kat_LDADD = $(COMMON_TEST_OBJECTS)
 test_badsalt_LDADD = $(COMMON_TEST_OBJECTS)
 test_badsetting_LDADD = $(COMMON_TEST_OBJECTS)
 test_gensalt_LDADD = $(COMMON_TEST_OBJECTS)
