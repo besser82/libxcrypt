@@ -13,6 +13,10 @@
 #include <stdlib.h>
 #include <errno.h>
 
+#ifdef HAVE_PTHREAD
+#include <pthread.h>
+#endif
+
 /* This test verifies three things at once:
     - crypt, crypt_r, crypt_rn, and crypt_ra all produce the
       same outputs for the same inputs.
@@ -40,8 +44,7 @@ static const struct testcase tests[] =
 #define ntests ARRAY_SIZE (tests)
 
 /* The test logic is structured the way it is in order to make the
-   expensive part (computing a whole bunch of hashes) parallelizable
-   later.  */
+   expensive part (computing a whole bunch of hashes) parallelizable.  */
 
 struct testresult
 {
@@ -163,6 +166,12 @@ calc_hashes_crypt_rn (void *results_)
       errno = 0;
       hash = crypt_rn (tests[i].input, tests[i].salt, &data, (int)sizeof data);
       record_result (results[i].h_crypt_rn, hash, errno, &tests[i], false);
+      if (!hash) continue;
+
+      errno = 0;
+      hash = crypt_rn (tests[i].input, results[i].h_crypt_rn, &data,
+                       (int)sizeof data);
+      record_result (results[i].h_recrypt, hash, errno, &tests[i], false);
     }
 
   return 0;
@@ -185,27 +194,6 @@ calc_hashes_crypt_ra (void *results_)
     }
 
   free (datap);
-  return 0;
-}
-
-static void *
-calc_hashes_recrypt (void *results_)
-{
-  struct testresult *results = results_;
-  char *hash;
-  size_t i;
-  struct crypt_data data;
-
-  memset (&data, 0, sizeof data);
-  for (i = 0; i < ntests; i++)
-    if (results[i].h_crypt_rn[0] != '*')
-      {
-        errno = 0;
-        hash = crypt_rn (tests[i].input, results[i].h_crypt_rn, &data,
-                         (int)sizeof data);
-        record_result (results[i].h_recrypt, hash, errno, &tests[i], false);
-      }
-
   return 0;
 }
 
@@ -256,11 +244,50 @@ main (void)
       return 1;
     }
 
+#ifdef HAVE_PTHREAD
+  {
+    pthread_t t_r, t_rn, t_ra;
+    int err;
+    err = pthread_create(&t_r, 0, calc_hashes_crypt_r, results);
+    if (err) {
+      fprintf (stderr, "pthread_create(crypt_r): %s\n", strerror(err));
+      return 1;
+    }
+    err = pthread_create(&t_rn, 0, calc_hashes_crypt_rn, results);
+    if (err) {
+      fprintf (stderr, "pthread_create(crypt_rn): %s\n", strerror(err));
+      return 1;
+    }
+    err = pthread_create(&t_ra, 0, calc_hashes_crypt_ra, results);
+    if (err) {
+      fprintf (stderr, "pthread_create(crypt_ra): %s\n", strerror(err));
+      return 1;
+    }
+
+    calc_hashes_crypt (results);
+
+    err = pthread_join (t_r, 0);
+    if (err) {
+      fprintf (stderr, "pthread_join(crypt_r): %s\n", strerror(err));
+      return 1;
+    }
+    err = pthread_join (t_rn, 0);
+    if (err) {
+      fprintf (stderr, "pthread_join(crypt_rn): %s\n", strerror(err));
+      return 1;
+    }
+    err = pthread_join (t_ra, 0);
+    if (err) {
+      fprintf (stderr, "pthread_join(crypt_ra): %s\n", strerror(err));
+      return 1;
+    }
+  }
+#else
   calc_hashes_crypt (results);
   calc_hashes_crypt_r (results);
   calc_hashes_crypt_rn (results);
   calc_hashes_crypt_ra (results);
-  calc_hashes_recrypt (results);
+#endif
 
   for (size_t i = 0; i < ntests; i++)
     {

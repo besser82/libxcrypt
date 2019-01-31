@@ -282,7 +282,6 @@ EXTRA_DIST += m4/skip-if-exec-format-error
 # being compiled a second time.
 COMMON_TEST_OBJECTS = libcrypt_la-crypt-common.lo libcrypt.la
 
-test_crypt_kat_LDADD = $(COMMON_TEST_OBJECTS)
 test_badsalt_LDADD = $(COMMON_TEST_OBJECTS)
 test_badsetting_LDADD = $(COMMON_TEST_OBJECTS)
 test_gensalt_LDADD = $(COMMON_TEST_OBJECTS)
@@ -295,6 +294,10 @@ test_fcrypt_enosys_LDADD = $(COMMON_TEST_OBJECTS)
 test_crypt_badargs_LDADD = $(COMMON_TEST_OBJECTS)
 test_short_outbuf_LDADD = $(COMMON_TEST_OBJECTS)
 test_preferred_method_LDADD = $(COMMON_TEST_OBJECTS)
+
+# test-crypt-kat uses threads
+test_crypt_kat_CFLAGS = $(PTHREAD_CFLAGS)
+test_crypt_kat_LDADD  = $(COMMON_TEST_OBJECTS) $(PTHREAD_LIBS)
 
 # These tests call internal APIs that may not be accessible from the
 # fully linked shared library.

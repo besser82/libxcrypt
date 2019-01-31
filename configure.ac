@@ -70,6 +70,12 @@ AC_CACHE_CHECK([whether the preprocessor ($CPP) supports -dD],
 AM_CONDITIONAL([HAVE_CPP_dD], [test $ac_cv_prog_cc_dD = yes])
 
 # Checks for libraries.
+AX_PTHREAD
+# Automake+Libtool don't support PTHREAD_CC being used for some but
+# not all programs.
+if test x"$PTHREAD_CC" != x"$CC"; then
+  AC_MSG_ERROR([PTHREAD_CC different from CC is not supported, due to Automake limitations])
+fi
 
 # Checks for header files.
 AC_CHECK_HEADERS_ONCE(
