@@ -225,6 +225,7 @@ AC_CHECK_FUNCS_ONCE([
   memset_s
   open64
   syscall
+  vasprintf
 ])
 
 # Disable valgrind tools for checking multithreaded

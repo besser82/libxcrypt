@@ -34,29 +34,31 @@ os.environ["PASSLIB_BUILTIN_BCRYPT"] = "enabled"
 
 import passlib.hash
 
-# Because of the fine details of the bug preserved by bcrypt mode 'x',
-# we need to test some passphrases whose byte sequences are not valid
-# Unicode text in any encoding.  We therefore use exclusively byte
-# strings in this array.  All-ASCII strings are first, sorted first by
-# length and then alphabetically; strings containing bytes that are
-# not printable ASCII characters are second, ditto.
+# In order to tickle various bugs and limitations in older hashing
+# methods precisely, we need to test several passphrases whose byte
+# sequences are not valid Unicode text in any encoding.  We therefore
+# use exclusively byte strings in this array.
 PHRASES = [
+    # All ASCII printable, various lengths.  Most of these were taken
+    # from older known-answer tests for specific hashing methods.
     b'',
     b' ',
     b'a',
+    b'ab',
     b'abc',
     b'U*U',
     b'U*U*',
     b'U*U*U',
     b'.....',
+    b'dragon',
+    b'dRaGoN',
+    b'DrAgOn',
+    b'PAROLX',
     b'U*U***U',
     b'abcdefg',
-    b'*U*U*U*U',
+    b'01234567',
     b'726 even',
-    b'U*U***U*',
-    b'U*U*U*U*',
     b'zyxwvuts',
-    b'*U*U*U*U*',
     b'ab1234567',
     b'alexander',
     b'beautiful',
@@ -74,12 +76,8 @@ PHRASES = [
     b'pleaseletmein',
     b'a short string',
     b'zxyDPWgydbQjgq',
-    b'U*U***U*ignored',
-    b'U*U*U*U*ignored',
     b'photojournalism',
-    b'*U*U*U*U*U*U*U*U',
     b'ecclesiastically',
-    b'*U*U*U*U*U*U*U*U*',
     b'congregationalism',
     b'dihydrosphingosine',
     b'semianthropological',
@@ -100,9 +98,29 @@ PHRASES = [
      b'1234567890123456789012345678901234567890'),
     (b'a very much longer text to encrypt.  This one even stretches over more'
      b'than one line.'),
-    (b'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-     b'0123456789chars after 72 are ignored'),
 
+    # ASCII printables with their high bits flipped - DES-based hashes collide.
+    # All of these have an exact counterpart above.
+    b'\xd0\xc1\xd2\xcf\xcc\xd8',              # 'PAROLX'
+    b'\xd5\xaa\xd5\xaa\xaa\xaa\xd5\xaa',      # 'U*U***U*'
+    b'\xe1\xec\xe5\xf8\xe1\xee\xe4\xe5\xf2',  # 'alexander'
+    b'\xf3\xf4\xe5\xf0\xe8\xe1\xee\xe9\xe5',  # 'stephanie'
+    # '*U*U*U*U*U*U*U*U*'
+    b'\xaa\xd5\xaa\xd5\xaa\xd5\xaa\xd5\xaa\xd5\xaa\xd5\xaa\xd5\xaa\xd5\xaa',
+
+    # A few UTF-8 strings and what they will collide with for
+    # DES-based hashes.
+    b'\xC3\xA9tude', b'C)tude', # UTF-8(NFC(étude))
+    b'Chl\xC3\xB6e', b'ChlC6e', # UTF-8(NFC(Chlöe))
+    # Eight letters, but 10 bytes: UTF-8(NFC(Ångström))
+    b'\xC3\x85ngstr\xC3\xB6m', b'C\x05ngstrC6m', b'C\x05ngstrC'
+
+    # descrypt truncates everything to 8 characters.
+    b'U*U***U*', b'U*U***U*ignored',
+    b'U*U*U*U*', b'U*U*U*U*ignored',
+    b'*U*U*U*U', b'*U*U*U*U*', b'*U*U*U*U*U*U*U*U', b'*U*U*U*U*U*U*U*U*',
+
+    # Patterns designed to tickle the bcrypt $2x$ sign-extension bug.
     b'\xa3',
     b'\xa3a',
     b'\xd1\x91',
@@ -110,12 +128,7 @@ PHRASES = [
     b'\xff\xff\xa3',
     b'1\xa3345',
     b'\xff\xa3345',
-    b'\xd0\xc1\xd2\xcf\xcc\xd8',
-    b'\xd5\xaa\xd5\xaa\xaa\xaa\xd5\xaa',
-    b'\xe1\xec\xe5\xf8\xe1\xee\xe4\xe5\xf2',
-    b'\xf3\xf4\xe5\xf0\xe8\xe1\xee\xe9\xe5',
     b'\xff\xa334\xff\xff\xff\xa3345',
-    b'\xaa\xd5\xaa\xd5\xaa\xd5\xaa\xd5\xaa\xd5\xaa\xd5\xaa\xd5\xaa\xd5\xaa',
 
     (b'\x55\xaa\xff\x55\xaa\xff\x55\xaa\xff\x55\xaa\xff'
      b'\x55\xaa\xff\x55\xaa\xff\x55\xaa\xff\x55\xaa\xff'
@@ -131,6 +144,19 @@ PHRASES = [
      b'\xaa\x55\xaa\x55\xaa\x55\xaa\x55\xaa\x55\xaa\x55'
      b'\xaa\x55\xaa\x55\xaa\x55\xaa\x55\xaa\x55\xaa\x55'),
 
+    # bcrypt truncates to 72 characters
+    (b'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+     b'0123456789'),
+    (b'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+     b'0123456789chars after 72 are ignored'),
+
+    (b'\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa'
+     b'\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa'
+     b'\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa'
+     b'\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa'
+     b'\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa'
+     b'\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa'),
+
     (b'\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa'
      b'\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa'
      b'\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa'
@@ -138,6 +164,16 @@ PHRASES = [
      b'\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa'
      b'\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa'
      b'chars after 72 are ignored as usual'),
+
+    # bigcrypt and nthash truncate to 128 characters
+    # (first sentence of _Twenty Thousand Leagues Under The Sea_)
+    (b'THE YEAR 1866 was marked by a bizarre development, an unexplained and '
+     b'downright inexplicable phenomenon that surely no one has forgotten.'),
+
+    b'THE YEAR',
+    b'THE YEAR 1866 was marked by a bizarre development, an unexplained and do',
+    (b'THE YEAR 1866 was marked by a bizarre development, an unexplained and '
+     b'downright inexplicable phenomenon that surely no one has f')
 ]
 
 # passlib does not support all of the hashing methods we do, no longer
@@ -174,9 +210,13 @@ def h_descrypt(phrase, rounds, salt):
 BIGCRYPT = passlib.hash.bigcrypt
 # BIGCRYPT.set_backend("builtin") # currently p.h.bigcrypt always uses builtin
 def h_bigcrypt(phrase, rounds, salt):
+    # p.h.bigcrypt doesn't truncate to 128 chars.
+    # The bigcrypt implementation in libxcrypt was reverse engineered
+    # from a closed-source original and it's possible that they could
+    # have gotten it wrong, but let's stick to what we have.
     expected = BIGCRYPT.using(
         salt=salt
-    ).hash(phrase)
+    ).hash(phrase[:128])
     # bigcrypt has no prefix, so our crypt() looks at the length of
     # the setting string to decide whether it should use bigcrypt or
     # descrypt.  For bigcrypt to be used, the setting must be too long
@@ -326,7 +366,9 @@ bcrypt_x_substitutions = {
     'PQInhDOdCKnXeUE.n/L.kQmTKM9ldK2': '25hhqa/GOJGmXui3avNI5MN8lOI2bCW',
     '7UwHe/ywPmdp.nr.ZLQSxd8hqn7qURW': '2E0h7UFL/4fALemA5ApWrCWllQXSPTu',
     'FZEYKXyyMgG13MK0uV8dwNotWf4Wm6e': '2M7Vc.sF98e8DDmnxFjRfAmrudbv6y.',
+    'ZHZAnvydiPNiYH2VjRNhEAD6BEiyaWS': '3kVpkKaj1q2TAXm.ptIi98Nj3zVV8A2',
     'I7vjUzDOKf8XqcK8VSCm9b0bwoSm1Qm': '6He0iAS8JsdM.iB4OQ4fbsKMXPagLhy',
+    'tLCLEXAt3RUjOgs.yvfWSni4j1JX/JS': '7bLwFi3rlVcl.xfhc7LxjqwOExfxki2',
     'zQPVIDk6wF8XmESji30KDHFabTlu0WK': '8gGm3RkYFflDX50UQs.tJ8InKNy.HGO',
     'KBv1eBM2he2T/QheS8zPHMejn5fMNRe': '8jdeg8QqT4CX3ERA9vZPFZAkxZRpxJW',
     'XEhidoDX1kz.RFnwWIzMJvtW2aP/k4e': '8jdeg8QqT4CX3ERA9vZPFZAkxZRpxJW',
@@ -340,16 +382,19 @@ bcrypt_x_substitutions = {
     'gI4g/1M6K/Sz2bsgu9VDeEl6reszuXa': 'J6Y/kPTV/aHj7iJKuDfD5OPjVTvT2BK',
     'rz1efvzeJjL4mQ813hrZNg3p1.ivOii': 'MOaOTHB4gEm.rriBjXNwBNh.Oc4mKGG',
     'Tp1b9XCEV16BcrQ.0k4xf7V/OGPZLnK': 'N5E4WSTo/R5henexIN1o8xkGwe2V86W',
+    'CARhc7ugFdgoPjDb7LUG.yQF2lboK6e': 'NjlOVoE5aHHQGtU9zc25wu0VykHnD1G',
     'nCdKcLO57oLlc6J6sNnGyfT9FrIawiW': 'PIeeyENZVZmrKLAq5lwBUU9fMRVfV2m',
     'DQjlTXDA5PBQ97.qBJY/vsHPQhLJDMe': 'PMOS6ygjFMSbDo.iJJam/G63inGIOBO',
     '1qOUgfpg30XDHLx/zrbWiMRcWyFhwye': 'QZ7A0p9q1Ag9Utfnfl/xif8NiDtVhO.',
     'h0JFRyDXfP0duxAkVxWGr8nMDEDvPca': 'QiT.KUY9PXgIzL2aECMKb0EvVl0Pzw6',
     'BvtRGGx3p8o0C5C36uS442Qqnrwofrq': 'Qjdj3GXX7D0sFE9jji6wxSTWIhqI3US',
     'UTFLPGm29p.YVzcY6pqejGEql1x8Ccq': 'TYqa73Yp3leHe3D6.ysuJtNLwOma87C',
+    'YdPam5/ypFIyDUQMyCCEIwzVsTi0Sa6': 'TmFuGBy/Zgc6JVAr667oHeCvGQGyS1q',
     'gbhoNOH4mWxoEhRrQNdeI.rpk9XeuZS': 'UPPO3QqmgMIXGHvbOLe2IkNzHLAToY2',
     'ZkQGqjbMpqQ9oCsxNZjN8LQJaHFqPMC': 'VTMVcF7YBLV2/O6V1PNcQw0BD3hTN6a',
     'RbKkfW2ph8bd8B5yul5E97DxgDw9cT.': 'VmFQpoXeVuKTzkg2ZRsAf.8PZJZg142',
     'WI7ZNXFtzCd9mN1mWoNMQRHEmkDsZnm': 'VmFQpoXeVuKTzkg2ZRsAf.8PZJZg142',
+    '2WegkGS5Xr/qYNkfEi6JmnR16WVSwcW': 'Xv3TUB0NdnMpyn4cfg4g48oZxRSIrNC',
     'LN/CEHXLfFeYdOOxbdxKu8ZqSIKgqAu': 'YdqUOXeMKw7X6zbqBXP6c1xqIKun7Oq',
     'VAQY6kySmwStlNY.sut9Y87njVr0mm.': 'Ysbn1VpHCTzInfW/z/8Q3k676rxfmSW',
     'qJn4AY9ch/WAR5JXeeJtVGeovjQrhd2': 'ZH9vItRapPbkFKo0iQqU4v71o0e19Mm',
@@ -359,17 +404,24 @@ bcrypt_x_substitutions = {
     'rPSVExmrZ2WB1xntSbqZ/DRQRlKtVw.': 'caGU5ROXj4M8Tgsx3s/D5BQIuhazIWa',
     'PYLCOpTKZmhFn1CoBM2XNbWgqMX4Jk2': 'cxMAJfIx3T.Fv3O0KjL9VdM/oSSUVRK',
     'w8RVl3rh7sNazq544l0944qGq4GUFUq': 'fOj7giyJz5k22FHTKGVo8o1o5zGzPsq',
+    'KHsCqMFVxOAGJObHwEBR3JaEdKVu1.m': 'fRmxM11/x97bxCrhecMENdkPm7YpRbe',
+    '3wn02pxRJPnFwvlGt75DURDbt4g7om.': 'fY4v5x6.8txtKUKDP86z1xjlXG/GgZO',
     'k9Hv17Gha84losGKAq61csCZokj5pyy': 'gLfxf5sydYesf658mrFYb51nLrn/4Sm',
     'uTNb9MEHVGI7kd6UnQjYxgRNiKJM01S': 'h.z2vLHB/tYSU5fPXkrYB7TxLHGJnI6',
     'heAts1y/8kcTTP0/vD3yeuMX1ihF8dO': 'j72N2Fi2j3pGalOZvTqtyH3bYGotuju',
     'SqNATdQiNEckAKLsqgsKbAM5.hZoMCq': 'mjGosqV8OkKEcduYTNz5PKN2scswFya',
     'k786rdsOdUP4cRi.dLa3dsYueMj5UnS': 'nQF1kDoMDjBBwXy2wwMni2gJLKqA0ta',
+    'G6PeIXKiqeNUPUbqFkMJvvI7G9hd51W': 'oBvt6zJCTP5OED1esTYUYPn31cWqwsa',
+    'TszY8.avBpwJ6xbNjwws3SKBbK6kj6S': 'odAvHZH9azlhi1x4pBLF25.hj08RMFi',
+    'z4QFggBRTVUeHRGL/CQxlAYHraYPcpa': 'ojiyBkc.4HZ2y5Yh0LxBbI6ZkLiRg0C',
     'PPtdI0NcxZ4Txyv/Y5ORfcP1XFriKT2': 'pjce7u/YRnectNa8DXjsSGzRdyH2PSG',
+    'uIZ1Lgb.jHRDU/Z/LVXfpQCK72fTEHq': 'q5NMeQZ0UTyP/bILj02wdQ.Si5KHU1K',
     '51cV.PJOQVwmiao4t4lXsb9Cc3Jnuem': 'rB3dV.fJGdSihNlP0vo5PemoaZRp6LS',
     's6h1E6A2RzVn2KxXLQXsKosQeRo8bLa': 'sND7G4.cx6Dzn6TqbXfK99bElU0a7P.',
     'A96emG/jBf0K1K6vCG.eZGdLkSridom': 'tlD3cmtHgs/TwWAvy5E3F.freZS1bau',
     'hWYb0x3Q3zM0aBkB2G1arbzmWxRQS/i': 'whpbcVuyGrJbgveSSM3XQKa8G5alyRm',
     'AqM0XavJxJXeVlJ3Te3umGJaPOCYmZi': 'xP2lldc1.10LvZDjJZXNBKLzWqnkbOa',
+    'UPBzTBMwJb5mKWflQ.5Rid4481RrxVy': 'xSD.pz8Zg3vt0Jiovghl5Dqrs8aw8ni',
     'yM59Cq5iVZDB3u45gTNhRSnOgrY1tdG': 'yED5tIjzyeH90te88BUWvTrMFHsWgCi',
     'k.qekGiJym3QgfeFCwNhPHg0Zk99KSa': 'yphVralDu2JlxYbCqwwGli/H6wBgBtC',
     'iYbzuFNFwSfCgqTGNsUFtSDh8PJAqSe': 'zAUUWh4XGsBGYs6yyUJTSfEgzoLXO6G',
@@ -439,12 +491,7 @@ def h_yescrypt(phrase, rounds, salt):
     yield format_case(phrase, yescrypt_gensalt("y", rounds, salt), None)
 
 def h_gost_yescrypt(phrase, rounds, salt):
-    # Also emit a test case with an extra $ after the salt string.
-    # I'm not sure why the old test-crypt-gost-yescrypt.c was doing this
-    # when test-crypt-yescrypt.c wasn't, but whatever.
-    setting = yescrypt_gensalt("gy", rounds, salt)
-    yield format_case(phrase, setting, None)
-    yield format_case(phrase, setting + "$", None)
+    yield format_case(phrase, yescrypt_gensalt("gy", rounds, salt), None)
 
 # Each method should contribute a group of parameters to the array
 # below.  Each block has the form
