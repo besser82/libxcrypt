@@ -4,6 +4,10 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.4
+* The NT hashing method no longer truncates passphrases at 128
+  characters; Windows does not do this.  (The Windows login dialog
+  _limits_ interactively entered passphrases to 127 characters.
+  Passphrases set via the low-level API can be longer.)
 
 Version 4.4.3
 * Fix the value of SUNMD5_MAX_ROUNDS.
