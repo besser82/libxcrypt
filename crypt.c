@@ -123,6 +123,11 @@ do_crypt (const char *phrase, const char *setting, struct crypt_data *data)
      not valid strings.  */
   size_t phr_size = strlen (phrase);
   size_t set_size = strlen (setting);
+  if (phr_size >= CRYPT_MAX_PASSPHRASE_SIZE)
+    {
+      errno = ERANGE;
+      return;
+    }
   const struct hashfn *h = get_hashfn (setting);
   if (!h)
     {

@@ -4,6 +4,11 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.4
+* The crypt_* functions will now all fail and set errno to ERANGE if
+  their 'phrase' argument is longer than CRYPT_MAX_PASSPHRASE_SIZE
+  characters (this is currently 512).  Formerly, longer passphrases
+  would either be silently accepted, silently truncated, or the
+  library would crash, depending on the hashing method.
 * The NT hashing method no longer truncates passphrases at 128
   characters; Windows does not do this.  (The Windows login dialog
   _limits_ interactively entered passphrases to 127 characters.

@@ -284,6 +284,12 @@ when they fail.
 .Fa setting
 is invalid, or requests a hashing method that is not supported.
 .It Er ERANGE
+.Fa phrase
+is too long
+(more than
+.Dv CRYPT_MAX_PASSPHRASE_SIZE
+characters; some hashing methods may have lower limits).
+.br
 .Nm crypt_rn
 only:
 .Fa size
