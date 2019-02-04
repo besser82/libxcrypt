@@ -121,7 +121,7 @@ record_result (char **dest, const char *hash, int errnm,
 {
   if (hash && hash[0] != '*')
     {
-      if (!tcase->expected || !strcmp (hash, tcase->expected))
+      if (!strcmp (hash, tcase->expected))
         *dest = xasprintf ("%s", hash);
       else
         *dest = xasprintf ("!not as expected: %s !=\t %s",

@@ -14,17 +14,19 @@
 # 3.6 or greater with Passlib <https://passlib.readthedocs.io/en/stable/>
 # available.
 #
-# If you modify this program, make sure to update test-crypt-kat.inc:
-#   python3 test-crypt-kat-gen.py > test-crypt-kat.inc
-# and then check in the updates to that file in the same commit as
-# your changes to this program.  You will need to install Passlib
-# itself, but not any other libraries.  (This program intentionally
-# uses Passlib's slow pure-Python back ends, rather than accelerated C
-# modules that tend to be, at their core, the same code libxcrypt uses
-# itself, so that we really are testing libxcrypt against known
-# answers generated with a different implementation.)
+# If you modify this program, make sure to update test-crypt-kat.inc,
+# by running 'make regen-test-crypt-kat' (libcrypt.so must already
+# have been built), and then check in the updates to that file in the
+# same commit as your changes to this program.  You will need to
+# install Passlib itself, but not any other libraries.  (This program
+# intentionally uses Passlib's slow pure-Python back ends, rather than
+# accelerated C modules that tend to be, at their core, the same code
+# libxcrypt uses itself, so that we really are testing libxcrypt
+# against known answers generated with a different implementation.)
 
+import ctypes
 import multiprocessing
+import os
 import re
 import sys
 
@@ -165,13 +167,16 @@ PHRASES = [
      b'\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa'
      b'chars after 72 are ignored as usual'),
 
-    # bigcrypt and nthash truncate to 128 characters
+    # bigcrypt truncates to 128 characters
     # (first sentence of _Twenty Thousand Leagues Under The Sea_)
     (b'THE YEAR 1866 was marked by a bizarre development, an unexplained and '
      b'downright inexplicable phenomenon that surely no one has forgotten.'),
 
+    # first 8 characters of above (des)
     b'THE YEAR',
+    # first 72 characters (bcrypt)
     b'THE YEAR 1866 was marked by a bizarre development, an unexplained and do',
+    # first 128 characters (bigcrypt)
     (b'THE YEAR 1866 was marked by a bizarre development, an unexplained and '
      b'downright inexplicable phenomenon that surely no one has f')
 ]
@@ -469,13 +474,42 @@ def h_scrypt(phrase, rounds, salt):
 #
 # passlib does not support either yescrypt or gost-yescrypt.  In fact,
 # as far as I can tell, at the time of writing, there exists only one
-# implementation of yescrypt and gost-yescrypt, by Solar Designer et al,
-# which is the code we use ourselves.  Until an independent implementation
-# of these hashing methods exists, there is no point attempting to run an
-# interop test on them.  However, a test for round-trippability and API
-# consistency is still worthwhile.  We generate plausible setting strings
-# by hand here, and omit the expected hashes.
+# implementation of yescrypt and gost-yescrypt, by Solar Designer et al
+# which is the code we use ourselves.  However, a test for round-
+# trippability and API consistency is still worthwhile, as is a test
+# that the implementation's current behavior is compatible with its
+# behavior some time ago.  Therefore, we encode setting strings by
+# hand, and ctypes is used to access crypt_ra in the just-built
+# libcrypt.so.  This will only work if the library was configured with
+# --enable-hashes=yescrypt,gost-yescrypt,[others] and --enable-shared,
+# which is OK, since it's not run during a normal build.  Remove this
+# once passlib supports these hashes.
 #
+# crypt_ra is used because it's thread-safe but doesn't require us to
+# know how big struct crypt_data is.  There is no good way to arrange
+# for the data object to be deallocated.  Oh well.
+LIBCRYPT = ctypes.cdll.LoadLibrary(os.path.join(os.getcwd(), ".libs",
+                                                "libcrypt.so"))
+_xcrypt_crypt_ra = LIBCRYPT.crypt_ra
+_xcrypt_crypt_ra.argtypes = [ctypes.c_char_p, ctypes.c_char_p,
+                             ctypes.POINTER(ctypes.c_void_p),
+                             ctypes.POINTER(ctypes.c_int)]
+_xcrypt_crypt_ra.restype = ctypes.c_char_p
+_xcrypt_crypt_ra_data = ctypes.c_void_p(0)
+_xcrypt_crypt_ra_datasize = ctypes.c_int(0)
+
+def xcrypt_crypt(phrase, setting):
+    global _xcrypt_crypt_ra_data, _xcrypt_crypt_ra_datasize
+    if not isinstance(phrase, bytes): phrase = phrase.encode("utf-8")
+    if not isinstance(setting, bytes): setting = setting.encode("ascii")
+    rv = _xcrypt_crypt_ra(phrase, setting,
+                          ctypes.byref(_xcrypt_crypt_ra_data),
+                          ctypes.byref(_xcrypt_crypt_ra_datasize))
+    if not rv:
+        err = ctypes.get_errno()
+        raise OSError(err, os.strerror(err))
+    return bytes(rv)
+
 def yescrypt_gensalt(ident, rounds, salt):
     if rounds == 1:
         params = "j75"
@@ -488,10 +522,12 @@ def yescrypt_gensalt(ident, rounds, salt):
     return "${}${}${}".format(ident, params, salt)
 
 def h_yescrypt(phrase, rounds, salt):
-    yield format_case(phrase, yescrypt_gensalt("y", rounds, salt), None)
+    setting = yescrypt_gensalt("y", rounds, salt)
+    yield format_case(phrase, setting, xcrypt_crypt(phrase, setting))
 
 def h_gost_yescrypt(phrase, rounds, salt):
-    yield format_case(phrase, yescrypt_gensalt("gy", rounds, salt), None)
+    setting = yescrypt_gensalt("gy", rounds, salt)
+    yield format_case(phrase, setting, xcrypt_crypt(phrase, setting))
 
 # Each method should contribute a group of parameters to the array
 # below.  Each block has the form
