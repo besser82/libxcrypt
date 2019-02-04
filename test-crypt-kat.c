@@ -18,6 +18,10 @@
 #include <pthread.h>
 #endif
 
+#if ENABLE_OBSOLETE_API && !ENABLE_OBSOLETE_API_ENOSYS
+symver_ref("fcrypt", fcrypt, SYMVER_FLOOR);
+#endif
+
 /* The precalculated hashes in test-crypt-kat.inc, and some of the
    relationships among groups of test cases (see test-crypt-kat-gen.py)
    are invalidated if the execution character set is not ASCII.  */
@@ -63,6 +67,9 @@ struct testresult
   char *h_crypt_rn;
   char *h_crypt_ra;
   char *h_recrypt;
+#if ENABLE_OBSOLETE_API && !ENABLE_OBSOLETE_API_ENOSYS
+  char *h_fcrypt;
+#endif
 };
 
 /* Summarize the result of a single hashing operation in a format that
@@ -252,6 +259,26 @@ calc_hashes_crypt_ra (void *results_)
   return 0;
 }
 
+#if ENABLE_OBSOLETE_API && !ENABLE_OBSOLETE_API_ENOSYS
+static void *
+calc_hashes_fcrypt (void *results_)
+{
+  struct testresult *results = results_;
+  char *hash;
+  size_t i;
+
+  for (i = 0; i < ntests; i++)
+    {
+      errno = 0;
+      hash = fcrypt (tests[i].input, tests[i].salt);
+      record_result (&results[i].h_fcrypt, hash, errno, &tests[i],
+                     ENABLE_FAILURE_TOKENS);
+    }
+
+  return 0;
+}
+#endif
+
 static void
 print_escaped (const char *s)
 {
@@ -299,6 +326,9 @@ do_ka_tests (struct testresult *results)
     }
 
     calc_hashes_crypt (results);
+#if ENABLE_OBSOLETE_API && !ENABLE_OBSOLETE_API_ENOSYS
+    calc_hashes_fcrypt (results);
+#endif
 
     err = pthread_join (t_r, 0);
     if (err) {
@@ -321,6 +351,9 @@ do_ka_tests (struct testresult *results)
   calc_hashes_crypt_r (results);
   calc_hashes_crypt_rn (results);
   calc_hashes_crypt_ra (results);
+#if ENABLE_OBSOLETE_API && !ENABLE_OBSOLETE_API_ENOSYS
+  calc_hashes_fcrypt (results);
+#endif
 #endif
 
   int rv = 0;
@@ -352,6 +385,13 @@ do_ka_tests (struct testresult *results)
           report_ka_error (results[i].h_recrypt, &tests[i], 0, "_rn (recrypt)");
           failed = 1;
         }
+#if ENABLE_OBSOLETE_API && !ENABLE_OBSOLETE_API_ENOSYS
+      if (strchr (results[i].h_fcrypt, '!'))
+        {
+          report_ka_error (results[i].h_fcrypt, &tests[i], 0, " (fcrypt)");
+          failed = 1;
+        }
+#endif
 
       if (!failed)
         {
@@ -379,6 +419,14 @@ do_ka_tests (struct testresult *results)
                                results[i].h_crypt, "_rn (recrypt)");
               failed = 1;
             }
+#if ENABLE_OBSOLETE_API && !ENABLE_OBSOLETE_API_ENOSYS
+          if (strcmp (results[i].h_recrypt, results[i].h_crypt))
+            {
+              report_ka_error (results[i].h_fcrypt, &tests[i],
+                               results[i].h_crypt, " (fcrypt)");
+              failed = 1;
+            }
+#endif
 
           /* Tell the collision tests to skip this one if it's inconsistent.  */
           if (failed)
@@ -687,6 +735,9 @@ main (void)
       free (results[i].h_crypt_rn);
       free (results[i].h_crypt_ra);
       free (results[i].h_recrypt);
+#if ENABLE_OBSOLETE_API && !ENABLE_OBSOLETE_API_ENOSYS
+      free (results[i].h_fcrypt);
+#endif
     }
   free (results);
 

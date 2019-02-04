@@ -381,9 +381,8 @@ extern void crypt_yescrypt_rn (const char *, size_t, const char *,
                 size_t, uint8_t *, size_t, void *, size_t);
 #endif
 
-/* We need a prototype for fcrypt, when building with stubs for the
-   deprecated and unsafe functions.  */
-#if ENABLE_OBSOLETE_API_ENOSYS
+/* We need a prototype for fcrypt for some tests.  */
+#if ENABLE_OBSOLETE_API
 char *fcrypt (const char *key, const char *setting);
 #endif
 
