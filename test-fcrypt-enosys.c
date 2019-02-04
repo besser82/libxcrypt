@@ -18,7 +18,7 @@
 
 #include "crypt-port.h"
 
-#if ENABLE_OBSOLETE_API_ENOSYS
+#if ENABLE_OBSOLETE_API && ENABLE_OBSOLETE_API_ENOSYS
 
 #include <errno.h>
 #include <stdio.h>
