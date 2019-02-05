@@ -24,6 +24,7 @@
 # libxcrypt uses itself, so that we really are testing libxcrypt
 # against known answers generated with a different implementation.)
 
+import array
 import ctypes
 import multiprocessing
 import os
@@ -190,11 +191,10 @@ PHRASES = [
 #
 # Each shim function takes at least the arguments phrase, rounds, and
 # salt, in that order.  Additional optional arguments are allowed.  It
-# should do 'yield format_case(phrase, setting, expected)' at least
-# once, where phrase is the phrase argument, setting is a setting
-# string generated from rounds and salt, and expected is the hashed
-# passphrase expected to be generated from that combination of phrase
-# and setting.  format_case is defined far below.
+# should do 'yield (phrase, setting, expected)' at least once, where
+# phrase is the phrase argument, setting is a setting string generated
+# from rounds and salt, and expected is the hashed passphrase expected
+# to be generated from that combination of phrase and setting.
 #
 # When implementing new shims, use of passlib's pure-Python "backends"
 # is strongly preferred where possible, because the speed of this
@@ -210,7 +210,7 @@ def h_descrypt(phrase, rounds, salt):
         salt=salt, truncate_error=False
     ).hash(phrase)
     setting = expected[:2]
-    yield format_case(phrase, setting, expected)
+    yield (phrase, setting, expected)
 
 BIGCRYPT = passlib.hash.bigcrypt
 # BIGCRYPT.set_backend("builtin") # currently p.h.bigcrypt always uses builtin
@@ -227,7 +227,7 @@ def h_bigcrypt(phrase, rounds, salt):
     # descrypt.  For bigcrypt to be used, the setting must be too long
     # to be a traditional DES hashed password.
     setting = expected[:2] + ".............."
-    yield format_case(phrase, setting, expected)
+    yield (phrase, setting, expected)
 
 BSDI_CRYPT = passlib.hash.bsdi_crypt
 BSDI_CRYPT.set_backend("builtin")
@@ -236,7 +236,7 @@ def h_bsdicrypt(phrase, rounds, salt):
         salt=salt, rounds=rounds
     ).hash(phrase)
     setting = expected[:9]
-    yield format_case(phrase, setting, expected)
+    yield (phrase, setting, expected)
 
 MD5_CRYPT = passlib.hash.md5_crypt
 MD5_CRYPT.set_backend("builtin")
@@ -245,7 +245,7 @@ def h_md5crypt(phrase, rounds, salt):
         salt=salt
     ).hash(phrase)
     setting = expected[:expected.rfind('$')]
-    yield format_case(phrase, setting, expected)
+    yield (phrase, setting, expected)
 
 BSD_NTHASH = passlib.hash.bsd_nthash
 #BSD_NTHASH.set_backend("builtin") # has only the built-in backend
@@ -257,8 +257,8 @@ def h_nt(phrase, rounds, salt):
     # NTHash doesn't have a salt.
     # Older versions of libxcrypt generated a fake salt which
     # we should ensure is ignored.
-    yield format_case(phrase, "$3$", expected)
-    yield format_case(phrase, "$3$__not_used__0123456789abcdef", expected)
+    yield (phrase, "$3$", expected)
+    yield (phrase, "$3$__not_used__0123456789abcdef", expected)
 
 SHA1_CRYPT = passlib.hash.sha1_crypt
 SHA1_CRYPT.set_backend("builtin")
@@ -267,7 +267,7 @@ def h_sha1crypt(phrase, rounds, salt):
         salt=salt, rounds=rounds
     ).hash(phrase)
     setting = expected[:expected.rfind('$')]
-    yield format_case(phrase, setting, expected)
+    yield (phrase, setting, expected)
 
 SHA256_CRYPT = passlib.hash.sha256_crypt
 SHA256_CRYPT.set_backend("builtin")
@@ -276,7 +276,7 @@ def h_sha256crypt(phrase, rounds, salt):
         salt=salt, rounds=rounds
     ).hash(phrase)
     setting = expected[:expected.rfind('$')]
-    yield format_case(phrase, setting, expected)
+    yield (phrase, setting, expected)
 
 SHA512_CRYPT = passlib.hash.sha512_crypt
 SHA512_CRYPT.set_backend("builtin")
@@ -285,7 +285,7 @@ def h_sha512crypt(phrase, rounds, salt):
         salt=salt, rounds=rounds
     ).hash(phrase)
     setting = expected[:expected.rfind('$')]
-    yield format_case(phrase, setting, expected)
+    yield (phrase, setting, expected)
 
 # these need to do more work by hand
 
@@ -308,12 +308,10 @@ def h_sunmd5(phrase, rounds, salt):
     bare_cksum = bare_cksum.decode("ascii")
     suff_cksum = suff_cksum.decode("ascii")
 
-    yield format_case(phrase, bare_setting, bare_setting + "$" + bare_cksum)
-    yield format_case(phrase, bare_setting + "$x",
-                      bare_setting + "$" + bare_cksum)
-    yield format_case(phrase, suff_setting, suff_setting + "$" + suff_cksum)
-    yield format_case(phrase, suff_setting + "$",
-                      suff_setting + "$" + suff_cksum)
+    yield (phrase, bare_setting, bare_setting + "$" + bare_cksum)
+    yield (phrase, bare_setting + "$x", bare_setting + "$" + bare_cksum)
+    yield (phrase, suff_setting, suff_setting + "$" + suff_cksum)
+    yield (phrase, suff_setting + "$", suff_setting + "$" + suff_cksum)
 
 # testing bcrypt $2b$ and $2y$ is easy, but ...
 BCRYPT = passlib.hash.bcrypt
@@ -323,14 +321,14 @@ def h_bcrypt(phrase, rounds, salt):
         salt=salt, rounds=rounds, ident="2b"
     ).hash(phrase)
     setting = expected[:-31]
-    yield format_case(phrase, setting, expected)
+    yield (phrase, setting, expected)
 
 def h_bcrypt_y(phrase, rounds, salt):
     expected = BCRYPT.using(
         salt=salt, rounds=rounds, ident="2y"
     ).hash(phrase)
     setting = expected[:-31]
-    yield format_case(phrase, setting, expected)
+    yield (phrase, setting, expected)
 
 # ...passlib doesn't implement the quirks of crypt_blowfish's $2a$ or
 # $2x$, but we really must test them.  It is theoretically possible to
@@ -363,7 +361,7 @@ def h_bcrypt_a(phrase, rounds, salt):
 
     setting = "$2a$" + base_setting
     expected = setting + output
-    yield format_case(phrase, setting, expected)
+    yield (phrase, setting, expected)
 
 bcrypt_x_substitutions = {
     'xGPMyJSPyyeICKolPQ2gecm8rOgHwz.': '.sDifhVkUxvjPx6U4yeM2tC411Wuc.W',
@@ -441,7 +439,7 @@ def h_bcrypt_x(phrase, rounds, salt):
 
     setting = "$2x$" + base_setting
     expected = setting + output
-    yield format_case(phrase, setting, expected)
+    yield (phrase, setting, expected)
 
 # passlib includes an scrypt implementation, but its encoded password
 # format is not the $7$ format we implement, so instead we use the
@@ -468,8 +466,7 @@ def h_scrypt(phrase, rounds, salt):
 
     binhash = raw_scrypt(phrase, salt=bytesalt, p=p, r=r, n=N, dklen=32)
 
-    yield format_case(phrase, setting,
-              setting + b'$' + hash64.encode_bytes(binhash))
+    yield (phrase, setting, setting + b'$' + hash64.encode_bytes(binhash))
 
 #
 # passlib does not support either yescrypt or gost-yescrypt.  In fact,
@@ -523,11 +520,11 @@ def yescrypt_gensalt(ident, rounds, salt):
 
 def h_yescrypt(phrase, rounds, salt):
     setting = yescrypt_gensalt("y", rounds, salt)
-    yield format_case(phrase, setting, xcrypt_crypt(phrase, setting))
+    yield (phrase, setting, xcrypt_crypt(phrase, setting))
 
 def h_gost_yescrypt(phrase, rounds, salt):
     setting = yescrypt_gensalt("gy", rounds, salt)
-    yield format_case(phrase, setting, xcrypt_crypt(phrase, setting))
+    yield (phrase, setting, xcrypt_crypt(phrase, setting))
 
 # Each method should contribute a group of parameters to the array
 # below.  Each block has the form
@@ -660,6 +657,177 @@ SETTINGS = [
     ]),
 ]
 
+# Normally, we expect that (1) for fixed salt, no two phrases hash to
+# the same string; (2) for fixed phrase, no two settings produce the
+# same string.  The known exceptions are all due to limitations and/or
+# bugs in the hashing method.  Check the table produced by this
+# program to ensure that all of the collisions in the ->expected
+# strings are due to one of the known exceptions.  test-crypt-kat.c
+# itself doesn't need to do this test; as long as all of the hashes
+# produced by the just-built crypt() match the appropriate ->expected
+# string, no new collisions can have been introduced.
+
+def strneq_7bit (p1, p2, limit):
+    n1 = len(p1)
+    n2 = len(p2)
+    for i in range(limit):
+        if i == n1 and i == n2:
+            # strings are the same length, within the limit, and no
+            # mismatched characters were found
+            return True
+        if i == n1 or i == n2:
+            # one string is longer than the other, within the limit
+            return False
+        if (p1[i] & 0x7F) != (p2[i] & 0x7F):
+            # characters not equal, after masking the 8th bit
+            return False
+    # reached the limit, no mismatches found
+    return True
+
+# The bug in bcrypt mode "x" (preserved from the original
+# implementation of bcrypt) is, at its root, that the code below
+# sign- rather than zero-extends *p before or-ing it into 'tmp'.
+# When *p has its 8th bit set, it is therefore or-ed in as
+# 0xFF_FF_FF_xx rather than 0x00_00_00_xx, and clobbers the other
+# three bytes in 'tmp'.  Depending on its position within the input,
+# this can erase up to three other characters of the passphrase.
+# The exact set of strings involved in any one group of collisions is
+# difficult to describe in words and may depend on the endianness of
+# the CPU.  The test cases in this file have only been verified on
+# a little-endian CPU.
+BF_KEY_LEN  = 18
+
+def buggy_expand_BF_key(phrase):
+    p = 0
+    lp = len(phrase)
+    expanded = [0]*BF_KEY_LEN
+    if lp > 0:
+        for i in range(BF_KEY_LEN):
+            tmp = 0
+            for j in range(4):
+                if p == lp:
+                    c = 0
+                else:
+                    c = phrase[p]
+                stmp = ((c & 0x7F) - (c & 0x80)) & 0xFFFFFFFF
+                tmp = ((tmp << 8) | stmp) & 0xFFFFFFFF
+                p += 1
+                if p == lp + 1:
+                    p = 0
+            expanded[i] = tmp
+    return expanded
+
+def sign_extension_collision_p(p1, p2):
+    return buggy_expand_BF_key(p1) == buggy_expand_BF_key(p2)
+
+def equivalent_sunmd5_settings_p(s1, s2):
+    if s1[:4] != "$md5": return False
+    if s2[:4] != "$md5": return False
+
+    l1 = len(s1)
+    l2 = len(s2)
+    if l1 < l2:
+        ll = l1
+        lh = l2
+        sl = s1
+        sh = s2
+    else:
+        ll = l2
+        lh = l1
+        sl = s2
+        sh = s1
+    if sl[:ll] != sh[:ll]:
+        return False
+
+    # The two cases where sunmd5 settings are equivalent:
+    # $md5...$ and $md5...$$
+    # $md5...  and $md5...$x
+    if sl[ll-1] == '$':
+        if ll+1 != lh or sh[ll] != '$':
+            return False
+    else:
+        if ll+2 != lh or sh[ll] != '$' or sh[ll+1] != 'x':
+            return False
+    return True
+
+def collision_expected(p1, p2, s1, s2):
+    if not isinstance(p1, bytes): p1 = p1.encode("iso_8859_1")
+    if not isinstance(p2, bytes): p2 = p2.encode("iso_8859_1")
+    if isinstance(s1, bytes):     s1 = s1.decode("ascii")
+    if isinstance(s2, bytes):     s2 = s2.decode("ascii")
+    # Under no circumstances should two hashes with different settings
+    # collide, except...
+    if s1 != s2:
+        # a descrypt hash can collide with a bigcrypt hash when the phrase
+        # input to bigcrypt was fewer than 8 characters long
+        if (    s1[0] != '$' and s1[0] != '_'
+            and s2[0] != '$' and s2[0] != '_'
+            and (   (len(s1) == 2 and len(s2) > 2 and len(p2) <= 8)
+                 or (len(s2) == 2 and len(s1) > 2 and len(p1) <= 8))):
+            return strneq_7bit(p1, p2, 8)
+
+        # all settings for NTHASH are equivalent
+        if s1[:3] == '$3$' and s2[:3] == '$3$':
+            return p1 == p2
+
+        # sunmd5 has pairs of equivalent settings
+        if equivalent_sunmd5_settings_p (s1, s2):
+            return p1 == p2
+
+        return False
+
+    if s1[:2] == '$2':
+        # bcrypt truncates passphrases to 72 characters
+        if p1[:72] == p2[:72]:
+            return True
+        # preserved bcrypt $2x bug?
+        if s1[:3] == '$2x' and sign_extension_collision_p(p1, p2):
+            return True
+        return False
+
+    if s1[0] != '$' and s1[0] != '_':
+        if len(s1) == 2:
+            # descrypt truncates passphrases to 8 characters and strips the
+            # 8th bit
+            return strneq_7bit(p1, p2, 8)
+        else:
+            # bigcrypt truncates passphrases to 128 characters and strips the
+            # 8th bit
+            return strneq_7bit(p1, p2, 128)
+
+    if s1[0] == '_':
+        # bsdicrypt does not truncate but does still strip the 8th bit
+        return strneq_7bit(p1, p2, max(len(p1), len(p2)))
+
+    return False
+
+def report_unexpected_collision(p1, p2, s1, s2, expected):
+    sys.stderr.write("UNEXPECTED HASH COLLISION:\n"
+                     "  hash = {}\n"
+                     "    p1 = {!r}\n"
+                     "    p2 = {!r}\n"
+                     "    s1 = {!r}\n"
+                     "    s2 = {!r}\n"
+                     "\n".format(expected, p1, p2, s1, s2))
+
+# Master control.
+#
+# To reduce the painful slowness of this program _somewhat_,
+# we use a multiprocessing pool to compute all of the hashes.
+
+def generate_phrase_setting_combs():
+    for macro_name, settings in SETTINGS:
+        for phrase in PHRASES:
+            for setting in settings:
+                yield (macro_name, phrase, setting)
+
+def worker_compute_one(args):
+    method, phrase, setting = args
+
+    import __main__
+    sfunc = getattr(__main__, 'h_' + method)
+    return [(method, case) for case in sfunc(phrase, *setting)]
+
 # Python specifies that an \x escape in a string literal consumes
 # exactly two subsequent hexadecimal digits.  C, on the other hand,
 # specifies that \x in a string literal consumes *any number of*
@@ -680,53 +848,53 @@ def c_hex_escape(s):
     return c_hex_escape_fixup_re_.sub(r'\1""\2', s)
 
 def format_case(phrase, setting, expected):
-    if expected is None:
-        return ('  {{ "{}", 0, "{}" }},\n'
-                .format(c_hex_escape(setting),
-                        c_hex_escape(phrase)))
-    else:
-        return ('  {{ "{}", "{}", "{}" }},\n'
-                .format(c_hex_escape(setting),
-                        c_hex_escape(expected),
-                        c_hex_escape(phrase)))
-
-# To reduce the painful slowness of this program _somewhat_,
-# we use a multiprocessing pool to compute all of the hashes.
-
-def generate_phrase_setting_combs():
-    for macro_name, settings in SETTINGS:
-        for phrase in PHRASES:
-            for setting in settings:
-                yield (macro_name, phrase, setting)
-
-def worker_compute_one(args):
-    method, phrase, setting = args
-
-    import __main__
-    sfunc = getattr(__main__, 'h_' + method)
-    return [(method, case) for case in sfunc(phrase, *setting)]
+    return ('  {{ "{}", "{}", "{}" }},\n'
+            .format(c_hex_escape(setting),
+                    c_hex_escape(expected),
+                    c_hex_escape(phrase)))
 
 def main():
+    # FIXME: This only detects collisions that actually happen, not
+    # collisions that ought to have happened but didn't.  (Detecting
+    # collisions that ought to have happened, but didn't, would be
+    # unavoidably quadratic in the total number of test cases, so I'm
+    # not sure it's worth it.)
+    items = []
+    collisions = {}
+    collision_error = False
+    with multiprocessing.Pool() as pool:
+        for group in pool.imap(worker_compute_one,
+                               generate_phrase_setting_combs(),
+                               chunksize=100):
+            for method, (phrase, setting, expected) in group:
+                if expected in collisions:
+                    p1, s1 = collisions[expected]
+                    if not collision_expected(p1, phrase, s1, setting):
+                        report_unexpected_collision(p1, phrase, s1, setting,
+                                                    expected)
+                        collision_error = True
+                else:
+                    collisions[expected] = (phrase, setting)
+                items.append((method, format_case(phrase, setting, expected)))
+
+    if collision_error:
+        sys.exit(1)
+
     sys.stdout.write(
         "/* Automatically generated by test-crypt-kat-gen.py.\n"
         "   Do not edit this file by hand.  */\n\n")
 
-    with multiprocessing.Pool() as pool:
-        prev_method = None
-        for items in pool.imap(worker_compute_one,
-                               generate_phrase_setting_combs(),
-                               chunksize=100):
-            for method, case in items:
-                if method != prev_method:
-                    if prev_method is not None:
-                        sys.stdout.write("#endif // {}\n\n"
-                                         .format(prev_method))
-                    sys.stdout.write("#if INCLUDE_{}\n".format(method))
-                    prev_method = method
-                sys.stdout.write(case)
+    prev_method = None
+    for method, case in items:
+        if method != prev_method:
+            if prev_method is not None:
+                sys.stdout.write("#endif // {}\n\n".format(prev_method))
+            sys.stdout.write("#if INCLUDE_{}\n".format(method))
+            prev_method = method
+        sys.stdout.write(case)
 
-        if prev_method is not None:
-            sys.stdout.write("#endif // {}\n".format(prev_method))
+    if prev_method is not None:
+        sys.stdout.write("#endif // {}\n".format(prev_method))
 
 if __name__ == '__main__':
     main()
