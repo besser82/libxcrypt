@@ -74,12 +74,12 @@ matrix:
       env:
         - CONF="--enable-obsolete-api --enable-hashes=all --enable-valgrind-memcheck"
         - VALGRIND=1
-    - name: "Clang, all hashes, obsolete API, Valgrind"
+    - name: "Clang, all hashes, obsolete API, ASan+UBSan"
       compiler: clang
       os: linux
       env:
-        - CONF="--enable-obsolete-api --enable-hashes=all --enable-valgrind-memcheck"
-        - VALGRIND=1
+        - CONF="--enable-obsolete-api --enable-hashes=all"
+        - SANITIZER=1
     - name: "GCC, all hashes, static lib"
       compiler: gcc
       os: linux
