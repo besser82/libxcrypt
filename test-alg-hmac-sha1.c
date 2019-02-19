@@ -162,15 +162,15 @@ main (void)
       if (strcmp (dbuf, test->expect) != 0)
         {
           n = 1;
-          printf ("\nkey=");
-          puts (test->key);
-          puts (", data=");
-          puts (test->data);
-          printf (",\nresult=");
-          puts (dbuf);
-          puts (": ");
-          puts (test->expect);
-          printf ("\n");
+          fputs ("\nkey=", stdout);
+          fputs (test->key, stdout);
+          fputs (", data=", stdout);
+          fputs (test->data, stdout);
+          fputs (",\nresult=", stdout);
+          fputs (dbuf, stdout);
+          fputs (": ", stdout);
+          fputs (test->expect, stdout);
+          fputs ("\n", stdout);
         }
     }
   return n;
