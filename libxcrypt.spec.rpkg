@@ -147,7 +147,7 @@ fi                                                             \
 
 
 Name:           {{{ git_dir_name }}}
-Version:        {{{ git_dir_version }}}
+Version:        {{{ git_dir_version lead=4.4 follow=4}}}
 Release:        1%{?dist}
 Summary:        Extended crypt library for descrypt, md5crypt, bcrypt, and others
 
