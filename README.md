@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/besser82/libxcrypt.svg?branch=develop)](https://travis-ci.org/besser82/libxcrypt)
+[![COPR Build Status](https://copr.fedorainfracloud.org/coprs/besser82/libxcrypt_CI/package/libxcrypt/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/besser82/libxcrypt_CI)
 [![codecov](https://codecov.io/gh/besser82/libxcrypt/branch/develop/graph/badge.svg)](https://codecov.io/gh/besser82/libxcrypt)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/17073/badge.svg)](https://scan.coverity.com/projects/besser82-libxcrypt)
 
