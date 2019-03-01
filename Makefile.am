@@ -5,12 +5,17 @@
 #
 
 AUTOMAKE_OPTIONS = \
-	1.14 gnits dist-bzip2 dist-xz filename-length-max=99
+	1.14 \
+	dist-bzip2 \
+	dist-xz \
+	filename-length-max=99 \
+	gnits \
+	subdir-objects
 
 ACLOCAL_AMFLAGS = -I m4
 
+AM_CPPFLAGS = -I$(srcdir)/lib
 AM_CFLAGS = $(WARN_CFLAGS) $(OPTI_FLAGS)
-
 AM_LDFLAGS = $(RELRO_FLAG) $(BINDNOW_FLAG)
 
 @VALGRIND_CHECK_RULES@
@@ -18,27 +23,63 @@ AM_LDFLAGS = $(RELRO_FLAG) $(BINDNOW_FLAG)
 TEST_EXTENSIONS = .sh
 
 EXTRA_DIST = \
-	LICENSING THANKS \
-	crypt.h.in.in xcrypt.h.in libcrypt.map.in \
-	libcrypt.minver gen-map.awk gen-vers.awk \
-	gen-crypt-h.awk gen-hashes.awk sel-hashes.awk \
-	hashes.lst
+	LICENSING \
+	THANKS \
+	lib/alg-yescrypt-platform.c \
+	lib/crypt.h.in.in \
+	lib/gen-crypt-h.awk \
+	lib/gen-hashes.awk \
+	lib/gen-map.awk \
+	lib/gen-vers.awk \
+	lib/hashes.lst \
+	lib/libcrypt.map.in \
+	lib/libcrypt.minver \
+	lib/sel-hashes.awk \
+	lib/xcrypt.h.in \
+	m4/skip-if-exec-format-error \
+	test/symbols-compat.sh \
+	test/symbols-renames.sh \
+	test/symbols-static.sh
 
 notrans_dist_man3_MANS = \
-	crypt.3 crypt_r.3 crypt_ra.3 crypt_rn.3 \
-	crypt_checksalt.3 crypt_gensalt.3 crypt_gensalt_ra.3 \
-	crypt_gensalt_rn.3 crypt_preferred_method.3
-notrans_dist_man5_MANS = crypt.5
+	doc/crypt.3 \
+	doc/crypt_checksalt.3 \
+	doc/crypt_gensalt.3 \
+	doc/crypt_gensalt_ra.3 \
+	doc/crypt_gensalt_rn.3 \
+	doc/crypt_preferred_method.3 \
+	doc/crypt_r.3 \
+	doc/crypt_ra.3 \
+	doc/crypt_rn.3
+notrans_dist_man5_MANS = \
+	doc/crypt.5
 
-nodist_include_HEADERS = crypt.h
-nodist_noinst_HEADERS = crypt-hashes.h crypt-symbol-vers.h
+nodist_include_HEADERS = \
+	crypt.h
+nodist_noinst_HEADERS = \
+	crypt-hashes.h \
+	crypt-symbol-vers.h
 noinst_HEADERS = \
-	alg-des.h alg-gost3411-2012-const.h alg-gost3411-2012-core.h \
-	alg-gost3411-2012-hmac.h alg-gost3411-2012-precalc.h \
-	alg-gost3411-2012-ref.h alg-hmac-sha1.h alg-md4.h alg-md5.h \
-	alg-sha1.h alg-sha256.h alg-sha512.h alg-yescrypt.h \
-	alg-yescrypt-sysendian.h byteorder.h crypt-common.h \
-	crypt-obsolete.h crypt-port.h test-des-cases.h
+	lib/alg-des.h \
+	lib/alg-gost3411-2012-const.h \
+	lib/alg-gost3411-2012-core.h \
+	lib/alg-gost3411-2012-hmac.h \
+	lib/alg-gost3411-2012-precalc.h \
+	lib/alg-gost3411-2012-ref.h \
+	lib/alg-hmac-sha1.h \
+	lib/alg-md4.h \
+	lib/alg-md5.h \
+	lib/alg-sha1.h \
+	lib/alg-sha256.h \
+	lib/alg-sha512.h \
+	lib/alg-yescrypt-sysendian.h \
+	lib/alg-yescrypt.h \
+	lib/byteorder.h \
+	lib/crypt-common.h \
+	lib/crypt-obsolete.h \
+	lib/crypt-port.h \
+	test/des-cases.h \
+	test/crypt-kat.inc
 
 if ENABLE_XCRYPT_COMPAT_FILES
 nodist_include_HEADERS += xcrypt.h
@@ -46,21 +87,42 @@ else
 nodist_noinst_HEADERS += xcrypt.h
 endif
 
+noinst_PROGRAMS = \
+	lib/gen-des-tables
 
-noinst_PROGRAMS = gen-des-tables
+lib_LTLIBRARIES = \
+	libcrypt.la
 
-lib_LTLIBRARIES = libcrypt.la
 libcrypt_la_SOURCES = \
-	alg-des.c alg-des-tables.c alg-gost3411-2012-core.c \
-	alg-gost3411-2012-hmac.c alg-hmac-sha1.c alg-md4.c alg-md5.c \
-	alg-sha1.c alg-sha256.c alg-sha512.c alg-yescrypt-opt.c \
-	alg-yescrypt-common.c crypt.c crypt-bcrypt.c crypt-des.c \
-	crypt-gensalt-static.c crypt-gensalt.c crypt-gost-yescrypt.c \
-	crypt-md5.c crypt-nthash.c crypt-pbkdf1-sha1.c crypt-scrypt.c \
-	crypt-sha256.c crypt-sha512.c crypt-static.c crypt-sunmd5.c \
-	crypt-yescrypt.c randombytes.c crypt-common.c
-
-EXTRA_DIST += alg-yescrypt-platform.c
+	lib/alg-des-tables.c \
+	lib/alg-des.c \
+	lib/alg-gost3411-2012-core.c \
+	lib/alg-gost3411-2012-hmac.c \
+	lib/alg-hmac-sha1.c \
+	lib/alg-md4.c \
+	lib/alg-md5.c \
+	lib/alg-sha1.c \
+	lib/alg-sha256.c \
+	lib/alg-sha512.c \
+	lib/alg-yescrypt-common.c \
+	lib/alg-yescrypt-opt.c \
+	lib/crypt-bcrypt.c \
+	lib/crypt-common.c \
+	lib/crypt-des.c \
+	lib/crypt-gensalt-static.c \
+	lib/crypt-gensalt.c \
+	lib/crypt-gost-yescrypt.c \
+	lib/crypt-md5.c \
+	lib/crypt-nthash.c \
+	lib/crypt-pbkdf1-sha1.c \
+	lib/crypt-scrypt.c \
+	lib/crypt-sha256.c \
+	lib/crypt-sha512.c \
+	lib/crypt-static.c \
+	lib/crypt-sunmd5.c \
+	lib/crypt-yescrypt.c \
+	lib/crypt.c \
+	lib/randombytes.c
 
 pkgconfig_DATA = libxcrypt.pc
 
@@ -93,58 +155,66 @@ libcrypt_la_LDFLAGS += $(UNDEF_FLAG) $(TEXT_RELOC_FLAG) $(AM_LDFLAGS)
 
 libcrypt_la_CPPFLAGS = $(AM_CPPFLAGS) -DIN_LIBCRYPT
 
-CONFIG_STATUS_DEPENDENCIES = libcrypt.minver
+CONFIG_STATUS_DEPENDENCIES = lib/libcrypt.minver
 EXTRA_libcrypt_la_DEPENDENCIES = libcrypt.map
-CLEANFILES = Makefile.deps.T Makefile.deps \
+CLEANFILES = \
+	Makefile.deps Makefile.deps.T \
 	libcrypt.map libcrypt.map.T \
 	crypt-symbol-vers.h crypt-symbol-vers.h.T \
 	crypt-hashes.h crypt-hashes.h.T \
-	crypt.h crypt.h.T xcrypt.h xcrypt.h.T \
-	*.gcda *.gcno
+	crypt.h crypt.h.T \
+	xcrypt.h xcrypt.h.T \
+	*.gcda *.gcno \
+	lib/*.gcda lib/*.gcno \
+	test/*.gcda test/*.gcno
 
 DISTCLEANFILES = .deps/*.Plo
 
-# Empty target to have needed headers pre-generated before any other target.
-Makefile.deps: xcrypt.h libcrypt.map
+# Force generated headers to be generated before any source files that
+# might depend on them are compiled.
+Makefile.deps: crypt.h crypt-hashes.h crypt-symbol-vers.h xcrypt.h
 	$(AM_V_GEN)LC_ALL=C echo "# Deps" > Makefile.deps.T
 	$(AM_V_at)mv -f Makefile.deps.T Makefile.deps
 
-libcrypt.map: libcrypt.map.in gen-map.awk Makefile
+libcrypt.map: lib/libcrypt.map.in lib/gen-map.awk Makefile
 	$(AM_V_GEN)LC_ALL=C $(AWK) \
 	  -v SYMVER_MIN=$(SYMVER_MIN) \
 	  -v SYMVER_FLOOR=$(SYMVER_FLOOR) \
 	  -v COMPAT_ABI=$(COMPAT_ABI) \
-	  -f $(srcdir)/gen-map.awk $(srcdir)/libcrypt.map.in > libcrypt.map.T
+	  -f $(srcdir)/lib/gen-map.awk \
+	     $(srcdir)/lib/libcrypt.map.in > libcrypt.map.T
 	$(AM_V_at)mv -f libcrypt.map.T libcrypt.map
 
-crypt-hashes.h: hashes.lst gen-hashes.awk Makefile
-	$(AM_V_GEN)LC_ALL=C $(AWK) -f $(srcdir)/gen-hashes.awk \
+crypt-hashes.h: lib/hashes.lst lib/gen-hashes.awk Makefile
+	$(AM_V_GEN)LC_ALL=C $(AWK) \
 	  -v ENABLED_HASHES=$(hashes_enabled) \
-	  $(srcdir)/hashes.lst > crypt-hashes.h.T
+	  -f $(srcdir)/lib/gen-hashes.awk \
+	     $(srcdir)/lib/hashes.lst > crypt-hashes.h.T
 	$(AM_V_at)mv -f crypt-hashes.h.T crypt-hashes.h
 
-crypt-symbol-vers.h: libcrypt.map.in gen-vers.awk Makefile
+crypt-symbol-vers.h: lib/libcrypt.map.in lib/gen-vers.awk Makefile
 	$(AM_V_GEN)LC_ALL=C $(AWK) \
 	  -v SYMVER_MIN=$(SYMVER_MIN) \
 	  -v SYMVER_FLOOR=$(SYMVER_FLOOR) \
 	  -v COMPAT_ABI=$(COMPAT_ABI) \
-	  -f $(srcdir)/gen-vers.awk \
-	     $(srcdir)/libcrypt.map.in > crypt-symbol-vers.h.T
+	  -f $(srcdir)/lib/gen-vers.awk \
+	     $(srcdir)/lib/libcrypt.map.in > crypt-symbol-vers.h.T
 	$(AM_V_at)mv -f crypt-symbol-vers.h.T crypt-symbol-vers.h
 
-crypt.h: crypt.h.in crypt-hashes.h gen-crypt-h.awk config.h Makefile
+crypt.h: crypt.h.in crypt-hashes.h lib/gen-crypt-h.awk config.h Makefile
 	$(AM_V_GEN)LC_ALL=C $(AWK) \
-	  -f $(srcdir)/gen-crypt-h.awk config.h $(builddir)/crypt.h.in \
-	  > crypt.h.T
+	  -f $(srcdir)/lib/gen-crypt-h.awk config.h \
+	     $(builddir)/crypt.h.in > crypt.h.T
 	$(AM_V_GEN)LC_ALL=C \
 	$(GREP) -q "#define HASH_ALGORITHM_DEFAULT" crypt-hashes.h && \
 	$(SED) -i -e "s/@DEFAULT_PREFIX_ENABLED@/1/g" crypt.h.T || \
 	$(SED) -i -e "s/@DEFAULT_PREFIX_ENABLED@/0/g" crypt.h.T
 	$(AM_V_at)mv -f crypt.h.T crypt.h
 
-xcrypt.h: crypt.h crypt-symbol-vers.h
+xcrypt.h: lib/xcrypt.h.in lib/gen-crypt-h.awk config.h Makefile
 	$(AM_V_GEN)LC_ALL=C $(AWK) \
-	  -f $(srcdir)/gen-crypt-h.awk config.h $(srcdir)/xcrypt.h.in \
+	  -f $(srcdir)/lib/gen-crypt-h.awk \
+	     config.h $(srcdir)/lib/xcrypt.h.in \
 	  > xcrypt.h.T
 	$(AM_V_at)mv -f xcrypt.h.T xcrypt.h
 
@@ -228,60 +298,71 @@ endif
 endif
 
 check_PROGRAMS = \
-	test-alg-des test-alg-gost3411-2012 test-alg-gost3411-2012-hmac \
-	test-alg-hmac-sha1 test-alg-md4 test-alg-md5 \
-	test-alg-pbkdf-hmac-sha256 test-alg-sha1 test-alg-sha256 \
-	test-alg-sha512 test-alg-yescrypt test-checksalt \
-	test-crypt-kat \
-	test-crypt-gost-yescrypt \
-	test-byteorder test-badsalt test-badsetting \
-	test-gensalt test-gensalt-extradata test-gensalt-nthash \
-	test-preferred-method test-crypt-badargs test-short-outbuf \
-	test-compile-strong-alias test-getrandom-interface \
-	test-getrandom-fallbacks
-
-# headers used only by test programs
-noinst_HEADERS += test-crypt-kat.inc
+	test/alg-des \
+	test/alg-gost3411-2012 \
+	test/alg-gost3411-2012-hmac \
+	test/alg-hmac-sha1 \
+	test/alg-md4 \
+	test/alg-md5 \
+	test/alg-pbkdf-hmac-sha256 \
+	test/alg-sha1 \
+	test/alg-sha256 \
+	test/alg-sha512 \
+	test/alg-yescrypt \
+	test/badsalt \
+	test/badsetting \
+	test/byteorder \
+	test/checksalt \
+	test/compile-strong-alias \
+	test/crypt-badargs \
+	test/crypt-gost-yescrypt \
+	test/crypt-kat \
+	test/gensalt \
+	test/gensalt-extradata \
+	test/gensalt-nthash \
+	test/getrandom-fallbacks \
+	test/getrandom-interface \
+	test/preferred-method \
+	test/short-outbuf
 
 if ENABLE_CRYPT_KAT_GEN
 if ENABLE_SHARED
-# test-crypt-kat.inc can be regenerated by running test-crypt-kat-gen.py.
+# test/crypt-kat.inc can be regenerated by running test/crypt-kat-gen.py.
 # This is very slow and requires nonstandard Python libraries and a shared
 # library build of libcrypt already present in the build-tree, so we only
 # do it when explicitly requested.
 regen-test-crypt-kat: libcrypt.la
-	$(PYTHON) $(srcdir)/test-crypt-kat-gen.py > test-crypt-kat.inc.T
-	@if cmp -s test-crypt-kat.inc.T $(srcdir)/test-crypt-kat.inc; \
+	$(PYTHON) $(srcdir)/test/crypt-kat-gen.py > test-crypt-kat.inc.T
+	@if cmp -s test-crypt-kat.inc.T $(srcdir)/test/crypt-kat.inc; \
 	then echo test-crypt-kat.inc is unchanged; rm test-crypt-kat.inc.T; \
-	else echo mv -f test-crypt-kat.inc.T $(srcdir)/test-crypt-kat.inc; \
-	mv -f test-crypt-kat.inc.T $(srcdir)/test-crypt-kat.inc; fi
+	else echo mv -f test-crypt-kat.inc.T $(srcdir)/test/crypt-kat.inc; \
+	mv -f test-crypt-kat.inc.T $(srcdir)/test/crypt-kat.inc; fi
 phony_targets += regen-test-crypt-kat
+CLEANFILES += test-crypt-kat.inc.T
 endif
 endif
 
 if ENABLE_OBSOLETE_API
-libcrypt_la_SOURCES += crypt-des-obsolete.c
-check_PROGRAMS += test-des-obsolete test-des-obsolete_r test-fcrypt-enosys
+libcrypt_la_SOURCES += lib/crypt-des-obsolete.c
+check_PROGRAMS += test/des-obsolete test/des-obsolete_r test/fcrypt-enosys
 endif
 
 TESTS = $(check_PROGRAMS)
 
 if ENABLE_STATIC
-TESTS += test-symbols-static.sh
+TESTS += test/symbols-static.sh
 
 if HAVE_CPP_dD
-TESTS += test-symbols-renames.sh
+TESTS += test/symbols-renames.sh
 endif
 endif
 
 if ENABLE_OBSOLETE_API
-TESTS += test-symbols-compat.sh
+TESTS += test/symbols-compat.sh
 endif
 
-EXTRA_DIST += test-symbols-static.sh test-symbols-compat.sh test-symbols-renames.sh
-
 AM_TESTS_ENVIRONMENT = \
-    lib_la="./libcrypt.la"; lib_map="$(srcdir)/libcrypt.map.in"; \
+    lib_la="./libcrypt.la"; lib_map="$(srcdir)/lib/libcrypt.map.in"; \
     CC="$(CC)"; CPP="$(CPP)"; \
     CPPFLAGS="$(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES)"; \
     CPPFLAGS="$${CPPFLAGS} $(AM_CPPFLAGS) $(CPPFLAGS)"; \
@@ -291,12 +372,10 @@ if CROSS_COMPILING
 LOG_COMPILER = m4/skip-if-exec-format-error
 endif
 
-EXTRA_DIST += m4/skip-if-exec-format-error
-
 # Refer to object files that are linked into libxcrypt with the
-# qualified name, libcrypt_la-foobar.lo, to prevent them from
+# qualified name, lib/libcrypt_la-foobar.lo, to prevent them from
 # being compiled a second time.
-COMMON_TEST_OBJECTS = libcrypt_la-crypt-common.lo libcrypt.la
+COMMON_TEST_OBJECTS = lib/libcrypt_la-crypt-common.lo libcrypt.la
 
 test_badsalt_LDADD = $(COMMON_TEST_OBJECTS)
 test_badsetting_LDADD = $(COMMON_TEST_OBJECTS)
@@ -318,58 +397,58 @@ test_crypt_kat_LDADD  = $(COMMON_TEST_OBJECTS) $(PTHREAD_LIBS)
 # These tests call internal APIs that may not be accessible from the
 # fully linked shared library.
 test_alg_des_LDADD = \
-	libcrypt_la-alg-des.lo \
-	libcrypt_la-alg-des-tables.lo \
+	lib/libcrypt_la-alg-des.lo \
+	lib/libcrypt_la-alg-des-tables.lo \
 	$(COMMON_TEST_OBJECTS)
 test_alg_gost3411_2012_LDADD = \
-	libcrypt_la-alg-gost3411-2012-core.lo \
-	libcrypt_la-alg-gost3411-2012-hmac.lo \
+	lib/libcrypt_la-alg-gost3411-2012-core.lo \
+	lib/libcrypt_la-alg-gost3411-2012-hmac.lo \
 	$(COMMON_TEST_OBJECTS)
 test_alg_gost3411_2012_hmac_LDADD = \
-	libcrypt_la-alg-gost3411-2012-core.lo \
-	libcrypt_la-alg-gost3411-2012-hmac.lo \
+	lib/libcrypt_la-alg-gost3411-2012-core.lo \
+	lib/libcrypt_la-alg-gost3411-2012-hmac.lo \
 	$(COMMON_TEST_OBJECTS)
 test_alg_hmac_sha1_LDADD = \
-	libcrypt_la-alg-sha1.lo \
-	libcrypt_la-alg-hmac-sha1.lo \
+	lib/libcrypt_la-alg-sha1.lo \
+	lib/libcrypt_la-alg-hmac-sha1.lo \
 	$(COMMON_TEST_OBJECTS)
 test_alg_md4_LDADD = \
-	libcrypt_la-alg-md4.lo \
+	lib/libcrypt_la-alg-md4.lo \
 	$(COMMON_TEST_OBJECTS)
 test_alg_md5_LDADD = \
-	libcrypt_la-alg-md5.lo \
+	lib/libcrypt_la-alg-md5.lo \
 	$(COMMON_TEST_OBJECTS)
 test_alg_pbkdf_hmac_sha256_LDADD = \
-	libcrypt_la-alg-sha256.lo \
+	lib/libcrypt_la-alg-sha256.lo \
 	$(COMMON_TEST_OBJECTS)
 test_alg_sha1_LDADD = \
-	libcrypt_la-alg-sha1.lo \
+	lib/libcrypt_la-alg-sha1.lo \
 	$(COMMON_TEST_OBJECTS)
 test_alg_sha256_LDADD = \
-	libcrypt_la-alg-sha256.lo \
+	lib/libcrypt_la-alg-sha256.lo \
 	$(COMMON_TEST_OBJECTS)
 test_alg_sha512_LDADD = \
-	libcrypt_la-alg-sha512.lo \
+	lib/libcrypt_la-alg-sha512.lo \
 	$(COMMON_TEST_OBJECTS)
 test_alg_yescrypt_LDADD = \
-	libcrypt_la-alg-sha256.lo \
-	libcrypt_la-alg-yescrypt-common.lo \
-	libcrypt_la-alg-yescrypt-opt.lo \
+	lib/libcrypt_la-alg-sha256.lo \
+	lib/libcrypt_la-alg-yescrypt-common.lo \
+	lib/libcrypt_la-alg-yescrypt-opt.lo \
 	$(COMMON_TEST_OBJECTS)
 test_crypt_gost_yescrypt_LDADD = \
-	libcrypt_la-alg-gost3411-2012-core.lo \
-	libcrypt_la-alg-gost3411-2012-hmac.lo \
-	libcrypt_la-alg-sha256.lo \
-	libcrypt_la-alg-yescrypt-common.lo \
-	libcrypt_la-alg-yescrypt-opt.lo \
-	libcrypt_la-crypt-yescrypt.lo \
+	lib/libcrypt_la-alg-gost3411-2012-core.lo \
+	lib/libcrypt_la-alg-gost3411-2012-hmac.lo \
+	lib/libcrypt_la-alg-sha256.lo \
+	lib/libcrypt_la-alg-yescrypt-common.lo \
+	lib/libcrypt_la-alg-yescrypt-opt.lo \
+	lib/libcrypt_la-crypt-yescrypt.lo \
 	$(COMMON_TEST_OBJECTS)
 
 test_getrandom_interface_LDADD = \
-	libcrypt_la-randombytes.lo \
+	lib/libcrypt_la-randombytes.lo \
 	$(COMMON_TEST_OBJECTS)
 test_getrandom_fallbacks_LDADD = \
-	libcrypt_la-randombytes.lo \
+	lib/libcrypt_la-randombytes.lo \
 	$(COMMON_TEST_OBJECTS)
 
 if HAVE_LD_WRAP

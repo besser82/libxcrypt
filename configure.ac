@@ -7,12 +7,12 @@ AC_INIT([xcrypt],
         [https://github.com/besser82/libxcrypt])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([m4])
-AC_CONFIG_SRCDIR([crypt.c])
+AC_CONFIG_SRCDIR([lib/crypt.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
   Makefile
-  crypt.h.in
-  libxcrypt.pc
+  crypt.h.in:lib/crypt.h.in.in
+  libxcrypt.pc:lib/libxcrypt.pc.in
 ])
 AM_INIT_AUTOMAKE([tar-v7])
 
@@ -386,8 +386,9 @@ AC_ARG_ENABLE([hashes],
 )
 # This code must run after AC_PROG_AWK.
 hashes_enabled=$(
-    $AWK -f ${srcdir}/sel-hashes.awk -v SELECTED_HASHES="$hashes_selected" \
-            ${srcdir}/hashes.lst
+    $AWK -f ${srcdir}/lib/sel-hashes.awk \
+         -v SELECTED_HASHES="$hashes_selected" \
+            ${srcdir}/lib/hashes.lst
 )
 if test x"$hashes_enabled" = x || test x"$hashes_enabled" = x,; then
     AC_MSG_ERROR([bad value '${hashes_selected}' for --enable-hashes])
@@ -456,7 +457,7 @@ if test $enable_obsolete_api = 1; then
             break
           fi
         fi
-      done < ${srcdir}/libcrypt.minver
+      done < ${srcdir}/lib/libcrypt.minver
     ;;
 
     *gnu*)

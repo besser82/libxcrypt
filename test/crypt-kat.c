@@ -73,7 +73,7 @@ struct testcase
 
 static const struct testcase tests[] =
 {
-#include "test-crypt-kat.inc"
+#include "crypt-kat.inc"
 };
 #define ntests ARRAY_SIZE (tests)
 

@@ -7,7 +7,7 @@
 
 #include "crypt-port.h"
 #include "alg-des.h"
-#include "test-des-cases.h"
+#include "des-cases.h"
 
 #include <stdio.h>
 
