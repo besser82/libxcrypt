@@ -34,6 +34,8 @@
 %else
 %bcond_without memcheck
 %endif
+%else
+%bcond_with    memcheck
 %endif
 
 
