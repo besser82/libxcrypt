@@ -197,7 +197,7 @@ Obsoletes:      %{name}-compat         < %{version}-%{release}
 # We need a version of glibc, that doesn't build libcrypt anymore.
 Requires:       glibc%{?_isa}         >= %{glibc_minver}
 
-%if 0%{?fedora}
+%if 0%{?fedora} >= 30
 Recommends:     whois-mkpasswd
 %endif
 
