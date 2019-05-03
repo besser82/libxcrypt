@@ -149,10 +149,13 @@ g(uint512_u *h, const uint512_u *N, const unsigned char *m)
 static inline void
 stage2(GOST34112012Context *CTX, const unsigned char *data)
 {
-    g(&(CTX->h), &(CTX->N), data);
+    union uint512_u m;
+
+    memcpy(&m, data, sizeof(m));
+    g(&(CTX->h), &(CTX->N), (const unsigned char *)&m);
 
     add512(&(CTX->N), &buffer512, &(CTX->N));
-    add512(&(CTX->Sigma), (const uint512_u *) data, &(CTX->Sigma));
+    add512(&(CTX->Sigma), &m, &(CTX->Sigma));
 }
 
 static inline void
