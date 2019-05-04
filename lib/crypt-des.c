@@ -144,9 +144,9 @@ des_gen_hash (struct des_ctx *ctx, uint32_t count, uint8_t *output,
 /* The original UNIX DES-based password hash, no extensions.  */
 void
 crypt_descrypt_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
-              const char *setting, size_t ARG_UNUSED (set_size),
-              uint8_t *output, size_t out_size,
-              void *scratch, size_t scr_size)
+                   const char *setting, size_t ARG_UNUSED (set_size),
+                   uint8_t *output, size_t out_size,
+                   void *scratch, size_t scr_size)
 {
   /* This shouldn't ever happen, but...  */
   if (out_size < DES_TRD_OUTPUT_LEN || scr_size < sizeof (struct des_buffer))
@@ -222,9 +222,9 @@ crypt_descrypt_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
    Andy Phillips <atp@mssl.ucl.ac.uk>  */
 void
 crypt_bigcrypt_rn (const char *phrase, size_t phr_size,
-                  const char *setting, size_t set_size,
-                  uint8_t *output, size_t out_size,
-                  void *scratch, size_t scr_size)
+                   const char *setting, size_t set_size,
+                   uint8_t *output, size_t out_size,
+                   void *scratch, size_t scr_size)
 {
   /* descrypt and bigcrypt generate identical hashes when the phrase
      contains no more than 8 characters.  When the phrase is longer
@@ -311,9 +311,9 @@ crypt_bigcrypt_rn (const char *phrase, size_t phr_size,
    count, but are still unacceptably weak by modern standards.  */
 void
 crypt_bsdicrypt_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
-                   const char *setting, size_t set_size,
-                   uint8_t *output, size_t out_size,
-                   void *scratch, size_t scr_size)
+                    const char *setting, size_t set_size,
+                    uint8_t *output, size_t out_size,
+                    void *scratch, size_t scr_size)
 {
   /* This shouldn't ever happen, but...  */
   if (out_size < DES_EXT_OUTPUT_LEN || scr_size < sizeof (struct des_buffer))
@@ -397,8 +397,8 @@ crypt_bsdicrypt_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
 #if INCLUDE_descrypt || INCLUDE_bigcrypt
 void
 gensalt_descrypt_rn (unsigned long count,
-                const uint8_t *rbytes, size_t nrbytes,
-                uint8_t *output, size_t output_size)
+                     const uint8_t *rbytes, size_t nrbytes,
+                     uint8_t *output, size_t output_size)
 {
   if (output_size < 3)
     {
@@ -419,8 +419,8 @@ gensalt_descrypt_rn (unsigned long count,
 #if INCLUDE_bigcrypt
 void
 gensalt_bigcrypt_rn (unsigned long count,
-                const uint8_t *rbytes, size_t nrbytes,
-                uint8_t *output, size_t output_size)
+                     const uint8_t *rbytes, size_t nrbytes,
+                     uint8_t *output, size_t output_size)
 {
 #if !INCLUDE_descrypt
   /* We need descrypt + 12 bytes.  */
@@ -445,8 +445,8 @@ gensalt_bigcrypt_rn (unsigned long count,
 #if INCLUDE_bsdicrypt
 void
 gensalt_bsdicrypt_rn (unsigned long count,
-                     const uint8_t *rbytes, size_t nrbytes,
-                     uint8_t *output, size_t output_size)
+                      const uint8_t *rbytes, size_t nrbytes,
+                      uint8_t *output, size_t output_size)
 {
   if (output_size < 1 + 4 + 4 + 1)
     {

@@ -333,9 +333,9 @@ const char *
 crypt_preferred_method (void)
 {
 #if defined HASH_ALGORITHM_DEFAULT
-      return HASH_ALGORITHM_DEFAULT;
+  return HASH_ALGORITHM_DEFAULT;
 #else
-      return NULL;
+  return NULL;
 #endif
 }
 SYMVER_crypt_preferred_method;

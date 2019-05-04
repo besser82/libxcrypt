@@ -82,9 +82,9 @@ sha512_process_recycled_bytes (unsigned char block[64], size_t len,
 
 void
 crypt_sha512crypt_rn (const char *phrase, size_t phr_size,
-                 const char *setting, size_t ARG_UNUSED (set_size),
-                 uint8_t *output, size_t out_size,
-                 void *scratch, size_t scr_size)
+                      const char *setting, size_t ARG_UNUSED (set_size),
+                      uint8_t *output, size_t out_size,
+                      void *scratch, size_t scr_size)
 {
   /* This shouldn't ever happen, but...  */
   if (out_size < SHA512_HASH_LENGTH
@@ -307,8 +307,8 @@ crypt_sha512crypt_rn (const char *phrase, size_t phr_size,
 
 void
 gensalt_sha512crypt_rn (unsigned long count,
-                   const uint8_t *rbytes, size_t nrbytes,
-                   uint8_t *output, size_t output_size)
+                        const uint8_t *rbytes, size_t nrbytes,
+                        uint8_t *output, size_t output_size)
 {
   gensalt_sha_rn ('6', SALT_LEN_MAX, ROUNDS_DEFAULT, ROUNDS_MIN, ROUNDS_MAX,
                   count, rbytes, nrbytes, output, output_size);

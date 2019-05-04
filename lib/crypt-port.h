@@ -363,7 +363,7 @@ _crypt_strcpy_or_abort (void *, const size_t, const void *);
 #if !INCLUDE_yescrypt
 #define gensalt_yescrypt_rn _crypt_gensalt_yescrypt_rn
 extern void gensalt_yescrypt_rn
-  (unsigned long, const uint8_t *, size_t, uint8_t *, size_t);
+(unsigned long, const uint8_t *, size_t, uint8_t *, size_t);
 #endif
 #endif
 
@@ -371,14 +371,14 @@ extern void gensalt_yescrypt_rn
 #if INCLUDE_bigcrypt && !INCLUDE_descrypt
 #define gensalt_descrypt_rn _crypt_gensalt_descrypt_rn
 extern void gensalt_descrypt_rn
-  (unsigned long, const uint8_t *, size_t, uint8_t *, size_t);
+(unsigned long, const uint8_t *, size_t, uint8_t *, size_t);
 #endif
 
 /* Those are not present, if scrypt is selected, but yescrypt is not. */
 #if INCLUDE_scrypt && !INCLUDE_yescrypt
 #define crypt_yescrypt_rn _crypt_crypt_yescrypt_rn
 extern void crypt_yescrypt_rn (const char *, size_t, const char *,
-                size_t, uint8_t *, size_t, void *, size_t);
+                               size_t, uint8_t *, size_t, void *, size_t);
 #endif
 
 /* We need a prototype for fcrypt for some tests.  */

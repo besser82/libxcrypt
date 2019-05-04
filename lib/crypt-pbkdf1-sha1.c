@@ -90,9 +90,9 @@ to64 (uint8_t *s, unsigned long v, int n)
  */
 void
 crypt_sha1crypt_rn (const char *phrase, size_t phr_size,
-               const char *setting, size_t ARG_UNUSED (set_size),
-               uint8_t *output, size_t out_size,
-               void *scratch, size_t scr_size)
+                    const char *setting, size_t ARG_UNUSED (set_size),
+                    uint8_t *output, size_t out_size,
+                    void *scratch, size_t scr_size)
 {
   static const char *magic = "$sha1$";
 
@@ -194,8 +194,8 @@ crypt_sha1crypt_rn (const char *phrase, size_t phr_size,
    http://cvsweb.netbsd.org/bsdweb.cgi/~checkout~/src/lib/libcrypt/pw_gensalt.c */
 void
 gensalt_sha1crypt_rn (unsigned long count,
-                 const uint8_t *rbytes, size_t nrbytes,
-                 uint8_t *output, size_t o_size)
+                      const uint8_t *rbytes, size_t nrbytes,
+                      uint8_t *output, size_t o_size)
 {
   static_assert (sizeof (uint32_t) == 4,
                  "space calculations below assume 8-bit bytes");
