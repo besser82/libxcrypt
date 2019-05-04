@@ -200,24 +200,27 @@ static void *
 calc_hashes_crypt_r_rn (ARG_UNUSED (void *unused))
 {
   char *hash;
-  char pass[CRYPT_MAX_PASSPHRASE_SIZE];
+  union {
+      char pass[CRYPT_MAX_PASSPHRASE_SIZE + 1];
+      int aligned;
+  } u;
   size_t i;
   struct crypt_data data;
   int status = 0;
 
   memset (&data, 0, sizeof data);
-  memset (pass, 0, CRYPT_MAX_PASSPHRASE_SIZE);
+  memset (u.pass, 0, CRYPT_MAX_PASSPHRASE_SIZE + 1);
   for (i = 0; i < ntests; i++)
     {
-      strncpy(pass + 1, tests[i].input, CRYPT_MAX_PASSPHRASE_SIZE - 1);
+      strncpy(u.pass + 1, tests[i].input, CRYPT_MAX_PASSPHRASE_SIZE);
       printf("[%d]: %s %s\n", strlen(tests[i].input), tests[i].input, tests[i].salt);
       errno = 0;
-      hash = crypt_r (pass + 1, tests[i].salt, &data);
+      hash = crypt_r (u.pass + 1, tests[i].salt, &data);
       status |= report_result ("crypt_r", hash, errno, &tests[i],
                                ENABLE_FAILURE_TOKENS);
 
       errno = 0;
-      hash = crypt_rn (pass + 1, tests[i].salt, &data, (int)sizeof data);
+      hash = crypt_rn (u.pass + 1, tests[i].salt, &data, (int)sizeof data);
       status |= report_result ("crypt_rn", hash, errno, &tests[i], false);
     }
 
