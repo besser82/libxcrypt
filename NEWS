@@ -4,6 +4,13 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.5
+* Fix alignment problem for GOST 34.11 (Streebog) in gost-yestcrypt.
+  Some architectures in some circumstances do not allow unaligned
+  memory access (such as ARM, MIPS, SPARC) triggering SIGBUS. This
+  patch very crudely fixes this issue.
+  Being unfixed this would trigger SIGBUS when password buffer is
+  unaligned. Crash and fix are tested on UltraSparc T5 on GCC Compile
+  farm.
 
 Version 4.4.4
 * The crypt_* functions will now all fail and set errno to ERANGE if
