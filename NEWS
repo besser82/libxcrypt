@@ -3,6 +3,8 @@ libxcrypt NEWS -- history of user-visible changes.
 Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
+Version 4.4.6
+
 Version 4.4.5
 * Fix alignment problem for GOST 34.11 (Streebog) in gost-yestcrypt.
   Some architectures in some circumstances do not allow unaligned
