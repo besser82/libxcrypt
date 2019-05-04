@@ -149,7 +149,7 @@ g(uint512_u *h, const uint512_u *N, const unsigned char *m)
 static inline void
 stage2(GOST34112012Context *CTX, const unsigned char *data)
 {
-    union uint512_u m;
+    uint512_u m;
 
     memcpy(&m, data, sizeof(m));
     g(&(CTX->h), &(CTX->N), (const unsigned char *)&m);
