@@ -75,7 +75,7 @@
 %endif
 
 %if %{with compat_pkg}
-%global compat_methods glibc
+%global compat_methods all
 %global compat_api     glibc
 %endif
 
