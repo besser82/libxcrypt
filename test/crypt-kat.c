@@ -214,7 +214,7 @@ calc_hashes_crypt_r_rn (ARG_UNUSED (void *unused))
   for (i = 0; i < ntests; i++)
     {
       strncpy(u.pass + 1, tests[i].input, CRYPT_MAX_PASSPHRASE_SIZE);
-      printf("[%d]: %s %s\n", strlen(tests[i].input), tests[i].input, tests[i].salt);
+      printf("[%zu]: %s %s\n", strlen(tests[i].input), tests[i].input, tests[i].salt);
       errno = 0;
       hash = crypt_r (u.pass + 1, tests[i].salt, &data);
       status |= report_result ("crypt_r", hash, errno, &tests[i],
