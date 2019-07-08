@@ -139,17 +139,11 @@ and does not show the division into prefix, options, salt, and hash.
 .de hash
 .Bl -tag -width 2n
 .It Sy Prefix
-.\" mandoc bug: .Qq comes out with curly quptes.
-.\" mandoc bug: .Li is hyperlinked to itself for no apparent reason.
-.Bf Li
-"\\$1"
-.Ef
+.\" mandoc bug: .Qq comes out with curly quotes.
+.Li \(dq\\$1\(dq
 .if "\\$1"" (empty string)
 .It Sy Hashed passphrase format
-.\" mandoc bug: .Li is hyperlinked to itself for no apparent reason.
-.Bf -literal
-\&\\$2
-.Ef
+.Li \\$2
 .It Sy Maximum passphrase length
 .ie "\\$3"unlimited" unlimited
 .el \\$3 characters
@@ -167,27 +161,35 @@ and does not show the division into prefix, options, salt, and hash.
 .El
 ..
 .Ss yescrypt
-yescrypt is a scalable passphrase hashing scheme designed by Solar Designer,
-which is based on Colin Percival's scrypt.
+An improved version of
+.Sx scrypt
+(see below),
+developed by Solar Designer,
+with better resistance to a wider variety of
+hardware-accelerated brute force attacks.
 Recommended for new hashes.
 .hash "$y$" "\e$y\e$[./A-Za-z0-9]+\e$[./A-Za-z0-9]{,86}\e$[./A-Za-z0-9]{43}" unlimited 8 256 256 "up to 512" "1 to 11 (logarithmic)"
 .Ss gost-yescrypt
-gost-yescrypt uses the output from the yescrypt hashing method in place of a
-hmac message.  Thus, the yescrypt crypto properties are superseeded by the
-GOST R 34.11-2012 (Streebog) hash function with a 256 bit digest.
-This hashing method is useful in applications that need modern passphrase
-hashing methods, but require to rely on the cryptographic properties of GOST
-algorithms.
-The GOST R 34.11-2012 (Streebog) hash function has been published by the IETF
-as RFC 6986.
-Recommended for new hashes.
+A modification of
+.Sx yescrypt
+in which the hash is postprocessed through a single round of
+HMAC-Streebog (GOST R 34.11-2012; also published as RFC 6986).
+It is as difficult to brute-force as yescrypt,
+but its cryptographic strength is
+.Em only
+dependent on the strength of Streebog.
+Acceptable for new hashes;
+intended for use in contexts
+where reliance on GOST-standardized cryptography is required.
 .hash "$gy$" "\e$gy\e$[./A-Za-z0-9]+\e$[./A-Za-z0-9]{,86}\e$[./A-Za-z0-9]{43}" unlimited 8 256 256 "up to 512" "1 to 11 (logarithmic)"
 .Ss scrypt
-scrypt is a password-based key derivation function created by Colin Percival,
-originally for the Tarsnap online backup service.
-The algorithm was specifically designed to make it costly to perform
-large-scale custom hardware attacks by requiring large amounts of memory.
-In 2016, the scrypt algorithm was published by IETF as RFC 7914.
+A hash created by Colin Percival,
+originally for the Tarsnap online backup service,
+and standardized by the IETF as RFC 7914.
+Acceptable for new hashes,
+but not significantly stronger than
+.Sx bcrypt
+(see below), and not as widely supported.
 .hash "$7$" "\e$7\e$[./A-Za-z0-9]{11,97}\e$[./A-Za-z0-9]{43}" unlimited 8 256 256 "up to 512" "6 to 11 (logarithmic)"
 .Ss bcrypt
 A hash based on the Blowfish block cipher,
@@ -195,18 +197,28 @@ modified to have an extra-expensive key schedule.
 Originally developed by Niels Provos and David Mazieres for OpenBSD
 and also supported on recent versions of FreeBSD and NetBSD,
 on Solaris 10 and newer, and on several GNU/*/Linux distributions.
+Recommended for new hashes when yescrypt is not available.
 .hash "$2b$" "\e$2[abxy]\e$[0-9]{2}\e$[./A-Za-z0-9]{53}" 72 8 184 184 128 "4 to 31 (logarithmic)"
 .Pp
-The alternative prefix "$2y$" is equivalent to "$2b$".
+The alternative prefix
+.Sq Li $2y$
+is equivalent to
+.Sq Li $2b$ .
 It exists for historical reasons only.
-The alternative prefixes "$2a$" and "$2x$"
+The alternative prefixes
+.Sq Li $2a$
+and
+.Sq Li $2x$
 provide bug-compatibility with crypt_blowfish 1.0.4 and earlier,
 which incorrectly processed characters with the 8th bit set.
+Only
+.Sq Li $2b$
+should be used for new hashes.
 .Ss sha512crypt
 A hash based on SHA-2 with 512-bit output,
 originally developed by Ulrich Drepper for GNU libc.
 Supported on Linux but not common elsewhere.
-Acceptable for new hashes.
+Acceptable for new hashes, but not recommended.
 The default CPU time cost parameter is 5000,
 which is too low for modern hardware.
 .hash "$6$" "\e$6\e$(rounds=[1-9][0-9]+\e$)?[./0-9A-Za-z]{1,16}\e$[./0-9A-Za-z]{86}" unlimited 8 512 512 "6 to 96" "1000 to 999,999,999"
@@ -214,7 +226,6 @@ which is too low for modern hardware.
 A hash based on SHA-2 with 256-bit output,
 originally developed by Ulrich Drepper for GNU libc.
 Supported on Linux but not common elsewhere.
-Acceptable for new hashes.
 The default CPU time cost parameter is 5000,
 which is too low for modern hardware.
 .hash "$5$" "\e$5\e$(rounds=[1-9][0-9]+\e$)?[./0-9A-Za-z]{1,16}\e$[./0-9A-Za-z]{43}" unlimited 8 256 256 "6 to 96" "1000 to 999,999,999"
@@ -226,7 +237,7 @@ but SHA1 is so cheap on modern hardware
 that it should not be used for new hashes.
 .hash "$sha1" "\e$sha1\e$[1-9][0-9]+\e$[./0-9A-Za-z]{1,64}\e$[./0-9A-Za-z]{8,64}[./0-9A-Za-z]{32}" unlimited 8 160 160 "6 to 384" "4 to 4,294,967,295"
 .Ss SunMD5
-A hash based on the MD5 algorithm,
+A hash based on MD5,
 with additional cleverness to make precomputation difficult,
 originally developed by Alec David Muffet for Solaris.
 Not adopted elsewhere, to our knowledge.
@@ -235,16 +246,18 @@ but MD5 is so cheap on modern hardware
 that it should not be used for new hashes.
 .hash "$md5" "\e$md5(,rounds=[1-9][0-9]+)?\e$[./0-9A-Za-z]{8}\e${1,2}[./0-9A-Za-z]{22}" unlimited 8 128 128 48 "4096 to 4,294,963,199"
 .Ss md5crypt
-A hash based on the MD5 algorithm, originally developed by
-Poul-Henning Kamp for FreeBSD.
+A hash based on MD5,
+originally developed by Poul-Henning Kamp for FreeBSD.
 Supported on most free Unixes and newer versions of Solaris.
 Not as weak as the DES-based hashes below,
 but MD5 is so cheap on modern hardware
 that it should not be used for new hashes.
 CPU time cost is not adjustable.
 .hash "$1$" "\e$1\e$[^$]{1,8}\e$[./0-9A-Za-z]{22}" unlimited 8 128 128 "6 to 48" 1000
-.Ss bsdicrypt (BSDI extended DES)
-A weak extension of traditional DES,
+.Ss bsdicrypt
+A weak extension of
+.Sx descrypt
+(see below),
 which eliminates the length limit,
 increases the salt size,
 and makes the time cost tunable.
@@ -253,16 +266,19 @@ and is also available on at least NetBSD, OpenBSD, and FreeBSD
 due to the use of David Burren's FreeSec library.
 It is better than bigcrypt and traditional DES,
 but still should not be used for new hashes.
-.hash _ "_[./0-9A-Za-z]{19}" unlimited 7 56 64 24 "1 to 16,777,215 (must be odd)"
+.hash "_" "_[./0-9A-Za-z]{19}" unlimited 7 56 64 24 "1 to 16,777,215 (must be odd)"
 .Ss bigcrypt
-A weak extension of traditional DES,
+A weak extension of
+.Sx descrypt
+(see below),
 available on some System V-derived Unixes.
-All it does is raise the length limit from 8 to 128 characters,
-and it does this in a crude way that allows attackers to
-guess chunks of a long passphrase in parallel.
+It raises the length limit from 8 to 128 characters,
+but does not change anything else.
+Attackers can guess 8-character segments of a long passphrase
+without knowing the rest.
 It should not be used for new hashes.
 .hash "" "[./0-9A-Za-z]{13,178}" 128 7 "up to 896" "up to 1024" 12 25
-.Ss descrypt (Traditional DES)
+.Ss descrypt
 The original hashing method from Unix V7, based on the DES block cipher.
 Because DES is cheap on modern hardware,
 because there are only 4096 possible salts and 2**56 possible hashes,
