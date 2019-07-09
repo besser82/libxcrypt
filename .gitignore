@@ -90,6 +90,9 @@ test/preferred-method
 test/short-outbuf
 /xcrypt.h
 
+# rendered documentation
+doc/**/*.[1-9].html
+
 # backup-files
 *~
 

@@ -1,0 +1,142 @@
+/*! CSS for mandoc+postprocess-mandoc manpages.
+ *  Copyright 2018 Zack Weinberg.
+ *  Copying and distribution of this file, with or without
+ *  modification, are permitted in any medium without royalty provided
+ *  the copyright notice and this notice are preserved.  This file is
+ *  offered as-is, without any warranty.  */
+
+/* Fonts */
+@font-face {
+    font-family: "Linux Biolinum";
+    font-weight: normal;
+    font-style: normal;
+    src:
+      local("Linux Biolinum O"), local("LinBiolinumO"),
+      url("f/LinBiolinum_R.otf") format("otf");
+}
+@font-face {
+    font-family: "Linux Biolinum";
+    font-weight: bold;
+    font-style: normal;
+    src:
+      local("Linux Biolinum O Bold"), local("LinBiolinumOB"),
+      url("f/LinBiolinum_RB.otf") format("otf");
+}
+@font-face {
+    font-family: "Linux Biolinum";
+    font-weight: normal;
+    font-style: italic;
+    src:
+      local("Linux Biolinum O Italic"), local("LinBiolinumOI"),
+      url("f/LinBiolinum_RI.otf") format("otf");
+}
+
+
+/* Large scale structure */
+body {
+    max-width: 40em;
+    margin: 1em;
+}
+section {
+    margin-left: 0.5em;
+}
+section > h1, section > h2, section > h3,
+section > h4, section > h5, section > h6 {
+    margin-left: -0.5em;
+    font-family: "Biolinum", "Linux Biolinum", sans-serif;
+}
+
+header, footer {
+    margin-left: -0.5em;
+    margin-right: -0.5em;
+    width: calc(100% + 1em);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+header > p, header > h1, footer > p, footer > h1 {
+    font-size: 24px;
+    font-weight: bold;
+    line-height: 1;
+    font-family: "Biolinum", "Linux Biolinum", sans-serif;
+}
+header > p, header > h1 {
+    margin: 0 0 1em 0;
+}
+footer > p, footer > h1 {
+    margin: 1em 0 0 0;
+}
+
+@media all and (min-width: 50em) {
+    body { margin-left: 5em; }
+    section { margin-left: 2em; }
+    section > h1, section > h2, section > h3,
+    section > h4, section > h5, section > h6 {
+        margin-left: -2em;
+    }
+    header, footer {
+        margin-left: -3em;
+        margin-right: -3em;
+        width: calc(100% + 6em);
+    }
+}
+
+ul#tnU {
+    margin-top: 0;
+}
+li.tnL {
+    display: inline-block;
+    padding-left: 0.75em;
+}
+li.tnL::before {
+    content: "↬"
+}
+a.tnA {
+    text-decoration: none;
+    font-size: 12px;
+    font-family: "Biolinum", "Linux Biolinum", sans-serif;
+}
+/* Typography */
+body {
+    font-size: 16px;
+    line-height: 1.5;
+}
+h2 { font-size: 20px; }
+h3 { font-size: 18px; }
+h4, h5, h6 { font-size: 16px }
+main p {
+    text-indent: 1em;
+    hyphens: auto;
+}
+main p, main dl, main multicol {
+    margin-block-start: 0.5em;
+    margin-block-end: 0.5em;
+}
+dd > p:first-child, li > p:first-child,
+#NAME > p, #LIBRARY > p, #SYNOPSIS > p, #SEE_ALSO > p {
+    text-indent: 0;
+    margin-block-start: 0;
+}
+dt {
+    margin-bottom: 0
+}
+table.tbl-attributes {
+    table-layout: fixed;
+    width: 90%;
+    margin: 0 auto;
+}
+.Li {
+    font-family: monospace;
+}
+main p.Li {
+    /* for the long regular expressions in crypt.5 */
+    margin-left: 4em;
+    text-indent: -4em;
+}
+
+cite.Rs {
+    font-style: normal;
+}
+.RsT { quotes: '“' '”' '‘' '’'; }
+.RsT::before { content: open-quote; }
+.RsT::after { content: close-quote; }
