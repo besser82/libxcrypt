@@ -4,6 +4,8 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.7
+* LICENSING: Add missing files and update license information.
+* Fix -Wformat in test/crypt-kat.c.
 
 Version 4.4.6
 * Make unalignment test really unaligned.
