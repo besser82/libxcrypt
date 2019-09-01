@@ -33,7 +33,10 @@ EXTRA_DIST = \
 	lib/gen-vers.awk \
 	lib/hashes.lst \
 	lib/libcrypt.map.in \
-	lib/libcrypt.minver \
+	lib/libcrypt.minver.linux \
+	lib/libcrypt.minver.kfreebsd \
+	lib/libcrypt.minver.hurd \
+	lib/libcrypt.minver.no \
 	lib/sel-hashes.awk \
 	lib/xcrypt.h.in \
 	m4/skip-if-exec-format-error \
@@ -155,7 +158,7 @@ libcrypt_la_LDFLAGS += $(UNDEF_FLAG) $(TEXT_RELOC_FLAG) $(AM_LDFLAGS)
 
 libcrypt_la_CPPFLAGS = $(AM_CPPFLAGS) -DIN_LIBCRYPT
 
-CONFIG_STATUS_DEPENDENCIES = lib/libcrypt.minver
+CONFIG_STATUS_DEPENDENCIES = lib/libcrypt.minver.$(MINVER_OS)
 EXTRA_libcrypt_la_DEPENDENCIES = libcrypt.map
 CLEANFILES = \
 	Makefile.deps Makefile.deps.T \

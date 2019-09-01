@@ -431,38 +431,51 @@ if test x$enable_shared != xyes; then enable_obsolete_api=0; fi
 
 # Determine whether there's even a GNU libc on this system that we
 # need to be binary backward compatible with.
+MINVER_OS=no
 SYMVER_FLOOR=none
 if test $enable_obsolete_api = 1; then
   AC_MSG_CHECKING([minimum symbol version to use for compatibility symbols])
   case $host_os in
-    *linux*)
-      while read pattern version cond; do
-        if test -z "$pattern" || test "x$pattern" = 'x#'; then
-          continue
-        fi
-        if expr "$host_cpu" : "$pattern" > /dev/null; then
-          if test -z "$cond"; then
-            cond_matched=yes
-          else
-            AC_PREPROC_IFELSE([AC_LANG_SOURCE([[
-#include <limits.h>
-#if $cond
-#error yes
-#endif
-            ]])],
-            [cond_matched=no], [cond_matched=yes])
-          fi
-          if test $cond_matched = yes; then
-            SYMVER_FLOOR="$version"
-            break
-          fi
-        fi
-      done < ${srcdir}/lib/libcrypt.minver
-    ;;
-
     *gnu*)
-        # glibc exists for GNU Hurd, but it is unclear to me whether
-        # it has a stable ABI yet.  For now, we are assuming not.
+      # GNU Systems use glibc
+      case $host_os in
+        *linux*)
+          MINVER_OS=linux
+          ;;
+        kfreebsd-gnu*)
+          MINVER_OS=kfreebsd
+          ;;
+        gnu*)
+          MINVER_OS=hurd
+          ;;
+        *)
+          ;;
+      esac
+
+      if test $MINVER_OS != no ; then
+        while read pattern version cond; do
+          if test -z "$pattern" || test "x$pattern" = 'x#'; then
+            continue
+          fi
+          if expr "$host_cpu" : "$pattern" > /dev/null; then
+            if test -z "$cond"; then
+              cond_matched=yes
+            else
+              AC_PREPROC_IFELSE([AC_LANG_SOURCE([[
+  #include <limits.h>
+  #if $cond
+  #error yes
+  #endif
+              ]])],
+              [cond_matched=no], [cond_matched=yes])
+            fi
+            if test $cond_matched = yes; then
+              SYMVER_FLOOR="$version"
+              break
+            fi
+          fi
+        done < ${srcdir}/lib/libcrypt.minver.$MINVER_OS
+      fi
     ;;
 
     *)
@@ -479,6 +492,7 @@ if test x"$SYMVER_FLOOR" = xnone; then
 else
   SYMVER_MIN=GLIBC_2.0
 fi
+AC_SUBST([MINVER_OS])
 AC_SUBST([SYMVER_FLOOR])
 AC_SUBST([SYMVER_MIN])
 
