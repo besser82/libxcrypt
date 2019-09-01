@@ -4,6 +4,7 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.8
+* Add binary compatibility for GNU/Hurd and GNU/kFreeBSD.
 
 Version 4.4.7
 * LICENSING: Add missing files and update license information.
