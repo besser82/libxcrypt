@@ -145,7 +145,7 @@ SHA256_Transform(uint32_t state[static restrict 8],
 	memcpy(S, state, 32);
 
 	/* 3. Mix. */
-	for (i = 0; i < 64; i += 16) {
+	for (i = 0; i <= 48; i += 16) {
 		RNDr(S, W, 0, i);
 		RNDr(S, W, 1, i);
 		RNDr(S, W, 2, i);
@@ -165,6 +165,7 @@ SHA256_Transform(uint32_t state[static restrict 8],
 
 		if (i == 48)
 			break;
+
 		MSCH(W, 0, i);
 		MSCH(W, 1, i);
 		MSCH(W, 2, i);
