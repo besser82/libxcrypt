@@ -4,6 +4,8 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.10
+* Fix ordering of hash methods in crypt-hashes.h when generated
+  using gawk < 4.1.0.
 
 Version 4.4.9
 * Fix false positive finding from CovScan.

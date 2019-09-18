@@ -129,7 +129,7 @@ END {
     print "#define _CRYPT_HASHES_H 1"
 
     print ""
-    for (i in output_order) {
+    for (i = 0; i < next_output; ++i) {
         hash = output_order[i]
         printf("#define INCLUDE_%-13s %d\n", hash, hash_enabled[hash])
         if (hash_enabled[hash] && default_cand[hash] != "" && default_prefix == "") {
@@ -139,7 +139,7 @@ END {
 
     print ""
     print "/* Internal symbol renames for static linkage, see crypt-port.h.  */"
-    for (i in output_order) {
+    for (i = 0; i < next_output; ++i) {
         hash = output_order[i]
         if (hash_enabled[hash]) {
             print renames[hash]
@@ -147,7 +147,7 @@ END {
     }
 
     print "/* Prototypes for hash algorithm entry points.  */"
-    for (i in output_order) {
+    for (i = 0; i < next_output; ++i) {
         hash = output_order[i]
         if (hash_enabled[hash]) {
             print prototypes[hash]
@@ -155,7 +155,7 @@ END {
     }
 
     print "#define HASH_ALGORITHM_TABLE_ENTRIES \\"
-    for (i in output_order) {
+    for (i = 0; i < next_output; ++i) {
         hash = output_order[i]
         if (hash_enabled[hash]) {
             print table_entry[hash]
