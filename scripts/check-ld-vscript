@@ -1,0 +1,131 @@
+#! /usr/bin/python3
+#
+#   Copyright 2019, 2020 Zack Weinberg
+#
+#   This library is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU Lesser General Public License
+#   as published by the Free Software Foundation; either version 2.1 of
+#   the License, or (at your option) any later version.
+#
+#   This library is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#
+#   You should have received a copy of the GNU Lesser General Public
+#   License along with this library; if not, see
+#   <https://www.gnu.org/licenses/>.
+#
+#   Based on ax_check_vscript.m4:
+#
+#   Copyright (c) 2014 Kevin Cernekee <cernekee@gmail.com>
+#
+#   Copying and distribution of this file, with or without modification, are
+#   permitted in any medium without royalty provided the copyright notice
+#   and this notice are preserved. This file is offered as-is, without any
+#   warranty.
+
+"""Test whether the linker supports ELF symbol versioning."""
+
+import argparse
+import os
+import sys
+import subprocess
+
+from common import (
+    log_exc,
+    run,
+    scratch_working_directory,
+    write_file,
+)
+
+
+#
+# Generate version scripts, apply them to a test shared library, and
+# see if they had the desired effect of hiding certain symbols.
+#
+C_TEST_PROGRAMS = [
+    ("libtest.c", "int show;\nint hide;\n"),
+    ("use-show.c", "extern int show;\nint main(void) { return show; }\n"),
+    ("use-hide.c", "extern int hide;\nint main(void) { return hide; }\n"),
+]
+
+
+def check_vscript_option(cc_cmd, flag):
+    """Generate a version script and attempt to apply it to a test
+       program, using FLAG."""
+
+    # The C programs we use for the test are always the same.
+    for c_fname, contents in C_TEST_PROGRAMS:
+        o_fname = c_fname.replace(".c", ".o")
+        if not os.path.exists(c_fname):
+            write_file(c_fname, contents)
+        if not os.path.exists(o_fname):
+            run(cc_cmd + ["-c", "-o", o_fname, c_fname])
+
+    if not os.path.exists("libtest.map"):
+        write_file("libtest.map", "V1 { global: show; local: *; };\n")
+
+    # Can we link a shared library from lib.o and lib.map, using FLAG?
+    try:
+        run(cc_cmd + ["-shared", "-Wl,{},{}".format(flag, "libtest.map"),
+                      "-o", "libtest.so", "libtest.o"])
+
+    except subprocess.CalledProcessError as e:
+        log_exc(e)
+        return False
+
+    # It should be possible to link a program from use-show.o and libtest.so,
+    # and it should NOT be possible to link from use-hide.o and libtest.so.
+    try:
+        run(cc_cmd + ["-o", "use-show", "use-show.o", "libtest.so"])
+    except subprocess.CalledProcessError as e:
+        log_exc(e)
+        return False
+
+    try:
+        run(cc_cmd + ["-o", "use-hide", "use-hide.o", "libtest.so"])
+    except subprocess.CalledProcessError as e:
+        log_exc(e)
+        return True
+
+    return False
+
+
+def check_vscript(cc_cmd):
+    """Try various options for applying a version script to a shared
+       library.  If we find one that works, print it to stdout and
+       exit the program successfully.  Otherwise print nothing to
+       stdout and exit the program unsuccessfully.
+    """
+    for candidate in ["--version-script", "-M"]:
+        if check_vscript_option(cc_cmd, candidate):
+            sys.stdout.write(candidate + "\n")
+            sys.stdout.flush()
+            sys.exit(0)
+
+    sys.exit(1)
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("cc_cmd", nargs=argparse.REMAINDER,
+                    help="Command line to invoke the compiler."
+                    " We assume this compiler recognizes options -c -o"
+                    " and -Wl, with the same semantics as GCC.")
+    args = ap.parse_args()
+
+    try:
+        # There doesn't seem to be any way to have meson run this script
+        # in the scratch directory that it uses for compile tests.
+        # run_command() runs from wherever 'meson' was invoked.
+        # Switch into a scratch directory.
+        with scratch_working_directory():
+            check_vscript(args.cc_cmd)
+
+    except Exception as e:
+        log_exc(e)
+        sys.exit(2)
+
+
+main()

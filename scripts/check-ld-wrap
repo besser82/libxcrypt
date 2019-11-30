@@ -1,0 +1,93 @@
+#! /usr/bin/python3
+#
+#   Copyright 2019 Zack Weinberg
+#
+#   This library is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU Lesser General Public License
+#   as published by the Free Software Foundation; either version 2.1 of
+#   the License, or (at your option) any later version.
+#
+#   This library is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#
+#   You should have received a copy of the GNU Lesser General Public
+#   License along with this library; if not, see
+#   <https://www.gnu.org/licenses/>.
+
+"""Test whether the linker supports GNU ld's --wrap option.  This is
+needed to interpose C library functions while testing our library."""
+
+import argparse
+import sys
+import subprocess
+
+from common import (
+    run,
+    scratch_working_directory,
+    write_file,
+)
+
+
+#
+# The actual test: we compile these two translation units separately,
+# and then link them together, supplying -Wl,--wrap,bar on the command
+# line.  If --wrap does what we want, the reference to 'bar' from
+# conftest1.o will be resolved to '__wrap_bar' in conftest2.o and the
+# link will succeed.
+#
+CONFTEST1_C = '''\
+extern void bar(void);
+void foo(void) { bar(); }
+'''
+
+
+CONFTEST2_C = '''\
+extern void foo(void);
+void __wrap_bar(void) {}
+int main(void) { foo(); return 0; }
+'''
+
+
+def check_ld_wrap(cc_cmd):
+    write_file("conftest1.c", CONFTEST1_C)
+    write_file("conftest2.c", CONFTEST2_C)
+
+    run(cc_cmd + ["-c", "-o", "conftest1.o", "conftest1.c"])
+    run(cc_cmd + ["-c", "-o", "conftest2.o", "conftest2.c"])
+
+    try:
+        run(cc_cmd + ["-Wl,--wrap,bar", "-o", "conftest.x",
+                      "conftest1.o", "conftest2.o"])
+
+    except subprocess.CalledProcessError as e:
+        if e.returncode < 0:
+            raise
+        sys.exit(1)
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("cc_cmd", nargs=argparse.REMAINDER,
+                    help="Command line to invoke the compiler."
+                    " We assume this compiler recognizes options -c -o"
+                    " and -Wl, with the same semantics as GCC.")
+    args = ap.parse_args()
+
+    try:
+        # There doesn't seem to be any way to have meson run this script
+        # in the scratch directory that it uses for compile tests.
+        # run_command() runs from wherever 'meson' was invoked.
+        # Switch into a scratch directory.
+        with scratch_working_directory():
+            check_ld_wrap(args.cc_cmd)
+
+        sys.exit(0)
+
+    except Exception as e:
+        sys.stderr.write("check-ld-wrap: " + str(e))
+        sys.exit(2)
+
+
+main()

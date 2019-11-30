@@ -9,129 +9,85 @@ inventory of the copyright holders and licenses of all files in the
 source tree.  For specific licensing terms consult the files themselves.
 
  * Copyright Thorsten Kukuk, Björn Esser, Zack Weinberg; LGPL (v2.1 or later):
-   crypt.c, crypt-static.c, crypt-gensalt-static.c, crypt-port.h
+   lib/crypt.c, lib/crypt-static.c, lib/crypt-gensalt-static.c,
+   lib/crypt-port.h
 
  * Copyright Free Software Foundation, Inc.; LGPL (v2.1 or later):
-   crypt.h, crypt-obsolete.h, crypt-md5.c,
-   test-badsalt.c, test-crypt-nonnull.c
+   lib/crypt.h, lib/crypt-obsolete.h, lib/crypt-md5.c,
+   test/badsalt.c
 
  * Copyright David Burren et al.; 3-clause BSD:
-   alg-des.h, alg-des.c, alg-des-tables.c,
-   crypt-des.c, crypt-des-obsolete.c, gen-des-tables.c
+   lib/alg-des.h, lib/alg-des.c, lib/alg-des-tables.c,
+   lib/crypt-des.c, lib/crypt-des-obsolete.c, lib/gen-des-tables.c
 
  * Public domain, written by Ulrich Drepper et al.:
-   crypt-sha256.c, crypt-sha512.c
+   lib/crypt-sha256.c, lib/crypt-sha512.c
 
  * Public domain, written by Solar Designer et al.:
-   alg-md4.h, alg-md4.c, alg-md5.h, alg-md5.c,
-   crypt-bcrypt.c, crypt-gensalt.c, test-crypt-bcrypt.c
+   lib/alg-md4.h, lib/alg-md4.c, lib/alg-md5.h, lib/alg-md5.c,
+   lib/crypt-bcrypt.c, lib/crypt-gensalt.c,
 
  * Copyright Solar Designer, Colin Percival; 0-clause BSD:
-   alg-yescrypt-common.c, alg-yescrypt-platform.c
+   lib/alg-yescrypt-common.c, lib/alg-yescrypt-platform.c
 
  * Copyright Solar Designer, Colin Percival; 2-clause BSD:
-   alg-sha256.c, alg-sha256.h, alg-yescrypt.h, alg-yescrypt-opt.c,
-   alg-yescrypt-sysendian.h
+   lib/alg-sha256.c, lib/alg-sha256.h, lib/alg-yescrypt.h,
+   lib/alg-yescrypt-opt.c, lib/alg-yescrypt-sysendian.h
 
  * Copyright Colin Percival; 2-clause BSD:
-   alg-sha512.h, alg-sha512.c
+   lib/alg-sha512.h, lib/alg-sha512.c
 
  * Copyright Alexey Degtyarev; 2-clause BSD:
-   alg-gost3411-2012-const.h, alg-gost3411-2012-core.c,
-   alg-gost3411-2012-core.h, alg-gost3411-2012-precalc.h,
-   alg-gost3411-2012-ref.h
+   lib/alg-gost3411-2012-const.h, lib/alg-gost3411-2012-core.c,
+   lib/alg-gost3411-2012-core.h, lib/alg-gost3411-2012-precalc.h,
+   lib/alg-gost3411-2012-ref.h
 
  * Copyright Vitaly Chikunov, Björn Esser; 0-clause BSD:
-   alg-gost3411-2012-hmac.c, alg-gost3411-2012-hmac.h,
-   crypt-gost-yescrypt.c, test-alg-gost3411-2012.c,
-   test-alg-gost3411-2012-hmac.c, test-crypt-gost-yescrypt.c,
-   test-crypt-scrypt.c
+   lib/alg-gost3411-2012-hmac.c, lib/alg-gost3411-2012-hmac.h,
+   lib/crypt-gost-yescrypt.c, test/alg-gost3411-2012.c,
+   test/alg-gost3411-2012-hmac.c, test/crypt-gost-yescrypt.c
 
  * Copyright Alexander Peslyak; 0-clause BSD:
-   test-alg-yescrypt.c
+   test/alg-yescrypt.c
 
  * Copyright Alexander Peslyak, Björn Esser; 0-clause BSD:
-   crypt-scrypt.c
+   lib/crypt-scrypt.c
 
  * Copyright Björn Esser; 0-clause BSD:
-   crypt-common.c, test-checksalt.c, test-compile-strong-alias.c,
-   test-gensalt-nthash.c, test-short-outbuf.c
+   lib/crypt-common.c, test/checksalt.c, test/compile-strong-alias.c,
+   test/gensalt-nthash.c, test/short-outbuf.c
 
  * Copyright Michael Bretterklieber, Björn Esser et al.; 2-clause BSD:
-   crypt-nthash.c
+   lib/crypt-nthash.c
 
  * Copyright Zack Weinberg; 2-clause BSD:
-   crypt-sunmd5.c
+   lib/crypt-sunmd5.c
 
  * Public domain, written by Steve Reid et al.:
-   alg-sha1.c, alg-sha1.h, test-alg-sha1.c
+   lib/alg-sha1.c, lib/alg-sha1.h, test/alg-sha1.c
 
  * Copyright Juniper Networks, Inc.; 3-clause BSD:
-   crypt-pbkdf1-sha1.c, crypt-pbkdf1-sha1.c
+   lib/crypt-pbkdf1-sha1.c, lib/crypt-pbkdf1-sha1.c
 
  * Copyright Björn Esser; 2-clause BSD:
-   alg-hmac-sha1.c, alg-hmac-sha1.h, test-alg-hmac-sha1.c
+   lib/alg-hmac-sha1.c, lib/alg-hmac-sha1.h, test/alg-hmac-sha1.c
 
  * Public domain, written by Zack Weinberg et al.:
-   byteorder.h, randombytes.c, test-byteorder.c
-   test-alg-pbkdf-hmac-sha256.c
-   gen-crypt-h.awk, gen-map.awk, gen-vers.awk
-   test-badsetting.c, test-crypt-badargs.c, test-getrandom-fallbacks.c,
-   test-getrandom-interface.c, test-symbols-compat.sh,
-   test-symbols-renames.sh, test-symbols-static.sh
-   m4/zw_alignment.m4, m4/zw_static_assert.m4, m4/zw_endianness.m4,
-   m4/zw_ld_wrap.m4, m4/skip-if-exec-format-error
-
- * Copyright Zack Weinberg and Free Software Foundation, Inc;
-   GPL (v3 or later), with Autoconf exception:
-   m4/zw_automodern.m4, m4/zw_simple_warnings.m4
+   lib/byteorder.h, lib/randombytes.c,
+   test/alg-pbkdf-hmac-sha256.c, test/badsetting.c, test/byteorder.c,
+   test/crypt-badargs.c, test/getrandom-fallbacks.c,
+   test/getrandom-interface.c
 
  * Copyright <vt at altlinux.org>; 0-clause BSD:
-   crypt-yescrypt.c, test-crypt-yescrypt.c
-
- * Copyright Kevin Cernekee; FSF All Permissive License:
-   m4/ax_check_vscript.m4
-
- * Copyright Maarten Bosmans; FSF All Permissive License:
-   m4/ax_append_compile_flags.m4
-
- * Copyright Guido U. Draheim, Maarten Bosmans;
-   FSF All Permissive License:
-   m4/ax_append_flag.m4, m4/ax_check_compile_flag.m4
-
- * Copyright Mike Frysinger; FSF All Permissive License:
-   m4/ax_require_defined.m4
-
- * Copyright Scott James Remnant, Dan Nicholson;
-   GPL (v2 or later), with Autoconf exception:
-   m4/pkg_installdir_compat.m4
-
- * Copyright Tim Toolan; FSF All Permissive License:
-   m4/ax_compare_version.m4
-
- * Copyright Philip Withnall; FSF All Permissive License:
-   m4/ax_valgrind_check.m4
-
- * Copyright Steven G. Johnson, Daniel Richard G.;
-   GPL (v3 or later), with Autoconf exception:
-   m4/ax_pthread.m4
-
- * Copyright Francesco Salvestrini; FSF All Permissive License:
-   m4/ax_prog_python_version.m4
-
- * Copyright Andrew Collier; FSF All Permissive License:
-   m4/ax_python_module.m4
+   lib/crypt-yescrypt.c
 
  * Copyright holders unknown, no statement of license (all of these
    files are part of the testsuite and do not contribute to the
    installed library or its headers):
-   test-alg-des.c, test-alg-md4.c (adaption of test-alg-md5.c),
-   test-alg-md5.c, test-alg-sha256.c, test-alg-sha512.c, test-crypt-des.c,
-   test-crypt-md5.c, test-crypt-sha256.c, test-crypt-sha512.c,
-   test-des-cases.h, test-des-obsolete{,_r}.c, test-gensalt.c,
-   test-crypt-nthash.c (adaption of test-crypt-des.c),
-   test-crypt-sunmd5.c (adaption of test-crypt-des.c),
-   test-crypt-pbkdf1-sha1.c (adaption of test-crypt-des.c)
+   test/alg-des.c, test/alg-md4.c (adaption of test/alg-md5.c),
+   test/alg-md5.c, test/alg-sha256.c, test/alg-sha512.c,
+   test/des-cases.h, test/des-obsolete.c, test/des-obsolete_r.c,
+   test/gensalt.c
 
  * The NEWS file formerly contained the following copyright assertions:
 

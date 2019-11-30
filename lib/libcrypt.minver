@@ -1,0 +1,89 @@
+# This file defines the minimum symbol version number used by the
+# system-provided libcrypt, for each CPU and OS where libxcrypt can be
+# binary backward compatible with it.  See also lib/libcrypt.map.in,
+# scripts/compute-symver-floor, and scripts/gen-libcrypt-map.
+#
+# Lines in this file that start with '#' are comments; # is not
+# otherwise significant.  Blank lines are ignored.  All other lines
+# must have four or five columns: VERSION, SYSTEM, CPU_FAMILY,
+# ENDIANNESS, and PREPROCESSOR_CHECK, in that order.
+#
+# VERSION is the minimum symbol version to use on hosts where SYSTEM,
+# CPU_FAMILY, and ENDIANNESS agree with meson's host_machine.system(),
+# host_machine.cpu_family(), and host_machine.endian() values.  Any or
+# all of these may be a '*', which means 'any value'.  (However, these
+# are not glob expressions; anything other than '*' is compared with
+# the corresponding host_machine property as an ASCII-case-insensitive
+# string.)
+#
+# If there is anything more on the line after the ENDIANNESS field,
+# all of it is taken as a preprocessor #if expression which must be
+# true for this line's version number to be used.  The macros defined
+# in <limits.h> are available to this expression.  This mechanism is
+# for subarchitectures that do not change host_machine.cpu_family(),
+# e.g. x32 (I wish they wouldn't do that...)
+#
+# The symbol version XCRYPT_2.0 is special; if this file selects that
+# version as the minimum for some platform, meson.build will
+# automatically switch into -Dobsolete-api=false mode.  This is used
+# for platforms where either we have not yet implemented binary
+# backward compatibility with the system-provided libcrypt, or we know
+# there is no system-provided libcrypt to be compatible with.
+#
+# The symbol version ERROR is special; if this file selects that
+# version as the minimum for some platform, configuration will fail.
+# This is used for platforms where we know we ought to support
+# backward binary compatibility and the library shouldn't be allowed
+# to be used until someone's set this up properly.
+#
+# The entries below should be sorted in alphabetical order by the
+# SYSTEM, CPU, ENDIANNESS, and PREPROCESSOR_CHECK fields, except that
+# wildcards must be sorted below non-wildcards and empty
+# PREPROCESSOR_CHECK must be sorted below non-empty.
+
+# Future cleanup: the ERROR lines for 'gnu', 'kfreebsd', and 'linux'
+# can be removed once GNU libc stops shipping libcrypt.  It will be
+# correct to use XCRYPT_2.0 as the minimum symbol version for any
+# platform added to glibc after that release.
+
+#VERSION     SYSTEM    CPU         ENDIANNESS  PREPROCESSOR_CHECK
+
+# GNU Hurd
+GLIBC_2.2.6  gnu       x86         *
+ERROR        gnu       *           *
+
+# FreeBSD kernel with GNU libc
+GLIBC_2.3    kfreebsd  x86         *
+GLIBC_2.3    kfreebsd  x86_64      *
+ERROR        kfreebsd  *           *
+
+# Linux with GNU libc
+GLIBC_2.17   linux     aarch64     *
+GLIBC_2.0    linux     alpha       *
+GLIBC_2.4    linux     arm         *
+GLIBC_2.0    linux     ia64        *
+GLIBC_2.4    linux     m68k        *           defined __mcoldfire__
+GLIBC_2.0    linux     m68k        *
+GLIBC_2.18   linux     microblaze  *
+GLIBC_2.0    linux     mips        *
+GLIBC_2.0    linux     mips64      *
+GLIBC_2.21   linux     nios2       *
+GLIBC_2.0    linux     parisc      *
+GLIBC_2.0    linux     ppc         *
+GLIBC_2.3    linux     ppc64       big
+GLIBC_2.17   linux     ppc64       little
+GLIBC_2.27   linux     riscv64     *
+GLIBC_2.0    linux     s390        *
+GLIBC_2.2    linux     s390x       *
+GLIBC_2.0    linux     sh          *
+GLIBC_2.0    linux     sparc       *
+GLIBC_2.0    linux     sparc64     *
+GLIBC_2.12   linux     tilegx      *
+GLIBC_2.12   linux     tilepro     *
+GLIBC_2.0    linux     x86         *
+GLIBC_2.16   linux     x86_64      *           ULONG_MAX == UINT_MAX /*x32*/
+GLIBC_2.2.5  linux     x86_64      *
+ERROR        linux     *           *
+
+# Other systems.
+XCRYPT_2.0   *         *           *

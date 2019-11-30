@@ -1,0 +1,288 @@
+#! /usr/bin/env python
+#
+#   Copyright 2019, 2020 Björn Esser, Zack Weinberg
+#
+#   This library is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU Lesser General Public License
+#   as published by the Free Software Foundation; either version 2.1 of
+#   the License, or (at your option) any later version.
+#
+#   This library is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#
+#   You should have received a copy of the GNU Lesser General Public
+#   License along with this library; if not, see
+#   <https://www.gnu.org/licenses/>.
+
+"""CI driver script for Travis builds.  See also .travis.yml at top level."""
+
+import argparse
+import contextlib
+import datetime
+import os
+import shlex
+import subprocess
+import sys
+import time
+
+from common import run, log, log_exc, ensure_C_locale, ensure_absolute_PATH
+
+
+COVERITY_DRIVER_SCRIPT_URL = \
+    "https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh"
+
+
+def fmt_interval(seconds):
+    return str(datetime.timedelta(seconds=round(seconds)))
+
+
+@contextlib.contextmanager
+def log_time(label):
+    start = time.monotonic()
+    try:
+        yield
+    finally:
+        stop = time.monotonic()
+        sys.stdout.write("time for {}: {}\n".format(
+            label, fmt_interval(stop - start)))
+        sys.stdout.flush()
+
+
+# travis_wait is not a proper command, it's a bash function, so it is
+# not available to this script.  The code below is loosely based on the
+# implementation of travis_wait found at
+# https://github.com/travis-ci/travis-build/lib/travis/build/bash/
+def run_with_extended_timeout(argv, *, timeout, **kwargs):
+
+    # Run the program and any subprocesses it may create in their own
+    # process group, so we can kill them all off if they time out.
+    # setpgid(2) must be executed in both the parent and the child to
+    # avoid a race condition, and whichever does it second will see it
+    # fail with EPERM, which should be ignored.  See
+    # https://www.gnu.org/software/libc/manual/html_node/Launching-Jobs.html
+    def try_setpgid(pid):
+        try:
+            os.setpgid(pid, pid)
+        except PermissionError:
+            pass
+
+    proc = None
+    try:
+        log(argv)
+        proc = subprocess.Popen(argv, **kwargs,
+                                preexec_fn=lambda: try_setpgid(0))
+        try_setpgid(proc.pid)
+
+        start = time.monotonic()
+        elapsed = 0
+        killed_once = False
+        while True:
+            try:
+                proc.wait(timeout=min(timeout - elapsed, 30))
+                break
+            except subprocess.TimeoutExpired:
+                pass
+            elapsed = time.monotonic() - start
+            if elapsed >= timeout:
+                if killed_once:
+                    color = "1"
+                    verb = "killing"
+                    signal = 9
+                else:
+                    color = "3"
+                    verb = "terminating"
+                    signal = 15
+                    killed_once = True
+
+                sys.stdout.write("\033[3{};1mTimeout, {} long job.\033[0m\n"
+                                 .format(color, verb))
+                sys.stdout.flush()
+                os.killpg(proc.pid, signal)
+                timeout += 10
+
+            else:
+                sys.stdout.write("Long job still running ({} / {})\n"
+                                 .format(fmt_interval(elapsed),
+                                         fmt_interval(timeout)))
+                sys.stdout.flush()
+
+        if proc.returncode != 0:
+            raise subprocess.CalledProcessError(
+                proc.returncode, argv, proc.stdout, proc.stderr
+            )
+
+    finally:
+        if proc is not None:
+            try:
+                os.killpg(proc.pid, 9)
+                proc.wait()
+            except ProcessLookupError:
+                # already terminated
+                pass
+
+
+def do_normal_build(E, NPROCS):
+
+    meson_cmd = ["meson"]
+    meson_cmd.extend(shlex.split(E.get("MESONFLAGS", "")))
+
+    meson_test_cmd = ["meson", "test", "-C", "build",
+                      "--num-processes", NPROCS, "--print-errorlogs"]
+
+    # In an optimized build, the slowest single test takes
+    # approximately 50 seconds, which is more than all of the rest of
+    # the testsuite put together.  So this is tight, but adequate.
+    test_timeout = 2 * 60
+
+    if E.get("TRAVIS_OS_NAME", "") == "osx":
+        E["CFLAGS"] = "-O2 -g -arch i386 -arch x86_64"
+        E["CXXFLAGS"] = E["CFLAGS"]
+        E["LDFLAGS"] = "-arch i386 -arch x86_64 -lprofile_rt"
+
+    elif E.get("CODECOV", "") == "1":
+        E["CFLAGS"] = "-O0 -g --coverage"
+        E["CXXFLAGS"] = E["CFLAGS"]
+        meson_cmd.append("-Db_coverage=true")
+
+        # Unoptimized builds require a somewhat longer timeout for the
+        # test suite
+        test_timeout = 6 * 60
+        meson_test_cmd.append("--timeout-multiplier=3")
+
+    else:
+        E["DEB_BUILD_MAINT_OPTIONS"] = "hardening=+all"
+        buildflags = run(["dpkg-buildflags"],
+                         stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                         encoding="utf-8", errors="backslashreplace",
+                         timeout=1)
+
+        for line in buildflags.stdout.splitlines():
+            var, _, value = line.partition("=")
+            if var in ("CFLAGS", "CXXFLAGS", "CPPFLAGS", "LDFLAGS"):
+                E[var] = value
+
+    if E.get("SANITIZER", "") == "1":
+        meson_cmd.append("-Db_sanitize=address,undefined")
+        if E.get("CC", "") == "clang":
+            meson_cmd.append("-Db_lundef=false")
+
+        # Sanitizer builds require a longer timeout for the test suite
+        test_timeout = 10 * 60
+        meson_test_cmd.append("--timeout-multiplier=5")
+
+    if E.get("VALGRIND", "") == "1":
+        meson_test_cmd.append("--wrapper=valgrind")
+        # Individual tests can take as much as 40 times longer than
+        # normal with valgrind, but the per-test timeouts already have
+        # 2x overhead or more, so this should be enough.
+        meson_test_cmd.append("--timeout-multiplier=20")
+        # If all of the tests are run serially under valgrind, it
+        # takes about 30 minutes.  The slowest single test takes about
+        # 15 minutes and that's still slightly more than all the
+        # others put together, so 2x parallelism cuts it in half.
+        # Therefore, a 20x multiplier should also be enough for the
+        # overall timeout.
+        test_timeout = 40 * 60
+
+    meson_cmd.extend(shlex.split(E.get("CONF", "")))
+    if "-Dwerror=false" not in meson_cmd:
+        meson_cmd.append("-Dwerror=true")
+    meson_cmd.append("build")
+
+    with log_time("configure"):
+        try:
+            run(meson_cmd)
+        except subprocess.CalledProcessError as e:
+            log_exc(e)
+            sys.stderr.write("\033[33;1mContents of meson-log.txt:\033[0m\n")
+            with open("build/meson-logs/meson-log.txt", "rt",
+                      encoding="utf-8", errors="backslashreplace") as fp:
+                sys.stderr.writelines(fp)
+            sys.stderr.write("\033[33;1m-----\033[0m\n")
+            sys.stderr.flush()
+            sys.exit(1)
+
+    with log_time("build"):
+        run(["ninja", "-C", "build", "-j"+NPROCS, "-v"])
+
+    with log_time("test"):
+        run_with_extended_timeout(meson_test_cmd, timeout=test_timeout)
+
+
+def do_coverity_build(E, NPROCS):
+    import io
+    import ssl
+    import tempfile
+    from urllib.request import urlopen
+
+    # branch filtration is handled in .travis.yml
+    E["COVERITY_SCAN_BRANCH_PATTERN"] = "^.*$"
+
+    # other environment variables expected by the coverity driver script
+    E["COVERITY_SCAN_PROJECT_NAME"] = E["TRAVIS_REPO_SLUG"]
+    E["COVERITY_SCAN_BUILD_COMMAND_PREPEND"] = \
+        "meson {} . build/".format(E.get("CONF", ""))
+    E["COVERITY_SCAN_BUILD_COMMAND"] = \
+        "ninja -C build -j{} -v".format(NPROCS)
+
+    # Download Coverity's driver script and patch it a little.
+    with tempfile.NamedTemporaryFile(
+            mode='w+t',
+            prefix='coverity-driver-',
+            suffix='.sh',
+            encoding='utf-8'
+    ) as driver_sh:
+        with urlopen(COVERITY_DRIVER_SCRIPT_URL,
+                     context=ssl.create_default_context()) as resp:
+            ifp = io.TextIOWrapper(resp, encoding="utf-8", errors="strict")
+            for line in ifp:
+                line = line.replace("--form version=$SHA",
+                                    "--form version=\"${TAG_VERSION}\"")
+                line = line.replace("--form description=\"Travis CI build\"",
+                                    "--form description=\"${SHA}\"")
+                line = line.replace("if [ \"$status_code\" != \"201\" ]",
+                                    "if [ \"$status_code\" != \"200\" ] "
+                                    "&& [ \"$status_code\" != \"201\" ]")
+                driver_sh.write(line)
+            driver_sh.flush()
+
+        run(["bash", driver_sh.name])
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.parse_args()
+
+    E = os.environ
+
+    try:
+        ensure_C_locale()
+        ensure_absolute_PATH()
+
+        # sched_getaffinity is available on Linux but not MacOS
+        try:
+            NPROCS = len(os.sched_getaffinity(0))
+        except AttributeError:
+            NPROCS = os.cpu_count()
+
+        E["NPROCS"] = NPROCS = str(NPROCS)
+        sys.stdout.write("parallelism is {}\n".format(NPROCS))
+        sys.stdout.flush()
+
+        if E.get("PERFORM_COVERITY_SCAN", "") == "1":
+            do_coverity_build(E, NPROCS)
+        else:
+            do_normal_build(E, NPROCS)
+
+    except Exception as e:
+        if E.get("PYTHON_TRACEBACK", "") == "1":
+            import traceback
+            traceback.print_exc()
+        else:
+            log_exc(e)
+        sys.exit(1)
+
+
+main()

@@ -1,0 +1,131 @@
+#! /usr/bin/python3
+#
+#   Copyright 2017, 2018, 2019 Zack Weinberg
+#
+#   This library is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU Lesser General Public License
+#   as published by the Free Software Foundation; either version 2.1 of
+#   the License, or (at your option) any later version.
+#
+#   This library is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#
+#   You should have received a copy of the GNU Lesser General Public
+#   License along with this library; if not, see
+#   <https://www.gnu.org/licenses/>.
+
+"""Generate crypt.h and xcrypt.h from their respective .in files plus
+build configuration."""
+
+import argparse
+import re
+import sys
+
+from common import atomic_update_file
+
+
+_substitute_re = re.compile("@[a-zA-Z0-9_]*@")
+
+
+def substitute_file(ofp, ifp, ifname, substs):
+    sub = _substitute_re.sub
+    error = False
+    for lineno, line in enumerate(ifp):
+        try:
+            line = sub(lambda m: substs[m.group(0)], line)
+        except KeyError as e:
+            sys.stderr.write("{}:{}: error: unknown substitution {}\n"
+                             .format(ifname, lineno+1, e))
+            error = True
+
+        ofp.write(line)
+
+    if error:
+        sys.exit(1)
+
+
+def is_default_prefix_enabled(hashes_h):
+    with open(hashes_h, "rt", encoding="utf-8") as fp:
+        for line in fp:
+            if line.startswith("#define HASH_ALGORITHM_DEFAULT "):
+                return "1"
+    return "0"
+
+
+def compute_substitutions(args):
+    cdefs_h = args.cdefs_h == "true"
+    cdefs_decls = args.cdefs_decls == "true"
+    cdefs_throw = args.cdefs_throw == "true"
+    if not cdefs_h and (cdefs_decls or cdefs_throw):
+        sys.stderr.write(
+            "error: cdefs_decls and/or cdefs_throw but not cdefs_h\n")
+        sys.exit(1)
+
+    header = []
+    if cdefs_h:
+        header.append("#include <sys/cdefs.h>")
+    if not cdefs_throw:
+        header.append("#define __THROW /* nothing */")
+    header = "\n".join(header)
+
+    if cdefs_decls:
+        begin_decls = "__BEGIN_DECLS"
+        end_decls = "__END_DECLS"
+    else:
+        begin_decls = "#ifdef __cplusplus\nextern \"C\" {\n#endif"
+        end_decls = "#ifdef __cplusplus\n} /* extern \"C\" */\n#endif"
+
+    xcrypt_version_str = '"' + args.xcrypt_version + '"'
+    xcrypt_version_arr = args.xcrypt_version.split('.')
+    xcrypt_version_major = xcrypt_version_arr[0]
+    xcrypt_version_minor = xcrypt_version_arr[1]
+
+    default_prefix_enabled = is_default_prefix_enabled(args.hashes_h)
+
+    return {
+        "@@": "@",
+        "@HEADER@": header,
+        "@BEGIN_DECLS@": begin_decls,
+        "@END_DECLS@": end_decls,
+        "@DEFAULT_PREFIX_ENABLED@": default_prefix_enabled,
+        "@XCRYPT_VERSION_STR@": xcrypt_version_str,
+        "@XCRYPT_VERSION_MAJOR@": xcrypt_version_major,
+        "@XCRYPT_VERSION_MINOR@": xcrypt_version_minor,
+    }
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--xcrypt-version",
+                    help="Version number of libxcrypt")
+    ap.add_argument("--cdefs-h",
+                    help="Whether <sys/cdefs.h> exists")
+    ap.add_argument("--cdefs-throw",
+                    help="Whether <sys/cdefs.h> defines __THROW")
+    ap.add_argument("--cdefs-decls",
+                    help="Whether <sys/cdefs.h> defines __{BEGIN,END}_DECLS")
+    ap.add_argument("--hashes-h",
+                    help="Pathname of crypt-hashes.h, which will be examined "
+                    "to find out whether a default prefix is enabled")
+
+    ap.add_argument("output", help="Where to write the generated header")
+    ap.add_argument("input", help="Input template for the generated header")
+
+    args = ap.parse_args()
+    substs = compute_substitutions(args)
+
+    try:
+        with open(args.input, "rt", encoding="utf-8") as ifp:
+            with atomic_update_file(args.output) as ofp:
+                substitute_file(ofp, ifp, args.input, substs)
+
+    except Exception as e:
+        sys.stderr.write("gen-crypt-hashes-h: {}\n".format(str(e)))
+        sys.exit(1)
+
+    sys.exit(0)
+
+
+main()

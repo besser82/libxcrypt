@@ -2,20 +2,18 @@ language: C
 
 addons:
   apt:
+    # 'sources: deadsnakes' is currently not accepted in the bionic VMs
+    sources:
+      - sourceline: "ppa:deadsnakes/ppa"
+    update: true
     packages:
-      - autoconf
-      - automake
-      - gawk
       - lcov
-      - libtool
-      - pkg-config
+      - ninja-build
       - valgrind
+      - python3.6-venv
   homebrew:
     packages:
-      - autoconf
-      - automake
-      - libtool
-      - pkg-config
+      - ninja
 
 branches:
   except:
@@ -26,7 +24,7 @@ cache:
   - pip
 
 git:
-  depth: false
+  depth: 10000
 
 notifications:
   irc:
@@ -34,7 +32,14 @@ notifications:
       - "ircs://chat.freenode.net:6697/#libxcrypt"
     skip_join: true
 
-dist: xenial
+dist: bionic
+
+install: ./scripts/travis-install
+
+script:
+  - "( . build/venv/bin/activate && python scripts/travis-build )"
+
+after_success: ./scripts/travis-after-success
 
 matrix:
   allow_failures:
@@ -46,214 +51,194 @@ matrix:
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-werror --enable-obsolete-api --enable-hashes=all"
-        - PERFORM_COVERITY_SCAN="1"
-        - COVERITY_SCAN_PROJECT_NAME="$TRAVIS_REPO_SLUG"
-        - COVERITY_SCAN_BRANCH_PATTERN="^v(\d+\.)?(\d+\.)?(\d+)$"
-        - COVERITY_SCAN_BUILD_COMMAND_PREPEND="./configure $CONF"
-        - COVERITY_SCAN_BUILD_COMMAND="make -j$NPROCS"
-    - name: "GCC, Distcheck"
-      compiler: gcc
-      os: linux
-      env:
-        - CONF="--enable-obsolete-api --enable-hashes=all"
-        - DISTCHECK=1
+        - CONF="-Dwerror=false -Dobsolete-api=true -Dhashes=all -Dbuildtype=debug"
+        - PERFORM_COVERITY_SCAN=1
     - name: "GCC, Unoptimized build for Codecov"
       compiler: gcc
       os: linux
       env:
-        - CONF="--enable-obsolete-api --enable-hashes=all"
+        - CONF="-Dobsolete-api=true -Dhashes=all -Dbuildtype=debug"
+        - CODECOV=1
     - name: "Clang, Unoptimized build for Codecov"
       compiler: clang
       os: linux
       env:
-        - CONF="--enable-obsolete-api --enable-hashes=all"
+        - CONF="-Dobsolete-api=true -Dhashes=all -Dbuildtype=debug"
+        - CODECOV=1
     - name: "GCC, all hashes, obsolete API, Valgrind"
       compiler: gcc
       os: linux
       env:
-        - CONF="--enable-obsolete-api --enable-hashes=all --enable-valgrind-memcheck"
+        - CONF="-Dobsolete-api=true -Dhashes=all"
         - VALGRIND=1
     - name: "Clang, all hashes, obsolete API, ASan+UBSan"
       compiler: clang
       os: linux
       env:
-        - CONF="--enable-obsolete-api --enable-hashes=all"
+        - CONF="-Dobsolete-api=true -Dhashes=all"
         - SANITIZER=1
     - name: "GCC, all hashes, static lib"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-shared --enable-hashes=all"
+        - CONF="-Ddefault_library=static -Dhashes=all"
     - name: "Clang, all hashes, static lib"
       compiler: clang
       os: linux
       env:
-        - CONF="--disable-shared --enable-hashes=all"
+        - CONF="-Ddefault_library=static -Dhashes=all"
     - name: "macOS, Clang, all hashes, obsolete API"
       compiler: clang
       os: osx
       env:
-        - CONF="--enable-obsolete-api --enable-hashes=all"
+        - CONF="-Dobsolete-api=true -Dhashes=all"
     - name: "GCC, all hashes, obsolete API, obsolete API ENOSYS"
       compiler: gcc
       os: linux
       env:
-        - CONF="--enable-obsolete-api --enable-obsolete-api-enosys=yes --enable-hashes=all"
+        - CONF="-Dobsolete-api=true -Dobsolete-api-enosys=true -Dhashes=all"
     - name: "Clang, all hashes, obsolete API, obsolete API ENOSYS"
       compiler: clang
       os: linux
       env:
-        - CONF="--enable-obsolete-api --enable-obsolete-api-enosys=yes --enable-hashes=all"
+        - CONF="-Dobsolete-api=true -Dobsolete-api-enosys=true -Dhashes=all"
     - name: "GCC, all hashes, obsolete API, no failure-tokens"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-failure-tokens --enable-obsolete-api --enable-hashes=all"
+        - CONF="-Dfailure-tokens=false -Dobsolete-api=true -Dhashes=all"
     - name: "Clang, all hashes, obsolete API, no failure-tokens"
       compiler: clang
       os: linux
       env:
-        - CONF="--disable-failure-tokens --enable-obsolete-api --enable-hashes=all"
+        - CONF="-Dfailure-tokens=false -Dobsolete-api=true -Dhashes=all"
     - name: "GCC, all hashes, obsolete API, obsolete API ENOSYS, no failure-tokens"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-failure-tokens --enable-obsolete-api --enable-obsolete-api-enosys=yes --enable-hashes=all"
+        - CONF="-Dfailure-tokens=false -Dobsolete-api=true -Dobsolete-api-enosys=true -Dhashes=all"
     - name: "Clang, all hashes, obsolete API, obsolete API ENOSYS, no failure-tokens"
       compiler: clang
       os: linux
       env:
-        - CONF="--disable-failure-tokens --enable-obsolete-api --enable-obsolete-api-enosys=yes --enable-hashes=all"
+        - CONF="-Dfailure-tokens=false -Dobsolete-api=true -Dobsolete-api-enosys=true -Dhashes=all"
     - name: "GCC, all hashes, no obsolete API"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=all"
+        - CONF="-Dobsolete-api=false -Dhashes=all"
     - name: "Clang, all hashes, no obsolete API"
       compiler: clang
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=all"
+        - CONF="-Dobsolete-api=false -Dhashes=all"
     - name: "GCC, strong hashes, no obsolete API"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=strong"
+        - CONF="-Dobsolete-api=false -Dhashes=strong"
     - name: "Clang, strong hashes, no obsolete API"
       compiler: clang
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=strong"
+        - CONF="-Dobsolete-api=false -Dhashes=strong"
     - name: "GCC, glibc hashes, obsolete API"
       compiler: gcc
       os: linux
       env:
-        - CONF="--enable-obsolete-api --enable-hashes=glibc"
+        - CONF="-Dobsolete-api=true -Dhashes=glibc"
     - name: "Clang, glibc hashes, obsolete API"
       compiler: clang
       os: linux
       env:
-        - CONF="--enable-obsolete-api --enable-hashes=glibc"
+        - CONF="-Dobsolete-api=true -Dhashes=glibc"
     - name: "GCC, glibc and strong hashes, obsolete API for glibc"
       compiler: gcc
       os: linux
       env:
-        - CONF="--enable-obsolete-api=glibc --enable-hashes=strong,glibc"
+        - CONF="-Denable-obsolete-api=glibc -Dhashes=strong,glibc"
     - name: "Clang, glibc and strong hashes, obsolete API for glibc"
       compiler: clang
       os: linux
       env:
-        - CONF="--enable-obsolete-api=glibc --enable-hashes=strong,glibc"
+        - CONF="-Denable-obsolete-api=glibc -Dhashes=strong,glibc"
     - name: "GCC, bcrypt only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=bcrypt"
+        - CONF="-Dobsolete-api=false -Dhashes=bcrypt"
     - name: "GCC, bcrypt_a only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=bcrypt_a"
+        - CONF="-Dobsolete-api=false -Dhashes=bcrypt_a"
     - name: "GCC, bcrypt_x only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=bcrypt_x"
+        - CONF="-Dobsolete-api=false -Dhashes=bcrypt_x"
     - name: "GCC, bcrypt_y only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=bcrypt_y"
+        - CONF="-Dobsolete-api=false -Dhashes=bcrypt_y"
     - name: "GCC, bigcrypt only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=bigcrypt"
+        - CONF="-Dobsolete-api=false -Dhashes=bigcrypt"
     - name: "GCC, bsdicrypt only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=bsdicrypt"
+        - CONF="-Dobsolete-api=false -Dhashes=bsdicrypt"
     - name: "GCC, descrypt only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=descrypt"
+        - CONF="-Dobsolete-api=false -Dhashes=descrypt"
     - name: "GCC, gost-yescrypt only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=gost-yescrypt"
+        - CONF="-Dobsolete-api=false -Dhashes=gost_yescrypt"
     - name: "GCC, md5crypt only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=md5crypt"
+        - CONF="-Dobsolete-api=false -Dhashes=md5crypt"
     - name: "GCC, nt only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=nt"
+        - CONF="-Dobsolete-api=false -Dhashes=nt"
     - name: "GCC, scrypt only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=scrypt"
+        - CONF="-Dobsolete-api=false -Dhashes=scrypt"
     - name: "GCC, sha1crypt only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=sha1crypt"
+        - CONF="-Dobsolete-api=false -Dhashes=sha1crypt"
     - name: "GCC, sha256crypt only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=sha256crypt"
+        - CONF="-Dobsolete-api=false -Dhashes=sha256crypt"
     - name: "GCC, sha512crypt only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=sha512crypt"
+        - CONF="-Dobsolete-api=false -Dhashes=sha512crypt"
     - name: "GCC, sunmd5 only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=sunmd5"
+        - CONF="-Dobsolete-api=false -Dhashes=sunmd5"
     - name: "GCC, yescrypt only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=yescrypt"
-
-install:
-  - ./.travis_install.sh
-
-before_script:
-  - ./.travis_before_script.sh
-
-script:
-  - ./.travis_script.sh
-
-after_success:
-  - ./.travis_after_success.sh
+        - CONF="-Dobsolete-api=false -Dhashes=yescrypt"

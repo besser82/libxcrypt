@@ -1,0 +1,97 @@
+#! /usr/bin/python3
+# Written by Zack Weinberg <zackw at panix.com> in 2017-2019.
+# To the extent possible under law, Zack Weinberg has waived all
+# copyright and related or neighboring rights to this work.
+#
+# See https://creativecommons.org/publicdomain/zero/1.0/ for further
+# details.
+
+"""
+Test that all global symbols in the static version of the library
+(libcrypt.a) are either listed as global and supported for new code
+in libcrypt.map.in, or begin with a _crypt prefix.  Also test that
+all of the global, supported for new code, symbols mentioned in
+libcrypt.map.in are in fact defined.
+"""
+
+import argparse
+import re
+import sys
+import subprocess
+
+from common import (
+    command,
+    ensure_C_locale,
+    ensure_absolute_PATH,
+    run,
+)
+
+
+def list_library_globals(library):
+    nm_out = run(["nm", "--extern-only", "--defined-only", library],
+                 stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                 encoding="utf-8", errors="backslashreplace")
+
+    symbols = set()
+    internal_symbol_re = re.compile(r"^_(crypt|[_A-Y])", re.ASCII)
+    for line in nm_out.stdout.splitlines():
+        tokens = line.split()
+        if len(tokens) == 3 and not internal_symbol_re.match(tokens[2]):
+            symbols.add(tokens[2])
+    return symbols
+
+
+def list_allowed_globals(mapfile):
+    symbols = set()
+    with open(mapfile, "rt", encoding="utf-8", errors="backslashreplace") as f:
+        for line in f:
+            tokens = line.split()
+            if (
+                    len(tokens) >= 2
+                    and tokens[1] != '-'
+                    and tokens[0] not in ('#', '%chain')
+            ):
+                symbols.add(tokens[0])
+    return symbols
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("library", help="Path to the built static library.")
+    ap.add_argument("mapfile", help="Path to libxcrypt.map.in.")
+    args = ap.parse_args()
+
+    ensure_absolute_PATH()
+    ensure_C_locale()
+
+    # If 'nm' is not available, this test cannot be carried out.
+    try:
+        command('nm')
+
+    except KeyError as e:
+        sys.stderr.write('Skipping test: {!r} is unavailable\n'
+                         .format(e.args[0]))
+        sys.exit(77)
+
+    library_globals = list_library_globals(args.library)
+    allowed_globals = list_allowed_globals(args.mapfile)
+
+    extra_globals = library_globals - allowed_globals
+    missing_globals = allowed_globals - library_globals
+
+    if extra_globals:
+        sys.stderr.write("*** Extra globals: "
+                         + " ".join(sorted(extra_globals))
+                         + "\n")
+    if missing_globals:
+        sys.stderr.write("*** Missing globals: "
+                         + " ".join(sorted(missing_globals))
+                         + "\n")
+
+    if extra_globals or missing_globals:
+        sys.exit(1)
+
+    sys.exit(0)
+
+
+main()

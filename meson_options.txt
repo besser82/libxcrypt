@@ -1,0 +1,81 @@
+# Meson configuration logic for libcrypt.
+#
+#  Copyright 2007-2017 Thorsten Kukuk and Zack Weinberg
+#  Copyright 2018-2019 Björn Esser and Zack Weinberg
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public License
+#  as published by the Free Software Foundation; either version 2.1 of
+#  the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; if not, see
+#  <https://www.gnu.org/licenses/>.
+
+# This file lists all of the configure-time options for libxcrypt
+# and does nothing else.
+
+option('failure-tokens', type: 'boolean', value: true, description:
+'''If this option is enabled, crypt and crypt_r indicate failure
+by returning a special "failure token" string that isn't the hash of
+any passphrase.  Otherwise, they indicate failure by returning NULL.
+The default is enabled, because some old programs assume these
+functions never return NULL.  crypt_rn and crypt_ra are not affected
+by this option, and will always return NULL on failure.''')
+
+option('obsolete-api', type: 'combo',
+       choices: ['true', 'glibc', 'alt', 'owl', 'suse', 'false'],
+       value: 'true', description:
+'''Which obsolete functions to include in the shared library, for
+backward compatibility's sake.  This setting only affects existing
+binaries; new programs cannot be linked against the obsolete functions
+(bigcrypt, fcrypt, encrypt, encrypt_r, setkey, setkey_r) in any case.
+
+"true" means, include all the obsolete functions.
+"glibc" means, include the functions present in un-patched GNU libc.
+"alt" means, include the functions present in ALT Linux's libcrypt.
+"owl" means, include the functions present in Owl libcrypt.
+"suse" means, include the functions present in SuSE libcrypt.
+
+"false" means, include none of the obsolete functions,
+and change the soname of the installed shared library to libcrypt.so.2.
+''')
+
+option('obsolete-api-enosys', type: 'boolean', value: false, description:
+
+'''If this option is enabled, all of the obsolete functions that are
+included in the shared library (as controlled by the 'obsolete-api'
+option) will be stubs that always fail at runtime.  This permits a
+system integrator to disable descrypt support (via the 'hashes' option)
+while preserving POSIX compliance and/or binary backward compatibility.
+
+The stubs unconditionally set errno to ENOSYS and return without
+performing any real work.  For security reasons, the stub encrypt and
+encrypt_r also overwrite their data-block argument with random bits.
+The stub fcrypt and bigcrypt will return either a failure token or NULL,
+depending on the 'failure-tokens' option.
+''')
+
+option('xcrypt-compat-files', type: 'boolean', value: true, description:
+'''Whether to install the compatibility header file <xcrypt.h> and the
+compatibility symlinks libxcrypt.{a,so}.''')
+
+option('hashes', type: 'string', value: 'all', description:
+'''Which hashing methods to support.  May be set to 'all',
+or a list of individual hash methods and/or groups of hash methods.
+See lib/hashes.conf for the names of methods and groups.  The default is 'all'.
+Note: full binary compatibility with any historic libcrypt ('obsolete-api'
+set to anything other than 'false', with 'obsolete-api-enosys' set to 'false')
+requires the 'descrypt' hash to be enabled.''')
+
+option('symvers', type: 'combo', choices: ['true', 'false', 'auto'],
+       value: 'auto', description:
+'''Whether or not to use ELF symbol versioning.  The default, 'auto',
+means to use symbol versioning when the linker supports it.  'false'
+means don't bother, and 'true' means error out if the linker doesn't
+support it.''')

@@ -1,0 +1,23 @@
+#! /bin/sh
+
+# We need to install some tools from PyPI because the versions
+# available from Ubuntu and/or Homebrew are much too old.
+# (Most importantly, we need Meson >=0.50.)  Create a virtualenv to
+# install them in; this will also ensure that we run all of our build
+# scripts with the oldest supported version of Python, 3.6, when possible.
+
+set -ex
+rm -rf build
+mkdir build
+if command -V python3.6; then
+    python3.6 -m venv build/venv
+else
+    python3 -m venv build/venv
+fi
+. build/venv/bin/activate
+python --version
+python -c 'import sys, pprint; pprint.pprint(sys.path)'
+python -m pip install --upgrade pip wheel
+python -m pip install codecov meson
+meson --version
+ninja --version

@@ -53,26 +53,43 @@ maintainers, so please be patient.
 Build Requirements and Instructions
 -----------------------------------
 
-To build from a tarball release, the only tools required are the
-standard Unix shell environment (including an implementation of AWK)
-and a C compiler.  Follow the generic build and installation
-instructions in the file `INSTALL`.  There are two package-specific
-configure switches: `--enable-obsolete-api` and `--enable-hashes`.
-Run `./configure --help` for more detail on these options.
-Run `man -l crypt.5` for more detail on the hashing algorithms that
-can be enabled or disabled by `--enable-hashes`.  You can do both of
-these things before building the software.
+To build from either a tarball release or a Git checkout, the tools
+required are: the standard Unix shell environment; a C compiler;
+Python 3.6 or later (no third-party packages are required);
+the low-level build tool “ninja” (see <https://ninja-build.org/>);
+and the high-level build tool “meson” (see <https://mesonbuild.com/>).
 
-Building from a Git checkout additionally requires the Autotools
-suite: `autoconf`, `automake`, `libtool`, and `pkg-config`.
-Run `./bootstrap` at the top level of the source tree, and then
-follow the instructions in `INSTALL` (which is created by that command).
+The oldest version of ninja that is known to work is 1.8.2.
+The oldest version of meson that is known to work is 0.53.
+Versions of meson up to and including 0.49 are known *not* to work.
 
-The oldest versions of Autotools components that are known to work
-are: autoconf 2.69, automake 1.14, libtool 2.4.6, pkg-config 0.29.
-If you test with an older version of one of these and find that it
-works, please let us know.  We are not deliberately requiring newer
-versions; we just can’t conveniently test older versions ourselves.
+From the top level of the source tree, the following shell recipe will
+generate and install a standard build of the library:
+
+```sh
+meson setup build
+ninja -C build
+meson test -C build
+sudo meson install -C build --no-rebuild
+```
+
+See <https://mesonbuild.com/Builtin-options.html> for universal
+configuration options that can be supplied to `meson setup`, and
+`meson_options.txt` for project-specific configuration options.
+
+Run `man -l doc/crypt.5` for more detail on the hashing algorithms
+that can be enabled or disabled by `-Dhashes`.  You can do this
+immediately after unpacking the source.
+
+libxcrypt currently cannot be compiled with any sort of cross-file
+optimization; the build will fail if you use either `-Db_lto=true` or
+`--unity on`.  This is because of missing compiler features; see
+[GCC bug 48200][1] for specifics.  (The situation is known to be
+the same for LLVM and icc as well as GCC.  We have not tried
+building this library with any other compiler, but we expect
+it is the same for them as well.)
+
+[1]: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=48200
 
 Portability Notes
 -----------------
@@ -91,16 +108,6 @@ currently test this.  In particular, the crypt_gensalt functions may
 not always be able to retrieve cryptographically-sound random numbers
 from the operating system; if you call these functions with a null
 pointer for the “rbytes” argument, be prepared for them to fail.
-
-As of mid-2018, GCC and LLVM don’t support link-time optimization of
-libraries that use symbol versioning.  If you build libxcrypt with
-either of these compilers, do not use `-flto`.  See [GCC bug 48200][1]
-for specifics; the problem is very similar for LLVM.  Because this is,
-at its root, a set of missing compiler features, we expect link-time
-optimization won’t work in other C compilers either, but we haven’t
-tested it ourselves.
-
-[1]: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=48200
 
 Compatibility Notes
 -------------------
@@ -122,7 +129,7 @@ legacy APIs supplied by glibc’s libcrypt (`encrypt`, `encrypt_r`,
 libxcrypt.
 
 Binary backward compatibility can be disabled by supplying the
-`--disable-obsolete-api` switch to `configure`, in which case libxcrypt
+`-Dobsolete-api=false` switch to `configure`, in which case libxcrypt
 will install libcrypt.so.2 instead of libcrypt.so.1.  This
 configuration is always used on all operating systems other than
 Linux.  We are willing to consider adding binary backward
@@ -130,12 +137,12 @@ compatibility for other operating systems’ existing libcrypts, but we
 don’t currently plan to do that work ourselves.
 
 Individual hash functions may be enabled or disabled by use of the
-`--enable-hashes` switch to `configure`.  The default is to enable all
+`-Dhashes` switch to `meson setup`.  The default is to enable all
 supported hashes.  Disabling the traditional ‘des’ hash algorithm
-implies `--disable-obsolete-api`.  Security-conscious environments
+implies `-Dobsolete-api=false`.  Security-conscious environments
 without backward compatibility constraints are encouraged to use
-`--enable-hashes=strong`, which enables only the hash functions that
-are strong enough to be safe for newly hashed passwords.
+`-Dhashes=strong`, which enables only the hash functions that are
+strong enough to be safe for newly hashed passwords.
 
 The original implementation of the SunMD5 hashing algorithm has a bug,
 which is mimicked by libxcrypt to be fully compatible with hashes
@@ -155,6 +162,9 @@ configuration string that ends with `$`.  It returns the intended
 original format and checksum only if there is at least one letter
 after the `$`, e.g. `$md5[,rounds=%u]$<salt>$x`.
 
+
+[2]: https://dropsafe.crypticide.com/article/1389
+
 The NT algorithm, in its original implementation, never came with any
 `gensalt` function, because the algorithm does not use any.  libxcrypt
 ships a bogus `gensalt` function for the NT algorithm, which simply
@@ -172,5 +182,3 @@ strongest hashing methods, yescrypt and bcrypt, use cryptographic
 primitives that are not available from NSS, so the certification
 would not cover any part of what will hopefully be the most used code
 paths.
-
-[2]: https://dropsafe.crypticide.com/article/1389

@@ -22,13 +22,14 @@
 
 #include <crypt.h>
 
-/*HEADER*/
+@BEGIN_DECLS@
 
-/* Those are kept for code compatibility with older versions
-   (v3.1.1 and earlier) of libxcrypt.
-   We intentionally declare these functions using macros here,
-   since we actually want to link compiled applications against
-   the unprefixed indentical functions defined in <crypt.h>.  */
+/* These declarations provide source compatibility with older versions
+   (v3.1.1 and earlier) of libxcrypt.  We use GCC's function renaming
+   extension (encapsulated by the <sys/cdefs.h> macro __REDIRECT_NTH),
+   if possible, or macros otherwise, to redirect each function call to
+   the preferred name as declared in <crypt.h> (without the leading 'x').  */
+
 #ifndef IN_LIBCRYPT  /* Defined when building libxcrypt. */
 # ifdef __REDIRECT_NTH
 extern char * __REDIRECT_NTH (xcrypt, (const char *__phrase,
@@ -46,6 +47,7 @@ extern char * __REDIRECT_NTH (xcrypt_gensalt_r, (const char *__prefix,
                               unsigned long __count, const char *__rbytes,
                               int __nrbytes, char *__output,
                               int __output_size), crypt_gensalt_rn);
+
 # else
 #  define xcrypt           crypt
 #  define xcrypt_r         crypt_r
@@ -54,6 +56,6 @@ extern char * __REDIRECT_NTH (xcrypt_gensalt_r, (const char *__prefix,
 # endif
 #endif
 
-/*TRAILER*/
+@END_DECLS@
 
 #endif /* xcrypt.h */

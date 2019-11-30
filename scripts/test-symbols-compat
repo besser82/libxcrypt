@@ -1,0 +1,115 @@
+#! /usr/bin/python3
+# Written by Zack Weinberg <zackw at panix.com> in 2017-2019.
+# To the extent possible under law, Zack Weinberg has waived all
+# copyright and related or neighboring rights to this work.
+#
+# See https://creativecommons.org/publicdomain/zero/1.0/ for further
+# details.
+
+"""
+This test is only run if we are building a shared library intended
+to be binary backward compatible with GNU libc (libcrypt.so.1).
+It locates any installed version of libcrypt.so.1, and verifies that
+each public symbol exposed by that library is also exposed by our
+libcrypt.so.1 with a matching symbol version.
+"""
+
+import argparse
+import sys
+import subprocess
+
+from common import (
+    command,
+    ensure_C_locale,
+    ensure_absolute_PATH,
+    run,
+    scratch_working_directory,
+    write_file,
+)
+
+
+def get_symbol_versions(library):
+    """Return a set of all the symbols defined by LIBRARY,
+       with version information."""
+    nm_out = run(["nm", "--dynamic", "--extern-only", "--defined-only",
+                  "--with-symbol-versions", library],
+                 stdout=subprocess.PIPE, stdin=subprocess.DEVNULL,
+                 encoding="utf-8", errors="backslashreplace")
+
+    symbols = set()
+    TR = {ord('@'): ' '}
+    for rec in nm_out.stdout.splitlines():
+        _, ty, sym = rec.split()
+        sym, ver = sym.translate(TR).split()
+        if ty == 'A' and sym == ver:
+            continue
+        symbols.add(sym + ' ' + ver)
+
+    return symbols
+
+
+def find_system_libcrypt(cc_cmd):
+    with scratch_working_directory():
+        write_file("test.c", """\
+extern char *crypt(const char *, const char *);
+int main(int argc, char **argv)
+{
+  return !!crypt(argv[0], argv[1]);
+}
+""")
+        try:
+            run(cc_cmd + ["-o", "test.x", "test.c", "-lcrypt"])
+        except subprocess.CalledProcessError as e:
+            sys.stderr.write("*** " + str(e) + "\n")
+            sys.exit(77)
+
+        ldd_out = run(["ldd", "./test.x"], stdout=subprocess.PIPE,
+                      encoding="utf-8", errors="backslashreplace")
+        for rec in ldd_out.stdout.splitlines():
+            rec = rec.split()
+            if rec[0] == 'libcrypt.so.1':
+                return rec[2]
+
+        sys.exit(77)
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("library", help="Name of the built shared library.")
+    ap.add_argument("cc_cmd", help="How to invoke the compiler.",
+                    nargs=argparse.REMAINDER)
+    args = ap.parse_args()
+    if not args.cc_cmd:
+        ap.error("the following arguments are required: cc_cmd")
+
+    ensure_absolute_PATH()
+    ensure_C_locale()
+
+    # If any of 'ldd' or 'nm' or the compiler (first word of cc_cmd) are not
+    # available, this test cannot be carried out.
+    try:
+        command('ldd')
+        command('nm')
+        command(args.cc_cmd[0])
+
+    except KeyError as e:
+        sys.stderr.write('Skipping test: {!r} is unavailable\n'
+                         .format(e.args[0]))
+        sys.exit(77)
+
+    their_symbols = get_symbol_versions(find_system_libcrypt(args.cc_cmd))
+    our_symbols = get_symbol_versions(args.library)
+
+    # It's okay if we define more symbol (versions) than they do,
+    # but every symbol they define should have a matching
+    # definition in our library.
+    missing_symbols = their_symbols - our_symbols
+    if missing_symbols:
+        sys.stderr.write("*** Missing symbols:\n")
+        for sym in sorted(missing_symbols):
+            sys.stderr.write(sym + "\n")
+        sys.exit(1)
+    sys.exit(0)
+
+
+main()

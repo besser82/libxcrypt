@@ -1,0 +1,117 @@
+#! /usr/bin/python3
+#
+#   Copyright 2017, 2018, 2019 Zack Weinberg
+#
+#   This library is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU Lesser General Public License
+#   as published by the Free Software Foundation; either version 2.1 of
+#   the License, or (at your option) any later version.
+#
+#   This library is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#
+#   You should have received a copy of the GNU Lesser General Public
+#   License along with this library; if not, see
+#   <https://www.gnu.org/licenses/>.
+
+"""Determine the minimum symbol version to use for compatibility symbols.
+"""
+
+import argparse
+import shlex
+import subprocess
+import sys
+import tempfile
+
+
+PREPROCESSOR_CHECK_TEMPLATE = '''\
+#include <limits.h>
+#if !({cond})
+#error nope
+#endif
+int avoid_empty_translation_unit;
+'''
+
+
+def preprocessor_check(cond, cc_cmd):
+    test_program = PREPROCESSOR_CHECK_TEMPLATE.format(cond=cond)
+    with tempfile.NamedTemporaryFile(
+            suffix='.c', mode='wt', encoding='ascii') as fp:
+        fp.write(test_program)
+        fp.flush()
+
+        # FIXME Assuming compiler supports -fsyntax-only.
+        # All compilers for the one platform (Linux+glibc) that actually
+        # needs this feature do support this switch.
+        command = cc_cmd + ["-fsyntax-only", fp.name]
+        sys.stderr.write("compute-symver-floor: test compile:\n")
+        sys.stderr.write(test_program)
+        sys.stderr.write(" ".join(shlex.quote(word) for word in command)
+                         + "\n")
+        sys.stderr.flush()
+
+        status = subprocess.run(command)
+        if status.returncode == 0:
+            return True
+        elif status.returncode == 1:
+            return False
+        else:
+            status.check_returncode()
+
+
+def parse_minver_file(fp, args):
+    system = args.system.lower()
+    cpu = args.cpu.lower()
+    endian = args.endian.lower()
+
+    for line in fp:
+        line = line.strip()
+        if not line:
+            continue
+        if line[0] == '#':
+            continue
+        line = line.split(maxsplit=4)
+
+        vers = line[0]
+        vsys = line[1].lower()
+        vcpu = line[2].lower()
+        vend = line[3].lower()
+
+        if (
+                (vsys == '*' or vsys == system)
+                and (vcpu == '*' or vcpu == cpu)
+                and (vend == '*' or vend == endian)
+                and (len(line) == 4
+                     or preprocessor_check(line[4], args.cc_cmd))
+        ):
+            return vers
+
+    sys.stderr.write("compute-symver-floor: no match for os {}, cpu {}-{}\n"
+                     .format(system, cpu, endian))
+    return 'ERROR'
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("minver", help="File listing minimum symbol versions")
+    ap.add_argument("system", help="Name of the host operating system")
+    ap.add_argument("cpu",    help="Name of the host CPU family")
+    ap.add_argument("endian", help="Endianness of the host CPU")
+    ap.add_argument("cc_cmd", nargs=argparse.REMAINDER,
+                    help="Command line to invoke the C compiler")
+    args = ap.parse_args()
+
+    try:
+        with open(args.minver, "rt", encoding="utf-8") as fp:
+            symver_floor = parse_minver_file(fp, args)
+    except Exception as e:
+        sys.stderr.write("compute-symver-floor: " + str(e) + "\n")
+        sys.exit(2)
+
+    sys.stdout.write(symver_floor + "\n")
+    sys.exit(0)
+
+
+main()

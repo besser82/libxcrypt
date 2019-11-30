@@ -1,0 +1,226 @@
+#! /usr/bin/python3
+# Written by Zack Weinberg <zackw at panix.com> in 2017-2019.
+# To the extent possible under law, Zack Weinberg has waived all
+# copyright and related or neighboring rights to this work.
+#
+# See https://creativecommons.org/publicdomain/zero/1.0/ for further
+# details.
+
+"""
+Check that all of the symbols renamed by crypt-port.h still appear
+somewhere in the source code.  This test works by scanning the
+static library for global symbol definitions, since the point of the
+renaming is to ensure namespace cleanliness of the static library.
+"""
+
+import argparse
+import locale
+import os
+import shlex
+import stat
+import sys
+import subprocess
+
+
+#
+# Utilities
+#
+def log(argv):
+    """Log the execution of a command, like sh -x would do it."""
+    sys.stderr.write("+ " + " ".join(shlex.quote(w) for w in argv) + "\n")
+    sys.stderr.flush()
+
+
+def inode_is_executable(st):
+    """Given ST an object returned by one of the os.*stat functions,
+       return True if that object describes a file that *could* be
+       executed by some user.  (Not necessarily the current user.)
+    """
+    if not stat.S_ISREG(st.st_mode):
+        return False
+    if (st.st_mode & (stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)) == 0:
+        return False
+    return True
+
+
+_command_cache = {}
+_command_path = None
+
+
+def command(cmd):
+    """Search for a shell command named CMD, the same way os.execvp would,
+       and return its full pathname.  If CMD is not found, raises
+       KeyError."""
+
+    global _command_cache, _command_path
+
+    # If the PATH environment variable has been changed,
+    # clear the cache of previously looked-up commands.
+    path = os.environ.get('PATH', os.defpath)
+    if _command_path is None:
+        _command_path = path
+    elif _command_path != path:
+        _command_path = path
+        _command_cache.clear()
+
+    if cmd not in _command_cache:
+        if os.sep in cmd or (os.altsep is not None and os.altsep in cmd):
+            if not os.path.isabs(cmd):
+                # this case would have to deal with find_system_libcrypt
+                # changing the cwd, and we would only need it if someone
+                # used a relative path to a C compiler, which is dealt
+                # with in main
+                raise NotImplementedError
+
+            # assume it's executable and just cache it as is
+            _command_cache[cmd] = cmd
+
+        else:
+            for d in path.split(os.pathsep):
+                try:
+                    cand = os.path.join(d, cmd)
+                    st = os.stat(cand)
+                except FileNotFoundError:
+                    continue
+                except OSError as e:
+                    raise KeyError(cmd) from e
+                if not inode_is_executable(st):
+                    raise KeyError(cmd)
+
+                _command_cache[cmd] = cand
+                break
+
+            else:
+                raise KeyError(cmd)
+
+    return _command_cache[cmd]
+
+
+def run(argv, check=True, **kwargs):
+    """Like subprocess.run, but logs the argument vector to stderr,
+       caches PATH lookups, and defaults to throwing an exception on
+       failure.
+    """
+    log(argv)
+    argv[0] = command(argv[0])
+    return subprocess.run(argv, check=check, **kwargs)
+
+
+def ensure_absolute_PATH():
+    """If any paths in $PATH are relative, replace them with absolute
+       paths, so they still work within a scratch_working_directory block."""
+    opath = os.environ.get('PATH', os.defpath)
+    seen = set()
+    npath = []
+    for d in opath.split(os.pathsep):
+        d = os.path.abspath(d)
+        if d not in seen:
+            npath.append(d)
+            seen.add(d)
+    npath = os.pathsep.join(npath)
+    if npath != opath:
+        os.environ['PATH'] = npath
+
+
+def ensure_C_locale():
+    """Force the use of the C locale for this process and all subprocesses.
+       This is necessary because nm and ldd output may be locale-dependent.
+       If the C.UTF-8 locale is available, it is used, otherwise the plain
+       C locale."""
+    drop = []
+    for k in os.environ.keys():
+        if k == "LANG" or k == "LANGUAGE" or k.startswith("LC_"):
+            drop.append(k)
+    for k in drop:
+        del os.environ[k]
+    try:
+        locale.setlocale(locale.LC_ALL, "C.UTF-8")
+        os.environ["LC_ALL"] = "C"
+    except locale.Error:
+        locale.setlocale(locale.LC_ALL, "C")
+        os.environ["LC_ALL"] = "C"
+
+
+#
+# The meat of the test.
+#
+def list_library_internals(library):
+    nm_out = run(["nm", "--extern-only", "--defined-only", library],
+                 stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                 encoding="utf-8", errors="backslashreplace")
+
+    symbols = set()
+    for line in nm_out.stdout.splitlines():
+        tokens = line.split()
+        if len(tokens) == 3 and tokens[2].startswith("_crypt_"):
+            symbols.add(tokens[2])
+    return symbols
+
+
+def list_symbol_renames(cc_cmd):
+    cc_out = run(cc_cmd + ["-E", "-dD", "-xc", "-"],
+                 input='#include "crypt-port.h"\n',
+                 stdout=subprocess.PIPE,
+                 encoding="utf-8", errors="backslashreplace")
+    renames = set()
+    for line in cc_out.stdout.splitlines():
+        tokens = line.split()
+        if (
+                len(tokens) >= 3
+                and tokens[0] == "#define"
+                and tokens[2].startswith("_crypt_")
+        ):
+            renames.add(tokens[2])
+    return renames
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("library", help="Name of the built static library.")
+    ap.add_argument("cc_cmd", help="How to invoke the compiler.",
+                    nargs=argparse.REMAINDER)
+    args = ap.parse_args()
+    if not args.cc_cmd:
+        ap.error("the following arguments are required: cc_cmd")
+
+    ensure_absolute_PATH()
+    ensure_C_locale()
+
+    # If 'nm' or the compiler (first word of cc_cmd) are not
+    # available, this test cannot be carried out.
+    try:
+        command('nm')
+
+        cc = args.cc_cmd[0]
+        if os.sep in cc or (os.altsep is not None and os.altsep in cc):
+            if not os.path.isabs(cc):
+                args.cc_cmd[0] = cc = os.path.abspath(cc)
+        command(cc)
+
+    except KeyError as e:
+        sys.stderr.write('Skipping test: {!r} is unavailable\n'
+                         .format(e.args[0]))
+        sys.exit(77)
+
+    internal_symbols = list_library_internals(args.library)
+    renamed_symbols = list_symbol_renames(args.cc_cmd)
+
+    extra_renames = renamed_symbols - internal_symbols
+    missing_renames = internal_symbols - renamed_symbols
+
+    if extra_renames:
+        sys.stderr.write("*** Extra renames: "
+                         + " ".join(sorted(extra_renames))
+                         + "\n")
+    if missing_renames:
+        sys.stderr.write("*** Missing renames: "
+                         + " ".join(sorted(missing_renames))
+                         + "\n")
+
+    if extra_renames or missing_renames:
+        sys.exit(1)
+
+    sys.exit(0)
+
+
+main()

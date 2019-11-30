@@ -20,11 +20,7 @@
 #ifndef _CRYPT_PORT_H
 #define _CRYPT_PORT_H 1
 
-#ifndef HAVE_CONFIG_H
-#error "Run configure before compiling; see INSTALL for instructions"
-#endif
-
-#include "config.h"
+#include "crypt-config.h"
 
 #undef NDEBUG
 #include <assert.h>
