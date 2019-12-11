@@ -24,7 +24,7 @@
 /* The base-64 encoding table used by most hashing methods.
    (bcrypt uses a slightly different encoding.)  Size 65
    because it's used as a C string in a few places.  */
-const unsigned char ascii64[65];
+extern const unsigned char ascii64[65];
 
 /* Same table gets used with other names in various places.  */
 #define b64t   ((const char *) ascii64)
