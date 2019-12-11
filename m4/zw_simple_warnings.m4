@@ -72,7 +72,6 @@ AC_ARG_ENABLE(
         -Wformat-overflow=2 dnl
         -Wformat-signedness dnl
         -Wformat-truncation=1 dnl
-        -Winline dnl
         -Wlogical-op dnl
         -Wmissing-declarations dnl
         -Wmissing-prototypes dnl
