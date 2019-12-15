@@ -4,6 +4,7 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.11
+* Fixes for GCC v10.x (issue #95).
 
 Version 4.4.10
 * Fix ordering of hash methods in crypt-hashes.h when generated
