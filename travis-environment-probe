@@ -54,6 +54,8 @@ command -V python
 python --version
 python -m pip install codecov meson
 command -V meson
-meson --version
+meson --version || (
+  python -c 'import sys; print(sys.path)'
+)
 
 exit 0

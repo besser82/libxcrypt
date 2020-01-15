@@ -2,10 +2,15 @@ language: c
 
 addons:
   apt:
+    update: true
+    sources:
+      - deadsnakes
     packages:
       - lcov
       - ninja-build
       - valgrind
+      - python3.5-venv
+      - python3.6-venv
   homebrew:
     packages:
       - ninja
