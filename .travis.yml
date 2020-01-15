@@ -1,5 +1,17 @@
 language: c
 
+addons:
+  apt:
+    packages:
+      - lcov
+      - meson
+      - ninja-build
+      - valgrind
+  homebrew:
+    packages:
+      - meson
+      - ninja
+
 matrix:
   include:
     - name: "Ubuntu 16.04 (Xenial)"
@@ -17,9 +29,6 @@ matrix:
     - name: "MacOS 10.14 / Xcode 11"
       os: osx
       osx_image: xcode11.3
-
-    - name: "Windows"
-      os: windows
 
 script:
   - bash ./travis-environment-probe

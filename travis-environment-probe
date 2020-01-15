@@ -33,17 +33,11 @@ ls -l
 echo
 
 echo -e '\033[33;1m::: TOOLS\033[0m'
-command -V python   && python --version  2>&1
-command -V python3  && python3 --version 2>&1
-command -V pip      && pip3 --version    2>&1
-command -V pip3     && pip3 --version    2>&1
+command -V python3  && (
+  python3 --version 2>&1
+  python3 -m pip --version 2>&1
+  python3 -m venv -h
+)
 command -V ninja    && ninja --version   2>&1
 command -V meson    && meson --version   2>&1
-echo
-
-echo -e '\033[33;1m::: PACKAGES\033[0m'
-command -V apt-cache && apt-cache search '.*' | sort
-command -V brew      && brew search | sort
-command -V choco     && choco list | sort
-
 exit 0
