@@ -4,12 +4,10 @@ addons:
   apt:
     packages:
       - lcov
-      - meson
       - ninja-build
       - valgrind
   homebrew:
     packages:
-      - meson
       - ninja
 
 matrix:
