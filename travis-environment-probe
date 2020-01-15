@@ -1,0 +1,49 @@
+#! /bin/bash
+
+set +x
+set +e
+
+echo -e '\033[33;1m::: ENVIRONMENT\033[0m'
+printenv | sort
+echo
+
+echo -e '\033[33;1m::: HOMEDIR\033[0m'
+echo $HOME
+ls -l $HOME
+if [ -d $HOME/.local ]; then
+  echo
+  echo $HOME/.local
+  ls -l $HOME/.local
+fi
+if [ -d $HOME/.local/bin ]; then
+  echo
+  echo $HOME/.local/bin
+  ls -l $HOME/.local/bin
+fi
+if [ -d $HOME/bin ]; then
+  echo
+  echo $HOME/bin
+  ls -l $HOME/bin
+fi
+echo
+
+echo -e '\033[33;1m::: WORKDIR\033[0m'
+pwd
+ls -l
+echo
+
+echo -e '\033[33;1m::: TOOLS\033[0m'
+command -V python   && python --version  2>&1
+command -V python3  && python3 --version 2>&1
+command -V pip      && pip3 --version    2>&1
+command -V pip3     && pip3 --version    2>&1
+command -V ninja    && ninja --version   2>&1
+command -V meson    && meson --version   2>&1
+echo
+
+echo -e '\033[33;1m::: PACKAGES\033[0m'
+command -V apt-cache && apt-cache search '.*' | sort
+command -V brew      && brew search | sort
+command -V choco     && choco list | sort
+
+exit 0
