@@ -42,18 +42,17 @@ for py in python3.5 python3.6 python3.7 python3.8; do
     echo "$py: venv not available"
   fi
 done
+echo
 
 echo -e '\033[33;1m::: VENV TEST\033[0m'
 set -ex
-$goodpy -m venv -p $goodpy --system-site-packages --clear build_venv
+$goodpy -m venv --system-site-packages --clear build_venv
 . build_venv/bin/activate
 command -V python
 python --version
+python -c 'import sys; print(sys.path)'
 python -m pip install codecov meson
-command -V meson
-meson --version || (
-  python -c 'import sys; print(sys.path)'
-)
-command -V ninja    && ninja --version   2>&1
+command -V meson    && meson --version
+command -V ninja    && ninja --version
 
 exit 0
