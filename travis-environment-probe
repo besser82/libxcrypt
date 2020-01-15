@@ -1,10 +1,20 @@
 #! /bin/bash
 
 echo -e '\033[33;1m::: ENVIRONMENT\033[0m'
-perl -MString::ShellQuote -e 'printf("%s=%s\n", shell_quote($_), shell_quote($ENV{$_})) for sort keys %ENV;'
-echo
+perl -MDumpvalue -e '
+  our $DUMP = Dumpvalue->new;
+  sub quote {
+    my $v = shift @_;
+    if ($v =~ m!^[A-Za-z0-9_/:.,-]+$!) {
+      return $v;
+    } else {
+      return $DUMP->stringify($v);
+    }
+  }
+  printf("%s=%s\n", quote($_), quote($ENV{$_})) for sort keys %ENV
+'
 
-echo -e '\033[33;1m::: HOMEDIR\033[0m'
+echo -e '\n\033[33;1m::: HOMEDIR\033[0m'
 echo $HOME
 ls -l $HOME
 if [ -d $HOME/.local ]; then
@@ -22,16 +32,14 @@ if [ -d $HOME/bin ]; then
   echo $HOME/bin
   ls -l $HOME/bin
 fi
-echo
 
-echo -e '\033[33;1m::: WORKDIR\033[0m'
+echo -e '\n\033[33;1m::: WORKDIR\033[0m'
 pwd
 ls -l
-echo
 
-echo -e '\033[33;1m::: TOOLS\033[0m'
+echo -e '\n\033[33;1m::: TOOLS\033[0m'
 goodpy=
-for py in python3.5 python3.6 python3.7 python3.8; do
+for py in python3.6 python3.7 python3.8; do
   command -V $py || continue
   $py --version 2>&1 || continue
   if $py -c 'import venv'; then
@@ -42,15 +50,14 @@ for py in python3.5 python3.6 python3.7 python3.8; do
     echo "$py: venv not available"
   fi
 done
-echo
 
-echo -e '\033[33;1m::: VENV TEST\033[0m'
-set -ex
+echo -e '\n\033[33;1m::: VENV TEST\033[0m'
+set -e
 $goodpy -m venv build_venv
 . build_venv/bin/activate
 command -V python
 python --version
-python -c 'import sys; print(sys.path)'
+python -c 'import sys, pprint; pprint.pprint(sys.path)'
 python -m pip install --upgrade pip wheel
 python -m pip install codecov meson
 command -V meson    && meson --version
