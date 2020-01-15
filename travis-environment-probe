@@ -1,7 +1,7 @@
 #! /bin/bash
 
 echo -e '\033[33;1m::: ENVIRONMENT\033[0m'
-printenv -0 | sort -z | tr '\0' '\n'
+env -0 | sort -z | tr '\0' '\n'
 echo
 
 echo -e '\033[33;1m::: HOMEDIR\033[0m'
@@ -31,7 +31,7 @@ echo
 
 echo -e '\033[33;1m::: TOOLS\033[0m'
 goodpy=
-for py in python3.5 python3.6 python3.7 python3.8; do
+for py in python3.6 python3.7 python3.8; do
   command -V $py || continue
   $py --version 2>&1 || continue
   if $py -c 'import venv'; then
@@ -51,6 +51,7 @@ $goodpy -m venv --system-site-packages --clear build_venv
 command -V python
 python --version
 python -c 'import sys; print(sys.path)'
+python -m pip install --upgrade pip wheel
 python -m pip install codecov meson
 command -V meson    && meson --version
 command -V ninja    && ninja --version
