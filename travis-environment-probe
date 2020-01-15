@@ -46,7 +46,7 @@ echo
 
 echo -e '\033[33;1m::: VENV TEST\033[0m'
 set -ex
-$goodpy -m venv --system-site-packages --clear build_venv
+$goodpy -m venv build_venv
 . build_venv/bin/activate
 command -V python
 python --version
