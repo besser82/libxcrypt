@@ -3,8 +3,6 @@ language: c
 addons:
   apt:
     update: true
-    sources:
-      - deadsnakes
     packages:
       - lcov
       - ninja-build
@@ -32,6 +30,11 @@ matrix:
     - name: "MacOS 10.14 / Xcode 11"
       os: osx
       osx_image: xcode11.3
+
+# 'apt: sources: deadsnakes' is currently not accepted in the
+# bionic VMs
+before_install:
+  - sudo -E apt-add-repository -y "ppa:deadsnakes/ppa"
 
 script:
   - bash ./travis-environment-probe
