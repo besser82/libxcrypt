@@ -69,13 +69,7 @@ AC_CACHE_CHECK([whether the preprocessor ($CPP) supports -dD],
 ])
 AM_CONDITIONAL([HAVE_CPP_dD], [test $ac_cv_prog_cc_dD = yes])
 
-# Checks for libraries.
-AX_PTHREAD
-# Automake+Libtool don't support PTHREAD_CC being used for some but
-# not all programs.
-if test x"$PTHREAD_CC" != x"$CC"; then
-  AC_MSG_ERROR([PTHREAD_CC different from CC is not supported, due to Automake limitations])
-fi
+# Checks for libraries: currently none needed.
 
 # Checks for header files.
 AC_CHECK_HEADERS_ONCE(
@@ -238,8 +232,8 @@ AX_VALGRIND_DFLT([sgcheck], [off])
 # Add a target to run testsuite with valgrind.
 AX_VALGRIND_CHECK()
 
-# Requirements for running test-crypt-kat-gen.py.
-ENABLE_CRYPT_KAT_GEN="no"
+# Requirements for running test/ka-table-gen.py.
+ENABLE_KA_TABLE_GEN="no"
 
 # Construct PYTHON_CANDIDATE_VERSIONS from most recent version to
 # the minimum version required, ending up with a string containing:
@@ -256,23 +250,23 @@ done
 AC_PATH_PROGS([PYTHON], [$PYTHON_CANDIDATE_VERSIONS], [])
 
 if test x"$PYTHON" != "x"; then
-  AX_PROG_PYTHON_VERSION([3.6], [ENABLE_CRYPT_KAT_GEN="yes"],
+  AX_PROG_PYTHON_VERSION([3.6], [ENABLE_KA_TABLE_GEN="yes"],
     [AC_MSG_WARN([Python >= 3.6 is required for optional Makefile targets.])
   ])
 
-  if test x"$ENABLE_CRYPT_KAT_GEN" = "xyes"; then
+  if test x"$ENABLE_KA_TABLE_GEN" = "xyes"; then
     AX_PYTHON_MODULE([passlib], [], [$PYTHON])
     if test x"$HAVE_PYMOD_PASSLIB" = "xno"; then
-      ENABLE_CRYPT_KAT_GEN="no"
+      ENABLE_KA_TABLE_GEN="no"
     fi
   fi
 fi
 
-if test x"$ENABLE_CRYPT_KAT_GEN" = "xno"; then
+if test x"$ENABLE_KA_TABLE_GEN" = "xno"; then
   AC_MSG_WARN(
-    [Disabling the "regen-test-crypt-kat" target, missing Python requirements.])
+    [Disabling the "regen-ka-table" target, missing Python requirements.])
 fi
-AM_CONDITIONAL([ENABLE_CRYPT_KAT_GEN], [test x"$ENABLE_CRYPT_KAT_GEN" = "xyes"])
+AM_CONDITIONAL([ENABLE_KA_TABLE_GEN], [test x"$ENABLE_KA_TABLE_GEN" = "xyes"])
 
 # Configure options.
 AC_ARG_ENABLE([failure-tokens],

@@ -13,19 +13,12 @@
 #include <stdlib.h>
 #include <errno.h>
 
-#ifdef HAVE_PTHREAD
-#include <pthread.h>
-#else
-#define flockfile(fp)   do { } while (0)
-#define funlockfile(fp) do { } while (0)
-#endif
-
 #if ENABLE_OBSOLETE_API && !ENABLE_OBSOLETE_API_ENOSYS
 symver_ref("fcrypt", fcrypt, SYMVER_FLOOR);
 #endif
 
-/* The precalculated hashes in test-crypt-kat.inc, and some of the
-   relationships among groups of test cases (see test-crypt-kat-gen.py)
+/* The precalculated hashes in ka-table.inc, and some of the
+   relationships among groups of test cases (see ka-table-gen.py)
    are invalidated if the execution character set is not ASCII.  */
 static_assert(' ' == 0x20 && 'C' == 0x43 && '~' == 0x7E,
               "Execution character set does not appear to be ASCII");
@@ -41,28 +34,12 @@ static_assert(' ' == 0x20 && 'C' == 0x43 && '~' == 0x7E,
 
    The independent implementations come from the Python 'passlib'
    library: <https://passlib.readthedocs.io/en/stable/>.
-   See test-crypt-kat-gen.py for more detail.
+   See ka-table-gen.py for more detail.
 
-   The test program has been structured to make the most expensive
-   part (computing a whole bunch of hashes) somewhat parallelizable.
-   crypt and fcrypt have to be called serially for all inputs; we do
-   this on the main thread.  When pthreads are available, a second
-   thread calls crypt_r and crypt_rn for all inputs, and a third
-   thread calls crypt_ra for each input and then repeats that call
-   with the hash output by the first call as the setting string.  Each
-   thread compares its own two results to the expected hash.  If there
-   are any errors, it reports them to stdout.  Each thread returns a
-   boolean failure flag (cast to void*, because pthreads) and main
-   will exit unsuccessfully if any flag is set.
-
-   More threads would not reduce the overall time required for the
-   test, because of crypt and fcrypt having to be called serially
-   for each hash.  We can't reduce the runtime of the parallel
-   section below the time that takes; the above division of labor
-   gives the second and third threads the same amount of work to
-   do as the main thread.  In principle we could split things up
-   more finely when fcrypt is configured out, but it isn't worth
-   the additional ifdeffage.  */
+   This file is compiled once for each hash, with macros defined that
+   make ka-table.inc expose only the subset of the tests that are
+   relevant to that hash.  This allows the test driver to run the
+   known-answer tests for each enabled hash in parallel.  */
 
 struct testcase
 {
@@ -73,9 +50,11 @@ struct testcase
 
 static const struct testcase tests[] =
 {
-#include "crypt-kat.inc"
+#include "ka-table.inc"
+
+  /* Sentinel.  */
+  { 0, 0, 0 },
 };
-#define ntests ARRAY_SIZE (tests)
 
 /* Print out a string, using \xXX escapes for any characters that are
    not printable ASCII.  Backslash, single quote, and double quote are
@@ -126,10 +105,8 @@ report_result (const char *tag, const char *hash, int errnm,
       if (!strcmp (hash, tc->expected))
         return 0;
 
-      flockfile (stdout);
       begin_error_report (tc, tag);
       printf ("mismatch: expected %s got %s\n", tc->expected, hash);
-      funlockfile (stdout);
       return 1;
     }
   else
@@ -137,7 +114,6 @@ report_result (const char *tag, const char *hash, int errnm,
       /* Ill-formed setting string arguments to 'crypt' are tested in a
          different program, so we never _expect_ a failure.  However, if
          we do get a failure, we want to log it in detail.  */
-      flockfile (stdout);
       begin_error_report (tc, tag);
 
       if (hash == 0)
@@ -166,38 +142,37 @@ report_result (const char *tag, const char *hash, int errnm,
         printf (", failure token == salt");
 
       putchar ('\n');
-      funlockfile (stdout);
       return 1;
     }
 }
 
-static void *
-calc_hashes_crypt_fcrypt (ARG_UNUSED (void *unused))
+static int
+calc_hashes_crypt_fcrypt (void)
 {
   char *hash;
-  size_t i;
+  const struct testcase *t;
   int status = 0;
 
-  for (i = 0; i < ntests; i++)
+  for (t = tests; t->input != 0; t++)
     {
       errno = 0;
-      hash = crypt (tests[i].input, tests[i].salt);
-      status |= report_result ("crypt", hash, errno, &tests[i],
+      hash = crypt (t->input, t->salt);
+      status |= report_result ("crypt", hash, errno, t,
                                ENABLE_FAILURE_TOKENS);
 
 #if ENABLE_OBSOLETE_API && !ENABLE_OBSOLETE_API_ENOSYS
       errno = 0;
-      hash = fcrypt (tests[i].input, tests[i].salt);
-      status |= report_result ("fcrypt", hash, errno, &tests[i],
+      hash = fcrypt (t->input, t->salt);
+      status |= report_result ("fcrypt", hash, errno, t,
                                ENABLE_FAILURE_TOKENS);
 #endif
     }
 
-  return (void *)(uintptr_t)status;
+  return status;
 }
 
-static void *
-calc_hashes_crypt_r_rn (ARG_UNUSED (void *unused))
+static int
+calc_hashes_crypt_r_rn (void)
 {
   char *hash;
   union
@@ -205,56 +180,57 @@ calc_hashes_crypt_r_rn (ARG_UNUSED (void *unused))
     char pass[CRYPT_MAX_PASSPHRASE_SIZE + 1];
     int aligned;
   } u;
-  size_t i;
+  const struct testcase *t;
   struct crypt_data data;
   int status = 0;
 
   memset (&data, 0, sizeof data);
   memset (u.pass, 0, CRYPT_MAX_PASSPHRASE_SIZE + 1);
-  for (i = 0; i < ntests; i++)
+  for (t = tests; t->input != 0; t++)
     {
-      strncpy(u.pass + 1, tests[i].input, CRYPT_MAX_PASSPHRASE_SIZE);
-      printf("[%zu]: %s %s\n", strlen(tests[i].input), tests[i].input, tests[i].salt);
+      strncpy(u.pass + 1, t->input, CRYPT_MAX_PASSPHRASE_SIZE);
+      printf("[%zu]: %s %s\n", strlen(t->input),
+             t->input, t->salt);
       errno = 0;
-      hash = crypt_r (u.pass + 1, tests[i].salt, &data);
-      status |= report_result ("crypt_r", hash, errno, &tests[i],
+      hash = crypt_r (u.pass + 1, t->salt, &data);
+      status |= report_result ("crypt_r", hash, errno, t,
                                ENABLE_FAILURE_TOKENS);
 
       errno = 0;
-      hash = crypt_rn (u.pass + 1, tests[i].salt, &data, (int)sizeof data);
-      status |= report_result ("crypt_rn", hash, errno, &tests[i], false);
+      hash = crypt_rn (u.pass + 1, t->salt, &data, (int)sizeof data);
+      status |= report_result ("crypt_rn", hash, errno, t, false);
     }
 
-  return (void *)(uintptr_t)status;
+  return status;
 }
 
-static void *
-calc_hashes_crypt_ra_recrypt (ARG_UNUSED (void *unused))
+static int
+calc_hashes_crypt_ra_recrypt (void)
 {
   char *hash;
-  size_t i;
+  const struct testcase *t;
   void *datap = 0;
   int datasz = 0;
   int status = 0;
 
-  for (i = 0; i < ntests; i++)
+  for (t = tests; t->input != 0; t++)
     {
       errno = 0;
-      hash = crypt_ra (tests[i].input, tests[i].salt, &datap, &datasz);
-      if (report_result ("crypt_ra", hash, errno, &tests[i], false))
+      hash = crypt_ra (t->input, t->salt, &datap, &datasz);
+      if (report_result ("crypt_ra", hash, errno, t, false))
         status = 1;
       else
         {
-          /* if we get here, we know hash == tests[i].expected */
+          /* if we get here, we know hash == t->expected */
           errno = 0;
-          hash = crypt_ra (tests[i].input, tests[i].expected,
+          hash = crypt_ra (t->input, t->expected,
                            &datap, &datasz);
-          status |= report_result ("recrypt", hash, errno, &tests[i], false);
+          status |= report_result ("recrypt", hash, errno, t, false);
         }
     }
 
   free (datap);
-  return (void *)(uintptr_t)status;
+  return status;
 }
 
 int
@@ -262,55 +238,14 @@ main (void)
 {
   int status = 0;
 
-  if (ntests == 0)
-    return 77; /* UNSUPPORTED if there are no tests to run */
+  /* Mark this test SKIPPED if the very first entry in the table is the
+     sentinel; this happens only when the hash we would test is disabled.  */
+  if (tests[0].input == 0)
+    return 77;
 
-#ifdef HAVE_PTHREAD
-  {
-    pthread_t t1, t2;
-    int err;
-    void *xstatus;
-    err = pthread_create (&t1, 0, calc_hashes_crypt_r_rn, 0);
-    if (err)
-      {
-        fprintf (stderr, "pthread_create (crypt_r): %s\n", strerror (err));
-        return 1;
-      }
-    err = pthread_create (&t2, 0, calc_hashes_crypt_ra_recrypt, 0);
-    if (err)
-      {
-        fprintf (stderr, "pthread_create (crypt_ra): %s\n", strerror (err));
-        return 1;
-      }
-
-    status |= !!calc_hashes_crypt_fcrypt (0);
-
-    err = pthread_join (t1, &xstatus);
-    if (err)
-      {
-        fprintf (stderr, "pthread_join (crypt_r): %s\n", strerror (err));
-        status = 1;
-      }
-    else
-      {
-        status |= !!xstatus;
-      }
-    err = pthread_join (t2, &xstatus);
-    if (err)
-      {
-        fprintf (stderr, "pthread_join (crypt_rn): %s\n", strerror (err));
-        status = 1;
-      }
-    else
-      {
-        status |= !!xstatus;
-      }
-  }
-#else
-  status |= !!calc_hashes_crypt_fcrypt (results);
-  status |= !!calc_hashes_crypt_r_rn (results);
-  status |= !!calc_hashes_crypt_ra_recrypt (results);
-#endif
+  status |= calc_hashes_crypt_fcrypt ();
+  status |= calc_hashes_crypt_r_rn ();
+  status |= calc_hashes_crypt_ra_recrypt ();
 
   return status;
 }
