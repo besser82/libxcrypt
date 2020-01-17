@@ -31,7 +31,7 @@ EXTRA_DIST = \
 	lib/gen-hashes.awk \
 	lib/gen-map.awk \
 	lib/gen-vers.awk \
-	lib/hashes.lst \
+	lib/hashes.conf \
 	lib/libcrypt.map.in \
 	lib/libcrypt.minver.linux \
 	lib/libcrypt.minver.kfreebsd \
@@ -188,11 +188,11 @@ libcrypt.map: lib/libcrypt.map.in lib/gen-map.awk Makefile
 	     $(srcdir)/lib/libcrypt.map.in > libcrypt.map.T
 	$(AM_V_at)mv -f libcrypt.map.T libcrypt.map
 
-crypt-hashes.h: lib/hashes.lst lib/gen-hashes.awk Makefile
+crypt-hashes.h: lib/hashes.conf lib/gen-hashes.awk Makefile
 	$(AM_V_GEN)LC_ALL=C $(AWK) \
 	  -v ENABLED_HASHES=$(hashes_enabled) \
 	  -f $(srcdir)/lib/gen-hashes.awk \
-	     $(srcdir)/lib/hashes.lst > crypt-hashes.h.T
+	     $(srcdir)/lib/hashes.conf > crypt-hashes.h.T
 	$(AM_V_at)mv -f crypt-hashes.h.T crypt-hashes.h
 
 crypt-symbol-vers.h: lib/libcrypt.map.in lib/gen-vers.awk Makefile

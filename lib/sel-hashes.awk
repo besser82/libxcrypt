@@ -1,5 +1,5 @@
 # Expand a list of selected hashes to a list of enabled hashes, using
-# the information in hashes.lst.
+# the information in hashes.conf.
 #
 #   Copyright 2018 Zack Weinberg
 #
@@ -119,7 +119,7 @@ END {
     }
 
     # Check for individual selected hashes that didn't appear in
-    # hashes.lst.
+    # hashes.conf.
     for (h in selected_hashes) {
         if (!(h in enabled_hashes)) {
             exit 1

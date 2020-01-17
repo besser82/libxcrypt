@@ -366,7 +366,7 @@ AC_ARG_ENABLE([hashes],
         [--enable-hashes=HASHES],
         [Select hash methods to support.  Acceptable values are
          'all' or a comma-separated list of names from the file
-         'hashes.lst' and/or the keywords 'strong', 'alt',
+         'hashes.conf' and/or the keywords 'strong', 'alt',
          'fedora', 'freebsd', 'glibc', 'netbsd', 'openbsd',
          'osx', 'owl', 'solaris', and 'suse' which select groups
          of methods as described in that file.
@@ -382,7 +382,7 @@ AC_ARG_ENABLE([hashes],
 hashes_enabled=$(
     $AWK -f ${srcdir}/lib/sel-hashes.awk \
          -v SELECTED_HASHES="$hashes_selected" \
-            ${srcdir}/lib/hashes.lst
+            ${srcdir}/lib/hashes.conf
 )
 if test x"$hashes_enabled" = x || test x"$hashes_enabled" = x,; then
     AC_MSG_ERROR([bad value '${hashes_selected}' for --enable-hashes])
