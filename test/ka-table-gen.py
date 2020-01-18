@@ -298,6 +298,25 @@ def h_sha512crypt(phrase, rounds, salt):
 # actually work.
 from passlib.handlers.sun_md5_crypt import raw_sun_md5_crypt
 def h_sunmd5(phrase, rounds, salt):
+
+    # sunmd5 is extremely slow in this test, compared to all the other
+    # hashes, because we have to do extra tests of bug-compatibility,
+    # because its round count cannot be reduced below 4096, and
+    # because on approximately half of those rounds it feeds an
+    # additional 1.5k of text to MD5_Update.  The only optimization
+    # that wouldn't break compatibility would be to plug in a faster
+    # MD5 core, but that's not worth the engineering effort since it
+    # would only benefit obsolete hashes.  Instead, skip most of the
+    # test phrases for this hash.  This cuts the wall-clock time for
+    # ka-sunmd5 (on a current-generation x86-64) from fifty to nine
+    # seconds, which we can live with.  sunmd5 feeds the phrase
+    # verbatim to MD5_Update, only once, with no length limit, so we
+    # don't need a lot of careful testing of different phrases.  We do
+    # still include at least a few of the non-ASCII test phrases, and
+    # one very long phrase.
+    if 6 <= len(phrase) <= 128:
+        return
+
     if rounds == 0:
         bare_setting = "$md5$" + salt
     else:
