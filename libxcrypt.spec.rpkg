@@ -26,6 +26,14 @@
 %bcond_without staticlib
 
 
+# Use failure-tokens as return value?
+%bcond_with    failure_tokens
+
+
+# Install compatibility files for libxcrypt <= 3.x?
+%bcond_without xcrypt_compat_files
+
+
 # Run memcheck?
 %ifarch %{valgrind_arches}
 # Valgrind does not work well on %%{power64} arches.
@@ -41,22 +49,13 @@
 
 # Shared object version of libcrypt.
 %if %{with new_api}
-%global soc  2
-%global sol  0
-%global sof  0
-%global sov  %{soc}.%{sol}.%{sof}
+%global sov  2
 %else
-%global soc  1
-%global sol  1
-%global sof  0
-%global sov  %{soc}.%{sol}.%{sof}
+%global sov  1
 %endif
 
 %if %{with compat_pkg}
-%global csoc 1
-%global csol 1
-%global csof 0
-%global csov %{csoc}.%{csol}.%{csof}
+%global csov 1
 %endif
 
 
@@ -64,12 +63,16 @@
 %global glibc_minver 2.27
 
 
+# Minimum version of meson required to build.
+%global meson_minver 0.50
+
+
 # Hash methods and API supported by libcrypt.
 # NEVER EVER touch this, if you do NOT know what you are doing!
 %global hash_methods   all
 
 %if %{with new_api}
-%global obsolete_api   no
+%global obsolete_api   false
 %else
 %global obsolete_api   glibc
 %endif
@@ -82,9 +85,25 @@
 
 # Do we replace the obsolete API functions with stubs?
 %if %{with enosys_stubs}
-%global enosys_stubs   yes
+%global enosys_stubs   true
 %else
-%global enosys_stubs   no
+%global enosys_stubs   false
+%endif
+
+
+# Do we enable returning failure tokens (*0/*1)?
+%if %{with failure_tokens}
+%global failure_tokens true
+%else
+%global failure_tokens false
+%endif
+
+
+# Do we enable returning failure tokens (*0/*1)?
+%if %{with xcrypt_compat_files}
+%global xcrypt_compat_files true
+%else
+%global xcrypt_compat_files false
 %endif
 
 
@@ -101,55 +120,77 @@
 
 
 # Needed for out-of-tree builds.
-%global src_topleveldir %{_builddir}/%{name}-%{version}
-%global _configure      "%{src_topleveldir}/configure"
+%global builddir_system %(echo '%{name}_system-%{_vpath_builddir}')
+%global builddir_compat %(echo '%{name}_compat-%{_vpath_builddir}')
+%global builddir_static %(echo '%{name}_static-%{_vpath_builddir}')
 
 
-# Common configure options.
-%global common_configure_options           \\\
-  --libdir=/%{_lib}                        \\\
-  --disable-failure-tokens                 \\\
-  --disable-silent-rules                   \\\
-  --enable-shared                          \\\
-%if %{with staticlib}                      \
-  --enable-static                          \\\
-%else                                      \
-  --disable-static                         \\\
-%endif                                     \
-%if %{with memcheck}                       \
-  --enable-valgrind                        \\\
-%else                                      \
-  --disable-valgrind                       \\\
-%endif                                     \
-  --srcdir=%{src_topleveldir}              \\\
-  --with-pkgconfigdir=%{_libdir}/pkgconfig
+# Common configuration options.
+%global meson_config_common                    \\\
+  -Dfailure-tokens=%{failure_tokens}           \\\
+  -Dxcrypt-compat-files=%{xcrypt_compat_files}
+
+
+# Common configuration options for the shared library.
+%global meson_config_shared \\\
+  -Ddefault_library=shared  \\\
+  -Dunity=off
+
+
+# Common configuration options for the system library
+# and static library.
+%global meson_config_syslib             \\\
+  %{meson_config_common}                \\\
+  -Dobsolete-api=%{obsolete_api}        \\\
+%if %{without new_api}                  \
+  -Dobsolete-api-enosys=%{enosys_stubs} \\\
+%endif                                  \
+  -Dhashes=%{hash_methods}
+
+
+# Configuration options for the compatibility library.
+%global meson_config_compat             \\\
+  %{meson_config_shared}                \\\
+  %{meson_config_common}                \\\
+  -Dhashes=%{compat_methods}            \\\
+  -Dobsolete-api=%{compat_api}          \\\
+  -Dobsolete-api-enosys=%{enosys_stubs}
+
+
+# Common options for running the testsuite.
+%global meson_test_common             \\\
+  --timeout-multiplier=4
+
+
+# Common options for running the memtests.
+%global meson_test_valgrind           \\\
+  --timeout-multiplier=40             \\\
+  --wrap=valgrind
 
 
 # Add generation of HMAC checksums of the final stripped
 # binaries.  %%define with lazy globbing is used here
 # intentionally, because using %%global does not work.
-%define __spec_install_post                                    \
-%{?__debug_package:%{__debug_install_post}}                    \
-%{__arch_install_post}                                         \
-%{__os_install_post}                                           \
-if [[ %{with staticlib} == 1 ]]; then                          \
-  %{_bindir}/fipshmac %{buildroot}/%{_lib}/libcrypt.a          \
-  %{__ln_s} .libcrypt.a.hmac                                   \\\
-    %{buildroot}/%{_lib}/.libxcrypt.a.hmac                     \
-fi                                                             \
-%{_bindir}/fipshmac %{buildroot}/%{_lib}/libcrypt.so.%{sov}    \
-%{__ln_s} .libcrypt.so.%{sov}.hmac                             \\\
-  %{buildroot}/%{_lib}/.libcrypt.so.%{soc}.hmac                \
-if [[ %{with compat_pkg} == 1 ]]; then                         \
-  %{_bindir}/fipshmac %{buildroot}/%{_lib}/libcrypt.so.%{csov} \
-  %{__ln_s} .libcrypt.so.%{csov}.hmac                          \\\
-    %{buildroot}/%{_lib}/.libcrypt.so.%{csoc}.hmac             \
-fi                                                             \
+%define __spec_install_post                           \
+%{?__debug_package:%{__debug_install_post}}           \
+%{__arch_install_post}                                \
+%{__os_install_post}                                  \
+if [[ %{with staticlib} == 1 ]]; then                 \
+  fipshmac %{buildroot}%{_libdir}/libcrypt.a          \
+  if [[ %{with xcrypt_compat_files} == 1 ]]; then     \
+    ln -s .libcrypt.a.hmac                            \\\
+      %{buildroot}%{_libdir}/.libxcrypt.a.hmac        \
+  fi                                                  \
+fi                                                    \
+if [[ %{with compat_pkg} == 1 ]]; then                \
+  fipshmac %{buildroot}%{_libdir}/libcrypt.so.%{csov} \
+fi                                                    \
+fipshmac %{buildroot}%{_libdir}/libcrypt.so.%{sov}    \
 %{nil}
 
 
 Name:           {{{ git_dir_name }}}
-Version:        {{{ git_dir_version lead=4.4 follow=13}}}
+Version:        {{{ git_dir_version lead=4.5 follow=0}}}
 Release:        1%{?dist}
 Summary:        Extended crypt library for descrypt, md5crypt, bcrypt, and others
 
@@ -161,12 +202,10 @@ VCS:            {{{ git_dir_vcs }}}
 
 Source0:        {{{ git_dir_pack }}}
 
-BuildRequires:  autoconf
-BuildRequires:  automake
 BuildRequires:  fipscheck
 BuildRequires:  gcc
 BuildRequires:  glibc-devel           >= %{glibc_minver}
-BuildRequires:  libtool
+BuildRequires:  meson                 >= %{meson_minver}
 %if %{with memcheck}
 BuildRequires:  valgrind
 %endif
@@ -198,7 +237,7 @@ Obsoletes:      %{name}-compat         < %{version}-%{release}
 Requires:       glibc%{?_isa}         >= %{glibc_minver}
 
 %if 0%{?fedora} >= 30
-Recommends:     whois-mkpasswd
+Recommends:     mkpasswd
 %endif
 
 %description
@@ -276,10 +315,8 @@ discouraged.
 %prep
 {{{ git_dir_setup_macro }}}
 
-./bootstrap
-
 %if %{with new_api}
-%{__cat} << EOF >> README%{distname}
+cat << EOF >> README%{distname}
 This version of the %{name} package ships the libcrypt.so.2
 library and does not provide the legacy API functions that have
 been provided by glibc's libcrypt.so.1.  The removed functions
@@ -298,7 +335,7 @@ EOF
 %endif
 
 %if %{with enosys_stubs}
-%{__cat} << EOF >> README.posix
+cat << EOF >> README.posix
 This version of the libcrypt.so.1 library has entirely removed
 the functionality of the encrypt, encrypt_r, setkey, setkey_r,
 and fcrypt functions, while keeping fully binary compatibility
@@ -317,7 +354,7 @@ EOF
 %endif
 
 %if %{with staticlib}
-%{__cat} << EOF >> README.static
+cat << EOF >> README.static
 Applications that use certain legacy APIs supplied by glibc’s
 libcrypt (encrypt, encrypt_r, setkey, setkey_r, and fcrypt)
 cannot be compiled nor linked against the supplied build of
@@ -327,86 +364,90 @@ EOF
 
 
 %build
-%{__mkdir_p} %{_vpath_builddir}{,-compat}
-
 # Build the default system library.
-pushd %{_vpath_builddir}
-%configure                                       \
-  %{common_configure_options}                    \
-  --enable-hashes=%{hash_methods}                \
-  --enable-obsolete-api=%{obsolete_api}          \
-%if %{with new_api}
-  --enable-obsolete-api-enosys=%{obsolete_api}
-%else
-  --enable-obsolete-api-enosys=%{enosys_stubs}
-%endif
-%make_build
-popd
+%global _vpath_builddir %{builddir_system}
+%meson                   \
+  %{meson_config_shared} \
+  %{meson_config_syslib}
+%meson_build
 
-%if %{with compat_pkg}
 # Build the compatibility library.
-pushd %{_vpath_builddir}-compat
-%configure                                       \
-  %{common_configure_options}                    \
-  --enable-hashes=%{compat_methods}              \
-  --enable-obsolete-api=%{compat_api}            \
-  --enable-obsolete-api-enosys=%{enosys_stubs}
-%make_build
-popd
+%if %{with compat_pkg}
+%global _vpath_builddir %{builddir_compat}
+%meson                   \
+  %{meson_config_compat}
+%meson_build
+%endif
+
+# Build the static library.
+%if %{with staticlib}
+%global _vpath_builddir %{builddir_static}
+%meson                     \
+  -Ddefault_library=static \
+  -Dunity=off              \
+  %{meson_config_syslib}
+%meson_build
 %endif
 
 
 %install
-%if %{with compat_pkg}
-# Install the compatibility library.
-%make_install -C %{_vpath_builddir}-compat
+# Create a temporary location for intermediate copies.
+mkdir -p ./install_tmp
 
-# Cleanup everything we do not need from the compatibility library.
-%{_bindir}/find %{buildroot} -xtype f -not -name 'libcrypt.so.%{csoc}*' \
-  -delete -print
-%{_bindir}/find %{buildroot} -type l -not -name 'libcrypt.so.%{csoc}*'  \
-  -delete -print
+# Install the static library and move it to a temporary location.
+%if %{with staticlib}
+%global _vpath_builddir %{builddir_static}
+rm -fr %{buildroot}/*
+%meson_install
+mv %{buildroot}%{_libdir}/lib{,x}crypt.a ./install_tmp
 %endif
 
-# Install the default system library.
-%make_install -C %{_vpath_builddir}
+# Install the compat library and move it to a temporary location.
+%if %{with compat_pkg}
+%global _vpath_builddir %{builddir_compat}
+rm -fr %{buildroot}/*
+%meson_install
+mv %{buildroot}%{_libdir}/libcrypt.so.%{csov} ./install_tmp
+%endif
 
-# Get rid of libtool crap.
-%{_bindir}/find %{buildroot} -name '*.la' -delete -print
+# Install the default system library at last.
+%global _vpath_builddir %{builddir_system}
+rm -fr %{buildroot}/*
+%meson_install
+
+# Install files from intermediate location and clean up.
+%if %{with staticlib} || %{with compat_pkg}
+mv ./install_tmp/* %{buildroot}%{_libdir}
+%endif
+rm -fr ./install_tmp
 
 # Install documentation to shared %%_pkgdocdir.
-%{__install} -Dpm 0644 -t %{buildroot}%{_pkgdocdir} \
-  ChangeLog NEWS README* THANKS TODO
-
-# Drop README.md as it is identical to README.
-%{__rm} -f %{buildroot}%{_pkgdocdir}/README.md
+install -Dpm 0644 -t %{buildroot}%{_pkgdocdir} \
+  ChangeLog NEWS README* THANKS TODO*
 
 
 %check
+%global _vpath_builddir %{builddir_system}
+%meson_test              \
+  %{meson_test_common}
+
 %if %{with compat_pkg}
-for dir in %{_vpath_builddir} %{_vpath_builddir}-compat; do
-%else
-for dir in %{_vpath_builddir}; do
+%global _vpath_builddir %{builddir_compat}
+%meson_test              \
+  %{meson_test_common}
 %endif
-  %make_build -C ${dir} check || \
-    {
-      rc=$?;
-      echo "-----BEGIN TESTLOG: ${dir}-----";
-      %{__cat} ${dir}/test-suite.log;
-      echo "-----END TESTLOG: ${dir}-----";
-      exit $rc;
-    }
+
+%if %{with staticlib}
+%global _vpath_builddir %{builddir_static}
+%meson_test              \
+  %{meson_test_common}
+%endif
+
 %if %{with memcheck}
-  %make_build -C ${dir} check-valgrind-memcheck || \
-    {
-      rc=$?;
-      echo "-----BEGIN TESTLOG: ${dir}-----";
-      %{__cat} ${dir}/test-suite-memcheck.log;
-      echo "-----END TESTLOG: ${dir}-----";
-      exit $rc;
-    }
+%global _vpath_builddir %{builddir_system}
+%meson_test               \
+  %{meson_test_valgrind}
 %endif
-done
 
 
 %ldconfig_scriptlets
@@ -418,7 +459,7 @@ done
 %files
 %doc %dir %{_pkgdocdir}
 %doc %{_pkgdocdir}/NEWS
-%doc %{_pkgdocdir}/README
+%doc %{_pkgdocdir}/README.md
 %if %{with new_api}
 %doc %{_pkgdocdir}/README%{distname}
 %endif
@@ -427,8 +468,8 @@ done
 %endif
 %doc %{_pkgdocdir}/THANKS
 %license AUTHORS COPYING.LIB LICENSING
-/%{_lib}/.libcrypt.so.{%{soc},%{sov}}.hmac
-/%{_lib}/libcrypt.so.{%{soc},%{sov}}
+%{_libdir}/.libcrypt.so.%{sov}.hmac
+%{_libdir}/libcrypt.so.%{sov}
 %{_mandir}/man5/crypt.5.*
 
 
@@ -437,17 +478,21 @@ done
 %if %{with enosys_stubs}
 %doc %{_pkgdocdir}/README.posix
 %endif
-/%{_lib}/.libcrypt.so.{%{csoc},%{csov}}.hmac
-/%{_lib}/libcrypt.so.{%{csoc},%{csov}}
+%{_libdir}/.libcrypt.so.%{csov}.hmac
+%{_libdir}/libcrypt.so.%{csov}
 %endif
 
 
 %files          devel
 %doc %{_pkgdocdir}/ChangeLog
-%doc %{_pkgdocdir}/TODO
-/%{_lib}/lib{,x}crypt.so
-%{_includedir}/{,x}crypt.h
-%{_libdir}/pkgconfig/{libcrypt,%{name}}.pc
+%doc %{_pkgdocdir}/TODO.md
+%if %{with xcrypt_compat_files}
+%{_includedir}/xcrypt.h
+%{_libdir}/libxcrypt.so
+%endif
+%{_includedir}/crypt.h
+%{_libdir}/libcrypt.so
+%{_libdir}/pkgconfig/%{name}.pc
 %{_mandir}/man3/crypt{,_r,_ra,_rn}.3.*
 %{_mandir}/man3/crypt_checksalt.3.*
 %{_mandir}/man3/crypt_gensalt{,_ra,_rn}.3.*
@@ -457,8 +502,12 @@ done
 %if %{with staticlib}
 %files          static
 %doc %{_pkgdocdir}/README.static
-/%{_lib}/.lib{,x}crypt.a.hmac
-/%{_lib}/lib{,x}crypt.a
+%if %{with xcrypt_compat_files}
+%{_libdir}/.libxcrypt.a.hmac
+%{_libdir}/libxcrypt.a
+%endif
+%{_libdir}/.libcrypt.a.hmac
+%{_libdir}/libcrypt.a
 %endif
 
 
