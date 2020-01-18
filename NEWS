@@ -5,6 +5,7 @@ Please send bug reports, questions and suggestions to
 
 Version 4.4.11
 * Fixes for GCC v10.x (issue #95).
+* Change how the known-answer tests are parallelized.
 
 Version 4.4.10
 * Fix ordering of hash methods in crypt-hashes.h when generated
