@@ -7,8 +7,8 @@
 # scripts with the oldest supported version of Python, 3.6, when possible.
 
 set -ex
-rm -rf build
-mkdir build
+rm -rf build/
+mkdir build/
 if command -V python3.6; then
     python3.6 -m venv build/venv
 else

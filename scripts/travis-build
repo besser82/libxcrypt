@@ -125,10 +125,10 @@ def run_with_extended_timeout(argv, *, timeout, **kwargs):
 
 def do_normal_build(E, NPROCS):
 
-    meson_cmd = ["meson"]
+    meson_cmd = ["meson", "setup"]
     meson_cmd.extend(shlex.split(E.get("MESONFLAGS", "")))
 
-    meson_test_cmd = ["meson", "test", "-C", "build",
+    meson_test_cmd = ["meson", "test", "-C", "build/",
                       "--num-processes", NPROCS, "--print-errorlogs"]
 
     # In an optimized build, the slowest single test takes
@@ -189,7 +189,8 @@ def do_normal_build(E, NPROCS):
     meson_cmd.extend(shlex.split(E.get("CONF", "")))
     if "-Dwerror=false" not in meson_cmd:
         meson_cmd.append("-Dwerror=true")
-    meson_cmd.append("build")
+    meson_cmd.append(".")
+    meson_cmd.append("build/")
 
     with log_time("configure"):
         try:
@@ -205,7 +206,7 @@ def do_normal_build(E, NPROCS):
             sys.exit(1)
 
     with log_time("build"):
-        run(["ninja", "-C", "build", "-j"+NPROCS, "-v"])
+        run(["ninja", "-C", "build/", "-j"+NPROCS, "-v"])
 
     with log_time("test"):
         run_with_extended_timeout(meson_test_cmd, timeout=test_timeout)
@@ -225,7 +226,7 @@ def do_coverity_build(E, NPROCS):
     E["COVERITY_SCAN_BUILD_COMMAND_PREPEND"] = \
         "meson {} . build/".format(E.get("CONF", ""))
     E["COVERITY_SCAN_BUILD_COMMAND"] = \
-        "ninja -C build -j{} -v".format(NPROCS)
+        "ninja -C build/ -j{} -v".format(NPROCS)
 
     # Download Coverity's driver script and patch it a little.
     with tempfile.NamedTemporaryFile(
