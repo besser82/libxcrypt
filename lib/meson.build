@@ -49,6 +49,7 @@ libcrypt_map = custom_target(
             '--compat-api='+COMPAT_API,
             '@OUTPUT@', '@INPUT@']
 )
+libcrypt_2_map = files('libcrypt.2.map')[0]
 
 # Public headers.
 # crypt.h and xcrypt.h have to be separate targets because xcrypt.h
@@ -154,21 +155,37 @@ libcrypt_so = shared_library(
   kwargs: libcrypt_so_extra_args
 )
 
-libcrypt_a = static_library(
-  'crypt',
+libcrypt_a_internal = static_library(
+  'crypt-internal',
   sources: libcrypt_a_sources,
   c_args: ['-DIN_LIBCRYPT'],
   include_directories: I_config_h,
+  install: false
+)
+
+libcrypt_a = custom_target(
+  'libcrypt.a',
+  output: 'libcrypt.a',
+  input: libcrypt_a_internal,
+  command: [python, S_rename_internal_symbols,
+            '_crypt_', libcrypt_2_map, '@INPUT@', '@OUTPUT@'],
+  install_dir: get_option('libdir'),
   install: INSTALL_STATIC_LIB,
 )
 
 # Needed by the tests.
 I_lib = include_directories('.')
+libcrypt_a_internal_dep = declare_dependency(
+  sources: [crypt_h, xcrypt_h],
+  link_with: [libcrypt_a_internal],
+  include_directories: [I_config_h, I_lib],
+)
 libcrypt_a_dep = declare_dependency(
   sources: [crypt_h, xcrypt_h],
+  # libcrypt_a is not a library object, but putting it in link_with seems
+  # to work fine anyway.
   link_with: [libcrypt_a],
   include_directories: [I_config_h, I_lib],
-
 )
 libcrypt_so_dep = declare_dependency(
   sources: [crypt_h, xcrypt_h],
@@ -195,7 +212,7 @@ endif
 # matching static library.  So we give it the static library regardless
 # of what we're actually going to install.
 pkg = import('pkgconfig')
-pkg.generate(libcrypt_a,
+pkg.generate(libcrypt_a_internal,
   description: 'Extended crypt library for DES, MD5, Blowfish and others',
   filebase: 'libxcrypt',
   name: 'libxcrypt',

@@ -57,6 +57,8 @@ foreach hash, time : {
 endforeach
 
 # simple compiled-code tests
+# some of these refer to internal symbols, so we must link them against
+# the un-renamed static library
 foreach t : [
   'alg-des',
   'alg-gost3411-2012',
@@ -85,7 +87,7 @@ foreach t : [
 ]
   test(t, executable(t,
                      sources: [t + '.c'],
-                     dependencies: [libcrypt_a_dep]))
+                     dependencies: [libcrypt_a_internal_dep]))
 endforeach
 
 # compiled-code tests requiring special options
@@ -107,7 +109,7 @@ endif
 test('getrandom-fallbacks',
      executable('getrandom-fallbacks',
                 sources: ['getrandom-fallbacks.c'],
-                dependencies: [libcrypt_a_dep],
+                dependencies: [libcrypt_a_internal_dep],
                 link_args: getrandom_fallbacks_LDFLAGS))
 
 # tests of the obsolete functions in the shared library, must be linked
@@ -130,16 +132,6 @@ endif
 if get_option('default_library') != 'shared' # 'static' or 'both'
 test('symbols-static', python,
      args: [S_test_symbols_static, libcrypt_a, libcrypt_map_in])
-
-if HAVE_CPP_dD
-test('symbols-renames', python,
-     args: [S_test_symbols_renames, libcrypt_a] + cc.cmd_array() + [
-             '-I' + meson.current_build_dir() / '..',
-             '-I' + meson.current_build_dir() / '../lib',
-             '-I' + meson.current_source_dir() / '..',
-             '-I' + meson.current_source_dir() / '../lib'
-           ])
-endif
 endif
 
 if ENABLE_OBSOLETE_API

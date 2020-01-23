@@ -374,25 +374,8 @@ if cc_syntax == 'gcc'
     endif
   endif
 
-  # Similarly, testing for cc -E -dD is too complicated for the
-  # built-in tests (there's no ability to examine preprocessor
-  # output).
-  r = run_command(python, S_check_cpp_dD, cc.cmd_array())
-  if r.returncode() == 0
-    message('Checking if compiler supports -E -dD: YES')
-    HAVE_CPP_dD = true
-  elif r.returncode() == 1
-    message('Checking if compiler supports -E -dD: NO')
-    HAVE_CPP_dD = false
-  else
-    warning('Checking if compiler supports -E -dD: ERROR')
-    message('See meson-logs/meson-log.txt for details')
-    HAVE_CPP_dD = false
-  endif
-
 else
   HAVE_LD_WRAP = false
-  HAVE_CPP_dD = false
 endif
 
 # Feature selection macros.

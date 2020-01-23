@@ -30,8 +30,7 @@ const unsigned char ascii64[65] =
    The trailing bytes of d_size will be filled with '\0'.
    dst and src must not be NULL.  Returns strlen (src).  */
 size_t
-_crypt_strcpy_or_abort (void *dst, const size_t d_size,
-                        const void *src)
+strcpy_or_abort (void *dst, const size_t d_size, const void *src)
 {
   assert (dst != NULL);
   assert (src != NULL);
@@ -46,7 +45,7 @@ _crypt_strcpy_or_abort (void *dst, const size_t d_size,
 /* The best hope we without any other implementation to
    securely wipe data stored in memory.  */
 void
-_crypt_secure_memset (void *s, size_t len)
+secure_memset (void *s, size_t len)
 {
   volatile unsigned char *c = s;
   while (len--)

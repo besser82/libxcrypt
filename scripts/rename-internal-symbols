@@ -1,0 +1,463 @@
+#! /usr/bin/python3
+#
+#   Copyright 2017, 2018, 2019 Zack Weinberg
+#
+#   This library is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU Lesser General Public License
+#   as published by the Free Software Foundation; either version 2.1 of
+#   the License, or (at your option) any later version.
+#
+#   This library is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#
+#   You should have received a copy of the GNU Lesser General Public
+#   License along with this library; if not, see
+#   <https://www.gnu.org/licenses/>.
+
+"""Create a copy of a static (.a) library with all of the internal
+symbols renamed so that they are less likely to collide with user
+names."""
+
+import argparse
+import collections
+import enum
+import fnmatch
+import re
+import subprocess
+import sys
+import tempfile
+
+from common import run
+
+# Simplified lexical analyzer for GNU ld-style version scripts.
+# These files look vaguely like this:
+#
+#     VERS_1.1 {
+#     	global:
+#     	  foo1;
+#     	local:
+#     	  old*;
+#     	  original*;
+#     	  new*;
+#     };
+#
+#     VERS_1.2 {
+#     	 foo2;
+#     } VERS_1.1;
+#
+# /* C-style block comments */ are recognized.
+# // C++-style line comments   are NOT recognized.
+#
+# We don't implement "quoted names" nor do we implement any of the
+# features for working with C++ mangled names.
+#
+# Caution: The order of the outermost alternation matters.
+# BLOCK_COMMENT before BAD_BLOCK_COM before PUNCTUATOR before OTHER.
+# Caution: There should be no capturing groups other than the named
+# captures in the outermost alternation.
+
+VS_TOKEN_RE_ = re.compile(r"""
+    (?P<BLOCK_COMMENT> /\*(?:\*(?!/)|[^*])*\*/)
+   |(?P<BAD_BLOCK_COM> /\*(?:\*(?!/)|[^*])*\*?)
+   |(?P<IDENT>         [a-zA-Z0-9_.$*?!\[\]]+)
+   |(?P<PUNCTUATOR>    [{}:;])
+   |(?P<WHITESPACE>    [ \t\n\r\v\f]+)
+   |(?P<OTHER>         .)
+""", re.DOTALL | re.VERBOSE)
+
+ENDLINE_RE_ = re.compile(r"""\r|\n|\r\n""")
+
+Token_ = collections.namedtuple("Token", (
+    "kind", "text", "line", "column"))
+Token_.__doc__ = """
+   One version-script token.
+
+   'kind' identifies the token type, which will be either
+       IDENT or PUNCTUATOR.  All of the other alternatives are
+       consumed within tokenize_vscript, below.
+
+   'text' is the sequence of source characters making up the token;
+       no decoding whatsoever is performed.
+
+   'line' and 'column' give the position of the first character of the
+      token within the source file.  They are both 1-based.
+"""
+
+def tokenize_vscript(file_contents, reporter):
+    """Yield a series of Token objects, one for each version script token
+       within FILE_CONTENTS.  The REPORTER object is expected to have
+       one method, reporter.error(token, message), which will be
+       called to indicate a lexical error at the position of TOKEN.
+       If MESSAGE contains the four-character sequence '{!r}', that is
+       expected to be replaced by repr(token.text).
+    """
+
+    Token = Token_
+    VS_TOKEN_RE = VS_TOKEN_RE_
+    ENDLINE_RE = ENDLINE_RE_
+
+    line_num = 1
+    line_start = 0
+    pos = 0
+    limit = len(file_contents)
+    while pos < limit:
+        mo = VS_TOKEN_RE.match(file_contents, pos)
+        kind = mo.lastgroup
+
+        text = mo.group()
+        line = line_num
+        column = mo.start() - line_start
+        adj_line_start = 0
+        # only these kinds can contain a newline
+        if kind in ("WHITESPACE", "BLOCK_COMMENT", "BAD_BLOCK_COM"):
+            for tmo in ENDLINE_RE.finditer(text):
+                line_num += 1
+                adj_line_start = tmo.end()
+            if adj_line_start:
+                line_start = mo.start() + adj_line_start
+
+        # Report ill-formed comments.
+        if kind == "BAD_BLOCK_COM":
+            reporter.error(Token("BAD_BLOCK_COM", text, line, column+1),
+                           "unclosed block comment")
+
+        # Report punctuation that doesn't belong.
+        elif kind == "OTHER":
+            reporter.error(Token("OTHER", text, line, column+1),
+                           "stray {!r} in version script")
+
+        if kind in ("IDENT", "PUNCTUATOR"):
+            yield Token(kind, text, line, column+1)
+
+        pos = mo.end()
+
+
+def parse_vscript(fname):
+
+    @enum.unique
+    class S(enum.Enum):
+        TOPLEVEL = 1
+        AFTER_GROUP_NAME = 2
+        IN_GROUP = 3
+        AFTER_GLOBAL_OR_LOCAL = 4
+        AFTER_SYMBOL = 5
+        AFTER_GROUP = 6
+        AFTER_PARENT = 7
+
+    class SymbolTree:
+        def __init__(self):
+            self.symbols = {}
+            self.parents = {}
+            self.anon_counter = 0
+            self.group_name = None
+            self.current_group = None
+            self.symbols_are_global = False
+            self.used_empty_parent = False
+
+        def begin_group(self, name=None):
+            self.end_group()
+            if name is None:
+                name = "<anon {}>".format(self.anon_counter)
+                self.anon_counter += 1
+            self.group_name = name
+            self.symbols_are_global = False
+            self.symbols[name] = self.current_group = []
+
+        def end_group(self):
+            if (
+                    self.group_name is not None
+                    and self.group_name not in self.parents
+            ):
+                self.set_parent()
+            self.group_name = None
+            self.current_group = None
+
+        def set_parent(self, name=None):
+            if name is None:
+                if self.used_empty_parent:
+                    name = "<anon {}>".format(self.anon_counter)
+                    self.anon_counter += 1
+                else:
+                    name = ""
+                    self.used_empty_parent = True
+            self.parents[self.group_name] = name
+
+        def add_symbol(self, symbol):
+            self.current_group.append((tok.text, self.symbols_are_global))
+
+        def set_visibility(self, vis):
+            self.symbols_are_global = (vis == 'global')
+
+        def sorted_symbol_list(self):
+            # A GNU symbol version "map" specifies a tree of groups.
+            # Within each group is a list of symbol *globs* with an
+            # associated visibility (global or local).  Because they
+            # are globs, file order must be preserved within each
+            # group.  However, the groups are to be ordered by their
+            # 'parent' links: if we have `A { a; b; }; B { c; d; } A;`
+            # then the symbols from B should be emitted *before* the
+            # symbols from A.  Computing the proper order is a special
+            # case of topological sort, which is unfortunately not
+            # included in the Python standard library.  The algorithm
+            # below works for this special case, where each node in
+            # the graph can have any number of in-edges but only one
+            # out-edge; it probably doesn't work as a general toposort.
+
+            group_order = collections.deque()
+            for child, parent in self.parents.items():
+                if child == parent:
+                    raise RuntimeError("group {} is parented by itself"
+                                       .format(child))
+                try:
+                    pi = group_order.index(parent)
+                except ValueError:
+                    group_order.append(parent)
+                    pi = len(group_order)-1
+
+                try:
+                    ci = group_order.index(child)
+                except ValueError:
+                    group_order.appendleft(child)
+                    ci = 0
+
+                if ci > pi:
+                    raise RuntimeError("cycle in group ordering")
+
+            symbol_list = []
+            for group in group_order:
+                symbol_list.extend(self.symbols.get(group, []))
+
+            return symbol_list
+
+    def report_error(tok, message):
+        nonlocal ok, fname
+        ok = False
+        if '{!r}' in message:
+            message = message.format(tok.text)
+        sys.stderr.write("{}:{}:{}: error: {}\n".format(
+            fname, tok.line, tok.column, message))
+
+    def check_group_name(tok):
+        if any(['*' in tok.text,
+                '?' in tok.text,
+                '!' in tok.text,
+                '[' in tok.text,
+                ']' in tok.text]):
+            report_error(tok, "group name should not be a glob")
+
+    with open(fname, "rt", encoding="utf-8") as fp:
+        vscript = fp.read()
+
+    ok = True
+    stree = SymbolTree()
+    state = S.TOPLEVEL
+    for tok in tokenize_vscript(vscript, report_error):
+        kind = tok.kind
+        if kind == "PUNCTUATOR":
+            kind = tok.text
+
+        if state == S.TOPLEVEL:
+            if kind != "IDENT":
+                report_error(tok, "unexpected {!r} at top level")
+                if kind == "{":
+                    # start a group anyway
+                    state = S.IN_GROUP
+                    stree.begin_group()
+            else:
+                check_group_name(tok)
+                stree.begin_group(tok.text)
+                state = S.AFTER_GROUP_NAME
+
+        elif state == S.AFTER_GROUP_NAME:
+            if kind == "{":
+                state = S.IN_GROUP
+            else:
+                report_error(tok, "expected '{{', not {!r}, after group name")
+
+        elif state == S.IN_GROUP:
+            if kind == "IDENT":
+                if tok.text in ("global", "local"):
+                    stree.set_visibility(tok.text)
+                    state = S.AFTER_GLOBAL_OR_LOCAL
+                else:
+                    stree.add_symbol(tok.text)
+                    state = S.AFTER_SYMBOL
+
+            elif kind == "}":
+                state = S.AFTER_GROUP
+
+            else:
+                report_error(tok, "expected a symbol or 'global' or 'local',"
+                             " not {!r}")
+
+        elif state == S.AFTER_GLOBAL_OR_LOCAL:
+            if kind == ":":
+                state = S.IN_GROUP
+            else:
+                report_error(tok,
+                             "expected ':', not {!r}, after global/local")
+                if kind == "}":
+                    state = S.AFTER_GROUP
+                elif kind == "IDENT":
+                    if tok.text in ("global", "local"):
+                        stree.set_visibility(tok.text)
+                        state = S.AFTER_GLOBAL_OR_LOCAL
+                    else:
+                        stree.add_symbol(tok.text)
+                        state = S.AFTER_SYMBOL
+                else:
+                    state = S.IN_GROUP
+
+        elif state == S.AFTER_SYMBOL:
+            if kind == ";":
+                state = S.IN_GROUP
+            else:
+                report_error(tok, "expected ';', not {!r}, after symbol")
+                if kind == "}":
+                    state = S.AFTER_GROUP
+                elif kind == "IDENT":
+                    if tok.text in ("global", "local"):
+                        stree.set_visibility(tok.text)
+                        state = S.AFTER_GLOBAL_OR_LOCAL
+                    else:
+                        stree.add_symbol(tok.text)
+                        state = S.AFTER_SYMBOL
+                else:
+                    state = S.IN_GROUP
+
+        elif state == S.AFTER_GROUP:
+            if kind == ";":
+                stree.end_group()
+                state = S.TOPLEVEL
+            elif kind == "IDENT":
+                check_group_name(tok)
+                stree.set_parent(tok.text)
+                state = S.AFTER_PARENT
+
+            else:
+                report_error(tok, "expected ';' or parent name after group")
+                if kind in (':', '}'):
+                    stree.end_group()
+                    state = S.TOPLEVEL
+                elif kind == '{':
+                    # missing semicolon and group name;
+                    # recover by starting a new group
+                    stree.begin_group()
+                    state = S.IN_GROUP
+                else:
+                    raise NotImplementedError("unexpected kind: "+kind)
+
+        elif state == S.AFTER_PARENT:
+            if kind == ";":
+                state = S.TOPLEVEL
+            else:
+                report_error(tok, "expected ';' after parent group name")
+                if kind in (':', '}'):
+                    state = S.TOPLEVEL
+                elif kind == '{':
+                    # missing semicolon; recover by starting a new group
+                    stree.begin_group()
+                    state = S.IN_GROUP
+                elif kind == "IDENT":
+                    # missing semicolon; recover by starting a new group
+                    check_group_name(tok)
+                    stree.begin_group(tok.text)
+                    state = S.AFTER_GROUP_NAME
+
+                else:
+                    raise NotImplementedError("unexpected kind: "+kind)
+
+        else:
+            raise NotImplementedError("unimplemented state: "+str(state))
+
+    if state != S.TOPLEVEL:
+        sys.stderr.write("{}: unexpected end of file\n".format(fname))
+        ok = False
+
+    if not ok:
+        sys.stderr.flush()
+        sys.exit(1)
+
+    try:
+        return stree.sorted_symbol_list()
+    except RuntimeError as e:
+        sys.stderr.write("{}: {}\n".format(fname, e))
+        sys.stderr.flush()
+        sys.exit(1)
+
+
+def scan_input_library(libname):
+    nm_out = run(
+        [
+            "nm", "--print-file-name", "--format=bsd",
+            "--extern-only", "--defined-only", "--no-sort",
+            libname
+        ],
+        stdin=subprocess.DEVNULL, stdout=subprocess.PIPE)
+    return [
+        line.split()[-1]
+        for line in nm_out.stdout.decode("utf-8").splitlines()
+    ]
+
+
+def compute_renames(exported_symbols, desired_visibility, prefix):
+
+    # Precalculate regular expressions for each symbol glob.
+    visibility_res = [
+        (re.compile('\A' + fnmatch.translate(s[0])), s[1])
+        for s in desired_visibility
+    ]
+
+    # This is O(len(exported_symbols) * len(desired_visibility)).
+    # We can live with this for now; a more efficient algorithm
+    # would be substantially more complicated because of the
+    # possibility of globs in desired_visibility.
+    renames = []
+    for sym in exported_symbols:
+        for rx, vis in visibility_res:
+            if rx.match(sym):
+                if not vis:
+                    renames.append((sym, prefix + sym))
+                break
+    return renames
+
+
+def perform_renames(out_lib, in_lib, renames):
+    with tempfile.NamedTemporaryFile(mode="w+t",
+                                     prefix="renames-",
+                                     encoding="utf-8") as rnfp:
+
+        for sym, ren in renames:
+            rnfp.write("{} {}\n".format(sym, ren))
+        rnfp.flush()
+
+        run(["objcopy", "--redefine-syms", rnfp.name,
+             in_lib, out_lib])
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("prefix",
+                    help="Prefix to give internal symbol names."
+                    " Must be a valid C identifier and should begin with"
+                    " an underscore followed by a lowercase letter.")
+    ap.add_argument("vscript", help="GNU ld-format version script defining "
+                    "the set of external symbols.")
+    ap.add_argument("input", help="Library to modify.")
+    ap.add_argument("output", help="Name of library to create.")
+
+    args = ap.parse_args()
+
+    if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", args.prefix, re.ASCII):
+        ap.error("prefix is not a valid C identifier")
+
+    symbol_visibility = parse_vscript(args.vscript)
+    all_exported_symbols = scan_input_library(args.input)
+    renames = compute_renames(all_exported_symbols, symbol_visibility,
+                              args.prefix)
+    perform_renames(args.output, args.input, renames)
+
+
+main()

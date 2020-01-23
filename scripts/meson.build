@@ -18,7 +18,6 @@
 # directories.
 
 foreach script : [
-  'check-cpp-dD',
   'check-ld-vscript',
   'check-ld-wrap',
   'compute-symver-floor',
@@ -28,8 +27,8 @@ foreach script : [
   'gen-crypt-symbol-vers-h',
   'gen-libcrypt-map',
   'install-symlink',
+  'rename-internal-symbols',
   'test-symbols-compat',
-  'test-symbols-renames',
   'test-symbols-static',
 ]
   set_variable('S_' + script.underscorify(), files(script)[0])
