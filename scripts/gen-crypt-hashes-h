@@ -32,6 +32,7 @@ from typing import (
 )
 
 
+#: Recognized tags for groups of hashes in hashes.conf.
 KNOWN_HASH_GROUPS = frozenset((
     "ALT",
     "FEDORA",
@@ -47,6 +48,14 @@ KNOWN_HASH_GROUPS = frozenset((
 ))
 
 
+#: Hashes whose implementation depends on another hash's implementation.
+IMPL_DEPENDENCIES = {
+    "gost_yescrypt": "yescrypt",
+    "scrypt": "yescrypt",
+    "bigcrypt": "descrypt",
+}
+
+
 def gen_hashes(ofp: TextIO, ifp: TextIO, ifname: str,
                hash_enabled: Dict[str, int]) -> None:
 
@@ -56,9 +65,9 @@ def gen_hashes(ofp: TextIO, ifp: TextIO, ifname: str,
     default_cand = {}
     line_index: Dict[str, str] = {}
     prefixes = {}
-    renames = {}
     prototypes = {}
     table_entry = {}
+    hash_proto_needed = {}
     max_method_name_len = 0
 
     for lineno, line in enumerate(ifp):
@@ -110,6 +119,7 @@ def gen_hashes(ofp: TextIO, ifp: TextIO, ifname: str,
                     error = True
 
         output_order.append(name)
+        hash_proto_needed[name] = 0
         if name not in hash_enabled:
             hash_enabled[name] = 0
         max_method_name_len = max(max_method_name_len, len(name))
@@ -120,11 +130,6 @@ def gen_hashes(ofp: TextIO, ifp: TextIO, ifname: str,
 
         c_fn = "crypt_{}_rn".format(name)
         g_fn = "gensalt_{}_rn".format(name)
-
-        renames[name] = (
-            "#define {c_fn} _crypt_{c_fn}\n"
-            "#define {g_fn} _crypt_{g_fn}\n"
-        ).format(c_fn=c_fn, g_fn=g_fn)
 
         prototypes[name] = (
             "extern void {c_fn} (const char *, size_t, const char *,\n"
@@ -160,6 +165,14 @@ def gen_hashes(ofp: TextIO, ifp: TextIO, ifname: str,
     if error:
         sys.exit(1)
 
+    # Some hash implementations depend on other hash implementations.
+    # If one of those hashes is enabled, but the hash it depends on
+    # isn't enabled, we must emit the prototype for the depended-on
+    # hash's entry point function anyway.
+    for name, enabled in hash_enabled.items():
+        if enabled and name in IMPL_DEPENDENCIES:
+            hash_proto_needed[IMPL_DEPENDENCIES[name]] = 1
+
     ofp.write(
         "/* Generated from hashes.conf and build config.  DO NOT EDIT.  */\n"
         "\n"
@@ -181,19 +194,10 @@ def gen_hashes(ofp: TextIO, ifp: TextIO, ifname: str,
 
     ofp.write(
         "\n"
-        "/* Internal symbol renames for static linkage, see crypt-port.h.  */"
-        "\n"
-    )
-    for name in output_order:
-        if hash_enabled[name]:
-            ofp.write(renames[name])
-
-    ofp.write(
-        "\n"
         "/* Prototypes for hash algorithm entry points.  */\n"
     )
     for name in output_order:
-        if hash_enabled[name]:
+        if hash_enabled[name] or hash_proto_needed[name]:
             ofp.write(prototypes[name])
 
     ofp.write(

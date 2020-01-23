@@ -21,3 +21,11 @@ python --version
 python -c 'import sys, pprint; pprint.pprint(sys.path)'
 python -m pip install --upgrade pip wheel
 python -m pip install codecov
+
+# On Darwin, download the 'objconv' utility and put it in $PATH.
+# (Conveniently, build/venv/bin is now in $PATH.)
+if [ x"$(uname -s)" = x"Darwin" ]; then
+    curl -sSL -o build/venv/bin/objconv \
+         https://bitbucket.org/elwoz/objconv/downloads/objconv-2.51-mac-amd64
+    chmod +x build/venv/bin/objconv
+fi

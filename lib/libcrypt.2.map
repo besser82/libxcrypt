@@ -1,0 +1,23 @@
+XCRYPT_2.0 {
+  global:
+    crypt;
+    crypt_r;
+    crypt_rn;
+    crypt_ra;
+    crypt_gensalt;
+    crypt_gensalt_ra;
+    crypt_gensalt_rn;
+
+  local:
+    *;
+};
+
+XCRYPT_4.3 {
+  global:
+    crypt_checksalt;
+} XCRYPT_2.0;
+
+XCRYPT_4.4 {
+  global:
+    crypt_preferred_method;
+} XCRYPT_4.3;
