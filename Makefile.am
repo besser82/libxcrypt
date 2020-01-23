@@ -36,8 +36,10 @@ EXTRA_DIST = \
 	lib/hashes.conf \
 	lib/libcrypt.map.in \
 	lib/libcrypt.minver \
+	lib/libcrypt.2.map \
 	lib/xcrypt.h.in \
 	scripts/common.py \
+	scripts/compute-symbol-renames \
 	scripts/compute-symver-floor \
 	scripts/expand-selected-hashes \
 	scripts/gen-crypt-h \
@@ -46,7 +48,6 @@ EXTRA_DIST = \
 	scripts/gen-libcrypt-map \
 	scripts/skip-if-exec-format-error \
 	scripts/test-symbols-compat.py \
-	scripts/test-symbols-renames.py \
 	scripts/test-symbols-static.py
 
 notrans_dist_man3_MANS = \
@@ -118,11 +119,7 @@ install_exec_hook_targets =
 install_data_hook_targets =
 uninstall_hook_targets =
 
-if ENABLE_STATIC
-lib_LIBRARIES += libcrypt.a
-endif
-
-libcrypt_a_SOURCES = \
+libcrypt_base_a_SOURCES = \
 	lib/alg-des-tables.c \
 	lib/alg-des.c \
 	lib/alg-gost3411-2012-core.c \
@@ -153,15 +150,50 @@ libcrypt_a_SOURCES = \
 	lib/crypt.c \
 	lib/randombytes.c
 
-libcrypt_a_CPPFLAGS = $(AM_CPPFLAGS) -DIN_LIBCRYPT
+libcrypt_base_a_CPPFLAGS = $(AM_CPPFLAGS) -DIN_LIBCRYPT
+
+# The public static library, libcrypt.a, is built from libcrypt-base.a
+# by renaming all the internal symbols.  In order to avoid a conflict
+# with Automake's built-in rule for building a library, we call the
+# libcrypt.a artifact a noinst_SCRIPT and we install it by hand from
+# the install-exec-hook.
+if ENABLE_STATIC
+noinst_LIBRARIES += libcrypt-base.a
+noinst_SCRIPTS += libcrypt.a
+
+libcrypt-base.a.exports: libcrypt-base.a
+	$(LIST_EXPORTS_CMD)
+
+libcrypt.a.renames: libcrypt-base.a.exports lib/libcrypt.2.map \
+	            scripts/compute-symbol-renames Makefile
+	$(PYTHON) $(srcdir)/scripts/compute-symbol-renames \
+	    $(RENAMES_FORMAT) -p _crypt_ -o $@ libcrypt-base.a.exports \
+	    $(srcdir)/lib/libcrypt.2.map $(host_os)
+
+libcrypt.a: libcrypt.a.renames libcrypt-base.a
+	$(RENAME_INTERNALS_CMD)
+
+install_exec_hook_targets += install-exec-hook-libcrypt-a
+install-exec-hook-libcrypt-a:
+	$(MKDIR_P) "$(DESTDIR)$(libdir)"
+	$(INSTALL) $(INSTALL_STRIP_FLAG) libcrypt.a "$(DESTDIR)$(libdir)"
+
+uninstall_hook_targets += uninstall-libcrypt-a
+uninstall-libcrypt-a:
+	rm -f "$(DESTDIR)$(libdir)/libcrypt.a"
+
+CLEANFILES += libcrypt-base.a.exports.T libcrypt-base.a.exports \
+	      libcrypt.a.renames libcrypt.a
+endif
+
 
 # The shared library is built as a static library first, and then
 # converted.
 if ENABLE_SHARED
 noinst_LIBRARIES += libcrypt-pic.a
 
-libcrypt_pic_a_SOURCES  = $(libcrypt_a_SOURCES)
-libcrypt_pic_a_CPPFLAGS = $(libcrypt_a_CPPFLAGS) -DPIC
+libcrypt_pic_a_SOURCES  = $(libcrypt_base_a_SOURCES)
+libcrypt_pic_a_CPPFLAGS = $(libcrypt_base_a_CPPFLAGS) -DPIC
 libcrypt_pic_a_CFLAGS   = $(AM_CFLAGS) $(PICFLAGS)
 
 if ENABLE_OBSOLETE_API
@@ -439,14 +471,12 @@ TESTS = $(check_PROGRAMS)
 
 if ENABLE_STATIC
 TESTS += scripts/test-symbols-static.py
-
-if HAVE_CPP_dD
-TESTS += scripts/test-symbols-renames.py
-endif
 endif
 
 if ENABLE_OBSOLETE_API
+if ENABLE_SHARED
 TESTS += scripts/test-symbols-compat.py
+endif
 endif
 
 AM_TESTS_ENVIRONMENT = \
@@ -472,14 +502,14 @@ LOG_COMPILER = scripts/skip-if-exec-format-error
 endif
 
 # Refer to object files that are linked into libcrypt with the
-# qualified name, lib/libcrypt_a-foobar.o, to prevent them from
-# being compiled a second time.
+# qualified name, lib/libcrypt_{base,pic{_a-foobar.o, to prevent
+# them from being compiled a second time.
 if ENABLE_SHARED
 LIBCRYPT = libcrypt$(SOEXT)
 LIBCRYPT_OBJ = lib/libcrypt_pic_a-
 else
 LIBCRYPT = libcrypt.a
-LIBCRYPT_OBJ = lib/libcrypt_a-
+LIBCRYPT_OBJ = lib/libcrypt_base_a-
 endif
 
 COMMON_TEST_OBJECTS = $(LIBCRYPT_OBJ)crypt-common.o $(LIBCRYPT)

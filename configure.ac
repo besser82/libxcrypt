@@ -27,7 +27,10 @@ m4_pattern_allow([PKG_INSTALLDIR])
 
 # Checks for programs.
 AC_CANONICAL_HOST
+dnl AC_PROG_MAKE_SET is executed by AM_INIT_AUTOMAKE.
+AC_PROG_LN_S
 AC_PROG_CC
+AC_PROG_CPP
 
 # C99 language and library features are used unconditionally.
 # Don't even try to build with an older compiler.
@@ -35,11 +38,12 @@ case "$ac_prog_cc_stdc" in
      c89 | no) AC_MSG_ERROR([a C99- or C11-compliant compiler is required]) ;;
 esac
 
-# AC_USE_SYSTEM_EXTENSIONS and AC_SYS_LARGEFILE should come
-# immediately after AC_PROG_CC because they can change the results of
+# Everything that changes the effective value of $CFLAGS should come
+# immediately after AC_PROG_CC, because they can change the results of
 # compilation checks.
 AC_USE_SYSTEM_EXTENSIONS
 AC_SYS_LARGEFILE
+zw_SIMPLE_ENABLE_WARNINGS
 
 # Use AC_PATH_PROGS to look for the Python interpreter under a variety
 # of versioned names, in descending order of recency, ending up with
@@ -62,34 +66,11 @@ else
   PKG_INSTALLDIR_COMPAT
 fi
 
-AC_PROG_CPP
-AM_PROG_AR
-AC_PROG_RANLIB
-AC_CHECK_TOOL([NM], [nm], [false])
+# Do we want to build shared or static libraries?  If so, do we know how?
+zw_CHECK_LIBRARY_BUILD_FLAGS
+
+# Used by some tests.
 AC_CHECK_TOOL([LDD], [ldd], [false])
-AC_PROG_MAKE_SET
-AC_PROG_LN_S
-
-zw_SIMPLE_ENABLE_WARNINGS
-
-# Do we want to build shared libraries?  If so, do we know how?
-zw_CHECK_SHLIB_FLAGS
-
-# One of the test scripts needs to use -dD.
-AC_CACHE_CHECK([whether the preprocessor ($CPP) supports -dD],
-  [ac_cv_prog_cc_dD],
-  [printf '#include <errno.h>' |
-    $CPP -dD -xc - > conftest.i 2>&AS_MESSAGE_LOG_FD
-  if test $? -ne 0; then
-    ac_cv_prog_cc_dD=no
-  elif grep -q '#define EDOM' conftest.i; then
-    ac_cv_prog_cc_dD=yes
-  else
-    ac_cv_prog_cc_dD=no
-  fi
-  rm -f conftest.i
-])
-AM_CONDITIONAL([HAVE_CPP_dD], [test $ac_cv_prog_cc_dD = yes])
 
 # Checks for libraries: currently none needed.
 
@@ -461,10 +442,6 @@ AM_CONDITIONAL([ENABLE_OBSOLETE_API], [test $enable_obsolete_api = 1])
 AM_CONDITIONAL([ENABLE_COMPAT_SUSE], [test $enable_compat_suse = 1])
 AM_CONDITIONAL([ENABLE_XCRYPT_COMPAT_FILES],
                [test $enable_xcrypt_compat_files = 1])
-
-# The Makefile needs to know which versions of the library we are building.
-AM_CONDITIONAL([ENABLE_STATIC], [test $enable_static = yes])
-AM_CONDITIONAL([ENABLE_SHARED], [test $enable_shared = yes])
 
 # The Makefile needs to know if we are cross-compiling.
 AM_CONDITIONAL([CROSS_COMPILING], [test $cross_compiling = yes])
