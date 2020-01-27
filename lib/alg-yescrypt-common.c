@@ -19,8 +19,11 @@
  */
 
 #include "crypt-port.h"
+#include "crypt-hashes.h"
 
 #if INCLUDE_yescrypt || INCLUDE_scrypt || INCLUDE_gost_yescrypt
+
+#include "crypt-internal.h"
 
 #include <stdint.h>
 #include <string.h>

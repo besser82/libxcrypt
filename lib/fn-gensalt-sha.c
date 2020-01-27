@@ -9,11 +9,14 @@
  */
 
 #include "crypt-port.h"
+#include "crypt-hashes.h"
+
+#if INCLUDE_md5crypt || INCLUDE_sha256crypt || INCLUDE_sha512crypt
+
+#include "crypt-internal.h"
 
 #include <errno.h>
 #include <stdio.h>
-
-#if INCLUDE_md5crypt || INCLUDE_sha256crypt || INCLUDE_sha512crypt
 
 void
 gensalt_sha_rn (char tag, size_t maxsalt, unsigned long defcount,

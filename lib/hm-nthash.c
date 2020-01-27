@@ -29,9 +29,12 @@
  */
 
 #include "crypt-port.h"
+#include "crypt-hashes.h"
 
 #if INCLUDE_nt
 
+#include "crypt.h"
+#include "crypt-internal.h"
 #include "alg-md4.h"
 
 #include <errno.h>

@@ -26,9 +26,11 @@
  */
 
 #include "crypt-port.h"
+#include "crypt-hashes.h"
 
 #if INCLUDE_sha512crypt
 
+#include "crypt-internal.h"
 #include "alg-sha512.h"
 #include "alg-yescrypt-sysendian.h"
 

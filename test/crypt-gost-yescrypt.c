@@ -18,6 +18,7 @@
  */
 
 #include "crypt-port.h"
+#include "crypt-hashes.h"
 
 #if INCLUDE_gost_yescrypt
 
@@ -30,7 +31,7 @@ static void
 test_outer_hmac (const uint8_t *k, size_t n, const uint8_t *t, size_t len,
                  uint8_t *out32, gost_hmac_256_t *gostbuf);
 #define outer_gost_hmac256 test_outer_hmac
-#include "../lib/crypt-gost-yescrypt.c"
+#include "../lib/hm-gost-yescrypt.c"
 
 static int test_mode = 0;
 

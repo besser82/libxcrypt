@@ -46,12 +46,27 @@
  * by David Burren <davidb@werj.com.au>.
  */
 
-/* Obsolete DES symmetric cipher API - not to be used in new code.  */
+/* Obsolete DES symmetric cipher API - not to be used in new code.
+   Provided for binary backward compatibility only.  */
 
 #include "crypt-port.h"
-#include "crypt-obsolete.h"
+#include "crypt-symver.h"
+
+#include "crypt.h"
+#include "crypt-internal.h"
+
 #include "alg-des.h"
 #include <errno.h>
+
+extern void setkey (const char *__key);
+extern void setkey_r (const char *__key,
+                      struct crypt_data *restrict __data);
+
+extern void encrypt (char *__block, int __edflag);
+extern void encrypt_r (char *__block, int __edflag,
+                       struct crypt_data *restrict __data);
+
+
 
 #if (INCLUDE_encrypt || INCLUDE_encrypt_r || INCLUDE_setkey || INCLUDE_setkey_r) && \
     !ENABLE_OBSOLETE_API_ENOSYS

@@ -8,6 +8,8 @@
    details.  */
 
 #include "crypt-port.h"
+#include "crypt-hashes.h"
+#include "crypt.h"
 
 #include <errno.h>
 #include <stdio.h>

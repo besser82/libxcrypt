@@ -1,4 +1,4 @@
-/* Copyright (C) 2018 Björn Esser <besser82@fedoraproject.org>
+/* Copyright (C) 2018-2020 Björn Esser, Zack Weinberg
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted.
@@ -16,29 +16,23 @@
  * SUCH DAMAGE.
  */
 
-/* Simple compile test for our macro definition of strong_alias().
-   The sole purpose of this test is the fact some platforms do not
-   support strong aliases, some don't support aliases at all.
-   We test it just in case we may need this macro on those platforms
-   some time in the future.  */
-
 #include "crypt-port.h"
-#include "crypt-symver.h"
+#include "crypt-internal.h"
 
-/* Prototype  */
-int addition (int, int);
+#if INCLUDE_XCRYPT_SECURE_MEMSET
+/* Fallback definition of a function to securely wipe data stored in
+   memory.  The compiler is prevented from optimizing out calls to
+   this function, even if no *conforming* C program could tell whether
+   it had been called.
 
-int addition (int a, int b)
+   Prevention is accomplished by giving this function a name the
+   compiler does not recognize, and isolating it in a file of its own,
+   not visible to the inliner, and specifically excluded from
+   link-time optimization (see lib/meson.build).  Its body does not
+   need to do anything special.  */
+void
+secure_memset (void *s, size_t len)
 {
-  return a + b;
+  memset(s, 0x00, len);
 }
-strong_alias (addition, add);
-
-int
-main (void)
-{
-  int a =  1;
-  int b = -1;
-
-  return add (a, b);
-}
+#endif

@@ -1,9 +1,11 @@
 #include "crypt-port.h"
+#include "crypt-hashes.h"
+
+#if INCLUDE_nt
+
 #include "alg-md4.h"
 
 #include <stdio.h>
-
-#if INCLUDE_nt
 
 static const struct
 {

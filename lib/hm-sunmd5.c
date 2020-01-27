@@ -29,13 +29,16 @@
  */
 
 #include "crypt-port.h"
+#include "crypt-hashes.h"
+
+#if INCLUDE_sunmd5
+
+#include "crypt-internal.h"
 #include "alg-md5.h"
 
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
-
-#if INCLUDE_sunmd5
 
 #define SUNMD5_PREFIX           "$md5"
 #define SUNMD5_PREFIX_LEN       4

@@ -59,6 +59,7 @@
  */
 
 #include "crypt-port.h"
+#include "crypt-hashes.h"
 
 #if INCLUDE_descrypt || INCLUDE_bigcrypt || INCLUDE_bsdicrypt
 

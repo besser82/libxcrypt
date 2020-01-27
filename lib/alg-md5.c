@@ -36,9 +36,11 @@
  */
 
 #include "crypt-port.h"
+#include "crypt-hashes.h"
 
 #if INCLUDE_md5crypt || INCLUDE_sunmd5
 
+#include "crypt-internal.h"
 #include "alg-md5.h"
 
 /*

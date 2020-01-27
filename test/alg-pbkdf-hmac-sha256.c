@@ -10,11 +10,13 @@
  */
 
 #include "crypt-port.h"
+#include "crypt-hashes.h"
+
+#if INCLUDE_scrypt || INCLUDE_yescrypt || INCLUDE_gost_yescrypt
+
 #include "alg-sha256.h"
 
 #include <stdio.h>
-
-#if INCLUDE_scrypt || INCLUDE_yescrypt || INCLUDE_gost_yescrypt
 
 struct hmac_sha256_test
 {

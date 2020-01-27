@@ -19,6 +19,7 @@
 
 
 #include "crypt-port.h"
+#include "crypt-hashes.h"
 
 #if INCLUDE_gost_yescrypt
 

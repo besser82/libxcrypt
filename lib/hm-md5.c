@@ -18,11 +18,15 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include "crypt-port.h"
+#include "crypt-hashes.h"
+
+#if INCLUDE_md5crypt
+
+#include "crypt.h"
+#include "crypt-internal.h"
 #include "alg-md5.h"
 
 #include <errno.h>
-
-#if INCLUDE_md5crypt
 
 /* Define our magic string to mark salt for MD5 "encryption"
    replacement.  This is meant to be the same as for other MD5 based

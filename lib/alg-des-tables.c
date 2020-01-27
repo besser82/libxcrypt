@@ -47,9 +47,11 @@
  */
 
 #include "crypt-port.h"
-#include "alg-des.h"
+#include "crypt-hashes.h"
 
 #if INCLUDE_descrypt || INCLUDE_bsdicrypt || INCLUDE_bigcrypt
+
+#include "alg-des.h"
 
 const uint8_t m_sbox[4][4096] =
 {

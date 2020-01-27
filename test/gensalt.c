@@ -1,4 +1,7 @@
 #include "crypt-port.h"
+#include "crypt-hashes.h"
+#include "crypt-internal.h"
+#include "crypt.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -511,10 +514,11 @@ main (void)
         (setting1 != 0 && setting2 == 0) ||
         (setting1 != 0 && setting2 != 0 && strcmp (setting1, setting2)))
       {
-        printf ("FAILED: crypt_gensalt defaulting to $y$\n"
-                "  $y$ -> %s\n"
-                "  null -> %s\n",
-                setting1, setting2);
+        fprintf (stderr, "FAILED: crypt_gensalt defaulting to %s\n"
+                 "  %s -> %s\n"
+                 "  null -> %s\n",
+                 EXPECTED_DEFAULT_PREFIX, EXPECTED_DEFAULT_PREFIX,
+                 setting1, setting2);
         status = 1;
       }
     free (setting1);
@@ -525,7 +529,8 @@ main (void)
     char *setting = crypt_gensalt_ra (0, 0, entropy[0], 16);
     if (setting)
       {
-        printf ("FAILED: crypt_gensalt null -> %s (null expected)\n", setting);
+        fprintf (stderr, "FAILED: crypt_gensalt null -> %s (null expected)\n",
+                 setting);
         status = 1;
       }
     free (setting);

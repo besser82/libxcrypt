@@ -44,11 +44,15 @@
  */
 
 #include "crypt-port.h"
+#include "crypt-hashes.h"
+
+#if INCLUDE_descrypt || INCLUDE_bsdicrypt || INCLUDE_bigcrypt
+
+#include "crypt.h"
+#include "crypt-internal.h"
 #include "alg-des.h"
 
 #include <errno.h>
-
-#if INCLUDE_descrypt || INCLUDE_bsdicrypt || INCLUDE_bigcrypt
 
 #define DES_TRD_OUTPUT_LEN 14                /* SShhhhhhhhhhh0 */
 #define DES_EXT_OUTPUT_LEN 21                /* _CCCCSSSShhhhhhhhhhh0 */

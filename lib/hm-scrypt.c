@@ -20,9 +20,12 @@
 #include "crypt-port.h"
 #include "crypt-hashes.h"
 
-#include <errno.h>
-
 #if INCLUDE_scrypt
+
+#include "crypt.h"
+#include "crypt-internal.h"
+
+#include <errno.h>
 
 static int
 check_salt_char (char ch)

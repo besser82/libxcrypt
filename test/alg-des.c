@@ -6,12 +6,14 @@
  */
 
 #include "crypt-port.h"
+#include "crypt-hashes.h"
+
+#if INCLUDE_descrypt || INCLUDE_bsdicrypt || INCLUDE_bigcrypt
+
 #include "alg-des.h"
 #include "des-cases.h"
 
 #include <stdio.h>
-
-#if INCLUDE_descrypt || INCLUDE_bsdicrypt || INCLUDE_bigcrypt
 
 static void
 v_print (const unsigned char v[8])

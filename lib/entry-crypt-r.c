@@ -1,4 +1,6 @@
-/* Copyright (C) 2007-2017 Thorsten Kukuk
+/* High-level libcrypt interfaces.
+
+   Copyright 2007-2020 Thorsten Kukuk, Zack Weinberg, Björn Esser
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -15,27 +17,29 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include "crypt-port.h"
-#include "xcrypt.h"
+#include "crypt-symver.h"
 
-/* The functions that use global state objects are isolated in their
-   own files so that a statically-linked program that doesn't use them
-   will not have the state objects in its data segment.  */
+#if INCLUDE_crypt_r
 
-#if INCLUDE_crypt_gensalt
+#include "crypt.h"
+#include "crypt-internal.h"
+
 char *
-crypt_gensalt (const char *prefix, unsigned long count,
-               const char *rbytes, int nrbytes)
+crypt_r (const char *phrase, const char *setting, struct crypt_data *data)
 {
-  static char output[CRYPT_GENSALT_OUTPUT_SIZE];
-
-  return crypt_gensalt_rn (prefix, count,
-                           rbytes, nrbytes, output, sizeof (output));
+  make_failure_token (setting, data->output, sizeof data->output);
+  do_crypt (phrase, setting, data);
+#if ENABLE_FAILURE_TOKENS
+  return data->output;
+#else
+  return data->output[0] == '*' ? 0 : data->output;
+#endif
 }
-SYMVER_crypt_gensalt;
+SYMVER_crypt_r;
 #endif
 
 /* For code compatibility with older versions (v3.1.1 and earlier).  */
-#if INCLUDE_crypt_gensalt && INCLUDE_xcrypt_gensalt
-strong_alias (crypt_gensalt, xcrypt_gensalt);
-SYMVER_xcrypt_gensalt;
+#if INCLUDE_crypt_r && INCLUDE_xcrypt_r
+strong_alias (crypt_r, xcrypt_r);
+SYMVER_xcrypt_r;
 #endif

@@ -5,11 +5,13 @@
 */
 
 #include "crypt-port.h"
+#include "crypt-hashes.h"
+
+#if INCLUDE_sha1crypt
+
 #include "alg-sha1.h"
 
 #include <stdio.h>
-
-#if INCLUDE_sha1crypt
 
 /* Test Vectors (from FIPS PUB 180-1) */
 const char *test_data[3] =

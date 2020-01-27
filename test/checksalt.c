@@ -17,6 +17,9 @@
  */
 
 #include "crypt-port.h"
+#include "crypt-hashes.h"
+#include "crypt.h"
+
 #include <stdio.h>
 
 struct testcase

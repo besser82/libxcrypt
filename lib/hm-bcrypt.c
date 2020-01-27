@@ -44,12 +44,16 @@
  */
 
 #include "crypt-port.h"
+#include "crypt-hashes.h"
+
+#if INCLUDE_bcrypt || INCLUDE_bcrypt_a || INCLUDE_bcrypt_x || INCLUDE_bcrypt_y
+
+#include "crypt.h"
+#include "crypt-internal.h"
 #include "byteorder.h"
 
 #include <errno.h>
 #include <stdio.h>
-
-#if INCLUDE_bcrypt || INCLUDE_bcrypt_a || INCLUDE_bcrypt_x || INCLUDE_bcrypt_y
 
 #if defined(__i386__) || defined(__x86_64__) || \
     defined(__alpha__) || defined(__hppa__)

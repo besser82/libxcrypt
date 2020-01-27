@@ -17,6 +17,7 @@
  */
 
 #include "crypt-port.h"
+#include "crypt.h"
 #include <stdio.h>
 
 #define PASSPHRASE "Ob-La-Di, Ob-La-Da"

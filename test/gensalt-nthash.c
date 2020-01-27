@@ -17,10 +17,12 @@
  */
 
 #include "crypt-port.h"
-
-#include <stdio.h>
+#include "crypt-hashes.h"
 
 #if INCLUDE_nt
+
+#include "crypt.h"
+#include <stdio.h>
 
 int
 main (void)

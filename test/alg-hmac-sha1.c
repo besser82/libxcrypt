@@ -27,13 +27,15 @@
  */
 
 #include "crypt-port.h"
+#include "crypt-hashes.h"
+
+#if INCLUDE_sha1crypt
+
 #include "alg-sha1.h"
 #include "alg-hmac-sha1.h"
 
 #include <stdio.h>
 #include <stdlib.h>
-
-#if INCLUDE_sha1crypt
 
 #define HASH_LENGTH 20
 

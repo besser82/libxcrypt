@@ -8,9 +8,11 @@
  */
 
 #include "crypt-port.h"
+#include "crypt-hashes.h"
 
 #if INCLUDE_gost_yescrypt
 
+#include "crypt-internal.h"
 #include "alg-gost3411-2012-core.h"
 
 #pragma GCC diagnostic ignored "-Wcast-align"

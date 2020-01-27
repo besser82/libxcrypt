@@ -8,12 +8,16 @@
    details.  */
 
 #include "crypt-port.h"
+#include "crypt-symver.h"
+#include "crypt-hashes.h"
+#include "crypt.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 
 #if ENABLE_OBSOLETE_API && !ENABLE_OBSOLETE_API_ENOSYS
+extern char *fcrypt (const char *key, const char *setting);
 symver_ref("fcrypt", fcrypt, SYMVER_FLOOR);
 #endif
 

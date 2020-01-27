@@ -1,4 +1,4 @@
-/* Copyright (C) 2018-2019 Björn Esser <besser82@fedoraproject.org>
+/* Copyright (C) 2018-2020 Björn Esser, Zack Weinberg
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted.
@@ -16,42 +16,8 @@
  * SUCH DAMAGE.
  */
 
-/* Simple commonly used helper functions.  */
-
 #include "crypt-port.h"
-
-const unsigned char ascii64[65] =
-  "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-/* 0000000000111111111122222222223333333333444444444455555555556666 */
-/* 0123456789012345678901234567890123456789012345678901234567890123 */
-
-/* Provide a safe way to copy strings with the guarantee src,
-   including its terminating '\0', will fit d_size bytes.
-   The trailing bytes of d_size will be filled with '\0'.
-   dst and src must not be NULL.  Returns strlen (src).  */
-size_t
-strcpy_or_abort (void *dst, const size_t d_size, const void *src)
-{
-  assert (dst != NULL);
-  assert (src != NULL);
-  const size_t s_size = strlen ((const char *) src);
-  assert (d_size >= s_size + 1);
-  memcpy (dst, src, s_size);
-  XCRYPT_SECURE_MEMSET ((char *) dst + s_size, d_size - s_size);
-  return s_size;
-}
-
-#if INCLUDE_XCRYPT_SECURE_MEMSET
-/* The best hope we without any other implementation to
-   securely wipe data stored in memory.  */
-void
-secure_memset (void *s, size_t len)
-{
-  volatile unsigned char *c = s;
-  while (len--)
-    *c++ = 0x00;
-}
-#endif
+#include "crypt-internal.h"
 
 /* Fill the output buffer with a failure token.  */
 void

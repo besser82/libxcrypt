@@ -8,6 +8,7 @@
    details.  */
 
 #include "crypt-port.h"
+#include "crypt-internal.h"
 
 #include <errno.h>
 #include <setjmp.h>

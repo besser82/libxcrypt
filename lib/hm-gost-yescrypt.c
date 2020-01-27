@@ -18,8 +18,12 @@
  */
 
 #include "crypt-port.h"
+#include "crypt-hashes.h"
 
 #if INCLUDE_gost_yescrypt
+
+#include "crypt.h"
+#include "crypt-internal.h"
 
 #define YESCRYPT_INTERNAL
 #include "alg-yescrypt.h"

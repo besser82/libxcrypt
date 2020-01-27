@@ -23,6 +23,9 @@
 #include <errno.h>
 #include <stdio.h>
 
+#include "crypt-symver.h"
+
+extern char *fcrypt (const char *, const char *);
 symver_ref("fcrypt", fcrypt, SYMVER_FLOOR);
 
 int

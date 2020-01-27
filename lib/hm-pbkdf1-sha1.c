@@ -28,14 +28,17 @@
  */
 
 #include "crypt-port.h"
+#include "crypt-hashes.h"
+
+#if INCLUDE_sha1crypt
+
+#include "crypt-internal.h"
 #include "alg-hmac-sha1.h"
 #include "byteorder.h"
 
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#if INCLUDE_sha1crypt
 
 /*
  * The default iterations - should take >0s on a fast CPU

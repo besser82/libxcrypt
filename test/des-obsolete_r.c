@@ -7,7 +7,9 @@
  */
 
 #include "crypt-port.h"
-#include "crypt-obsolete.h"
+#include "crypt-symver.h"
+#include "crypt.h"
+
 #include "des-cases.h"
 
 #include <stdio.h>
@@ -16,7 +18,12 @@
 #include <errno.h>
 #endif
 
+extern void encrypt_r (char *__block, int __edflag,
+                       struct crypt_data *restrict __data);
 symver_ref("encrypt_r", encrypt_r, SYMVER_FLOOR);
+
+extern void setkey_r (const char *__key,
+                      struct crypt_data *restrict __data);
 symver_ref("setkey_r", setkey_r, SYMVER_FLOOR);
 
 static void

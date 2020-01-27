@@ -1,4 +1,4 @@
-/* Copyright (C) 2018 Björn Esser <besser82@fedoraproject.org>
+/* Copyright (C) 2018-2020 Björn Esser, Zack Weinberg
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted.
@@ -16,29 +16,22 @@
  * SUCH DAMAGE.
  */
 
-/* Simple compile test for our macro definition of strong_alias().
-   The sole purpose of this test is the fact some platforms do not
-   support strong aliases, some don't support aliases at all.
-   We test it just in case we may need this macro on those platforms
-   some time in the future.  */
-
 #include "crypt-port.h"
-#include "crypt-symver.h"
+#include "crypt-internal.h"
 
-/* Prototype  */
-int addition (int, int);
+/* Copy the C string 'src' into the buffer 'dst', which is of length
+   'd_size'.  If either dst or src is NULL, or if src is too long to
+   fit into dst, crash the program.  Any space after the string within
+   'dst' will be filled with NULs.  Returns strlen (src).  */
 
-int addition (int a, int b)
+size_t
+strcpy_or_abort (void *dst, const size_t d_size, const void *src)
 {
-  return a + b;
-}
-strong_alias (addition, add);
-
-int
-main (void)
-{
-  int a =  1;
-  int b = -1;
-
-  return add (a, b);
+  assert (dst != NULL);
+  assert (src != NULL);
+  const size_t s_size = strlen ((const char *) src);
+  assert (d_size >= s_size + 1);
+  memcpy (dst, src, s_size);
+  XCRYPT_SECURE_MEMSET ((char *) dst + s_size, d_size - s_size);
+  return s_size;
 }

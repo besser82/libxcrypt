@@ -17,11 +17,15 @@
  */
 
 #include "crypt-port.h"
+#include "crypt-hashes.h"
+
+#if INCLUDE_yescrypt || INCLUDE_gost_yescrypt || INCLUDE_scrypt
+
+#include "crypt.h"
+#include "crypt-internal.h"
 #include "alg-yescrypt.h"
 
 #include <errno.h>
-
-#if INCLUDE_yescrypt || INCLUDE_scrypt
 
 /* For use in scratch space by crypt_yescrypt_rn().  */
 typedef struct

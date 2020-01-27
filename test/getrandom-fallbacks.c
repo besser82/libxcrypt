@@ -8,6 +8,7 @@
    details.  */
 
 #include "crypt-port.h"
+#include "crypt-internal.h"
 
 #include <stdarg.h>
 #include <stdio.h>

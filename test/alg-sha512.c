@@ -1,9 +1,11 @@
 #include "crypt-port.h"
+#include "crypt-hashes.h"
+
+#if INCLUDE_sha512crypt
+
 #include "alg-sha512.h"
 
 #include <stdio.h>
-
-#if INCLUDE_sha512crypt
 
 static const struct
 {

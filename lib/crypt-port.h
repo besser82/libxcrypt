@@ -80,6 +80,16 @@
 # error "Unable to determine byte ordering"
 #endif
 
+/* Provide the endianness macros expected by the GOST R 34.11-2012
+   "Streebog" hash function implementation, so we can use that file
+   unmodified.  */
+#if XCRYPT_USE_BIGENDIAN
+#define __GOST3411_BIG_ENDIAN__ 1
+#else
+#define __GOST3411_LITTLE_ENDIAN__ 1
+#endif
+
+
 /* static_assert shim.  */
 #ifdef HAVE_STATIC_ASSERT_IN_ASSERT_H
 /* nothing to do */
@@ -111,177 +121,14 @@ typedef union
 
 /* Several files expect the traditional definitions of these macros.
    (We don't trust sys/param.h to define them correctly.)  */
+
 #undef MIN
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define MIN(a_, b_) (((a_) < (b_)) ? (a_) : (b_))
+
 #undef MAX
-#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#define MAX(a_, b_) (((a_) > (b_)) ? (a_) : (b_))
 
-/* ARRAY_SIZE is used in tests.  */
+#undef ARRAY_SIZE
 #define ARRAY_SIZE(a_)  (sizeof (a_) / sizeof ((a_)[0]))
-
-/* Provide a guaranteed way to erase sensitive memory at the best we
-   can, given the possibilities of the system.  */
-#if defined HAVE_MEMSET_S
-/* Will never be optimized out.  */
-#define XCRYPT_SECURE_MEMSET(s, len) \
-  memset_s (s, len, 0x00, len)
-#elif defined HAVE_EXPLICIT_BZERO
-/* explicit_bzero() should give us enough guarantees.  */
-#define XCRYPT_SECURE_MEMSET(s, len) \
-  explicit_bzero(s, len)
-#elif defined HAVE_EXPLICIT_MEMSET
-/* Same guarantee goes for explicit_memset().  */
-#define XCRYPT_SECURE_MEMSET(s, len) \
-  explicit_memset (s, 0x00, len)
-#else
-/* The best hope we have in this case.  */
-#define INCLUDE_XCRYPT_SECURE_MEMSET 1
-extern void secure_memset (void *, size_t);
-#define XCRYPT_SECURE_MEMSET(s, len) \
-  secure_memset (s, len)
-#endif
-#ifndef INCLUDE_XCRYPT_SECURE_MEMSET
-#define INCLUDE_XCRYPT_SECURE_MEMSET 0
-#endif
-
-/* Provide a safe way to copy strings with the guarantee src,
-   including its terminating '\0', will fit d_size bytes.
-   The trailing bytes of d_size will be filled with '\0'.
-   dst and src must not be NULL.  Returns strlen (src).  */
-extern size_t strcpy_or_abort (void *, const size_t, const void *);
-#define XCRYPT_STRCPY_OR_ABORT(dst, d_size, src) \
-  strcpy_or_abort (dst, d_size, src)
-
-/* Per-symbol version tagging.  Currently we only know how to do this
-   using GCC extensions.  */
-
-#if defined __GNUC__ && __GNUC__ >= 3
-
-/* Define ALIASNAME as a strong alias for NAME.  */
-#define strong_alias(name, aliasname) _strong_alias(name, aliasname)
-
-/* Darwin doesn't support alias attributes.  */
-#ifdef __cplusplus
-# ifndef __APPLE__
-#  define _strong_alias(name, aliasname) \
-     extern __typeof (name) aliasname __THROW __attribute__ ((alias (#name)))
-# else
-#  define _strong_alias(name, aliasname) \
-     __THROW __asm__(".globl _" #aliasname); \
-     __THROW __asm__(".set _" #aliasname ", _" #name); \
-     extern __typeof(name) aliasname __THROW
-# endif
-#else
-# ifndef __APPLE__
-#  define _strong_alias(name, aliasname) \
-     extern __typeof (name) aliasname __attribute__ ((alias (#name))) __THROW
-# else
-#  define _strong_alias(name, aliasname) \
-     __asm__(".globl _" #aliasname) __THROW; \
-     __asm__(".set _" #aliasname ", _" #name) __THROW; \
-     extern __typeof(name) aliasname __THROW
-# endif
-#endif
-
-/* Set the symbol version for EXTNAME, which uses INTNAME as its
-   implementation.  */
-#define symver_set(extstr, intname, version, mode) \
-  __asm__ (".symver " #intname "," extstr mode #version)
-
-/* A construct with the same syntactic role as the expansion of symver_set,
-   but which does nothing.  */
-#define symver_nop() __asm__ ("")
-
-#else
-#error "Don't know how to do symbol versioning with this compiler"
-#endif
-
-/* The macros for versioned symbols work differently in this library
-   than they do in glibc.  They are mostly auto-generated (see gen-vers.awk),
-   and we currently don't support compatibility symbols that need a different
-   definition from the default version.
-
-   Each definition of a public symbol should look like this:
-   #if INCLUDE_foo
-   int foo(arguments)
-   {
-     body
-   }
-   SYMVER_foo;
-   #endif
-
-   and the macros take care of the rest.  Normally, to call a public
-   symbol you do nothing special.  The macro symver_ref() forces
-   all uses of a particular name (in the file where it's used) to refer
-   to a particular version of a public symbol, e.g. for testing.  */
-
-#ifdef IN_LIBCRYPT
-
-#include "crypt-symbol-vers.h"
-
-#ifdef PIC
-
-#define symver_compat(n, extstr, extname, intname, version) \
-  strong_alias (intname, extname ## __ ## n); \
-  symver_set (extstr, extname ## __ ## n, version, "@")
-
-#define symver_compat0(extstr, intname, version) \
-  symver_set (extstr, intname, version, "@")
-
-#define symver_default(extstr, intname, version) \
-  symver_set (extstr, intname, version, "@@")
-
-#else
-
-/* When not building the shared library, don't do any of this.  */
-#define symver_compat(n, extstr, extname, intname, version) symver_nop ()
-#define symver_compat0(extstr, intname, version) symver_nop ()
-#define symver_default(extstr, intname, version) symver_nop ()
-
-#endif
-#endif
-
-/* Tests may need to _refer_ to compatibility symbols, but should never need
-   to _define_ them.  */
-
-#define symver_ref(extstr, intname, version) \
-  symver_set(extstr, intname, version, "@")
-
-/* Define configuration macros used during compile-time by the
-   GOST R 34.11-2012 "Streebog" hash function.  */
-#if XCRYPT_USE_BIGENDIAN
-#define __GOST3411_BIG_ENDIAN__ 1
-#else
-#define __GOST3411_LITTLE_ENDIAN__ 1
-#endif
-
-/* Get the set of hash algorithms to be included and some related
-   definitions.  */
-#include "crypt-hashes.h"
-
-/* We need a prototype for fcrypt for some tests.  */
-#if ENABLE_OBSOLETE_API
-extern char *fcrypt (const char *key, const char *setting);
-#endif
-
-/* Utility functions */
-extern bool get_random_bytes (void *buf, size_t buflen);
-
-extern void gensalt_sha_rn (char tag, size_t maxsalt, unsigned long defcount,
-                            unsigned long mincount, unsigned long maxcount,
-                            unsigned long count,
-                            const uint8_t *rbytes, size_t nrbytes,
-                            uint8_t *output, size_t output_size);
-
-/* Calculate the size of a base64 encoding of N bytes:
-   6 bits per output byte, rounded up.  */
-#define BASE64_LEN(bytes) ((((bytes) * 8) + 5) / 6)
-
-/* The "scratch" area passed to each of the individual hash functions is
-   this big.  */
-#define ALG_SPECIFIC_SIZE 8192
-
-#include "crypt.h"
-#include "crypt-common.h"
 
 #endif /* crypt-port.h */

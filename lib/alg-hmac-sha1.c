@@ -32,12 +32,14 @@
  */
 
 #include "crypt-port.h"
+#include "crypt-hashes.h"
+
+#if INCLUDE_sha1crypt
+
 #include "alg-hmac-sha1.h"
 #include "alg-sha1.h"
 
 #include <stdlib.h>
-
-#if INCLUDE_sha1crypt
 
 /* Don't change these */
 #define HMAC_IPAD 0x36

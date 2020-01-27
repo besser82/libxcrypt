@@ -1,4 +1,4 @@
-/* Copyright (C) 2018 Björn Esser <besser82@fedoraproject.org>
+/* Copyright (C) 2018-2020 Björn Esser, Zack Weinberg
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted.
@@ -16,29 +16,11 @@
  * SUCH DAMAGE.
  */
 
-/* Simple compile test for our macro definition of strong_alias().
-   The sole purpose of this test is the fact some platforms do not
-   support strong aliases, some don't support aliases at all.
-   We test it just in case we may need this macro on those platforms
-   some time in the future.  */
-
 #include "crypt-port.h"
-#include "crypt-symver.h"
 
-/* Prototype  */
-int addition (int, int);
+/* The base-64 digit set used by many hashing methods to encode output.  */
 
-int addition (int a, int b)
-{
-  return a + b;
-}
-strong_alias (addition, add);
-
-int
-main (void)
-{
-  int a =  1;
-  int b = -1;
-
-  return add (a, b);
-}
+const unsigned char ascii64[65] =
+  "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+/* 0000000000111111111122222222223333333333444444444455555555556666 */
+/* 0123456789012345678901234567890123456789012345678901234567890123 */

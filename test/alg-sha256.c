@@ -1,10 +1,12 @@
 #include "crypt-port.h"
-#include "alg-sha256.h"
-
-#include <stdio.h>
+#include "crypt-hashes.h"
 
 #if INCLUDE_sha256crypt || INCLUDE_scrypt || INCLUDE_yescrypt || \
     INCLUDE_gost_yescrypt
+
+#include "alg-sha256.h"
+
+#include <stdio.h>
 
 static const struct
 {

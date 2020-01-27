@@ -26,9 +26,11 @@
  */
 
 #include "crypt-port.h"
+#include "crypt-hashes.h"
 
 #if INCLUDE_gost_yescrypt || INCLUDE_yescrypt || INCLUDE_scrypt || INCLUDE_sha256crypt
 
+#include "crypt-internal.h"
 #define insecure_memzero XCRYPT_SECURE_MEMSET
 #include "alg-yescrypt-sysendian.h"
 

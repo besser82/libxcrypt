@@ -96,8 +96,8 @@ xcrypt_h = custom_target(
 # when build options request it.
 
 libcrypt_a_sources = files([
-  'alg-des-tables.c',
   'alg-des.c',
+  'alg-des-tables.c',
   'alg-gost3411-2012-core.c',
   'alg-gost3411-2012-hmac.c',
   'alg-hmac-sha1.c',
@@ -108,23 +108,34 @@ libcrypt_a_sources = files([
   'alg-sha512.c',
   'alg-yescrypt-common.c',
   'alg-yescrypt-opt.c',
-  'crypt-bcrypt.c',
-  'crypt-common.c',
-  'crypt-des.c',
-  'crypt-gensalt-static.c',
-  'crypt-gensalt.c',
-  'crypt-gost-yescrypt.c',
-  'crypt-md5.c',
-  'crypt-nthash.c',
-  'crypt-pbkdf1-sha1.c',
-  'crypt-scrypt.c',
-  'crypt-sha256.c',
-  'crypt-sha512.c',
-  'crypt-static.c',
-  'crypt-sunmd5.c',
-  'crypt-yescrypt.c',
-  'crypt.c',
-  'randombytes.c',
+  'entry-checksalt.c',
+  'entry-crypt.c',
+  'entry-crypt-r.c',
+  'entry-crypt-ra.c',
+  'entry-crypt-rn.c',
+  'entry-gensalt.c',
+  'entry-gensalt-ra.c',
+  'entry-gensalt-rn.c',
+  'entry-preferred-method.c',
+  'fn-ascii64.c',
+  'fn-do-crypt.c',
+  'fn-gensalt-sha.c',
+  'fn-get-hashfn.c',
+  'fn-make-failure-token.c',
+  'fn-randombytes.c',
+  'fn-secure-memset.c',
+  'fn-strcpy-or-abort.c',
+  'hm-bcrypt.c',
+  'hm-des.c',
+  'hm-gost-yescrypt.c',
+  'hm-md5.c',
+  'hm-nthash.c',
+  'hm-pbkdf1-sha1.c',
+  'hm-scrypt.c',
+  'hm-sha256.c',
+  'hm-sha512.c',
+  'hm-sunmd5.c',
+  'hm-yescrypt.c',
 ]) + [
   # these files may need any of the generated headers
   crypt_h, xcrypt_h, crypt_hashes_h, crypt_symbol_vers_h,
@@ -132,7 +143,10 @@ libcrypt_a_sources = files([
 
 libcrypt_so_sources = libcrypt_a_sources
 if ENABLE_OBSOLETE_API
-  libcrypt_so_sources += files('crypt-des-obsolete.c')
+  libcrypt_so_sources += files([
+    'entry-encrypt-setkey.c',
+    'entry-fcrypt.c',
+  ])
 endif
 
 if HAVE_VSCRIPT
