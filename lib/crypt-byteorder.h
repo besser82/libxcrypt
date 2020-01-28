@@ -12,8 +12,9 @@
 #define _CRYPT_BYTEORDER_H 1
 
 static inline uint32_t
-le32_to_cpu (const unsigned char *buf)
+le32_to_cpu (const void *p)
 {
+  const unsigned char *buf = p;
   return ((((uint32_t)buf[0]) <<  0) |
           (((uint32_t)buf[1]) <<  8) |
           (((uint32_t)buf[2]) << 16) |
@@ -21,8 +22,9 @@ le32_to_cpu (const unsigned char *buf)
 }
 
 static inline uint32_t
-be32_to_cpu (const unsigned char *buf)
+be32_to_cpu (const void *p)
 {
+  const unsigned char *buf = p;
   return ((((uint32_t)buf[0]) << 24) |
           (((uint32_t)buf[1]) << 16) |
           (((uint32_t)buf[2]) <<  8) |
@@ -30,8 +32,9 @@ be32_to_cpu (const unsigned char *buf)
 }
 
 static inline uint64_t
-le64_to_cpu (const unsigned char *buf)
+le64_to_cpu (const void *p)
 {
+  const unsigned char *buf = p;
   return ((((uint64_t)buf[0]) <<  0) |
           (((uint64_t)buf[1]) <<  8) |
           (((uint64_t)buf[2]) << 16) |
@@ -43,8 +46,9 @@ le64_to_cpu (const unsigned char *buf)
 }
 
 static inline uint64_t
-be64_to_cpu (const unsigned char *buf)
+be64_to_cpu (const void *p)
 {
+  const unsigned char *buf = p;
   return ((((uint64_t)buf[0]) << 56) |
           (((uint64_t)buf[1]) << 48) |
           (((uint64_t)buf[2]) << 40) |
@@ -56,8 +60,9 @@ be64_to_cpu (const unsigned char *buf)
 }
 
 static inline void
-cpu_to_le32 (unsigned char *buf, uint32_t n)
+cpu_to_le32 (void *p, uint32_t n)
 {
+  unsigned char *buf = p;
   buf[0] = (unsigned char)((n & 0x000000FFu) >>  0);
   buf[1] = (unsigned char)((n & 0x0000FF00u) >>  8);
   buf[2] = (unsigned char)((n & 0x00FF0000u) >> 16);
@@ -65,8 +70,9 @@ cpu_to_le32 (unsigned char *buf, uint32_t n)
 }
 
 static inline void
-cpu_to_be32 (unsigned char *buf, uint32_t n)
+cpu_to_be32 (void *p, uint32_t n)
 {
+  unsigned char *buf = p;
   buf[0] = (unsigned char)((n & 0xFF000000u) >> 24);
   buf[1] = (unsigned char)((n & 0x00FF0000u) >> 16);
   buf[2] = (unsigned char)((n & 0x0000FF00u) >>  8);
@@ -74,8 +80,9 @@ cpu_to_be32 (unsigned char *buf, uint32_t n)
 }
 
 static inline void
-cpu_to_le64 (unsigned char *buf, uint64_t n)
+cpu_to_le64 (void *p, uint64_t n)
 {
+  unsigned char *buf = p;
   buf[0] = (unsigned char)((n & 0x00000000000000FFull) >>  0);
   buf[1] = (unsigned char)((n & 0x000000000000FF00ull) >>  8);
   buf[2] = (unsigned char)((n & 0x0000000000FF0000ull) >> 16);
@@ -87,8 +94,9 @@ cpu_to_le64 (unsigned char *buf, uint64_t n)
 }
 
 static inline void
-cpu_to_be64 (unsigned char *buf, uint64_t n)
+cpu_to_be64 (void *p, uint64_t n)
 {
+  unsigned char *buf = p;
   buf[0] = (unsigned char)((n & 0xFF00000000000000ull) >> 56);
   buf[1] = (unsigned char)((n & 0x00FF000000000000ull) >> 48);
   buf[2] = (unsigned char)((n & 0x0000FF0000000000ull) >> 40);
@@ -98,5 +106,16 @@ cpu_to_be64 (unsigned char *buf, uint64_t n)
   buf[6] = (unsigned char)((n & 0x000000000000FF00ull) >>  8);
   buf[7] = (unsigned char)((n & 0x00000000000000FFull) >>  0);
 }
+
+/* Alternative names used by code written to BSD <sys/endian.h>
+   conventions.  */
+#define be32dec be32_to_cpu
+#define be32enc cpu_to_be32
+#define be64dec be64_to_cpu
+#define be64enc cpu_to_be64
+#define le32dec le32_to_cpu
+#define le32enc cpu_to_le32
+#define le64dec le64_to_cpu
+#define le64enc cpu_to_le64
 
 #endif /* byteorder.h */

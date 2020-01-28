@@ -46,6 +46,9 @@ extern void secure_memset (void *, size_t);
 #define INCLUDE_XCRYPT_SECURE_MEMSET 0
 #endif
 
+/* Alternative name used by some code.  */
+#define insecure_memzero XCRYPT_SECURE_MEMSET
+
 /* Provide a safe way to copy strings with the guarantee src,
    including its terminating '\0', will fit d_size bytes.
    The trailing bytes of d_size will be filled with '\0'.

@@ -33,8 +33,8 @@
 #if INCLUDE_sha1crypt
 
 #include "crypt-internal.h"
+#include "crypt-byteorder.h"
 #include "alg-hmac-sha1.h"
-#include "byteorder.h"
 
 #include <errno.h>
 #include <stdio.h>

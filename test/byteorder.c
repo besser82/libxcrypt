@@ -15,7 +15,7 @@
  */
 
 #include "crypt-port.h"
-#include "byteorder.h"
+#include "crypt-byteorder.h"
 
 #include <inttypes.h>
 #include <stdio.h>

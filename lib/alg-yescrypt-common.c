@@ -28,7 +28,6 @@
 #include <stdint.h>
 #include <string.h>
 
-#define insecure_memzero XCRYPT_SECURE_MEMSET
 #include "alg-sha256.h"
 
 #define YESCRYPT_INTERNAL

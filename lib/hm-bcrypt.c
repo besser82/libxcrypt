@@ -50,7 +50,7 @@
 
 #include "crypt.h"
 #include "crypt-internal.h"
-#include "byteorder.h"
+#include "crypt-byteorder.h"
 
 #include <errno.h>
 #include <stdio.h>

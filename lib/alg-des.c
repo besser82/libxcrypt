@@ -64,7 +64,7 @@
 #if INCLUDE_descrypt || INCLUDE_bigcrypt || INCLUDE_bsdicrypt
 
 #include "alg-des.h"
-#include "byteorder.h"
+#include "crypt-byteorder.h"
 
 static const uint8_t key_shifts[16] =
 {

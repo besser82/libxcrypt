@@ -35,9 +35,17 @@
 
 #include "crypt-internal.h"
 
+#if defined __GNUC__ && __GNUC__ >= 3
 #pragma GCC diagnostic ignored "-Wcast-align"
+#pragma GCC diagnostic ignored "-Wcast-qual"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #ifdef __clang__
+#pragma GCC diagnostic ignored "-Wshorten-64-to-32"
 #pragma GCC diagnostic ignored "-Wtautological-constant-out-of-range-compare"
+#else
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wtype-limits"
+#endif
 #endif
 
 /*
@@ -94,9 +102,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define insecure_memzero XCRYPT_SECURE_MEMSET
 #include "alg-sha256.h"
-#include "alg-yescrypt-sysendian.h"
+#include "crypt-byteorder.h"
 
 #define YESCRYPT_INTERNAL
 #include "alg-yescrypt.h"
