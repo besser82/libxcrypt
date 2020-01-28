@@ -19,20 +19,18 @@
 #include "crypt-port.h"
 #include "crypt-internal.h"
 
-#if INCLUDE_XCRYPT_SECURE_MEMSET
-/* Fallback definition of a function to securely wipe data stored in
+/* Fallback definition of a function to erase sensitive data stored in
    memory.  The compiler is prevented from optimizing out calls to
    this function, even if no *conforming* C program could tell whether
    it had been called.
 
    Prevention is accomplished by giving this function a name the
-   compiler does not recognize, and isolating it in a file of its own,
-   not visible to the inliner, and specifically excluded from
-   link-time optimization (see lib/meson.build).  Its body does not
-   need to do anything special.  */
-void
-secure_memset (void *s, size_t len)
+   compiler does not recognize, isolating it in a file of its own,
+   annotating it as never to be inlined, and specifically excluding it
+   from link-time optimization (see lib/meson.build).  Its body does
+   not need to do anything special.  */
+void attribute_noinline
+secure_erase (void *s, size_t len)
 {
-  memset(s, 0x00, len);
+  memset (s, 0x00, len);
 }
-#endif

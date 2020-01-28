@@ -453,10 +453,8 @@ uint8_t *yescrypt_r(const yescrypt_shared_t *shared, yescrypt_local_t *local,
 	    &params, hashbin, sizeof(hashbin)))
 		goto fail;
 
-	if (key) {
-		insecure_memzero(saltbin, sizeof(saltbin));
+	if (key)
 		yescrypt_sha256_cipher(hashbin, sizeof(hashbin), key, ENC);
-	}
 
 	dst = buf;
 	memcpy(dst, setting, prefixlen + saltstrlen);
@@ -464,12 +462,13 @@ uint8_t *yescrypt_r(const yescrypt_shared_t *shared, yescrypt_local_t *local,
 	*dst++ = '$';
 
 	dst = encode64(dst, buflen - (dst - buf), hashbin, sizeof(hashbin));
-	insecure_memzero(hashbin, sizeof(hashbin));
 	if (!dst || dst >= buf + buflen)
-		return NULL;
-
+		goto fail;
 	*dst = 0; /* NUL termination */
 
+
+        insecure_memzero(saltbin, sizeof(saltbin));
+	insecure_memzero(hashbin, sizeof(hashbin));
 	return buf;
 
 fail:

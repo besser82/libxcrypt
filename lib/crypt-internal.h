@@ -18,36 +18,26 @@
 
 /* Internal helper functions and constants.  */
 
-#ifndef _CRYPT_COMMON_H
-#define _CRYPT_COMMON_H 1
+#ifndef _CRYPT_INTERNAL_H
+#define _CRYPT_INTERNAL_H 1
 
-/* Provide a guaranteed way to erase sensitive memory at the best we
-   can, given the possibilities of the system.  */
+/* Erase sensitive data stored in memory.  The compiler will not
+   optimize out a call to secure_erase(), even if no *conforming* C
+   program could tell whether it had been called.  The C library may
+   provide this functionality; if not, we have a fallback definition
+   in fn-secure-erase.c.  */
 #if defined HAVE_MEMSET_S
-/* Will never be optimized out.  */
-#define XCRYPT_SECURE_MEMSET(s, len) \
-  memset_s (s, len, 0x00, len)
+#define secure_erase(s, len)        memset_s (s, len, 0x00, len)
 #elif defined HAVE_EXPLICIT_BZERO
-/* explicit_bzero() should give us enough guarantees.  */
-#define XCRYPT_SECURE_MEMSET(s, len) \
-  explicit_bzero(s, len)
+#define secure_erase(s, len)        explicit_bzero (s, len)
 #elif defined HAVE_EXPLICIT_MEMSET
-/* Same guarantee goes for explicit_memset().  */
-#define XCRYPT_SECURE_MEMSET(s, len) \
-  explicit_memset (s, 0x00, len)
+#define secure_erase(s, len)        explicit_memset (s, 0x00, len)
 #else
-/* The best hope we have in this case.  */
-#define INCLUDE_XCRYPT_SECURE_MEMSET 1
-extern void secure_memset (void *, size_t);
-#define XCRYPT_SECURE_MEMSET(s, len) \
-  secure_memset (s, len)
-#endif
-#ifndef INCLUDE_XCRYPT_SECURE_MEMSET
-#define INCLUDE_XCRYPT_SECURE_MEMSET 0
+extern void secure_erase (void *s, size_t len) attribute_noinline;
 #endif
 
-/* Alternative name used by some code.  */
-#define insecure_memzero XCRYPT_SECURE_MEMSET
+/* Alternative name for secure_erase used by some code.  */
+#define insecure_memzero secure_erase
 
 /* Provide a safe way to copy strings with the guarantee src,
    including its terminating '\0', will fit d_size bytes.

@@ -85,7 +85,7 @@ crypt_gensalt_internal (const char *prefix, unsigned long count,
               (unsigned char *)output, (size_t)output_size);
 
   if (internal_nrbytes)
-    XCRYPT_SECURE_MEMSET (internal_rbytes, internal_nrbytes);
+    secure_erase (internal_rbytes, internal_nrbytes);
 
   return output[0] == '*' ? 0 : output;
 }

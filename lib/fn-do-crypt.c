@@ -82,5 +82,5 @@ do_crypt (const char *phrase, const char *setting, struct crypt_data *data)
             (unsigned char *)data->output, sizeof data->output,
             cint->alg_specific, sizeof cint->alg_specific);
 
-  XCRYPT_SECURE_MEMSET (data->internal, sizeof data->internal);
+  secure_erase (data->internal, sizeof data->internal);
 }

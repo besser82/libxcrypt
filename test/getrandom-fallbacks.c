@@ -288,7 +288,7 @@ main (void)
       else
         printf ("ok: %s (return)\n", s->what);
     }
-#if HAVE_SYSCALL
+#if defined HAVE_SYSCALL
   failed |= other_syscalls;
 #endif
   return failed;

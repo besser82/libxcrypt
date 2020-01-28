@@ -325,7 +325,7 @@ SHA512_Final(unsigned char digest[MIN_SIZE(SHA512_DIGEST_LENGTH)],
 	be64enc_vect(digest, ctx->state, SHA512_DIGEST_LENGTH);
 
 	/* Clear the context state */
-	XCRYPT_SECURE_MEMSET(ctx, sizeof(*ctx));
+	secure_erase(ctx, sizeof(*ctx));
 }
 
 /**

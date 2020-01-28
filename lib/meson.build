@@ -83,6 +83,24 @@ xcrypt_h = custom_target(
   install_dir: get_option('includedir')
 )
 
+# The secure_erase() fallback, if needed, must be compiled separately
+# from the rest of the library, with link-time optimization explicitly
+# disabled.  Since meson doesn't currently support per-object-file
+# compilation flags (https://github.com/mesonbuild/meson/issues/3345),
+# the only way to do this is with a shim static library.
+secure_erase_src = []
+if INCLUDE_SECURE_ERASE
+  secure_erase_src += 'fn-secure-erase.c'
+endif
+lib_secure_erase = static_library(
+  'secure-erase',
+  sources: secure_erase_src,
+  include_directories: I_config_h,
+  override_options: ['unity=off', 'b_lto=false', 'b_staticpic=true'],
+  install: false
+)
+
+
 # The main library.
 # We cannot use library() or both_libraries(), because:
 #  - the compatibility symbols go only in the shared library
@@ -123,7 +141,6 @@ libcrypt_a_sources = files([
   'fn-get-hashfn.c',
   'fn-make-failure-token.c',
   'fn-randombytes.c',
-  'fn-secure-memset.c',
   'fn-strcpy-or-abort.c',
   'hm-bcrypt.c',
   'hm-des.c',
@@ -163,6 +180,7 @@ libcrypt_so = shared_library(
   'crypt',
   soversion: ENABLE_OBSOLETE_API ? '1' : '2',
   sources: libcrypt_so_sources,
+  link_whole: lib_secure_erase,
   c_args: ['-DIN_LIBCRYPT', '-DPIC'],
   include_directories: I_config_h,
   install: INSTALL_SHARED_LIB,
@@ -172,6 +190,7 @@ libcrypt_so = shared_library(
 libcrypt_a_internal = static_library(
   'crypt-internal',
   sources: libcrypt_a_sources,
+  link_whole: lib_secure_erase,
   c_args: ['-DIN_LIBCRYPT'],
   include_directories: I_config_h,
   install: false

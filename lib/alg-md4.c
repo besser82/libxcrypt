@@ -266,7 +266,7 @@ void MD4_Final(uint8_t result[16], MD4_CTX *ctx)
 	OUT(&result[8], ctx->c)
 	OUT(&result[12], ctx->d)
 
-	XCRYPT_SECURE_MEMSET(ctx, sizeof(*ctx));
+	secure_erase(ctx, sizeof(*ctx));
 }
 
 #endif

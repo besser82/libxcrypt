@@ -32,6 +32,6 @@ strcpy_or_abort (void *dst, const size_t d_size, const void *src)
   const size_t s_size = strlen ((const char *) src);
   assert (d_size >= s_size + 1);
   memcpy (dst, src, s_size);
-  XCRYPT_SECURE_MEMSET ((char *) dst + s_size, d_size - s_size);
+  memset ((char *) dst + s_size, 0x00, d_size - s_size);
   return s_size;
 }

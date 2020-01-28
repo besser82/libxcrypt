@@ -464,7 +464,9 @@ needed_functions = [
 foreach f : needed_functions
   fn = f[0]
   h = f[1]
-  if cdata.has('HAVE_' + h.underscorify().to_upper())
+  if (h == 'stdlib.h'
+      or h == 'string.h'
+      or cdata.has('HAVE_' + h.underscorify().to_upper()))
     if cc.has_function(fn, prefix: '#include <' + h + '>',
                        args: cflags_for_probe)
       cdata.set('HAVE_' + fn.underscorify().to_upper(), 1)
@@ -472,7 +474,24 @@ foreach f : needed_functions
   endif
 endforeach
 
+# If we have none of these functions, compile a fallback.
+INCLUDE_SECURE_ERASE = not (
+     cdata.has('HAVE_MEMSET_S')
+  or cdata.has('HAVE_EXPLICIT_BZERO')
+  or cdata.has('HAVE_EXPLICIT_MEMSET')
+)
+
 # Atypical checks for features of the C compiler and library.
+
+# Function annotation to suppress inlining (we only know how to do
+# this GCC-style at the moment).
+if cc.has_function_attribute('noinline')
+  cdata.set('attribute_noinline', '__attribute__((noinline))')
+else
+  cdata.set('attribute_noinline', '')
+endif
+
+
 # static_assert (C11)
 # Testing that 2 * 2 != 7 is in honor of Stanisław Lem.
 if cc.compiles('''
