@@ -249,11 +249,6 @@ libcrypt_a = custom_target(
 
 # Needed by the tests.
 I_lib = include_directories('.')
-libcrypt_internal_a_dep = declare_dependency(
-  sources: [crypt_h, xcrypt_h],
-  link_with: [libcrypt_internal_a],
-  include_directories: [I_config_h, I_lib],
-)
 libcrypt_a_dep = declare_dependency(
   sources: [crypt_h, xcrypt_h],
   # libcrypt_a is not a library object, but putting it in link_with seems
@@ -269,10 +264,12 @@ libcrypt_so_dep = declare_dependency(
 
 # For programs that should be linked against the shared library if it
 # exists, the static library otherwise.
-if get_option('default_library') == 'static'
-libcrypt_dep = libcrypt_a_dep
-else
+if INSTALL_SHARED_LIB
+libcrypt = libcrypt_so
 libcrypt_dep = libcrypt_so_dep
+else
+libcrypt = libcrypt_internal_a
+libcrypt_dep = libcrypt_a_dep
 endif
 
 # Generate and install a .pc file.

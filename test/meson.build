@@ -60,40 +60,55 @@ foreach hash, time : {
 endforeach
 
 # simple compiled-code tests
-# some of these refer to internal symbols, so we must link them against
-# the un-renamed static library
+# some of these refer to internal symbols; each entry in this array is a
+# 2-tuple (test_name, [additional objects]) where each of the additional
+# objects will be extracted from libcrypt.
 foreach t : [
-  'alg-des',
-  'alg-gost3411-2012',
-  'alg-gost3411-2012-hmac',
-  'alg-hmac-sha1',
-  'alg-md4',
-  'alg-md5',
-  'alg-pbkdf-hmac-sha256',
-  'alg-sha1',
-  'alg-sha256',
-  'alg-sha512',
-  'alg-yescrypt',
-  'badsalt',
-  'badsetting',
-  'byteorder',
-  'checksalt',
-  'compile-strong-alias',
-  'crypt-badargs',
-  'crypt-gost-yescrypt',
-  'gensalt',
-  'gensalt-extradata',
-  'gensalt-nthash',
-  'getrandom-interface',
-  'preferred-method',
-  'short-outbuf',
+  ['alg-des',                ['alg-des.c', 'alg-des-tables.c']],
+  ['alg-gost3411-2012',      ['alg-gost3411-2012-hmac.c',
+                              'alg-gost3411-2012-core.c']],
+  ['alg-gost3411-2012-hmac', ['alg-gost3411-2012-hmac.c',
+                              'alg-gost3411-2012-core.c']],
+  ['alg-hmac-sha1',          ['alg-hmac-sha1.c', 'alg-sha1.c']],
+  ['alg-md4',                ['alg-md4.c']],
+  ['alg-md5',                ['alg-md5.c']],
+  ['alg-pbkdf-hmac-sha256',  ['alg-sha256.c']],
+  ['alg-sha1',               ['alg-sha1.c']],
+  ['alg-sha256',             ['alg-sha256.c']],
+  ['alg-sha512',             ['alg-sha512.c']],
+  ['alg-yescrypt',           ['alg-yescrypt-common.c', 'alg-yescrypt-opt.c',
+                              'alg-sha256.c', 'fn-ascii64.c']],
+  ['badsalt',                []],
+  ['badsetting',             []],
+  ['byteorder',              []],
+  ['checksalt',              []],
+  ['compile-strong-alias',   []],
+  ['crypt-badargs',          []],
+  ['crypt-gost-yescrypt',    ['alg-gost3411-2012-core.c',
+                              'alg-gost3411-2012-hmac.c',
+                              'alg-sha256.c',
+                              'alg-yescrypt-common.c',
+                              'alg-yescrypt-opt.c',
+                              'fn-ascii64.c',
+                              'fn-strcpy-or-abort.c',
+                              'hm-yescrypt.c']],
+  ['gensalt',                ['fn-strcpy-or-abort.c']],
+  ['gensalt-extradata',      []],
+  ['gensalt-nthash',         []],
+  ['getrandom-interface',    ['fn-randombytes.c']],
+  ['preferred-method',       []],
+  ['short-outbuf',           []],
 ]
-  test(t, executable(t,
-                     sources: [t + '.c'],
-                     dependencies: [libcrypt_internal_a_dep],
-                     build_by_default: false,
-                     install: false,
-                    ))
+  name = t[0]
+  add_objs = t[1]
+  test(name, executable(
+    name,
+    sources: [name + '.c'],
+    dependencies: [libcrypt_dep],
+    objects: libcrypt.extract_objects(add_objs),
+    build_by_default: false,
+    install: false,
+  ))
 endforeach
 
 # compiled-code tests requiring special options
@@ -115,15 +130,15 @@ endif
 test('getrandom-fallbacks',
      executable('getrandom-fallbacks',
                 sources: ['getrandom-fallbacks.c'],
-                dependencies: [libcrypt_internal_a_dep],
+                objects: libcrypt.extract_objects('fn-randombytes.c'),
+                include_directories: [I_config_h, I_lib],
                 link_args: getrandom_fallbacks_LDFLAGS,
                 build_by_default: false,
                 install: false,
                ))
 
 # tests of the obsolete functions in the shared library, must be linked
-# against the shared library; they do not use any of the internal
-# functions that are only available from the static library
+# against the shared library; they do not use any internal functions
 if ENABLE_OBSOLETE_API
 foreach t : [
   'des-obsolete',
