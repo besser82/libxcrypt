@@ -187,7 +187,9 @@ libcrypt_so = shared_library(
   kwargs: libcrypt_so_extra_args
 )
 
-libcrypt_a_internal = static_library(
+# The static library we get by compiling all the source files normally.
+# For internal use only.
+libcrypt_internal_a = static_library(
   'crypt-internal',
   sources: libcrypt_a_sources,
   link_whole: lib_secure_erase,
@@ -196,21 +198,46 @@ libcrypt_a_internal = static_library(
   install: false
 )
 
+# The installed static library is generated from the internal static
+# library by renaming all the internal symbols using 'objcopy'.  This
+# approximates the effect of hiding the internals of the shared
+# library with a version script.
+
+libcrypt_internal_a_exports = custom_target(
+  'libcrypt-internal.a.exports',
+  output: 'libcrypt-internal.a.exports',
+  input: libcrypt_internal_a,
+  command: [nm,
+            '--print-file-name', '--format=bsd',
+            '--extern-only', '--defined-only', '--no-sort',
+            '@INPUT@'],
+  capture: true,
+  install: false
+)
+
+libcrypt_a_renames = custom_target(
+  'libcrypt.a.renames',
+  output: 'libcrypt.a.renames',
+  input: [libcrypt_internal_a_exports, libcrypt_2_map],
+  command: [python, S_compute_symbol_renames,
+            '-p', '_crypt_', '-o', '@OUTPUT@', '@INPUT@'],
+  install: false
+)
+
 libcrypt_a = custom_target(
   'libcrypt.a',
   output: 'libcrypt.a',
-  input: libcrypt_a_internal,
-  command: [python, S_rename_internal_symbols,
-            '_crypt_', libcrypt_2_map, '@INPUT@', '@OUTPUT@'],
+  input: [libcrypt_a_renames, libcrypt_internal_a],
+  command: [objcopy, '--redefine-syms', '@INPUT0@', '@INPUT1@', '@OUTPUT@'],
   install_dir: get_option('libdir'),
   install: INSTALL_STATIC_LIB,
 )
 
 # Needed by the tests.
 I_lib = include_directories('.')
-libcrypt_a_internal_dep = declare_dependency(
+libcrypt_internal_a_dep = declare_dependency(
   sources: [crypt_h, xcrypt_h],
-  link_with: [libcrypt_a_internal],
+  link_with: [libcrypt_internal_a],
   include_directories: [I_config_h, I_lib],
 )
 libcrypt_a_dep = declare_dependency(
@@ -242,10 +269,13 @@ endif
 # library.  However, the reverse is not true: meson's handling of
 # Libs.private, when pkg.generate is passed a shared library, produces
 # a .pc file that is correct for that shared library but *not* for the
-# matching static library.  So we give it the static library regardless
-# of what we're actually going to install.
+# matching static library.  So we give it the static library
+# regardless of what we're actually going to install.  We give it the
+# *internal* static library because that's always built, and the
+# symbol rewriting on the installed static library doesn't affect the
+# contents of the .pc file.
 pkg = import('pkgconfig')
-pkg.generate(libcrypt_a_internal,
+pkg.generate(libcrypt_internal_a,
   description: 'Extended crypt library for DES, MD5, Blowfish and others',
   filebase: 'libxcrypt',
   name: 'libxcrypt',

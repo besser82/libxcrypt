@@ -16,20 +16,21 @@
 #   License along with this library; if not, see
 #   <https://www.gnu.org/licenses/>.
 
-"""Create a copy of a static (.a) library with all of the internal
-symbols renamed so that they are less likely to collide with user
-names."""
+"""Compute the set of symbols in a static library that need to be
+renamed to avoid collisions with user names.  Takes a list of symbols
+defined by that library, in the format produced by nm --format=bsd,
+and a version script that specifies the *public* symbols defined by
+the library; produces a list of renamings in the format expected by
+objcopy --redefine-syms.
+"""
 
 import argparse
 import collections
 import enum
 import fnmatch
 import re
-import subprocess
 import sys
 import tempfile
-
-from common import run
 
 # Simplified lexical analyzer for GNU ld-style version scripts.
 # These files look vaguely like this:
@@ -388,18 +389,16 @@ def parse_vscript(fname):
         sys.exit(1)
 
 
-def scan_input_library(libname):
-    nm_out = run(
-        [
-            "nm", "--print-file-name", "--format=bsd",
-            "--extern-only", "--defined-only", "--no-sort",
-            libname
-        ],
-        stdin=subprocess.DEVNULL, stdout=subprocess.PIPE)
-    return [
-        line.split()[-1]
-        for line in nm_out.stdout.decode("utf-8").splitlines()
-    ]
+def read_export_list(nm_output_file):
+    exports = []
+    with open(nm_output_file, "rt") as fp:
+        for line in fp:
+            tokens = line.split()
+            symbol = tokens[-1]
+            symtype = tokens[-2]
+            if symtype in "BCDGIRSTuVvWw":
+                exports.append(symbol)
+    return exports
 
 
 def compute_renames(exported_symbols, desired_visibility, prefix):
@@ -424,29 +423,20 @@ def compute_renames(exported_symbols, desired_visibility, prefix):
     return renames
 
 
-def perform_renames(out_lib, in_lib, renames):
-    with tempfile.NamedTemporaryFile(mode="w+t",
-                                     prefix="renames-",
-                                     encoding="utf-8") as rnfp:
-
-        for sym, ren in renames:
-            rnfp.write("{} {}\n".format(sym, ren))
-        rnfp.flush()
-
-        run(["objcopy", "--redefine-syms", rnfp.name,
-             in_lib, out_lib])
-
-
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("prefix",
+    ap.add_argument("-p", "--prefix", default="_internal_",
                     help="Prefix to give internal symbol names."
                     " Must be a valid C identifier and should begin with"
                     " an underscore followed by a lowercase letter.")
+    ap.add_argument("-o", "--output", default=None,
+                    help="File to write the list of renames to"
+                    " (default: stdout)")
+    ap.add_argument("exports", help="List of symbols exported by the library."
+                    " Should be the output of nm --format=bsd --print-file-name"
+                    " --extern-only --defined-only <library>.")
     ap.add_argument("vscript", help="GNU ld-format version script defining "
                     "the set of external symbols.")
-    ap.add_argument("input", help="Library to modify.")
-    ap.add_argument("output", help="Name of library to create.")
 
     args = ap.parse_args()
 
@@ -454,10 +444,16 @@ def main():
         ap.error("prefix is not a valid C identifier")
 
     symbol_visibility = parse_vscript(args.vscript)
-    all_exported_symbols = scan_input_library(args.input)
-    renames = compute_renames(all_exported_symbols, symbol_visibility,
-                              args.prefix)
-    perform_renames(args.output, args.input, renames)
+    exported_symbols = read_export_list(args.exports)
+    renames = compute_renames(exported_symbols, symbol_visibility, args.prefix)
+
+    if args.output is None:
+        ofp = sys.stdout
+    else:
+        ofp = open(args.output, "wt")
+    with ofp:
+        for sym, ren in renames:
+            ofp.write("{} {}\n".format(sym, ren))
 
 
 main()

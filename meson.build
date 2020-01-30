@@ -63,9 +63,29 @@ else
   ENABLE_KA_TABLE_GEN = false
 endif
 
+#
+# C toolchain.
+#
+
 cc = meson.get_compiler('c')
 
-# Load file objects for the scripts.
+# The value of the 'default_library' option is one of 'static', 'shared', or
+# 'both'.  We want to install shared libraries if it's 'shared' or 'both',
+# and static libraries if it's 'static' or 'both'.  We can't just rely on
+# meson's library() builtin to take care of this for us because libcrypt.a
+# and libcrypt.so have slightly different contents; see lib/meson.build.
+INSTALL_SHARED_LIB = (get_option('default_library') != 'static')
+INSTALL_STATIC_LIB = (get_option('default_library') != 'shared')
+
+# If we are installing a static library, we need 'nm' and 'objcopy' as
+# well as the C compiler.
+nm = find_program('nm', required: INSTALL_STATIC_LIB)
+objcopy = find_program('objcopy', required: INSTALL_STATIC_LIB)
+
+#
+# Load file objects for build scripts.  We do this very early because
+# some of the scripts are needed below.
+#
 subdir('scripts')
 
 #
@@ -185,14 +205,6 @@ cdata.set('SYMVER_FLOOR', SYMVER_FLOOR)
 cdata.set('ENABLE_OBSOLETE_API', ENABLE_OBSOLETE_API ? 1 : 0)
 cdata.set('ENABLE_OBSOLETE_API_ENOSYS', ENABLE_OBSOLETE_API_ENOSYS ? 1 : 0)
 cdata.set('ENABLE_FAILURE_TOKENS', get_option('failure-tokens') ? 1 : 0)
-
-# The value of the 'default_library' option is one of 'static', 'shared', or
-# 'both'.  We want to install shared libraries if it's 'shared' or 'both',
-# and static libraries if it's 'static' or 'both'.  We can't just rely on
-# meson's library() builtin to take care of this for us because libcrypt.a
-# and libcrypt.so have slightly different contents; see lib/meson.build.
-INSTALL_SHARED_LIB = (get_option('default_library') != 'static')
-INSTALL_STATIC_LIB = (get_option('default_library') != 'shared')
 
 #
 # Compiler properties.

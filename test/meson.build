@@ -87,7 +87,7 @@ foreach t : [
 ]
   test(t, executable(t,
                      sources: [t + '.c'],
-                     dependencies: [libcrypt_a_internal_dep]))
+                     dependencies: [libcrypt_internal_a_dep]))
 endforeach
 
 # compiled-code tests requiring special options
@@ -109,7 +109,7 @@ endif
 test('getrandom-fallbacks',
      executable('getrandom-fallbacks',
                 sources: ['getrandom-fallbacks.c'],
-                dependencies: [libcrypt_a_internal_dep],
+                dependencies: [libcrypt_internal_a_dep],
                 link_args: getrandom_fallbacks_LDFLAGS))
 
 # tests of the obsolete functions in the shared library, must be linked
