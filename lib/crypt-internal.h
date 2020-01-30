@@ -48,11 +48,6 @@ extern void secure_erase (void *s, size_t len) attribute_noinline;
    pass char * while others pass unsigned char *.  */
 extern size_t strcpy_or_abort (void *dst, size_t d_size, const void *src);
 
-/* We need a prototype for fcrypt for some tests.  */
-#if ENABLE_OBSOLETE_API
-char *fcrypt (const char *key, const char *setting);
-#endif
-
 /* Utility functions */
 bool get_random_bytes (void *buf, size_t buflen);
 
