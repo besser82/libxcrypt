@@ -24,7 +24,9 @@ crypt_hashes_h = custom_target(
   input: ['hashes.conf'],
   command: [python, S_gen_crypt_hashes_h,
             '--hashes='+ENABLED_HASHES,
-            '@OUTPUT@', '@INPUT@']
+            '@OUTPUT@', '@INPUT@'],
+  build_by_default: false,
+  install: false,
 )
 
 libcrypt_map_in = files('libcrypt.map.in')
@@ -36,7 +38,9 @@ crypt_symbol_vers_h = custom_target(
             '--symver-min=' + SYMVER_MIN,
             '--symver-floor=' + SYMVER_FLOOR,
             '--compat-api=' + COMPAT_API,
-            '@OUTPUT@', '@INPUT@']
+            '@OUTPUT@', '@INPUT@'],
+  build_by_default: false,
+  install: false,
 )
 
 libcrypt_map = custom_target(
@@ -47,7 +51,9 @@ libcrypt_map = custom_target(
             '--symver-min='+SYMVER_MIN,
             '--symver-floor='+SYMVER_FLOOR,
             '--compat-api='+COMPAT_API,
-            '@OUTPUT@', '@INPUT@']
+            '@OUTPUT@', '@INPUT@'],
+  build_by_default: false,
+  install: false,
 )
 libcrypt_2_map = files('libcrypt.2.map')[0]
 
@@ -70,8 +76,9 @@ crypt_h = custom_target(
   input: ['crypt.h.in'],
   depends: [crypt_hashes_h],
   command: gen_crypt_h_cmd,
+  build_by_default: true,
   install: true,
-  install_dir: get_option('includedir')
+  install_dir: get_option('includedir'),
 )
 xcrypt_h = custom_target(
   'xcrypt.h',
@@ -79,8 +86,9 @@ xcrypt_h = custom_target(
   input: ['xcrypt.h.in'],
   depends: [crypt_hashes_h],
   command: gen_crypt_h_cmd,
+  build_by_default: get_option('xcrypt-compat-files'),
   install: get_option('xcrypt-compat-files'),
-  install_dir: get_option('includedir')
+  install_dir: get_option('includedir'),
 )
 
 # The secure_erase() fallback, if needed, must be compiled separately
@@ -97,7 +105,8 @@ lib_secure_erase = static_library(
   sources: secure_erase_src,
   include_directories: I_config_h,
   override_options: ['unity=off', 'b_lto=false', 'b_staticpic=true'],
-  install: false
+  build_by_default: false,
+  install: false,
 )
 
 
@@ -183,8 +192,9 @@ libcrypt_so = shared_library(
   link_whole: lib_secure_erase,
   c_args: ['-DIN_LIBCRYPT', '-DPIC'],
   include_directories: I_config_h,
+  build_by_default: INSTALL_SHARED_LIB,
   install: INSTALL_SHARED_LIB,
-  kwargs: libcrypt_so_extra_args
+  kwargs: libcrypt_so_extra_args,
 )
 
 # The static library we get by compiling all the source files normally.
@@ -195,7 +205,8 @@ libcrypt_internal_a = static_library(
   link_whole: lib_secure_erase,
   c_args: ['-DIN_LIBCRYPT'],
   include_directories: I_config_h,
-  install: false
+  build_by_default: false,
+  install: false,
 )
 
 # The installed static library is generated from the internal static
@@ -212,7 +223,8 @@ libcrypt_internal_a_exports = custom_target(
             '--extern-only', '--defined-only', '--no-sort',
             '@INPUT@'],
   capture: true,
-  install: false
+  build_by_default: false,
+  install: false,
 )
 
 libcrypt_a_renames = custom_target(
@@ -221,7 +233,8 @@ libcrypt_a_renames = custom_target(
   input: [libcrypt_internal_a_exports, libcrypt_2_map],
   command: [python, S_compute_symbol_renames,
             '-p', '_crypt_', '-o', '@OUTPUT@', '@INPUT@'],
-  install: false
+  build_by_default: false,
+  install: false,
 )
 
 libcrypt_a = custom_target(
@@ -229,8 +242,9 @@ libcrypt_a = custom_target(
   output: 'libcrypt.a',
   input: [libcrypt_a_renames, libcrypt_internal_a],
   command: [objcopy, '--redefine-syms', '@INPUT0@', '@INPUT1@', '@OUTPUT@'],
-  install_dir: get_option('libdir'),
+  build_by_default: INSTALL_STATIC_LIB,
   install: INSTALL_STATIC_LIB,
+  install_dir: get_option('libdir'),
 )
 
 # Needed by the tests.

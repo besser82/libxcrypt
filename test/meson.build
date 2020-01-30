@@ -51,7 +51,10 @@ foreach hash, time : {
          'ka-'+hash,
          sources: 'ka-tester.c',
          dependencies: [libcrypt_dep],
-         c_args: [_D + 'TEST_' + hash.underscorify()]),
+         c_args: [_D + 'TEST_' + hash.underscorify()],
+         build_by_default: false,
+         install: false,
+       ),
       timeout: 120,
       priority: time)
 endforeach
@@ -87,7 +90,10 @@ foreach t : [
 ]
   test(t, executable(t,
                      sources: [t + '.c'],
-                     dependencies: [libcrypt_internal_a_dep]))
+                     dependencies: [libcrypt_internal_a_dep],
+                     build_by_default: false,
+                     install: false,
+                    ))
 endforeach
 
 # compiled-code tests requiring special options
@@ -110,7 +116,10 @@ test('getrandom-fallbacks',
      executable('getrandom-fallbacks',
                 sources: ['getrandom-fallbacks.c'],
                 dependencies: [libcrypt_internal_a_dep],
-                link_args: getrandom_fallbacks_LDFLAGS))
+                link_args: getrandom_fallbacks_LDFLAGS,
+                build_by_default: false,
+                install: false,
+               ))
 
 # tests of the obsolete functions in the shared library, must be linked
 # against the shared library; they do not use any of the internal
@@ -123,7 +132,10 @@ foreach t : [
 ]
   test(t, executable(t,
                      sources: [t + '.c'],
-                     dependencies: [libcrypt_so_dep]))
+                     dependencies: [libcrypt_so_dep],
+                     build_by_default: false,
+                     install: false,
+                    ))
 endforeach
 endif
 
