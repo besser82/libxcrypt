@@ -97,7 +97,7 @@ crypt_nt_rn (const char *phrase, size_t phr_size,
   MD4_Final (intbuf->hash, &intbuf->ctx);
 
   /* Write the computed hash to the output buffer.  */
-  output += XCRYPT_STRCPY_OR_ABORT (output, out_size, magic);
+  output += strcpy_or_abort (output, out_size, magic);
   *output++ = '$';
   for (size_t i = 0; i < MD4_HASHLEN; i++)
     {
@@ -131,7 +131,7 @@ gensalt_nt_rn (unsigned long count,
       return;
     }
 
-  XCRYPT_STRCPY_OR_ABORT (output, o_size, prefix);
+  strcpy_or_abort (output, o_size, prefix);
 }
 
 #endif

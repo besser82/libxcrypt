@@ -39,13 +39,14 @@ extern void secure_erase (void *s, size_t len) attribute_noinline;
 /* Alternative name for secure_erase used by some code.  */
 #define insecure_memzero secure_erase
 
-/* Provide a safe way to copy strings with the guarantee src,
-   including its terminating '\0', will fit d_size bytes.
-   The trailing bytes of d_size will be filled with '\0'.
-   dst and src must not be NULL.  Returns strlen (src).  */
-extern size_t strcpy_or_abort (void *, const size_t, const void *);
-#define XCRYPT_STRCPY_OR_ABORT(dst, d_size, src) \
-  strcpy_or_abort (dst, d_size, src)
+/* Copy the C string 'src' into the buffer 'dst', which is of length
+   'd_size'.  Fill all of the trailing space in 'dst' with NULs.
+   If either dst or src is NULL, or if src (including its terminator)
+   does not fit into dst, crash the program.
+   Returns strlen (src).
+   Arguments are void * rather than char * to allow some callers to
+   pass char * while others pass unsigned char *.  */
+extern size_t strcpy_or_abort (void *dst, size_t d_size, const void *src);
 
 /* We need a prototype for fcrypt for some tests.  */
 #if ENABLE_OBSOLETE_API

@@ -20,18 +20,25 @@
 #include "crypt-internal.h"
 
 /* Copy the C string 'src' into the buffer 'dst', which is of length
-   'd_size'.  If either dst or src is NULL, or if src is too long to
-   fit into dst, crash the program.  Any space after the string within
-   'dst' will be filled with NULs.  Returns strlen (src).  */
-
+   'd_size'.  Fill all of the trailing space in 'dst' with NULs.
+   If either dst or src is NULL, or if src (including its terminator)
+   does not fit into dst, crash the program.
+   Returns strlen (src).
+   Arguments are void * rather than char * to allow some callers to
+   pass char * while others pass unsigned char *.  */
 size_t
-strcpy_or_abort (void *dst, const size_t d_size, const void *src)
+strcpy_or_abort (void *dst, size_t d_size, const void *src)
 {
   assert (dst != NULL);
   assert (src != NULL);
-  const size_t s_size = strlen ((const char *) src);
+
+  const char *s = src;
+  char *d = dst;
+
+  size_t s_size = strlen (s);
   assert (d_size >= s_size + 1);
-  memcpy (dst, src, s_size);
-  memset ((char *) dst + s_size, 0x00, d_size - s_size);
+
+  memcpy (d, s, s_size);
+  memset (d + s_size, 0x00, d_size - s_size);
   return s_size;
 }

@@ -439,7 +439,7 @@ gensalt_bigcrypt_rn (unsigned long count,
 
 #if !INCLUDE_descrypt
   /* ... add 12 trailing characters to signalize bigcrypt.  */
-  XCRYPT_STRCPY_OR_ABORT (output + 2, output_size - 2, "............");
+  strcpy_or_abort (output + 2, output_size - 2, "............");
 #endif
 }
 #endif

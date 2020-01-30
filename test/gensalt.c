@@ -470,7 +470,7 @@ main (void)
             fprintf (stderr, "   ok: %s/%lu/%u -> %s\n",
                      tcase->prefix, tcase->rounds, ent, salt);
 
-          XCRYPT_STRCPY_OR_ABORT (prev_output, CRYPT_GENSALT_OUTPUT_SIZE, salt);
+          strcpy_or_abort (prev_output, CRYPT_GENSALT_OUTPUT_SIZE, salt);
 
           /* Test if crypt works with this salt. */
           if (!tcase->rounds)
