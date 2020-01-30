@@ -104,9 +104,8 @@ extern const unsigned char ascii64[65];
 #define b64t   ((const char *) ascii64)
 #define itoa64 ascii64
 
-/* For historical reasons, crypt and crypt_r are not expected ever
-   to return 0, and for internal implementation reasons (see
-   call_crypt_fn, in crypt.c), it is simpler if the individual
+/* For historical reasons, crypt and crypt_r are not expected ever to
+   return 0, and for internal historical reasons, the individual
    algorithms' crypt and gensalt functions return nothing.
 
    This function generates a "failure token" in the output buffer,
