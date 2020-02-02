@@ -28,7 +28,7 @@ main (void)
   const char *pm = crypt_preferred_method();
   int retval = 0;
 
-#if defined HASH_ALGORITHM_DEFAULT
+#if CRYPT_GENSALT_IMPLEMENTS_DEFAULT_PREFIX
   if (pm == NULL)
     {
       printf ("FAIL: crypt_preferred_method returned NULL.\n");
