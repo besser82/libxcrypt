@@ -49,7 +49,7 @@ extern void secure_erase (void *s, size_t len) attribute_noinline;
 extern size_t strcpy_or_abort (void *dst, size_t d_size, const void *src);
 
 /* Utility functions */
-bool get_random_bytes (void *buf, size_t buflen);
+extern bool get_random_bytes (void *buf, size_t buflen);
 
 extern void gensalt_sha_rn (char tag, size_t maxsalt, unsigned long defcount,
                             unsigned long mincount, unsigned long maxcount,
