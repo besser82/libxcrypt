@@ -21,6 +21,9 @@
 #include "crypt.h"
 
 #if INCLUDE_crypt_preferred_method
+
+#include "crypt-hashes.h"
+
 const char *
 crypt_preferred_method (void)
 {
