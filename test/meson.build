@@ -128,6 +128,7 @@ endif
 test('getrandom-fallbacks',
      executable('getrandom-fallbacks',
                 sources: ['getrandom-fallbacks.c'],
+                dependencies: [libcrypt_dep],
                 objects: libcrypt_internal.extract_objects('fn-randombytes.c'),
                 include_directories: [I_config_h, I_lib],
                 link_args: getrandom_fallbacks_LDFLAGS,
