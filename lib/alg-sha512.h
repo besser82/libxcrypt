@@ -55,27 +55,27 @@ typedef struct {
  * SHA512_Init(ctx):
  * Initialize the SHA512 context ${ctx}.
  */
-void SHA512_Init(SHA512_CTX *);
+extern void SHA512_Init(SHA512_CTX *);
 
 /**
  * SHA512_Update(ctx, in, len):
  * Input ${len} bytes from ${in} into the SHA512 context ${ctx}.
  */
-void SHA512_Update(SHA512_CTX *, const void *, size_t);
+extern void SHA512_Update(SHA512_CTX *, const void *, size_t);
 
 /**
  * SHA512_Final(digest, ctx):
  * Output the SHA512 hash of the data input to the context ${ctx} into the
  * buffer ${digest}.
  */
-void SHA512_Final(unsigned char[MIN_SIZE(SHA512_DIGEST_LENGTH)],
+extern void SHA512_Final(unsigned char[MIN_SIZE(SHA512_DIGEST_LENGTH)],
     SHA512_CTX *);
 
 /**
  * SHA512_Buf(in, len, digest):
  * Compute the SHA512 hash of ${len} bytes from ${in} and write it to ${digest}.
  */
-void SHA512_Buf(const void *, size_t,
+extern void SHA512_Buf(const void *, size_t,
     unsigned char[MIN_SIZE(SHA512_DIGEST_LENGTH)]);
 
 #endif /* !_SHA512_H_ */

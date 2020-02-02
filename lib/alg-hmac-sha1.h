@@ -29,6 +29,7 @@
 /* Generate the keyed-hash message authentication code of TEXT and KEY.
    The resulting HMAC is writen into RESBUF, which should point to 20
    bytes of storage.  */
-void hmac_sha1_process_data (const uint8_t *text, size_t text_len,
-                             const uint8_t *key, size_t key_len,
-                             void *resbuf);
+extern void
+hmac_sha1_process_data (const uint8_t *text, size_t text_len,
+                        const uint8_t *key, size_t key_len,
+                        void *resbuf);

@@ -35,11 +35,11 @@ typedef struct
   unsigned char digest[GOSTR3411_2012_L];
 } gost_hmac_256_t;
 
-void
+extern void
 gost_hash256 (const uint8_t *t, size_t n, uint8_t *out32,
               GOST34112012Context *ctx);
 
-void
+extern void
 gost_hmac256 (const uint8_t *k, size_t n, const uint8_t *t, size_t len,
               uint8_t *out32, gost_hmac_256_t *gostbuf);
 

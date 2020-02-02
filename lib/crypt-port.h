@@ -383,11 +383,11 @@ extern void crypt_yescrypt_rn (const char *, size_t, const char *,
 
 /* We need a prototype for fcrypt for some tests.  */
 #if ENABLE_OBSOLETE_API
-char *fcrypt (const char *key, const char *setting);
+extern char *fcrypt (const char *key, const char *setting);
 #endif
 
 /* Utility functions */
-bool get_random_bytes (void *buf, size_t buflen);
+extern bool get_random_bytes (void *buf, size_t buflen);
 
 extern void gensalt_sha_rn (char tag, size_t maxsalt, unsigned long defcount,
                             unsigned long mincount, unsigned long maxcount,
