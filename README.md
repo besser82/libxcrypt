@@ -53,18 +53,22 @@ maintainers, so please be patient.
 Build Requirements and Instructions
 -----------------------------------
 
-To build from either a tarball release or a Git checkout, the tools
-required are: the standard Unix shell environment; a C compiler;
-Python 3.6 or later (no third-party packages are required);
+To build libcrypt from either a tarball release or a Git checkout,
+the tools required are: the standard Unix shell environment;
+a C compiler; Python 3.6 or later (no third-party packages are required);
 the low-level build tool “ninja” (see <https://ninja-build.org/>);
 and the high-level build tool “meson” (see <https://mesonbuild.com/>).
+The GNU `nm` and `objcopy` tools are used at a few points during the
+build; if you are cross-compiling, you may need to specify appropriate
+variants of these tools in the `[binaries]` section of the Meson
+cross-build definition file.
 
 The oldest version of ninja that is known to work is 1.8.2.
 The oldest version of meson that is known to work is 0.53.
 Versions of meson up to and including 0.49 are known *not* to work.
 
 From the top level of the source tree, the following shell recipe will
-generate and install a standard build of the library:
+generate and install a standard build of the library.
 
 ```sh
 meson setup build
@@ -94,20 +98,28 @@ it is the same for them as well.)
 Portability Notes
 -----------------
 
-libxcrypt should be buildable with any ISO C1999-compliant C compiler,
-with one critical exception: the symbol versioning macros in
-`crypt-port.h` only work with compilers that implement certain GCC and
-GNU Binutils extensions (`__attribute__((alias))`, GCC-style `asm`,
-and `.symver`).
-
-A few C2011 features are used; the intention is not to use any of them
-without a fallback, but we do not currently test this.  A few POSIX
-and nonstandard-but-widespread Unix APIs are also used; again, the
+libxcrypt should be buildable with any ISO C1999-compliant C compiler.
+A few C2011 features are used, as are a few CPU-specific features; the
 intention is not to use any of them without a fallback, but we do not
-currently test this.  In particular, the crypt_gensalt functions may
-not always be able to retrieve cryptographically-sound random numbers
-from the operating system; if you call these functions with a null
-pointer for the “rbytes” argument, be prepared for them to fail.
+currently test this.  A few POSIX and nonstandard-but-widespread Unix
+APIs are also used; again, the intention is not to use any of them
+without a fallback, but we do not currently test this.
+
+Binary backward compatibility with GNU libc (see below) requires
+support for ELF symbol versioning (including GNU extensions to the
+original Solaris spec) from the toolchain and dynamic linker.  This
+feature is disabled on systems where the C library is not glibc, but
+building on such systems is not currently tested either.
+
+The static `libcrypt.a` is rewritten after compilation to avoid
+polluting the application namespace with internal symbols.  This
+process currently requires features of the `nm` and `objcopy`
+utilities that are specific to GNU Binutils.
+
+Depending on the underlying operating system, the crypt_gensalt
+functions are not always able to generate cryptographically-sound
+random numbers themselves.  Callers that supply a null pointer for the
+“rbytes” argument must be prepared for these functions to fail.
 
 Compatibility Notes
 -------------------
