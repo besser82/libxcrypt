@@ -110,19 +110,8 @@ lib_secure_erase = static_library(
 )
 
 
-# The main library.
-# We cannot use library() or both_libraries(), because:
-#  - the compatibility symbols go only in the shared library
-#  - we need to compile the shared library with different preprocessor
-#    defines so the symbol versioning will work right
-#  - many of the tests refer to internal symbols, and the easiest way
-#    to make that possible is to link them unconditionally with the
-#    static library
-#
-# Therefore, the static library is always built, but is only installed
-# when build options request it.
-
-libcrypt_a_sources = files([
+# The main library: installed as libcrypt.a and libcrypt.so.2.
+libcrypt_2_sources = files([
   'alg-des.c',
   'alg-des-tables.c',
   'alg-gost3411-2012-core.c',
@@ -163,50 +152,49 @@ libcrypt_a_sources = files([
   'hm-sunmd5.c',
   'hm-yescrypt.c',
 ]) + [
-  # these files may need any of the generated headers
-  crypt_h, xcrypt_h, crypt_hashes_h, crypt_symbol_vers_h,
+  # of the generated headers, these files only require crypt.h and
+  # crypt_hashes.h
+  crypt_h,
+  crypt_hashes_h,
 ]
 
-libcrypt_so_sources = libcrypt_a_sources
-if ENABLE_OBSOLETE_API
-  libcrypt_so_sources += files([
-    'entry-encrypt-setkey.c',
-    'entry-fcrypt.c',
-  ])
-endif
-
+# if we use libcrypt_2_map in the format() call, it will incorrectly
+# reference a nonexistent lib/libcrypt.2.map in the *build* tree
 if HAVE_VSCRIPT
-  libcrypt_so_extra_args = {
-    'link_depends': [libcrypt_map],
+libcrypt_so_2_extra_args = {
+    'link_depends': [libcrypt_2_map],
     'link_args': ['-Wl,@0@,@1@'.format(
-      VSCRIPT_LDFLAGS, libcrypt_map.full_path())]
+      VSCRIPT_LDFLAGS, meson.current_source_dir() / 'libcrypt.2.map')]
   }
 else
-  libcrypt_so_extra_args = {}
+  libcrypt_so_2_extra_args = {}
 endif
 
-libcrypt_so = shared_library(
-  'crypt',
-  soversion: ENABLE_OBSOLETE_API ? '1' : '2',
-  sources: libcrypt_so_sources,
-  link_whole: lib_secure_erase,
-  c_args: ['-DIN_LIBCRYPT', '-DPIC'],
-  include_directories: I_config_h,
-  build_by_default: INSTALL_SHARED_LIB,
-  install: INSTALL_SHARED_LIB,
-  kwargs: libcrypt_so_extra_args,
-)
+# We do not use library() or both_libraries() because we want to
+# rename all the internal symbols in libcrypt.a, which is done with
+# a postprocessing step.
 
 # The static library we get by compiling all the source files normally.
 # For internal use only.
-libcrypt_internal_a = static_library(
+libcrypt_internal = static_library(
   'crypt-internal',
-  sources: libcrypt_a_sources,
+  sources: libcrypt_2_sources,
   link_whole: lib_secure_erase,
-  c_args: ['-DIN_LIBCRYPT'],
   include_directories: I_config_h,
   build_by_default: false,
   install: false,
+  override_options: ['b_staticpic=true'],
+)
+
+# The installed shared library.
+libcrypt_so_2 = shared_library(
+  'crypt',
+  soversion: '2',
+  link_whole: [libcrypt_internal, lib_secure_erase],
+  include_directories: I_config_h,
+  build_by_default: INSTALL_SHARED_LIB,
+  install: INSTALL_SHARED_LIB,
+  kwargs: libcrypt_so_2_extra_args,
 )
 
 # The installed static library is generated from the internal static
@@ -214,10 +202,10 @@ libcrypt_internal_a = static_library(
 # approximates the effect of hiding the internals of the shared
 # library with a version script.
 
-libcrypt_internal_a_exports = custom_target(
+libcrypt_internal_exports = custom_target(
   'libcrypt-internal.a.exports',
   output: 'libcrypt-internal.a.exports',
-  input: libcrypt_internal_a,
+  input: libcrypt_internal,
   command: [nm,
             '--print-file-name', '--format=bsd',
             '--extern-only', '--defined-only', '--no-sort',
@@ -230,7 +218,7 @@ libcrypt_internal_a_exports = custom_target(
 libcrypt_a_renames = custom_target(
   'libcrypt.a.renames',
   output: 'libcrypt.a.renames',
-  input: [libcrypt_internal_a_exports, libcrypt_2_map],
+  input: [libcrypt_internal_exports, libcrypt_2_map],
   command: [python, S_compute_symbol_renames,
             '-p', '_crypt_', '-o', '@OUTPUT@', '@INPUT@'],
   build_by_default: false,
@@ -240,40 +228,32 @@ libcrypt_a_renames = custom_target(
 libcrypt_a = custom_target(
   'libcrypt.a',
   output: 'libcrypt.a',
-  input: [libcrypt_a_renames, libcrypt_internal_a],
+  input: [libcrypt_a_renames, libcrypt_internal],
   command: [objcopy, '--redefine-syms', '@INPUT0@', '@INPUT1@', '@OUTPUT@'],
   build_by_default: INSTALL_STATIC_LIB,
   install: INSTALL_STATIC_LIB,
   install_dir: get_option('libdir'),
 )
 
-# Needed by the tests.
+# Link most tests against the shared library if it exists, the static
+# library otherwise.  libcrypt_a is not a library object, but putting
+# it in link_with seems to work fine anyway.
 I_lib = include_directories('.')
-libcrypt_a_dep = declare_dependency(
-  sources: [crypt_h, xcrypt_h],
-  # libcrypt_a is not a library object, but putting it in link_with seems
-  # to work fine anyway.
+if INSTALL_SHARED_LIB
+libcrypt_dep = declare_dependency(
+  sources: [crypt_h],
+  link_with: [libcrypt_so_2],
+  include_directories: [I_config_h, I_lib]
+)
+else
+libcrypt_dep = declare_dependency(
+  sources: [crypt_h],
   link_with: [libcrypt_a],
   include_directories: [I_config_h, I_lib],
 )
-libcrypt_so_dep = declare_dependency(
-  sources: [crypt_h, xcrypt_h],
-  link_with: [libcrypt_so],
-  include_directories: [I_config_h, I_lib],
-)
-
-# For programs that should be linked against the shared library if it
-# exists, the static library otherwise.
-if INSTALL_SHARED_LIB
-libcrypt = libcrypt_so
-libcrypt_dep = libcrypt_so_dep
-else
-libcrypt = libcrypt_internal_a
-libcrypt_dep = libcrypt_a_dep
 endif
 
 # Generate and install a .pc file.
-
 # As of meson 0.52, when pkg.generate is passed a static library, the
 # generated .pc file is (at least in this relatively simple case)
 # correct for both that static library and for the matching shared
@@ -286,53 +266,8 @@ endif
 # symbol rewriting on the installed static library doesn't affect the
 # contents of the .pc file.
 pkg = import('pkgconfig')
-pkg.generate(libcrypt_internal_a,
+pkg.generate(libcrypt_internal,
   description: 'Extended crypt library for DES, MD5, Blowfish and others',
   filebase: 'libxcrypt',
   name: 'libxcrypt',
 )
-
-# Compatibility symlinks for libcrypt.a and libcrypt.so.
-# FIXME all calls to add_install_script below should really look like
-# add_install_script(python, S_install_symlink, ...) but that doesn't
-# work, because of https://github.com/mesonbuild/meson/issues/6175
-if get_option('xcrypt-compat-files')
-  if INSTALL_SHARED_LIB
-    meson.add_install_script('../scripts/install-symlink',
-                             get_option('libdir'),
-                             'libcrypt.so', 'libxcrypt.so')
-  endif
-  if INSTALL_STATIC_LIB
-    meson.add_install_script('../scripts/install-symlink',
-                             get_option('libdir'),
-                             'libcrypt.a', 'libxcrypt.a')
-  endif
-endif
-
-if ENABLE_COMPAT_SUSE
-  # SUSE shipped an older version of libxcrypt under the name of libowcrypt
-  # (presumably ow stands for Openwall).  Install compatiblity symlinks.
-  # In this case we also need a symlink for libowcrypt.so.1.
-  # Appropriate symbol versions (OW_CRYPT_1.0) are already included in
-  # libcrypt.so.1.
-  #
-  # Caution: this hardwires the expected (so)names of the shared
-  # libraries involved, libcrypt.so.1 and libowcrypt.so.1.  (We should
-  # be able to get away with this because in any circumstance where the
-  # soname of libcrypt isn't libcrypt.so.1, ENABLE_COMPAT_SUSE should
-  # be automatically turned off, and as best I can tell, SUSE only ever
-  # shipped libowcrypt.so.1.)
-  if INSTALL_SHARED_LIB
-    meson.add_install_script('../scripts/install-symlink',
-                             get_option('libdir'),
-                             'libcrypt.so', 'libowcrypt.so')
-    meson.add_install_script('../scripts/install-symlink',
-                             get_option('libdir'),
-                             'libcrypt.so.1', 'libowcrypt.so.1')
-  endif
-  if INSTALL_STATIC_LIB
-    meson.add_install_script('../scripts/install-symlink',
-                             get_option('libdir'),
-                             'libcrypt.a', 'libowcrypt.a')
-  endif
-endif

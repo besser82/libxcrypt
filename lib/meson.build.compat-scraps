@@ -1,0 +1,112 @@
+
+#  - the compatibility symbols go only in the shared library
+#  - we need to compile the shared library with different preprocessor
+#    defines so the symbol versioning will work right
+#  - many of the tests refer to internal symbols, and the easiest way
+#    to make that possible is to link them unconditionally with the
+#    static library
+#
+# Therefore, the static library is always built, but is only installed
+# when build options request it.
+
+
+
+
+
+libcrypt_so_sources = libcrypt_a_sources
+if ENABLE_OBSOLETE_API
+  libcrypt_so_sources += files([
+    'entry-encrypt-setkey.c',
+    'entry-fcrypt.c',
+  ])
+endif
+
+if HAVE_VSCRIPT
+  libcrypt_so_extra_args = {
+
+libcrypt_so = shared_library(
+  'crypt',
+  soversion: ENABLE_OBSOLETE_API ? '1' : '2',
+  sources: libcrypt_so_sources,
+  link_whole: lib_secure_erase,
+  c_args: ['-DIN_LIBCRYPT', '-DPIC'],
+  include_directories: I_config_h,
+  build_by_default: INSTALL_SHARED_LIB,
+  install: INSTALL_SHARED_LIB,
+  kwargs: libcrypt_so_extra_args,
+)
+
+# The static library we get by compiling all the source files normally.
+# For internal use only.
+libcrypt_internal_a = static_library(
+  'crypt-internal',
+  sources: libcrypt_a_sources,
+  link_whole: lib_secure_erase,
+  c_args: ['-DIN_LIBCRYPT'],
+  include_directories: I_config_h,
+  build_by_default: false,
+  install: false,
+)
+
+
+# Needed by the tests.
+I_lib = include_directories('.')
+libcrypt_a_dep = declare_dependency(
+  sources: [crypt_h, xcrypt_h],
+  # libcrypt_a is not a library object, but putting it in link_with seems
+  # to work fine anyway.
+  link_with: [libcrypt_a],
+  include_directories: [I_config_h, I_lib],
+)
+libcrypt_so_dep = declare_dependency(
+  sources: [crypt_h, xcrypt_h],
+  link_with: [libcrypt_so],
+  include_directories: [I_config_h, I_lib],
+)
+
+
+if ENABLE_COMPAT_SUSE
+  # SUSE shipped an older version of libxcrypt under the name of libowcrypt
+  # (presumably ow stands for Openwall).  Install compatiblity symlinks.
+  # In this case we also need a symlink for libowcrypt.so.1.
+  # Appropriate symbol versions (OW_CRYPT_1.0) are already included in
+  # libcrypt.so.1.
+  #
+  # Caution: this hardwires the expected (so)names of the shared
+  # libraries involved, libcrypt.so.1 and libowcrypt.so.1.  (We should
+  # be able to get away with this because in any circumstance where we
+  # don't install libcrypt.so.1, ENABLE_COMPAT_SUSE should
+  # be automatically turned off, and as best I can tell, SUSE only ever
+  # shipped libowcrypt.so.1.)
+  if INSTALL_SHARED_LIB
+    meson.add_install_script('../scripts/install-symlink',
+                             get_option('libdir'),
+                             'libcrypt.so', 'libowcrypt.so')
+    meson.add_install_script('../scripts/install-symlink',
+                             get_option('libdir'),
+                             'libcrypt.so.1', 'libowcrypt.so.1')
+  endif
+  if INSTALL_STATIC_LIB
+    meson.add_install_script('../scripts/install-symlink',
+                             get_option('libdir'),
+                             'libcrypt.a', 'libowcrypt.a')
+  endif
+endif
+
+
+# Compatibility symlinks for libcrypt.a and libcrypt.so.
+# FIXME all calls to add_install_script below should really look like
+# add_install_script(python, S_install_symlink, ...) but that doesn't
+# work, because of https://github.com/mesonbuild/meson/issues/6175
+if get_option('xcrypt-compat-files')
+  if INSTALL_SHARED_LIB
+    meson.add_install_script('../scripts/install-symlink',
+                             get_option('libdir'),
+                             'libcrypt.so', 'libxcrypt.so')
+  endif
+  if INSTALL_STATIC_LIB
+    meson.add_install_script('../scripts/install-symlink',
+                             get_option('libdir'),
+                             'libcrypt.a', 'libxcrypt.a')
+  endif
+endif

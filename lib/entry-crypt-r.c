@@ -17,10 +17,6 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include "crypt-port.h"
-#include "crypt-symver.h"
-
-#if INCLUDE_crypt_r
-
 #include "crypt.h"
 #include "crypt-internal.h"
 
@@ -35,11 +31,3 @@ crypt_r (const char *phrase, const char *setting, struct crypt_data *data)
   return data->output[0] == '*' ? 0 : data->output;
 #endif
 }
-SYMVER_crypt_r;
-#endif
-
-/* For code compatibility with older versions (v3.1.1 and earlier).  */
-#if INCLUDE_crypt_r && INCLUDE_xcrypt_r
-strong_alias (crypt_r, xcrypt_r);
-SYMVER_xcrypt_r;
-#endif

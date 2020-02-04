@@ -17,31 +17,11 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include "crypt-port.h"
-#include "crypt-symver.h"
+#include "crypt.h"
 
-#include "xcrypt.h"
-#include <errno.h>
-
-#if INCLUDE_crypt || (INCLUDE_fcrypt && !ENABLE_OBSOLETE_API_ENOSYS)
 char *
 crypt (const char *key, const char *setting)
 {
   static struct crypt_data nr_crypt_ctx;
   return crypt_r (key, setting, &nr_crypt_ctx);
 }
-#endif
-
-#if INCLUDE_crypt
-SYMVER_crypt;
-#endif
-
-#if INCLUDE_fcrypt && !ENABLE_OBSOLETE_API_ENOSYS
-strong_alias (crypt, fcrypt);
-SYMVER_fcrypt;
-#endif
-
-/* For code compatibility with older versions (v3.1.1 and earlier).  */
-#if INCLUDE_crypt && INCLUDE_xcrypt
-strong_alias (crypt, xcrypt);
-SYMVER_xcrypt;
-#endif

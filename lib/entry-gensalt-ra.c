@@ -17,10 +17,6 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include "crypt-port.h"
-#include "crypt-symver.h"
-
-#if INCLUDE_crypt_gensalt_ra
-
 #include "crypt.h"
 #include "crypt-internal.h"
 
@@ -40,5 +36,3 @@ crypt_gensalt_ra (const char *prefix, unsigned long count,
     free (output);
   return result;
 }
-SYMVER_crypt_gensalt_ra;
-#endif

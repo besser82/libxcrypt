@@ -18,16 +18,14 @@
 #  <https://www.gnu.org/licenses/>.
 
 # The known-answer tests are all compiled from the same source code
-# with a different TEST_* macro defined for each.  They optionally
-# test an obsolete function, so they must be linked with the shared
-# library if possible.  Some of them are very slow, so we bump up the
-# timeout and we give them priorities according to how slow they are.
-# The number on the right-hand side of the table below is the
-# wall-clock time required for each test program on a reasonably beefy
-# x86-64 box in early 2020, rounded to the nearest second, which
-# translates directly to a Meson test priority.  The per-test timeout
-# is chosen to be a little more than twice what the slowest test
-# actually requires.
+# with a different TEST_* macro defined for each.  Some of them are
+# very slow, so we bump up the timeout and we give them priorities
+# according to how slow they are.  The number on the right-hand side
+# of the table below is the wall-clock time required for each test
+# program on a reasonably beefy x86-64 box in early 2020, rounded to
+# the nearest second, which translates directly to a Meson test
+# priority.  The per-test timeout is chosen to be a little more than
+# twice what the slowest test actually requires.
 foreach hash, time : {
   'bcrypt'         : 3,
   'bcrypt-a'       : 3,
@@ -105,7 +103,7 @@ foreach t : [
     name,
     sources: [name + '.c'],
     dependencies: [libcrypt_dep],
-    objects: libcrypt.extract_objects(add_objs),
+    objects: libcrypt_internal.extract_objects(add_objs),
     build_by_default: false,
     install: false,
   ))
@@ -130,7 +128,7 @@ endif
 test('getrandom-fallbacks',
      executable('getrandom-fallbacks',
                 sources: ['getrandom-fallbacks.c'],
-                objects: libcrypt.extract_objects('fn-randombytes.c'),
+                objects: libcrypt_internal.extract_objects('fn-randombytes.c'),
                 include_directories: [I_config_h, I_lib],
                 link_args: getrandom_fallbacks_LDFLAGS,
                 build_by_default: false,
@@ -139,32 +137,32 @@ test('getrandom-fallbacks',
 
 # tests of the obsolete functions in the shared library, must be linked
 # against the shared library; they do not use any internal functions
-if ENABLE_OBSOLETE_API
-foreach t : [
-  'des-obsolete',
-  'des-obsolete_r',
-  'fcrypt-enosys',
-]
-  test(t, executable(t,
-                     sources: [t + '.c'],
-                     dependencies: [libcrypt_so_dep],
-                     build_by_default: false,
-                     install: false,
-                    ))
-endforeach
-endif
+# if ENABLE_OBSOLETE_API
+# foreach t : [
+#   'des-obsolete',
+#   'des-obsolete_r',
+#   'fcrypt-enosys',
+# ]
+#   test(t, executable(t,
+#                      sources: [t + '.c'],
+#                      dependencies: [libcrypt_so_1_dep],
+#                      build_by_default: false,
+#                      install: false,
+#                     ))
+# endforeach
+# endif
 
 # symbol versioning tests
 
-if get_option('default_library') != 'shared' # 'static' or 'both'
+if INSTALL_STATIC_LIB
 test('symbols-static', python,
-     args: [S_test_symbols_static, libcrypt_a, libcrypt_map_in])
+     args: [S_test_symbols_static, libcrypt_a, libcrypt_2_map])
 endif
 
-if ENABLE_OBSOLETE_API
-test('symbols-compat', python,
-     args: [S_test_symbols_compat, libcrypt_so] + cc.cmd_array())
-endif
+# if ENABLE_OBSOLETE_API
+# test('symbols-compat', python,
+#      args: [S_test_symbols_compat, libcrypt_so_1] + cc.cmd_array())
+# endif
 
 # regeneration of crypt-kat.inc
 # not run by default because it requires unusual software and is
@@ -172,5 +170,5 @@ endif
 if ENABLE_KA_TABLE_GEN
 run_target('regen-ka-table',
            command: [python, 'ka-table-gen'],
-           depends: [libcrypt_so])
+           depends: [libcrypt_so_2])
 endif

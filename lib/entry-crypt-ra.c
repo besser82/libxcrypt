@@ -17,10 +17,6 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include "crypt-port.h"
-#include "crypt-symver.h"
-
-#if INCLUDE_crypt_ra
-
 #include "crypt.h"
 #include "crypt-internal.h"
 
@@ -50,5 +46,3 @@ crypt_ra (const char *phrase, const char *setting, void **data, int *size)
   do_crypt (phrase, setting, p);
   return p->output[0] == '*' ? 0 : p->output;
 }
-SYMVER_crypt_ra;
-#endif

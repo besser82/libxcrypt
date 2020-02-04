@@ -17,11 +17,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include "crypt-port.h"
-#include "crypt-symver.h"
 #include "crypt.h"
-
-#if INCLUDE_crypt_preferred_method
-
 #include "crypt-hashes.h"
 
 const char *
@@ -33,5 +29,3 @@ crypt_preferred_method (void)
   return NULL;
 #endif
 }
-SYMVER_crypt_preferred_method;
-#endif

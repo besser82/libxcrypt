@@ -17,10 +17,6 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include "crypt-port.h"
-#include "crypt-symver.h"
-
-#if INCLUDE_crypt_checksalt
-
 #include "crypt.h"
 #include "crypt-internal.h"
 
@@ -41,5 +37,3 @@ crypt_checksalt (const char *setting)
 
   return retval;
 }
-SYMVER_crypt_checksalt;
-#endif

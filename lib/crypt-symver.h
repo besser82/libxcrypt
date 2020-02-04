@@ -19,34 +19,10 @@
 #ifndef _CRYPT_SYMVER_H
 #define _CRYPT_SYMVER_H 1
 
+#include "crypt-alias.h"
+
 /* Currently we only know how to do this using GCC extensions.  */
 #if defined __GNUC__ && __GNUC__ >= 3
-
-/* Define ALIASNAME as a strong alias for NAME.  */
-#define strong_alias(name, aliasname) _strong_alias(name, aliasname)
-
-/* Darwin doesn't support alias attributes.  */
-#ifdef __cplusplus
-# ifndef __APPLE__
-#  define _strong_alias(name, aliasname) \
-     extern __typeof (name) aliasname __THROW __attribute__ ((alias (#name)))
-# else
-#  define _strong_alias(name, aliasname) \
-     __THROW __asm__(".globl _" #aliasname); \
-     __THROW __asm__(".set _" #aliasname ", _" #name); \
-     extern __typeof(name) aliasname __THROW
-# endif
-#else
-# ifndef __APPLE__
-#  define _strong_alias(name, aliasname) \
-     extern __typeof (name) aliasname __attribute__ ((alias (#name))) __THROW
-# else
-#  define _strong_alias(name, aliasname) \
-     __asm__(".globl _" #aliasname) __THROW; \
-     __asm__(".set _" #aliasname ", _" #name) __THROW; \
-     extern __typeof(name) aliasname __THROW
-# endif
-#endif
 
 /* Set the symbol version for EXTNAME, which uses INTNAME as its
    implementation.  */
