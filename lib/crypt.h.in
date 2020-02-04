@@ -19,7 +19,9 @@
 #ifndef _CRYPT_H
 #define _CRYPT_H 1
 
-/*HEADER*/
+@HEADER@
+
+@BEGIN_DECLS@
 
 /* The strings returned by crypt, crypt_r, crypt_rn, and crypt_ra will
    be no longer than this, counting the terminating NUL.  (Existing
@@ -242,8 +244,8 @@ extern const char *crypt_preferred_method (void);
                              XCRYPT_VERSION_MINOR)
 
 /* Version number as a string constant.  */
-#define XCRYPT_VERSION_STR "@PACKAGE_VERSION@"
+#define XCRYPT_VERSION_STR @XCRYPT_VERSION_STR@
 
-/*TRAILER*/
+@END_DECLS@
 
 #endif /* crypt.h */

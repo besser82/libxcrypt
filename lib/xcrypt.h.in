@@ -22,7 +22,7 @@
 
 #include <crypt.h>
 
-/*HEADER*/
+@BEGIN_DECLS@
 
 /* Those are kept for code compatibility with older versions
    (v3.1.1 and earlier) of libxcrypt.
@@ -54,6 +54,6 @@ extern char * __REDIRECT_NTH (xcrypt_gensalt_r, (const char *__prefix,
 # endif
 #endif
 
-/*TRAILER*/
+@END_DECLS@
 
 #endif /* xcrypt.h */

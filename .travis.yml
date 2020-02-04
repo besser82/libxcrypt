@@ -2,15 +2,18 @@ language: C
 
 addons:
   apt:
+    # 'sources: deadsnakes' is currently not accepted in the bionic VMs
+    sources:
+      - sourceline: "ppa:deadsnakes/ppa"
+    update: true
     packages:
       - autoconf
       - automake
-      - gawk
       - lcov
       - libtool
       - llvm
       - pkg-config
-      - python3-venv
+      - python3.6-venv
       - valgrind
   homebrew:
     packages:
@@ -39,6 +42,10 @@ notifications:
     skip_join: true
 
 dist: bionic
+
+install: ./scripts/travis-install
+script: "( . build/venv/bin/activate && exec python ./scripts/travis-build )"
+after_success: ./scripts/travis-after-success
 
 matrix:
   fast_finish: true
@@ -264,15 +271,3 @@ matrix:
       os: linux
       env:
         - CONF="--disable-obsolete-api --enable-hashes=yescrypt"
-
-install:
-  - ./.travis_install.sh
-
-before_script:
-  - ./.travis_before_script.sh
-
-script:
-  - ./.travis_script.sh
-
-after_success:
-  - ./.travis_after_success.sh

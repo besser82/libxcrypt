@@ -1,0 +1,392 @@
+#! /usr/bin/env python
+#
+#   Copyright 2019, 2020 Björn Esser, Zack Weinberg
+#
+#   This library is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU Lesser General Public License
+#   as published by the Free Software Foundation; either version 2.1 of
+#   the License, or (at your option) any later version.
+#
+#   This library is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#
+#   You should have received a copy of the GNU Lesser General Public
+#   License along with this library; if not, see
+#   <https://www.gnu.org/licenses/>.
+
+"""CI driver script for Travis builds.  See also .travis.yml at top level."""
+
+import argparse
+import contextlib
+import datetime
+import os
+import shlex
+import subprocess
+import sys
+import time
+
+from common import (
+    ensure_C_locale,
+    ensure_absolute_PATH,
+    log,
+    log_exc,
+    run,
+    working_directory,
+)
+
+from typing import (
+    Any,
+    Iterator,
+    List,
+)
+
+
+COVERITY_DRIVER_SCRIPT_URL = \
+    "https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh"
+
+
+def fmt_interval(seconds: float) -> str:
+    return str(datetime.timedelta(seconds=round(seconds)))
+
+
+@contextlib.contextmanager
+def log_time(label: str) -> Iterator[None]:
+    start = time.monotonic()
+    try:
+        yield
+    finally:
+        stop = time.monotonic()
+        sys.stdout.write("time for {}: {}\n".format(
+            label, fmt_interval(stop - start)))
+        sys.stdout.flush()
+
+
+# travis_wait is not a proper command, it's a bash function, so it is
+# not available to this script.  The code below is loosely based on the
+# implementation of travis_wait found at
+# https://github.com/travis-ci/travis-build/lib/travis/build/bash/
+def run_with_extended_timeout(argv: List[str], *,
+                              timeout: float, **kwargs: Any) -> None:
+
+    # Run the program and any subprocesses it may create in their own
+    # process group, so we can kill them all off if they time out.
+    # setpgid(2) must be executed in both the parent and the child to
+    # avoid a race condition, and whichever does it second will see it
+    # fail with EPERM, which should be ignored.  See
+    # https://www.gnu.org/software/libc/manual/html_node/Launching-Jobs.html
+    def try_setpgid(pid: int) -> None:
+        try:
+            os.setpgid(pid, pid)
+        except PermissionError:
+            pass
+
+    proc = None
+    try:
+        log(argv)
+        proc = subprocess.Popen(argv,
+                                preexec_fn=lambda: try_setpgid(0),
+                                **kwargs)
+        try_setpgid(proc.pid)
+
+        start = time.monotonic()
+        elapsed = 0.0
+        killed_once = False
+        while True:
+            try:
+                proc.wait(timeout=min(timeout - elapsed, 30))
+                break
+            except subprocess.TimeoutExpired:
+                pass
+            elapsed = time.monotonic() - start
+            if elapsed >= timeout:
+                if killed_once:
+                    color = "1"
+                    verb = "killing"
+                    signal = 9
+                else:
+                    color = "3"
+                    verb = "terminating"
+                    signal = 15
+                    killed_once = True
+
+                sys.stdout.write("\033[3{};1mTimeout, {} long job.\033[0m\n"
+                                 .format(color, verb))
+                sys.stdout.flush()
+                os.killpg(proc.pid, signal)
+                timeout += 10
+
+            else:
+                sys.stdout.write("Long job still running ({} / {})\n"
+                                 .format(fmt_interval(elapsed),
+                                         fmt_interval(timeout)))
+                sys.stdout.flush()
+
+        if proc.returncode != 0:
+            raise subprocess.CalledProcessError(
+                proc.returncode, argv
+            )
+
+    finally:
+        if proc is not None:
+            try:
+                os.killpg(proc.pid, 9)
+                proc.wait()
+            except ProcessLookupError:
+                # already terminated
+                pass
+
+
+def dump_log(logfile: str) -> None:
+    sys.stderr.write("\033[33;1mContents of {}:\033[0m\n"
+                     .format(logfile))
+    try:
+        with open(logfile, "rt",
+                  encoding="utf-8", errors="backslashreplace") as fp:
+            sys.stderr.writelines(fp)
+    except OSError as e:
+        log_exc(e)
+    sys.stderr.write("\033[33;1m-----\033[0m\n")
+    sys.stderr.flush()
+
+
+def setenv(var: str, value: str) -> None:
+    sys.stderr.write("+export {}={}\n".format(
+        shlex.quote(var), shlex.quote(value)))
+
+    os.environ[var] = value
+
+
+def do_normal_build(NPROCS: str) -> None:
+
+    E = os.environ
+
+    # note: run() expects argv[0] to be relative to the *original*
+    # working directory, not the build subdirectory as you might expect
+    configure_cmd = ["./configure",
+                     "PYTHON=" + (sys.executable or "python3"),
+                     "--disable-silent-rules"]
+
+    CONF = shlex.split(E.get("CONF", ""))
+
+    # Explicitly set --enable-shared --enable-static unless $CONF says
+    # not to for this build, so that configure will bomb out if either
+    # is not possible, instead of silently turning that one off.
+    if "--disable-shared" not in CONF:
+        CONF.append("--enable-shared")
+    if "--disable-static" not in CONF:
+        CONF.append("--enable-static")
+
+    configure_cmd.extend(CONF)
+
+    # In an optimized build, the slowest single test takes
+    # approximately 10 seconds.  So this is plenty of headroom.
+    test_timeout = 2 * 60
+
+    if E.get("TRAVIS_OS_NAME", "") == "osx":
+        setenv("CFLAGS", "-O2 -g -arch i386 -arch x86_64 --coverage")
+        setenv("CXXFLAGS", E["CFLAGS"])
+        setenv("LDFLAGS", "-arch i386 -arch x86_64 --coverage")
+
+        if E.get("CC", "cc") == "gcc":
+            brew_list = run(["brew", "list", "--versions", "gcc"],
+                            stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                            encoding="utf-8", errors="backslashreplace",
+                            timeout=30)
+            for i, line in enumerate(brew_list.stdout.splitlines()):
+                assert i == 0
+                pkg, version = line.split()
+                assert pkg == "gcc"
+                gcc_ver = version.split(".")[0]
+
+            setenv("CC", "gcc-" + gcc_ver)
+            setenv("CPP", "gcc-" + gcc_ver + " -E")
+            setenv("CXX", "g++-" + gcc_ver)
+            setenv("AR", "gcc-ar-" + gcc_ver)
+            setenv("NM", "gcc-nm-" + gcc_ver)
+            setenv("RANLIB", "gcc-ranlib-" + gcc_ver)
+
+            # Homebrew gcc needs '--coverage' in its {C,LD}FLAGS.
+            setenv("CFLAGS", "-O2 -g --coverage")
+            setenv("LDFLAGS", "--coverage")
+        else:
+            # Xcode clang does not support '--coverage' in its {C,LD}FLAGS.
+            setenv("CFLAGS", "-O2 -g")
+            setenv("LDFLAGS", "")
+
+    elif E.get("CODECOV", "") == "1":
+        setenv("CFLAGS", "-O0 -g --coverage")
+        setenv("LDFLAGS", "--coverage")
+
+        # Unoptimized builds require a somewhat longer timeout for the
+        # test suite
+        test_timeout = 6 * 60
+
+    else:
+        setenv("DEB_BUILD_MAINT_OPTIONS", "hardening=+all")
+        buildflags = run(["dpkg-buildflags"],
+                         stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                         encoding="utf-8", errors="backslashreplace",
+                         timeout=30)
+
+        for line in buildflags.stdout.splitlines():
+            var, _, value = line.partition("=")
+            if var in ("CFLAGS", "CXXFLAGS", "LDFLAGS"):
+                value += " --coverage"
+            if var in ("CFLAGS", "CXXFLAGS", "CPPFLAGS", "LDFLAGS"):
+                setenv(var, value)
+
+    if "CFLAGS" not in E:
+        setenv("CFLAGS", "-O2 -g") # reasonable default
+
+    if "CXXFLAGS" not in E:
+        setenv("CXXFLAGS", E["CFLAGS"])
+
+    if E.get("CC", "cc") == "clang":
+        setenv("CFLAGS", E["CFLAGS"] + " -fprofile-arcs -ftest-coverage")
+        setenv("CXXFLAGS", E["CXXFLAGS"] + " -fprofile-arcs -ftest-coverage")
+
+    make_cmd = ["make", "-C", "build", "-j"+NPROCS]
+    make_check_cmd = ["make", "-C", "build", "-j"+NPROCS]
+
+    if E.get("SANITIZER", "") == "1":
+        setenv("CFLAGS", E["CFLAGS"] + " -fsanitize=undefined,address")
+        setenv("CXXFLAGS", E["CXXFLAGS"] + " -fsanitize=undefined,address")
+
+        # ASan is incompatible with -zdefs
+        make_cmd.append("UNDEF_FLAG=")
+        make_check_cmd.append("UNDEF_FLAG=")
+
+        # Sanitizer builds require a longer timeout for the test suite
+        test_timeout = 10 * 60
+
+    if E.get("DISTCHECK", "") == "1":
+        make_cmd.append("distcheck")
+        do_make_check = False
+    else:
+        make_cmd.append("all")
+        do_make_check = True
+
+    if E.get("VALGRIND", "") == "1":
+        make_check_cmd.append("check-valgrind-memcheck")
+        test_log = "build/test-suite-memcheck.log"
+
+        # If all of the tests are run serially under valgrind, it
+        # takes about 30 minutes.  The slowest single test takes about
+        # 15 minutes and that's still slightly more than all the
+        # others put together, so 2x parallelism cuts it in half.
+        # Therefore, a 20x multiplier should also be enough for the
+        # overall timeout.
+        test_timeout = 40 * 60
+
+    else:
+        make_check_cmd.append("check")
+        test_log = "build/test-suite.log"
+
+    try:
+        with log_time("configure"), working_directory("build"):
+            run(configure_cmd)
+    except Exception as e:
+        log_exc(e)
+        dump_log("build/config.log")
+        sys.exit(1)
+
+    with log_time("build"):
+        run(make_cmd)
+
+    if do_make_check:
+        try:
+            with log_time("check"):
+                run_with_extended_timeout(make_check_cmd,
+                                          timeout=test_timeout)
+        except Exception as e:
+            log_exc(e)
+            dump_log(test_log)
+            sys.exit(1)
+
+
+def do_coverity_build(NPROCS: str) -> None:
+    import io
+    import ssl
+    import tempfile
+    from urllib.request import urlopen
+
+    E = os.environ
+
+    # branch filtration is handled in .travis.yml
+    setenv("COVERITY_SCAN_BRANCH_PATTERN", "^.*$")
+
+    # other environment variables expected by the coverity driver script
+    setenv("COVERITY_SCAN_PROJECT_NAME", E["TRAVIS_REPO_SLUG"])
+    setenv("COVERITY_SCAN_BUILD_COMMAND_PREPEND",
+           "cd build/ && ../configure --disable-silent-rules " +
+           E.get("CONF", ""))
+    setenv("COVERITY_SCAN_BUILD_COMMAND",
+           "make -C build/ -j" + NPROCS)
+
+    # Download Coverity's driver script and patch it a little.
+    with tempfile.NamedTemporaryFile(
+            mode='w+t',
+            prefix='coverity-driver-',
+            suffix='.sh',
+            encoding='utf-8'
+    ) as driver_sh:
+        with urlopen(COVERITY_DRIVER_SCRIPT_URL,
+                     context=ssl.create_default_context()) as resp:
+            ifp = io.TextIOWrapper(resp, encoding="utf-8", errors="strict")
+            for line in ifp:
+                line = line.replace("--form version=$SHA",
+                                    "--form version=\"${TAG_VERSION}\"")
+                line = line.replace("--form description=\"Travis CI build\"",
+                                    "--form description=\"${SHA}\"")
+                line = line.replace("if [ \"$status_code\" != \"201\" ]",
+                                    "if [ \"$status_code\" != \"200\" ] "
+                                    "&& [ \"$status_code\" != \"201\" ]")
+                driver_sh.write(line)
+            driver_sh.flush()
+
+        run(["bash", driver_sh.name])
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.parse_args()
+
+    E = os.environ
+
+    try:
+        ensure_C_locale()
+        ensure_absolute_PATH()
+
+        # sched_getaffinity is available on Linux but not MacOS
+        try:
+            NPROCS = str(len(os.sched_getaffinity(0)))
+        except AttributeError:
+            NPROCS = str(os.cpu_count())
+
+        setenv("NPROCS", NPROCS)
+
+        sys.stdout.write("parallelism is {}\n".format(NPROCS))
+        sys.stdout.flush()
+
+        # We intentionally do not invoke ./autogen.sh, because it will
+        # run git clean -dfX, which will wipe the build directory,
+        # including the virtualenv we're running out of.
+        run(["autoreconf", "-iv", "-Wall,error"])
+
+        if E.get("PERFORM_COVERITY_SCAN", "") == "1":
+            do_coverity_build(NPROCS)
+        else:
+            do_normal_build(NPROCS)
+
+    except Exception as e:
+        if E.get("PYTHON_TRACEBACK", "") == "1":
+            import traceback
+            traceback.print_exc()
+        else:
+            log_exc(e)
+        sys.exit(1)
+
+
+main()

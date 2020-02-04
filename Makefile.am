@@ -18,31 +18,30 @@ AM_CPPFLAGS = -I$(srcdir)/lib
 AM_CFLAGS = $(WARN_CFLAGS) $(OPTI_FLAGS)
 AM_LDFLAGS = $(RELRO_FLAG) $(BINDNOW_FLAG)
 
-@VALGRIND_CHECK_RULES@
+AM_DISTCHECK_CONFIGURE_FLAGS = PYTHON=$(PYTHON)
 
-TEST_EXTENSIONS = .sh
+@VALGRIND_CHECK_RULES@
 
 EXTRA_DIST = \
 	LICENSING \
 	THANKS \
 	lib/alg-yescrypt-platform.c \
-	lib/crypt.h.in.in \
-	lib/gen-crypt-h.awk \
-	lib/gen-hashes.awk \
-	lib/gen-map.awk \
-	lib/gen-vers.awk \
+	lib/crypt.h.in \
 	lib/hashes.conf \
 	lib/libcrypt.map.in \
-	lib/libcrypt.minver.linux \
-	lib/libcrypt.minver.kfreebsd \
-	lib/libcrypt.minver.hurd \
-	lib/libcrypt.minver.no \
-	lib/sel-hashes.awk \
+	lib/libcrypt.minver \
 	lib/xcrypt.h.in \
-	m4/skip-if-exec-format-error \
-	test/symbols-compat.sh \
-	test/symbols-renames.sh \
-	test/symbols-static.sh
+	scripts/common.py \
+	scripts/compute-symver-floor \
+	scripts/expand-selected-hashes \
+	scripts/gen-crypt-h \
+	scripts/gen-crypt-hashes-h \
+	scripts/gen-crypt-symbol-vers-h \
+	scripts/gen-libcrypt-map \
+	scripts/skip-if-exec-format-error \
+	scripts/test-symbols-compat.py \
+	scripts/test-symbols-renames.py \
+	scripts/test-symbols-static.py
 
 notrans_dist_man3_MANS = \
 	doc/crypt.3 \
@@ -158,7 +157,12 @@ libcrypt_la_LDFLAGS += $(UNDEF_FLAG) $(TEXT_RELOC_FLAG) $(AM_LDFLAGS)
 
 libcrypt_la_CPPFLAGS = $(AM_CPPFLAGS) -DIN_LIBCRYPT
 
-CONFIG_STATUS_DEPENDENCIES = lib/libcrypt.minver.$(MINVER_OS)
+CONFIG_STATUS_DEPENDENCIES = \
+	lib/hashes.conf \
+	lib/libcrypt.minver \
+	scripts/compute-symver-floor \
+	scripts/expand-selected-hashes
+
 EXTRA_libcrypt_la_DEPENDENCIES = libcrypt.map
 CLEANFILES = \
 	Makefile.deps Makefile.deps.T \
@@ -176,50 +180,38 @@ DISTCLEANFILES = .deps/*.Plo
 # Force generated headers to be generated before any source files that
 # might depend on them are compiled.
 Makefile.deps: crypt.h crypt-hashes.h crypt-symbol-vers.h xcrypt.h
-	$(AM_V_GEN)LC_ALL=C echo "# Deps" > Makefile.deps.T
+	$(AM_V_GEN)echo "# Deps" > Makefile.deps.T
 	$(AM_V_at)mv -f Makefile.deps.T Makefile.deps
 
-libcrypt.map: lib/libcrypt.map.in lib/gen-map.awk Makefile
-	$(AM_V_GEN)LC_ALL=C $(AWK) \
-	  -v SYMVER_MIN=$(SYMVER_MIN) \
-	  -v SYMVER_FLOOR=$(SYMVER_FLOOR) \
-	  -v COMPAT_ABI=$(COMPAT_ABI) \
-	  -f $(srcdir)/lib/gen-map.awk \
-	     $(srcdir)/lib/libcrypt.map.in > libcrypt.map.T
-	$(AM_V_at)mv -f libcrypt.map.T libcrypt.map
+libcrypt.map: lib/libcrypt.map.in scripts/gen-libcrypt-map Makefile
+	$(AM_V_GEN)$(PYTHON) $(srcdir)/scripts/gen-libcrypt-map \
+	  --symver-min=$(SYMVER_MIN) \
+	  --symver-floor=$(SYMVER_FLOOR) \
+	  --compat-api=$(COMPAT_API) \
+	  libcrypt.map $(srcdir)/lib/libcrypt.map.in
 
-crypt-hashes.h: lib/hashes.conf lib/gen-hashes.awk Makefile
-	$(AM_V_GEN)LC_ALL=C $(AWK) \
-	  -v ENABLED_HASHES=$(hashes_enabled) \
-	  -f $(srcdir)/lib/gen-hashes.awk \
-	     $(srcdir)/lib/hashes.conf > crypt-hashes.h.T
-	$(AM_V_at)mv -f crypt-hashes.h.T crypt-hashes.h
+crypt-hashes.h: lib/hashes.conf scripts/gen-crypt-hashes-h Makefile
+	$(AM_V_GEN)$(PYTHON) $(srcdir)/scripts/gen-crypt-hashes-h \
+	  --hashes=$(hashes_enabled) \
+	  crypt-hashes.h $(srcdir)/lib/hashes.conf
 
-crypt-symbol-vers.h: lib/libcrypt.map.in lib/gen-vers.awk Makefile
-	$(AM_V_GEN)LC_ALL=C $(AWK) \
-	  -v SYMVER_MIN=$(SYMVER_MIN) \
-	  -v SYMVER_FLOOR=$(SYMVER_FLOOR) \
-	  -v COMPAT_ABI=$(COMPAT_ABI) \
-	  -f $(srcdir)/lib/gen-vers.awk \
-	     $(srcdir)/lib/libcrypt.map.in > crypt-symbol-vers.h.T
-	$(AM_V_at)mv -f crypt-symbol-vers.h.T crypt-symbol-vers.h
+crypt-symbol-vers.h: lib/libcrypt.map.in scripts/gen-crypt-symbol-vers-h \
+		     Makefile
+	$(AM_V_GEN)$(PYTHON) $(srcdir)/scripts/gen-crypt-symbol-vers-h \
+	  --symver-min=$(SYMVER_MIN) \
+	  --symver-floor=$(SYMVER_FLOOR) \
+	  --compat-api=$(COMPAT_API) \
+	  crypt-symbol-vers.h $(srcdir)/lib/libcrypt.map.in
 
-crypt.h: crypt.h.in crypt-hashes.h lib/gen-crypt-h.awk config.h Makefile
-	$(AM_V_GEN)LC_ALL=C $(AWK) \
-	  -f $(srcdir)/lib/gen-crypt-h.awk config.h \
-	     $(builddir)/crypt.h.in > crypt.h.T
-	$(AM_V_GEN)LC_ALL=C \
-	$(GREP) -q "#define HASH_ALGORITHM_DEFAULT" crypt-hashes.h && \
-	$(SED) -i -e "s/@DEFAULT_PREFIX_ENABLED@/1/g" crypt.h.T || \
-	$(SED) -i -e "s/@DEFAULT_PREFIX_ENABLED@/0/g" crypt.h.T
-	$(AM_V_at)mv -f crypt.h.T crypt.h
+crypt.h: lib/crypt.h.in crypt-hashes.h config.h scripts/gen-crypt-h Makefile
+	$(AM_V_GEN)$(PYTHON) $(srcdir)/scripts/gen-crypt-h \
+	  --config-h=config.h --hashes-h=crypt-hashes.h \
+	  crypt.h $(srcdir)/lib/crypt.h.in
 
-xcrypt.h: lib/xcrypt.h.in lib/gen-crypt-h.awk config.h Makefile
-	$(AM_V_GEN)LC_ALL=C $(AWK) \
-	  -f $(srcdir)/lib/gen-crypt-h.awk \
-	     config.h $(srcdir)/lib/xcrypt.h.in \
-	  > xcrypt.h.T
-	$(AM_V_at)mv -f xcrypt.h.T xcrypt.h
+xcrypt.h: lib/xcrypt.h.in scripts/gen-crypt-h config.h Makefile
+	$(AM_V_GEN)$(PYTHON) $(srcdir)/scripts/gen-crypt-h \
+	  --config-h=config.h \
+	  xcrypt.h $(srcdir)/lib/xcrypt.h.in
 
 install_exec_hook_targets =
 
@@ -407,30 +399,34 @@ endif
 TESTS = $(check_PROGRAMS)
 
 if ENABLE_STATIC
-TESTS += test/symbols-static.sh
+TESTS += scripts/test-symbols-static.py
 
 if HAVE_CPP_dD
-TESTS += test/symbols-renames.sh
+TESTS += scripts/test-symbols-renames.py
 endif
 endif
 
 if ENABLE_OBSOLETE_API
-TESTS += test/symbols-compat.sh
+TESTS += scripts/test-symbols-compat.py
 endif
 
 AM_TESTS_ENVIRONMENT = \
     host_os="$(host_os)"; \
     lib_la="./libcrypt.la"; \
     lib_map="$(srcdir)/lib/libcrypt.map.in"; \
-    AWK="$(AWK)"; \
     CC="$(CC)"; \
     CPP="$(CPP)"; \
+    LDD="$(LDD)"; \
+    NM="$(NM)"; \
     CPPFLAGS="$(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES)"; \
     CPPFLAGS="$${CPPFLAGS} $(AM_CPPFLAGS) $(CPPFLAGS)"; \
-    export host_os lib_la lib_map AWK CC CPP CPPFLAGS;
+    export host_os lib_la lib_map CC CPP CPPFLAGS LDD NM;
+
+TEST_EXTENSIONS = .py
+PY_LOG_COMPILER = $(PYTHON)
 
 if CROSS_COMPILING
-LOG_COMPILER = m4/skip-if-exec-format-error
+LOG_COMPILER = scripts/skip-if-exec-format-error
 endif
 
 # Refer to object files that are linked into libxcrypt with the

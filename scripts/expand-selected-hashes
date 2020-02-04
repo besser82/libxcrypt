@@ -1,0 +1,82 @@
+#! /usr/bin/python3
+#
+#   Copyright 2017, 2018, 2019 Zack Weinberg
+#
+#   This library is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU Lesser General Public License
+#   as published by the Free Software Foundation; either version 2.1 of
+#   the License, or (at your option) any later version.
+#
+#   This library is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#
+#   You should have received a copy of the GNU Lesser General Public
+#   License along with this library; if not, see
+#   <https://www.gnu.org/licenses/>.
+
+"""Expand a list of selected hashes to a list of enabled hashes, using
+the information in hashes.conf."""
+
+import argparse
+import sys
+
+from common import ensure_C_locale
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("hashes_file",
+                    help="File listing known hashes and their properties.")
+    ap.add_argument("selected_hashes",
+                    help="Comma-separated list of hashes to enable.")
+    args = ap.parse_args()
+
+    ensure_C_locale()
+
+    selected = set()
+    for h in args.selected_hashes.split(','):
+        h = h.strip().lower()
+        selected.add(h)
+
+    if len(selected) > 1 and 'all' in selected:
+        sys.stderr.write("invalid hashes setting: 'all' plus others\n")
+        sys.exit(1)
+
+    enabled = {}
+    groups = set()
+
+    with open(args.hashes_file, "rt", encoding="utf-8") as fp:
+        for line in fp:
+            line = line.strip()
+            if not line:
+                continue
+            if line[0] == '#':
+                continue
+
+            name, _, _, flags = line.split()
+            enabled[name] = (name in selected or 'all' in selected)
+            if flags != ':':
+                for f in flags.split(','):
+                    f = f.lower()
+                    if f == 'default':
+                        continue
+                    groups.add(f)
+                    if f in selected:
+                        enabled[name] = True
+
+    # Check for selected hashes that didn't appear in hashes.conf.
+    ok = True
+    for h in selected:
+        if not (h == 'all' or h in enabled or h in groups):
+            sys.stderr.write("unknown hash: '{}'\n".format(h))
+            ok = False
+    if not ok:
+        sys.exit(1)
+
+    sys.stdout.write(",".join(h for h, e in enabled.items() if e) + "\n")
+    sys.exit(0)
+
+
+main()

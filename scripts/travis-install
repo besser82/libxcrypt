@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /bin/sh
 
 # Create a virtualenv in order to ensure that we do all of our testing
 # with the oldest supported version of Python (3.6) and that that

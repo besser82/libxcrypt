@@ -1,4 +1,4 @@
-#!/bin/sh
+#! /bin/sh
 #
 # Copyright (C) 2018 Björn Esser <besser82@fedoraproject.org>
 #

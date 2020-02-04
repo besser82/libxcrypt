@@ -1,0 +1,245 @@
+#! /usr/bin/python3
+#
+#   Copyright 2017, 2018, 2019 Zack Weinberg
+#
+#   This library is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU Lesser General Public License
+#   as published by the Free Software Foundation; either version 2.1 of
+#   the License, or (at your option) any later version.
+#
+#   This library is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#
+#   You should have received a copy of the GNU Lesser General Public
+#   License along with this library; if not, see
+#   <https://www.gnu.org/licenses/>.
+
+"""Generate crypt-hashes.h from hashes.conf and build configuration."""
+
+import argparse
+import sys
+
+from common import (
+    atomic_update_file,
+    ensure_C_locale,
+)
+
+from io import TextIOBase as TextIO
+from typing import (
+    Dict,
+)
+
+
+KNOWN_HASH_GROUPS = frozenset((
+    "ALT",
+    "FEDORA",
+    "FREEBSD",
+    "GLIBC",
+    "NETBSD",
+    "OPENBSD",
+    "OSX",
+    "OWL",
+    "SOLARIS",
+    "STRONG",
+    "SUSE",
+))
+
+
+def gen_hashes(ofp: TextIO, ifp: TextIO, ifname: str,
+               hash_enabled: Dict[str, int]) -> None:
+
+    error = False
+    output_order = []
+    default_prefix = ""
+    default_cand = {}
+    line_index: Dict[str, str] = {}
+    prefixes = {}
+    renames = {}
+    prototypes = {}
+    table_entry = {}
+    max_method_name_len = 0
+
+    for lineno, line in enumerate(ifp):
+        line = line.strip()
+        if not line:
+            continue
+        if line[0] == "#":
+            continue
+
+        pos = "{}:{}".format(ifname, lineno+1)
+
+        try:
+            name, h_prefix, nrbytes_s, flags = line.split()
+        except ValueError as e:
+            msg = str(e).replace("values to unpack", "fields on line")
+            sys.stderr.write("{}: {}\n".format(pos, msg))
+            error = True
+            continue
+
+        if name == ":":
+            sys.stderr.write("{}: method name cannot be blank\n".format(pos))
+            error = True
+        elif name in line_index:
+            sys.stderr.write(
+                "{}: error: method name '{}' reused\n"
+                "{}: note: previous use was here\n"
+                .format(pos, name, line_index[name]))
+            error = True
+        else:
+            line_index[name] = pos
+
+        try:
+            nrbytes = int(nrbytes_s)
+            if nrbytes == 0:
+                raise ValueError
+        except ValueError:
+            sys.stderr.write("{}: nrbytes must be a positive integer\n"
+                             .format(pos))
+            error = True
+
+        default_cand[name] = ""
+        if flags != ":":
+            for flag in flags.split(","):
+                if flag == "DEFAULT":
+                    default_cand[name] = h_prefix
+                elif flag not in KNOWN_HASH_GROUPS:
+                    sys.stderr.write("{}: error: unrecognized flag {}\n"
+                                     .format(pos, flag))
+                    error = True
+
+        output_order.append(name)
+        if name not in hash_enabled:
+            hash_enabled[name] = 0
+        max_method_name_len = max(max_method_name_len, len(name))
+
+        if h_prefix == ":":
+            h_prefix = ""
+        prefixes[name] = h_prefix
+
+        c_fn = "crypt_{}_rn".format(name)
+        g_fn = "gensalt_{}_rn".format(name)
+
+        renames[name] = (
+            "#define {c_fn} _crypt_{c_fn}\n"
+            "#define {g_fn} _crypt_{g_fn}\n"
+        ).format(c_fn=c_fn, g_fn=g_fn)
+
+        prototypes[name] = (
+            "extern void {c_fn} (const char *, size_t, const char *,\n"
+            "        size_t, uint8_t *, size_t, void *, size_t);\n"
+            "extern void {g_fn} (unsigned long,\n"
+            "        const uint8_t *, size_t, uint8_t *, size_t);\n"
+        ).format(c_fn=c_fn, g_fn=g_fn)
+
+        table_entry[name] = (
+            "  {{ \"{p}\", {plen}, {c_fn}, {g_fn}, {nrbytes} }}, \\\n"
+        ).format(
+            p=h_prefix, plen=len(h_prefix),
+            c_fn=c_fn, g_fn=g_fn, nrbytes=nrbytes)
+
+    # No hash prefix can be a prefix of any other hash prefix, except
+    # for the empty prefix.
+    for ma, pa in prefixes.items():
+        if pa == "":
+            continue
+        for mb, pb in prefixes.items():
+            if pb == "" or ma == mb:
+                continue
+
+            if pa.startswith(pb):
+                sys.stderr.write(
+                    "{la}: error: prefix collision:"
+                    " {pa!r} begins with {pb!r}\n"
+                    "{lb}: note: {pb!r} is used here\n"
+                    .format(la=line_index[ma], lb=line_index[mb],
+                            pa=pa, pb=pb))
+                error = True
+
+    if error:
+        sys.exit(1)
+
+    ofp.write(
+        "/* Generated from hashes.conf and build config.  DO NOT EDIT.  */\n"
+        "\n"
+        "#ifndef _CRYPT_HASHES_H\n"
+        "#define _CRYPT_HASHES_H 1\n"
+        "\n"
+    )
+
+    for name in output_order:
+        ofp.write("#define INCLUDE_{name:<{npad}} {enabled}\n"
+                  .format(name=name, npad=max_method_name_len,
+                          enabled=hash_enabled[name]))
+        if (
+                not default_prefix
+                and default_cand[name]
+                and hash_enabled[name]
+        ):
+            default_prefix = default_cand[name]
+
+    ofp.write(
+        "\n"
+        "/* Internal symbol renames for static linkage, see crypt-port.h.  */"
+        "\n"
+    )
+    for name in output_order:
+        if hash_enabled[name]:
+            ofp.write(renames[name])
+
+    ofp.write(
+        "\n"
+        "/* Prototypes for hash algorithm entry points.  */\n"
+    )
+    for name in output_order:
+        if hash_enabled[name]:
+            ofp.write(prototypes[name])
+
+    ofp.write(
+        "\n"
+        "#define HASH_ALGORITHM_TABLE_ENTRIES \\\n"
+    )
+    for name in output_order:
+        if hash_enabled[name]:
+            ofp.write(table_entry[name])
+    ofp.write(
+        "  { 0, 0, 0, 0, 0 }\n"
+        "\n"
+    )
+
+    if default_prefix:
+        ofp.write(
+            "#define HASH_ALGORITHM_DEFAULT \"{}\"\n"
+            "\n"
+            .format(default_prefix)
+        )
+
+    ofp.write("#endif /* crypt-hashes.h */\n")
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--hashes", default="",
+                    help="Comma-separated list of hashes to enable.")
+    ap.add_argument("output", help="Name of header file to generate.")
+    ap.add_argument("input", help="File specifying properties of all hashes.")
+    args = ap.parse_args()
+
+    ensure_C_locale()
+
+    hash_enabled = {
+        h: 1
+        for h in args.hashes.split(",")
+        if h
+    }
+
+    with open(args.input, "rt", encoding="utf-8") as ifp:
+        with atomic_update_file(args.output) as ofp:
+            assert isinstance(ofp, TextIO)
+            gen_hashes(ofp, ifp, args.input, hash_enabled)
+
+    sys.exit(0)
+
+
+main()

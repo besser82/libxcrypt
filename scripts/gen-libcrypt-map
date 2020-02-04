@@ -1,0 +1,186 @@
+#! /usr/bin/python3
+#
+#   Copyright 2017, 2018, 2019 Zack Weinberg
+#
+#   This library is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU Lesser General Public License
+#   as published by the Free Software Foundation; either version 2.1 of
+#   the License, or (at your option) any later version.
+#
+#   This library is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#
+#   You should have received a copy of the GNU Lesser General Public
+#   License along with this library; if not, see
+#   <https://www.gnu.org/licenses/>.
+
+"""Generate libcrypt.map from libcrypt.map.in and build configuration."""
+
+# All compat symbol versions that do not match COMPAT_ABI are ignored.
+# All symbol versions lower than SYMVER_MIN are discarded from the output.
+# All symbol versions lower than SYMVER_FLOOR are replaced with SYMVER_FLOOR.
+# SYMVER_FLOOR must be greater than or equal to SYMVER_MIN.
+#
+# The ordering of symbol versions is entirely controlled by the %chain
+# directive, which must therefore list both all of the versions
+# actually used for symbols, and all of the versions that might be
+# used as SYMVER_MIN or SYMVER_FLOOR.
+#
+# Note: if you change the format of .map.in files you probably need to
+# update gen-crypt-symbol-vers-h as well as this script.
+
+import argparse
+import collections
+import sys
+
+from common import (
+    atomic_update_file,
+    ensure_C_locale
+)
+
+from io import TextIOBase as TextIO
+from typing import (
+    DefaultDict,
+    List,
+    Set,
+)
+
+
+def gen_map(ofp: TextIO,
+            ifp: TextIO,
+            ifname: str, *,
+            symver_min: str,
+            symver_floor: str,
+            compat_api: str) -> None:
+    symbols: DefaultDict[str, List[str]] = collections.defaultdict(list)
+    vchain = []
+    error = False
+
+    for lineno, line in enumerate(ifp):
+        line = line.strip()
+        if not line:
+            continue
+        if line[0] == '#':
+            continue
+
+        F = line.split()
+        if len(F) < 2:
+            sys.stderr.write("{}:{}: error: incomplete line\n".format(
+                ifname, lineno+1))
+            error = True
+            continue
+
+        if F[0] == "%chain":
+            vchain.extend(F[1:])
+            continue
+
+        sym = F[0]
+        for ver in F[1:]:
+            if ver == "-":
+                continue
+            ver, _, tags = ver.partition(":")
+            if (
+                    tags == ""
+                    or compat_api == "true"
+                    or compat_api in tags.split(":")
+            ):
+                symbols[ver].append(sym)
+
+    if not vchain:
+        sys.stderr.write(ifname + ": error: missing %chain directive\n")
+        sys.exit(1)
+
+    try:
+        symver_min_idx = vchain.index(symver_min)
+    except ValueError:
+        sys.stderr.write("{}: error: symver_min {!r} "
+                         "not found in %chain directives\n"
+                         .format(ifname, symver_min))
+        error = True
+
+    try:
+        symver_floor_idx = vchain.index(symver_floor)
+    except ValueError:
+        sys.stderr.write("{}: error: symver_floor {!r} "
+                         "not found in %chain directives\n"
+                         .format(ifname, symver_floor))
+        error = True
+
+    if error:
+        sys.exit(1)
+
+    if symver_floor_idx < symver_min_idx:
+        sys.stderr.write("{}: error: symver_floor {!r} "
+                         "is lower than symver_min {!r}\n"
+                         .format(ifname, symver_floor, symver_min))
+        sys.exit(1)
+
+    # Construct a pruned set of symbols and versions, including only
+    # versions with symbols, discarding all symbols associated with
+    # versions below SYMVER_MIN, raising symbols below SYMVER_FLOOR to
+    # SYMVER_FLOOR, and removing duplicates.
+    symset: DefaultDict[str, Set[str]] = collections.defaultdict(set)
+    for i, v in enumerate(vchain):
+        syms = symbols[v]
+        if syms:
+            ver = vchain[max(i, symver_floor_idx)]
+            for s in syms:
+                if i >= symver_min_idx:
+                    symset[ver].add(s)
+
+    vchain = vchain[symver_floor_idx:]
+
+    ofp.write(
+        "/* Generated from {} and build configuration.  DO NOT EDIT.  */\n\n"
+        .format(ifname)
+    )
+
+    vp = ""
+    for v in vchain:
+        osyms = sorted(symset[v])
+        if osyms:
+            ofp.write(v + " {\n  global:\n")
+            for s in osyms:
+                ofp.write("    {};\n".format(s))
+
+            if not vp:
+                vp = v
+                ofp.write("  local:\n    *;\n};\n")
+            else:
+                ofp.write("} " + vp + ";\n")
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--symver-min",
+                    help="Minimum symbol version; versions lower than this "
+                    "will be discarded.")
+    ap.add_argument("--symver-floor",
+                    help="Floor symbol version; versions lower than this "
+                    "will be raised to this.")
+    ap.add_argument("--compat-api", help="")
+    ap.add_argument("output", help="Name of file to generate.")
+    ap.add_argument("input", help="Name of file listing all symbol versions.")
+    args = ap.parse_args()
+
+    ensure_C_locale()
+
+    try:
+        with open(args.input, "rt", encoding="utf-8") as ifp:
+            with atomic_update_file(args.output) as ofp:
+                assert isinstance(ofp, TextIO)
+                gen_map(ofp, ifp, args.input,
+                        symver_min=args.symver_min,
+                        symver_floor=args.symver_floor,
+                        compat_api=args.compat_api)
+
+    except Exception as e:
+        sys.stderr.write("gen-libcrypt-map: {}\n".format(str(e)))
+        sys.exit(1)
+
+    sys.exit(0)
+
+
+main()
