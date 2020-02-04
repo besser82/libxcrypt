@@ -22,7 +22,7 @@ if [ "$TRAVIS_OS_NAME" = osx ]; then
 
 elif [ "$TRAVIS_OS_NAME" = linux ]; then
   if [ "$CC" = clang ]; then
-    GCOV="$PWD/.clang_gcov_wrapper.sh"
+    GCOV="$(pwd)/scripts/clang-gcov-wrapper"
   fi
 
 fi

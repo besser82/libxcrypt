@@ -6,12 +6,11 @@ AC_INIT([xcrypt],
         [libxcrypt],
         [https://github.com/besser82/libxcrypt])
 AC_CONFIG_MACRO_DIR([m4])
-AC_CONFIG_AUX_DIR([m4])
+AC_CONFIG_AUX_DIR([scripts])
 AC_CONFIG_SRCDIR([lib/crypt.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
   Makefile
-  crypt.h.in:lib/crypt.h.in.in
   libxcrypt.pc:lib/libxcrypt.pc.in
 ])
 AM_INIT_AUTOMAKE([tar-v7])
@@ -30,7 +29,26 @@ m4_pattern_allow([PKG_INSTALLDIR])
 AC_CANONICAL_HOST
 AC_PROG_CC
 
-# Dependencies
+# C99 language and library features are used unconditionally.
+# Don't even try to build with an older compiler.
+case "$ac_prog_cc_stdc" in
+     c89 | no) AC_MSG_ERROR([a C99- or C11-compliant compiler is required]) ;;
+esac
+
+# Use AC_PATH_PROGS to look for the Python interpreter under a variety
+# of versioned names, in descending order of recency, ending up with
+# the generic names python3 and python.  Then we double-check that we
+# got a usable version with AX_PROG_PYTHON_VERSION.
+AC_PATH_PROGS([PYTHON],
+  [python3.10 python3.9 python3.8 python3.7 python3.6 python3 python],
+  [not found])
+if test x"$PYTHON" = x"not found"; then
+  AC_MSG_ERROR([Python 3.6 or later is required to build libxcrypt.])
+fi
+AX_PROG_PYTHON_VERSION([3.6],
+  [], # if found, no further action required
+  [AC_MSG_ERROR([Python 3.6 or later is required to build libxcrypt.])])
+
 PKG_PROG_PKG_CONFIG
 if $PKG_CONFIG --atleast-pkgconfig-version 0.27; then
   PKG_INSTALLDIR
@@ -38,14 +56,9 @@ else
   PKG_INSTALLDIR_COMPAT
 fi
 
-# C99 language and library features are used unconditionally.
-# Don't even try to build with an older compiler.
-case "$ac_prog_cc_stdc" in
-     c89 | no) AC_MSG_ERROR([a C99- or C11-compliant compiler is required]) ;;
-esac
-
 AC_PROG_CPP
-AC_PROG_AWK
+AC_CHECK_TOOL([NM], [nm], [false])
+AC_CHECK_TOOL([LDD], [ldd], [false])
 AC_PROG_MAKE_SET
 AC_PROG_LN_S
 AC_USE_SYSTEM_EXTENSIONS
@@ -233,40 +246,8 @@ AX_VALGRIND_DFLT([sgcheck], [off])
 AX_VALGRIND_CHECK()
 
 # Requirements for running test/ka-table-gen.py.
-ENABLE_KA_TABLE_GEN="no"
-
-# Construct PYTHON_CANDIDATE_VERSIONS from most recent version to
-# the minimum version required, ending up with a string containing:
-#   "... python3.7 python3.6 python3 python".
-# This way we just need one call to AC_PATH_PROGS to likely get a
-# suitable version of Python.  The version check afterwards is for
-# the case just a generic 'python3' or 'python' executable was found.
-PYTHON_CANDIDATE_VERSIONS="python3 python"
-
-for ver in `seq 6 1 10`; do
-  PYTHON_CANDIDATE_VERSIONS="python3.$ver $PYTHON_CANDIDATE_VERSIONS"
-done
-
-AC_PATH_PROGS([PYTHON], [$PYTHON_CANDIDATE_VERSIONS], [])
-
-if test x"$PYTHON" != "x"; then
-  AX_PROG_PYTHON_VERSION([3.6], [ENABLE_KA_TABLE_GEN="yes"],
-    [AC_MSG_WARN([Python >= 3.6 is required for optional Makefile targets.])
-  ])
-
-  if test x"$ENABLE_KA_TABLE_GEN" = "xyes"; then
-    AX_PYTHON_MODULE([passlib], [], [$PYTHON])
-    if test x"$HAVE_PYMOD_PASSLIB" = "xno"; then
-      ENABLE_KA_TABLE_GEN="no"
-    fi
-  fi
-fi
-
-if test x"$ENABLE_KA_TABLE_GEN" = "xno"; then
-  AC_MSG_WARN(
-    [Disabling the "regen-ka-table" target, missing Python requirements.])
-fi
-AM_CONDITIONAL([ENABLE_KA_TABLE_GEN], [test x"$ENABLE_KA_TABLE_GEN" = "xyes"])
+AX_PYTHON_MODULE([passlib])
+AM_CONDITIONAL([ENABLE_KA_TABLE_GEN], [test x"$HAVE_PYMOD_PASSLIB" = "xyes"])
 
 # Configure options.
 AC_ARG_ENABLE([failure-tokens],
@@ -316,28 +297,28 @@ AC_ARG_ENABLE([obsolete-api],
          be linked against the obsolete APIs (bigcrypt, fcrypt, encrypt, setkey)
          in any case. [default=yes]]
     ),
-    [enableval="`AS_ECHO("$enableval") |
-       $SED -e 'y!ABCDEFGHIJKLMNOPQRSTUVWXYZ-!abcdefghijklmnopqrstuvwxyz_!'`"
+    [enableval="$(AS_ECHO("$enableval") |
+       $SED -e 'y!ABCDEFGHIJKLMNOPQRSTUVWXYZ-!abcdefghijklmnopqrstuvwxyz_!')"
      case "${enableval}" in
         alt|glibc|owl)
             enable_obsolete_api=1
             enable_compat_suse=0
-            COMPAT_ABI=${enableval} ;;
+            COMPAT_API=${enableval} ;;
         yes|suse)
             enable_obsolete_api=1
             enable_compat_suse=1
-            COMPAT_ABI=${enableval} ;;
+            COMPAT_API=${enableval} ;;
          no)
             enable_obsolete_api=0
             enable_compat_suse=0
-            COMPAT_ABI=${enableval} ;;
+            COMPAT_API=${enableval} ;;
           *) AC_MSG_ERROR([bad value ${enableval} for --enable-obsolete-api]) ;;
      esac],
      [enable_obsolete_api=1
       enable_compat_suse=1
-      COMPAT_ABI=yes]
+      COMPAT_API=yes]
 )
-AC_SUBST(COMPAT_ABI)
+AC_SUBST(COMPAT_API)
 
 AC_ARG_ENABLE([obsolete-api-enosys],
     AS_HELP_STRING(
@@ -373,15 +354,16 @@ AC_ARG_ENABLE([hashes],
          Note: if binary compatibility with any historic libcrypt is
          desired (i.e. any --enable-obsolete-api setting other than
          'no'), the 'descrypt' hash must be enabled.]),
-    [hashes_selected="`AS_ECHO("$enableval") |
-      $SED -e 'y!ABCDEFGHIJKLMNOPQRSTUVWXYZ-!abcdefghijklmnopqrstuvwxyz_!'`"],
+    [hashes_selected="$(AS_ECHO("$enableval") |
+      $SED -e 'y!ABCDEFGHIJKLMNOPQRSTUVWXYZ-!abcdefghijklmnopqrstuvwxyz_!')"],
     [hashes_selected=all]
 )
-# This code must run after AC_PROG_AWK.
+# This code must run after $PYTHON is set.
 hashes_enabled=$(
-    $AWK -f ${srcdir}/lib/sel-hashes.awk \
-         -v SELECTED_HASHES="$hashes_selected" \
-            ${srcdir}/lib/hashes.conf
+    $PYTHON ${srcdir}/scripts/expand-selected-hashes \
+            ${srcdir}/lib/hashes.conf                \
+            "$hashes_selected"                       \
+      2>&AS_MESSAGE_LOG_FD
 )
 if test x"$hashes_enabled" = x || test x"$hashes_enabled" = x,; then
     AC_MSG_ERROR([bad value '${hashes_selected}' for --enable-hashes])
@@ -392,21 +374,21 @@ AC_SUBST([hashes_enabled])
 # If the traditional DES hash is disabled, then the obsolete APIs are
 # implicitly disabled, except when stubs are requested.
 case "$hashes_enabled" in
-    *,descrypt,*) ;;
+    descrypt,* | *,descrypt,* | *,descrypt) ;;
     *)
-       if test x"$COMPAT_ABI" != xno && \
+       if test x"$COMPAT_API" != xno && \
           test x"$enable_obsolete_api_enosys" != x1; then
          AC_MSG_WARN(
            [--enable-hashes=${hashes_selected} forces --enable-obsolete-api=no])
          enable_obsolete_api=0
          enable_compat_suse=0
-         COMPAT_ABI=no
+         COMPAT_API=no
        fi
        ;;
 esac
 
-# If the obsolete APIs are disabled, the stubs implicitly disabled as well.
-if test x"$COMPAT_ABI" = xno && test x"$enable_obsolete_api_enosys" = x1; then
+# If the obsolete APIs are disabled, the stubs are implicitly disabled as well.
+if test x"$COMPAT_API" = xno && test x"$enable_obsolete_api_enosys" = x1; then
   AC_MSG_WARN(
     [--enable-obsolete-api=no implies --enable-obsolete-api-enosys=no.])
   enable_obsolete_api_enosys=0
@@ -424,68 +406,33 @@ if test x$enable_shared != xyes; then enable_obsolete_api=0; fi
 
 # Determine whether there's even a GNU libc on this system that we
 # need to be binary backward compatible with.
-MINVER_OS=no
-SYMVER_FLOOR=none
 if test $enable_obsolete_api = 1; then
   AC_MSG_CHECKING([minimum symbol version to use for compatibility symbols])
-  case $host_os in
-    *gnu*)
-      # GNU Systems use glibc
-      case $host_os in
-        *linux*)
-          MINVER_OS=linux
-          ;;
-        kfreebsd-gnu*)
-          MINVER_OS=kfreebsd
-          ;;
-        gnu*)
-          MINVER_OS=hurd
-          ;;
-        *)
-          ;;
-      esac
-
-      if test $MINVER_OS != no ; then
-        while read pattern version cond; do
-          if test -z "$pattern" || test "x$pattern" = 'x#'; then
-            continue
-          fi
-          if expr "$host_cpu" : "$pattern" > /dev/null; then
-            if test -z "$cond"; then
-              cond_matched=yes
-            else
-              AC_PREPROC_IFELSE([AC_LANG_SOURCE([[
-  #include <limits.h>
-  #if $cond
-  #error yes
-  #endif
-              ]])],
-              [cond_matched=no], [cond_matched=yes])
-            fi
-            if test $cond_matched = yes; then
-              SYMVER_FLOOR="$version"
-              break
-            fi
-          fi
-        done < ${srcdir}/lib/libcrypt.minver.$MINVER_OS
-      fi
+  SYMVER_FLOOR=$(
+    $PYTHON ${srcdir}/scripts/compute-symver-floor \
+      ${srcdir}/lib/libcrypt.minver $host_os $host_cpu \
+    2>&AS_MESSAGE_LOG_FD
+  )
+  AC_MSG_RESULT([$SYMVER_FLOOR])
+  case "$SYMVER_FLOOR" in
+    ERROR)
+      AC_MSG_ERROR([libxcrypt port to $host is incomplete])
     ;;
-
+    XCRYPT_2.0)
+      SYMVER_MIN=XCRYPT_2.0
+      enable_obsolete_api=0
+      enable_obsolete_api_enosys=0
+      enable_compat_suse=0
+      COMPAT_API=no
+    ;;
     *)
-        # Other host OSes do not use glibc, so there is no reason to
-        # attempt to be binary compatible with it.
+      SYMVER_MIN=GLIBC_2.0
     ;;
   esac
-  AC_MSG_RESULT([$SYMVER_FLOOR])
-fi
-if test x"$SYMVER_FLOOR" = xnone; then
+else
   SYMVER_FLOOR=XCRYPT_2.0
   SYMVER_MIN=XCRYPT_2.0
-  enable_obsolete_api=0
-else
-  SYMVER_MIN=GLIBC_2.0
 fi
-AC_SUBST([MINVER_OS])
 AC_SUBST([SYMVER_FLOOR])
 AC_SUBST([SYMVER_MIN])
 
@@ -513,13 +460,9 @@ AM_CONDITIONAL([ENABLE_SHARED], [test $enable_shared = yes])
 # The Makefile needs to know if we are cross-compiling.
 AM_CONDITIONAL([CROSS_COMPILING], [test $cross_compiling = yes])
 
-XCRYPT_VERSION_MAJOR=$(
-    echo $PACKAGE_VERSION | $AWK -F. '{ print $1 }'
-)
+XCRYPT_VERSION_MAJOR=$(AS_ECHO("$PACKAGE_VERSION") | cut -d. -f1)
 AC_SUBST([XCRYPT_VERSION_MAJOR])
-XCRYPT_VERSION_MINOR=$(
-    echo $PACKAGE_VERSION | $AWK -F. '{ print $2 }'
-)
+XCRYPT_VERSION_MINOR=$(AS_ECHO("$PACKAGE_VERSION") | cut -d. -f2)
 AC_SUBST([XCRYPT_VERSION_MINOR])
 
 AC_OUTPUT

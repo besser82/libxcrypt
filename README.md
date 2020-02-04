@@ -54,15 +54,16 @@ maintainers, so please be patient.
 Build Requirements and Instructions
 -----------------------------------
 
-To build from a tarball release, the only tools required are the
-standard Unix shell environment (including an implementation of AWK)
-and a C compiler.  Follow the generic build and installation
-instructions in the file `INSTALL`.  There are two package-specific
-configure switches: `--enable-obsolete-api` and `--enable-hashes`.
-Run `./configure --help` for more detail on these options.
-Run `man -l crypt.5` for more detail on the hashing algorithms that
-can be enabled or disabled by `--enable-hashes`.  You can do both of
-these things before building the software.
+To build from a tarball release, the tools required are the standard
+Unix shell environment, a C compiler, and a relatively recent version
+of Python (>=3.6).  Follow the generic build and installation
+instructions in the file `INSTALL`.
+
+There are several package-specific configure switches.
+Run `./configure --help` for an explanation of these switches.
+Run `man -l doc/crypt.5` for more detail on the hashing algorithms
+that can be enabled or disabled by `--enable-hashes`.  You can do
+both of these things before building the software.
 
 Building from a Git checkout additionally requires the Autotools
 suite: `autoconf`, `automake`, `libtool`, and `pkg-config`.

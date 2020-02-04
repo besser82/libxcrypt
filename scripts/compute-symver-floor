@@ -1,0 +1,133 @@
+#! /usr/bin/python3
+#
+#   Copyright 2017, 2018, 2019 Zack Weinberg
+#
+#   This library is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU Lesser General Public License
+#   as published by the Free Software Foundation; either version 2.1 of
+#   the License, or (at your option) any later version.
+#
+#   This library is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#
+#   You should have received a copy of the GNU Lesser General Public
+#   License along with this library; if not, see
+#   <https://www.gnu.org/licenses/>.
+
+"""Determine the minimum symbol version to use for compatibility symbols.
+"""
+
+import argparse
+import fnmatch
+import functools
+import os
+import shlex
+import sys
+import tempfile
+
+from common import (
+    ensure_C_locale,
+    ensure_absolute_PATH,
+    run,
+)
+
+from typing import (
+    List,
+    TextIO,
+)
+
+
+PREPROCESSOR_CHECK_TEMPLATE = '''\
+#include <limits.h>
+#if !({cond})
+#error nope
+#endif
+int avoid_empty_translation_unit;
+'''
+
+
+@functools.lru_cache(1)
+def cc_cmd() -> List[str]:
+    CC = os.environ.get("CC", "cc")
+    CFLAGS = os.environ.get("CFLAGS", "")
+    return shlex.split(CC) + shlex.split(CFLAGS)
+
+
+def preprocessor_check(cond: str) -> bool:
+    test_program = PREPROCESSOR_CHECK_TEMPLATE.format(cond=cond)
+    with tempfile.NamedTemporaryFile(
+            suffix='.c', mode='wt', encoding='ascii') as fp:
+        fp.write(test_program)
+        fp.flush()
+
+        # FIXME Assuming compiler supports -fsyntax-only.
+        # All compilers for the platforms that actually
+        # need this feature do support this switch.
+        command = cc_cmd() + ["-fsyntax-only", fp.name]
+        sys.stderr.write("compute-symver-floor: test compile:\n")
+        sys.stderr.write(test_program)
+        sys.stderr.flush()
+
+        status = run(command, check=False)
+        if status.returncode == 0:
+            return True
+        elif status.returncode == 1:
+            return False
+        else:
+            status.check_returncode()
+            raise AssertionError("can't get here")
+
+
+def parse_minver_file(fp: TextIO, args: argparse.Namespace) -> str:
+    system = args.system.lower()
+    cpu = args.cpu.lower()
+
+    for line in fp:
+        line = line.strip()
+        if not line:
+            continue
+        if line[0] == '#':
+            continue
+        fields = line.split(maxsplit=3)
+
+        vers = fields[0]
+        vsys = fields[1].lower()
+        vcpu = fields[2].lower()
+        ppck = fields[3] if len(fields) == 4 else ''
+
+        if (
+                fnmatch.fnmatch(system, vsys)
+                and fnmatch.fnmatch(cpu, vcpu)
+                and (not ppck or preprocessor_check(ppck))
+        ):
+            return vers
+
+    sys.stderr.write("compute-symver-floor: no match for {}-{}\n"
+                     .format(cpu, system))
+    return 'ERROR'
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("minver", help="File listing minimum symbol versions")
+    ap.add_argument("system", help="Name of the host operating system")
+    ap.add_argument("cpu",    help="Name of the host CPU family")
+    args = ap.parse_args()
+
+    ensure_absolute_PATH()
+    ensure_C_locale()
+
+    try:
+        with open(args.minver, "rt", encoding="utf-8") as fp:
+            symver_floor = parse_minver_file(fp, args)
+    except Exception as e:
+        sys.stderr.write("compute-symver-floor: " + str(e) + "\n")
+        sys.exit(2)
+
+    sys.stdout.write(symver_floor + "\n")
+    sys.exit(0)
+
+
+main()
