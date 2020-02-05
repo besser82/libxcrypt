@@ -37,8 +37,6 @@ notifications:
 dist: xenial
 
 matrix:
-  allow_failures:
-    - os: osx
   fast_finish: true
   include:
     - name: "Coverity Scan"

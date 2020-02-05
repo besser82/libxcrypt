@@ -15,15 +15,23 @@
 # Due to limitations in Automake, this program takes parameters from
 # the environment:
 # $lib_la - full pathname of libcrypt.la
+# $host_os - autoconf host_os variable
 
 set -e
 LC_ALL=C; export LC_ALL
 
 get_symbols_with_versions ()
 {
-    nm -gD --with-symbol-versions "$1" |
-        grep -v ' U ' | cut -d' ' -f3 |
-        sed -e 's/@@*/ /; /^\([A-Z0-9_.]*\) \1$/d' |
+    nm --dynamic --extern-only --defined-only --with-symbol-versions "$1" |
+        ${AWK-awk} -v symbol_prefix="$symbol_prefix" '
+            NF == 0 { next }
+            {
+               sym = $NF;
+               if (symbol_prefix != "") { sub("^" symbol_prefix, "", sym); }
+               split(sym, t, /@+/);
+               if (t[0] != t[1] || t[0] !~ /^[A-Z0-9._]+$/)) { print sym; }
+            }
+        ' |
         sort -u
 }
 
@@ -57,10 +65,23 @@ EOF
     if [ $? -ne 0 ]; then exit $?; fi
 }
 
-if [ ! -f "$lib_la" ]; then
-    echo "Usage: lib_la=/path/to/library.la $0" >&2
+if [ ! -f "$lib_la" ] || [ -z "$host_os" ]; then
+    echo "Usage: host_os=foonix lib_la=/path/to/library.la $0" >&2
     exit 1
 fi
+
+case "$host_os" in
+    *darwin*)
+        # Mach-O follows the old a.out tradition of prepending an
+        # underscore to all global symbols defined in C.
+        symbol_prefix='_'
+        ;;
+    *)
+        # Assume ELF, which does *not* prepend an underscore to
+        # global symbols defined in C.
+        symbol_prefix=''
+        ;;
+esac
 
 # If 'nm' and/or 'ldd' are not available, this test will not work.
 command -v nm > /dev/null 2>&1 || {

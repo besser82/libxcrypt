@@ -94,6 +94,14 @@ AC_ARG_ENABLE(
         ax_candidate_warnings="$ax_candidate_warnings -Werror"
     fi
 
+    # If we are building for OSX, turn -Wdeprecated-declarations off.
+    # Apple is a little too trigger-happy with deprecations.
+    case "$host_os" in
+      (*darwin*)
+        ax_candidate_warnings="$ax_candidate_warnings -Wno-deprecated-declarations"
+      ;;
+    esac
+
     AX_APPEND_COMPILE_FLAGS(
         [$ax_candidate_warnings], [WARN_CFLAGS],
         [$ax_compiler_flags_test])

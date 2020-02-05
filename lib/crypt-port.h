@@ -157,49 +157,40 @@ _crypt_strcpy_or_abort (void *, const size_t, const void *);
 #define XCRYPT_STRCPY_OR_ABORT(dst, d_size, src) \
   _crypt_strcpy_or_abort (dst, d_size, src)
 
-/* Per-symbol version tagging.  Currently we only know how to do this
-   using GCC extensions.  */
-
-#if defined __GNUC__ && __GNUC__ >= 3
 
 /* Define ALIASNAME as a strong alias for NAME.  */
 #define strong_alias(name, aliasname) _strong_alias(name, aliasname)
 
-/* Darwin doesn't support alias attributes.  */
-#ifdef __cplusplus
-# ifndef __APPLE__
-#  define _strong_alias(name, aliasname) \
-     extern __typeof (name) aliasname __THROW __attribute__ ((alias (#name)))
-# else
-#  define _strong_alias(name, aliasname) \
-     __THROW __asm__(".globl _" #aliasname); \
-     __THROW __asm__(".set _" #aliasname ", _" #name); \
-     extern __typeof(name) aliasname __THROW
-# endif
-#else
-# ifndef __APPLE__
-#  define _strong_alias(name, aliasname) \
-     extern __typeof (name) aliasname __attribute__ ((alias (#name))) __THROW
-# else
-#  define _strong_alias(name, aliasname) \
-     __asm__(".globl _" #aliasname) __THROW; \
-     __asm__(".set _" #aliasname ", _" #name) __THROW; \
-     extern __typeof(name) aliasname __THROW
-# endif
-#endif
+/* Darwin (Mach-O) doesn't support alias attributes or symbol versioning.
+   It does, however, support symbol aliasing at the object file level.  */
+#ifdef __APPLE__
+
+# define _strong_alias(name, aliasname)         \
+  __asm__(".globl _" #aliasname);               \
+  __asm__(".set _" #aliasname ", _" #name);     \
+  extern __typeof(name) aliasname __THROW
+
+# define symver_set(extstr, intname, version, mode)     \
+  __asm__(".globl _" extstr);                           \
+  __asm__(".set _" extstr ", _" #intname)
+
+#elif defined __GNUC__ && __GNUC__ >= 3
+
+# define _strong_alias(name, aliasname) \
+  extern __typeof (name) aliasname __THROW __attribute__ ((alias (#name)))
 
 /* Set the symbol version for EXTNAME, which uses INTNAME as its
    implementation.  */
-#define symver_set(extstr, intname, version, mode) \
+# define symver_set(extstr, intname, version, mode) \
   __asm__ (".symver " #intname "," extstr mode #version)
+
+#else
+# error "Don't know how to do symbol versioning with this compiler"
+#endif
 
 /* A construct with the same syntactic role as the expansion of symver_set,
    but which does nothing.  */
 #define symver_nop() __asm__ ("")
-
-#else
-#error "Don't know how to do symbol versioning with this compiler"
-#endif
 
 /* The macros for versioned symbols work differently in this library
    than they do in glibc.  They are mostly auto-generated (see gen-vers.awk),

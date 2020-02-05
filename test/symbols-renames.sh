@@ -14,8 +14,8 @@
 # Due to limitations in Automake, this program takes parameters from
 # the environment:
 # $lib_la - full pathname of libcrypt.la
-# $lib_map - full pathname of libcrypt.map.in (used only to locate
-# crypt-port.h and all of the .c files).
+# $host_os - autoconf host_os variable
+# $AWK, $CPP, $CPPFLAGS - awk, C preprocessor, and parameters
 
 set -e
 LC_ALL=C; export LC_ALL
@@ -23,9 +23,16 @@ LC_ALL=C; export LC_ALL
 list_library_internals ()
 {
     eval $(grep old_library= "$1")
-    nm -og "${1%/*}/.libs/${old_library}" |
-        grep -v ' U ' | cut -d' ' -f3 | sort -u |
-        grep '^_crypt_'
+    nm -o --extern-only --defined-only "${1%/*}/.libs/${old_library}" |
+        ${AWK-awk} -v symbol_prefix="$symbol_prefix" '
+            NF == 0 { next }
+            {
+               sym = $NF;
+               if (symbol_prefix != "") { sub("^" symbol_prefix, "", sym); }
+               if (sym ~ /^_crypt_/) { print sym; }
+            }
+        ' |
+        sort -u
     unset old_library
 }
 
@@ -41,16 +48,23 @@ list_symbol_renames ()
         sort -u
 }
 
-if [ ! -f "$lib_la" ] || [ ! -f "$lib_map" ]; then
-    echo "Usage: lib_la=/path/to/library.la lib_map=/path/to/library.map $0" >&2
+if [ ! -f "$lib_la" ] || [ -z "$host_os" ]; then
+    echo "Usage: host_os=foonix lib_la=/path/to/library.la $0" >&2
     exit 1
 fi
 
-printf 'lib_la=%s\n' "$lib_la" >&2
-printf 'lib_map=%s\n' "$lib_map" >&2
-printf 'CPP=%s\n' "${CPP-cc -E}" >&2
-printf 'CPPFLAGS=%s\n' "${CPPFLAGS}" >&2
-printf 'AWK=%s\n' "${AWK-awk}" >&2
+case "$host_os" in
+    *darwin*)
+        # Mach-O follows the old a.out tradition of prepending an
+        # underscore to all global symbols defined in C.
+        symbol_prefix='_'
+        ;;
+    *)
+        # Assume ELF, which does *not* prepend an underscore to
+        # global symbols defined in C.
+        symbol_prefix=''
+        ;;
+esac
 
 lib_internals=""
 lib_renames=""

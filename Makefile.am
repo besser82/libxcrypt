@@ -419,11 +419,15 @@ TESTS += test/symbols-compat.sh
 endif
 
 AM_TESTS_ENVIRONMENT = \
-    lib_la="./libcrypt.la"; lib_map="$(srcdir)/lib/libcrypt.map.in"; \
-    CC="$(CC)"; CPP="$(CPP)"; \
+    host_os="$(host_os)"; \
+    lib_la="./libcrypt.la"; \
+    lib_map="$(srcdir)/lib/libcrypt.map.in"; \
+    AWK="$(AWK)"; \
+    CC="$(CC)"; \
+    CPP="$(CPP)"; \
     CPPFLAGS="$(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES)"; \
     CPPFLAGS="$${CPPFLAGS} $(AM_CPPFLAGS) $(CPPFLAGS)"; \
-    export lib_la lib_map CC CPP CPPFLAGS;
+    export host_os lib_la lib_map AWK CC CPP CPPFLAGS;
 
 if CROSS_COMPILING
 LOG_COMPILER = m4/skip-if-exec-format-error

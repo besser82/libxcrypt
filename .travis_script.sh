@@ -96,7 +96,7 @@ fi
 if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
   export CFLAGS="-O2 -g -arch i386 -arch x86_64 --coverage"
   export CXXFLAGS="$CFLAGS"
-  export LDFLAGS="-arch i386 -arch x86_64 -lprofile_rt"
+  export LDFLAGS="-arch i386 -arch x86_64"
 elif [[ "$CODECOV" == "1" ]]; then
   export CFLAGS="-O0 -g --coverage"
   export CXXFLAGS="$CFLAGS"
