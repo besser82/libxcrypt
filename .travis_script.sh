@@ -97,6 +97,16 @@ if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
   export CFLAGS="-O2 -g -arch i386 -arch x86_64 --coverage"
   export CXXFLAGS="$CFLAGS"
   export LDFLAGS="-arch i386 -arch x86_64"
+  if [[ "$CC" == "gcc" ]]; then
+    GCC_VER="$(curl -s https://formulae.brew.sh/api/formula/gcc.json | jq -r '.versions.stable' | cut -d. -f1)"
+    export CC="gcc-$GCC_VER"
+    export CPP="cpp-$GCC_VER"
+    export CXX="g++-$GCC_VER"
+    export AR="gcc-ar-$GCC_VER"
+    export NM="gcc-nm-$GCC_VER"
+    export RANLIB="gcc-ranlib-$GCC_VER"
+    $CC --version
+  fi
 elif [[ "$CODECOV" == "1" ]]; then
   export CFLAGS="-O0 -g --coverage"
   export CXXFLAGS="$CFLAGS"
