@@ -9,6 +9,7 @@ addons:
       - lcov
       - libtool
       - pkg-config
+      - python3-venv
       - valgrind
   homebrew:
     packages:
@@ -16,6 +17,7 @@ addons:
       - automake
       - gcc
       - jq
+      - lcov
       - libtool
       - pkg-config
 
