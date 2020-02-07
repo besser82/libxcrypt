@@ -263,36 +263,6 @@ def atomic_update_file(name: str,
     os.rename(tpath, name)
 
 
-def find_real_shlib(lib_la: str) -> str:
-    """Given a Libtool .la file, locate the actual shared library it
-       refers to."""
-
-    with open(lib_la, "rt", encoding="utf-8", errors="backslashreplace") as fp:
-        for line in fp:
-            if line.startswith("dlname="):
-                dlname = shlex.split(line.partition("=")[2])[0]
-                return os.path.join(os.path.dirname(lib_la),
-                                    ".libs", dlname)
-
-    sys.stderr.write("{}: dlname= line not found\n".format(lib_la))
-    sys.exit(1)
-
-
-def find_real_alib(lib_la: str) -> str:
-    """Given a Libtool .la file, locate the actual static library it
-       refers to."""
-
-    with open(lib_la, "rt", encoding="utf-8", errors="backslashreplace") as fp:
-        for line in fp:
-            if line.startswith("old_library="):
-                old_library = shlex.split(line.partition("=")[2])[0]
-                return os.path.join(os.path.dirname(lib_la),
-                                    ".libs", old_library)
-
-    sys.stderr.write("{}: old_library= line not found\n".format(lib_la))
-    sys.exit(1)
-
-
 def get_symbols(library: str,
                 symbol_prefix: str,
                 nm: Iterable[str], *,

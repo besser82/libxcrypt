@@ -16,8 +16,8 @@ libcrypt.map.in are in fact defined.
 Due to limitations in Automake, this program takes parameters from
 the environment:
 $NM      - nm utility (default: 'nm')
-$lib_la  - full pathname of libcrypt.la
-$lib_map - full pathname of libcrypt.map.in
+$lib_a   - pathname of libcrypt.a
+$lib_map - pathname of libcrypt.map.in
 $host_os - Autoconf's identifier for the host operating system
 """
 
@@ -31,7 +31,6 @@ from common import (
     command,
     ensure_C_locale,
     ensure_absolute_PATH,
-    find_real_alib,
     get_symbols,
     get_symbol_prefix,
 )
@@ -77,9 +76,9 @@ def main() -> None:
     ensure_absolute_PATH()
     ensure_C_locale()
 
-    lib_la = os.environ.get("lib_la")
-    if lib_la is None:
-        sys.stderr.write("$lib_la environment variable must be set")
+    lib_a = os.environ.get("lib_a")
+    if lib_a is None:
+        sys.stderr.write("$lib_a environment variable must be set")
         sys.exit(1)
 
     lib_map = os.environ.get("lib_map")
@@ -95,7 +94,7 @@ def main() -> None:
     nm = shlex.split(os.environ.get("NM", "nm"))
 
     sys.stderr.write("host_os=" + shlex.quote(host_os) + "\n")
-    sys.stderr.write("lib_la=" + shlex.quote(lib_la) + "\n")
+    sys.stderr.write("lib_a=" + shlex.quote(lib_a) + "\n")
     sys.stderr.write("lib_map=" + shlex.quote(lib_map) + "\n")
     sys.stderr.write("NM=" + " ".join(shlex.quote(w) for w in nm) + "\n")
 
@@ -108,8 +107,8 @@ def main() -> None:
                          .format(e.args[0]))
         sys.exit(77)
 
-    library_globals = list_library_globals(nm, get_symbol_prefix(host_os),
-                                           find_real_alib(lib_la))
+    library_globals = list_library_globals(
+        nm, get_symbol_prefix(host_os), lib_a)
     allowed_globals = list_allowed_globals(lib_map)
 
     extra_globals = library_globals - allowed_globals

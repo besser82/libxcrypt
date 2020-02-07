@@ -16,9 +16,15 @@ ACLOCAL_AMFLAGS = -I m4
 
 AM_CPPFLAGS = -I$(srcdir)/lib
 AM_CFLAGS = $(WARN_CFLAGS) $(OPTI_FLAGS)
-AM_LDFLAGS = $(RELRO_FLAG) $(BINDNOW_FLAG)
+AM_LDFLAGS = $(UNDEF_FLAG) $(TEXT_RELOC_FLAG) $(RELRO_FLAG) $(BINDNOW_FLAG)
 
 AM_DISTCHECK_CONFIGURE_FLAGS = PYTHON=$(PYTHON)
+
+CONFIG_STATUS_DEPENDENCIES = \
+	lib/hashes.conf \
+	lib/libcrypt.minver \
+	scripts/compute-symver-floor \
+	scripts/expand-selected-hashes
 
 @VALGRIND_CHECK_RULES@
 
@@ -89,13 +95,34 @@ else
 nodist_noinst_HEADERS += xcrypt.h
 endif
 
+# Not actually used anymore; preserved as documentation.
 noinst_PROGRAMS = \
 	lib/gen-des-tables
 
-lib_LTLIBRARIES = \
-	libcrypt.la
+CLEANFILES = \
+	Makefile.deps Makefile.deps.T \
+	crypt-symbol-vers.h crypt-symbol-vers.h.T \
+	crypt-hashes.h crypt-hashes.h.T \
+	crypt.h crypt.h.T \
+	xcrypt.h xcrypt.h.T \
+	*.gcda *.gcno \
+	lib/*.gcda lib/*.gcno \
+	test/*.gcda test/*.gcno
 
-libcrypt_la_SOURCES = \
+# Conditionally added to below.
+lib_LIBRARIES =
+noinst_LIBRARIES =
+noinst_SCRIPTS =
+phony_targets =
+install_exec_hook_targets =
+install_data_hook_targets =
+uninstall_hook_targets =
+
+if ENABLE_STATIC
+lib_LIBRARIES += libcrypt.a
+endif
+
+libcrypt_a_SOURCES = \
 	lib/alg-des-tables.c \
 	lib/alg-des.c \
 	lib/alg-gost3411-2012-core.c \
@@ -126,56 +153,87 @@ libcrypt_la_SOURCES = \
 	lib/crypt.c \
 	lib/randombytes.c
 
+libcrypt_a_CPPFLAGS = $(AM_CPPFLAGS) -DIN_LIBCRYPT
+
+# The shared library is built as a static library first, and then
+# converted.
+if ENABLE_SHARED
+noinst_LIBRARIES += libcrypt-pic.a
+
+libcrypt_pic_a_SOURCES  = $(libcrypt_a_SOURCES)
+libcrypt_pic_a_CPPFLAGS = $(libcrypt_a_CPPFLAGS) -DPIC
+libcrypt_pic_a_CFLAGS   = $(AM_CFLAGS) $(PICFLAGS)
+
+if ENABLE_OBSOLETE_API
+libcrypt_so_VER = 1
+else
+libcrypt_so_VER = 2
+endif
+if SOVER_AFTER_EXT
+libcrypt_so = libcrypt$(SOEXT).$(libcrypt_so_VER)
+libowcrypt_so = libowcrypt$(SOEXT).$(libcrypt_so_VER)
+else
+libcrypt_so = libcrypt.$(libcrypt_so_VER)$(SOEXT)
+libowcrypt_so = libowcrypt.$(libcrypt_so_VER)$(SOEXT)
+endif
+
+# These variables must have names that automake does not recognize as
+# per-target variable names, or it will complain about the absence of
+# a buildable "libcrypt_so".
+libcrypt_so_LFLAGS =
+libcrypt_so_XDEPS =
+if HAVE_SONAME
+libcrypt_so_LFLAGS += $(SONAME)$(libcrypt_so)
+endif
+if HAVE_VSCRIPT
+libcrypt_so_LFLAGS += $(VSCRIPT_LDFLAGS),$(builddir)/libcrypt.map
+libcrypt_so_XDEPS += libcrypt.map
+endif
+
+$(libcrypt_so): libcrypt-pic.a Makefile $(libcrypt_so_XDEPS)
+	$(AM_V_CCLD)$(LINK) $(SO_LDFLAGS) $(libcrypt_so_LFLAGS) \
+              $(WHOLE_A) libcrypt-pic.a $(END_WHOLE_A) $(SO_LIBS)
+
+libcrypt$(SOEXT): Makefile
+	-$(AM_V_at)rm -f libcrypt$(SOEXT)
+	$(AM_V_GEN)$(LN_S) $(libcrypt_so) libcrypt$(SOEXT)
+
+# Automake rejects lib_PROGRAMS, _DATA, ... anything but LIBRARIES or
+# LTLIBRARIES.  Using LTLIBRARIES will bring libtool back in, and
+# automake also rejects anything that doesn't look like an .a library
+# in a _LIBRARIES variable.  So we use noinst_SCRIPTS to get the
+# shared library built by "make all", and we install it by hand from
+# install-exec-hook.
+noinst_SCRIPTS += $(libcrypt_so) libcrypt$(SOEXT)
+
+install_exec_hook_targets += install-exec-hook-libcrypt-so
+install-exec-hook-libcrypt-so:
+	$(MKDIR_P) "$(DESTDIR)$(libdir)"
+	$(INSTALL) $(INSTALL_STRIP_FLAG) $(libcrypt_so) "$(DESTDIR)$(libdir)"
+	cd "$(DESTDIR)$(libdir)" && $(LN_S) $(libcrypt_so) libcrypt$(SOEXT)
+
+uninstall_hook_targets += uninstall-libcrypt-so
+uninstall-libcrypt-so:
+	rm -f "$(DESTDIR)$(libdir)/$(libcrypt_so)" \
+	      "$(DESTDIR)$(libdir)/libcrypt$(SOEXT)"
+
+CLEANFILES += \
+	libcrypt.map libcrypt.map.T \
+	libcrypt$(SOEXT) $(libcrypt_so)
+
+endif
+
 pkgconfig_DATA = libxcrypt.pc
 
 # Install libcrypt.pc symlink to libxcrypt.pc file.
-phony_targets = \
-	install-data-hook-pkgconfig uninstall-hook-pkgconfig
-install-data-hook: install-data-hook-pkgconfig
-uninstall_hook_targets = \
-	uninstall-hook-pkgconfig
+install_data_hook_targets += install-data-hook-pkgconfig
 install-data-hook-pkgconfig:
-	cd $(DESTDIR)$(pkgconfigdir) && \
+	cd "$(DESTDIR)$(pkgconfigdir)" && \
 		$(LN_S) libxcrypt.pc libcrypt.pc
+
+uninstall_hook_targets += uninstall-hook-pkgconfig
 uninstall-hook-pkgconfig:
-	-rm -f $(DESTDIR)$(pkgconfigdir)/libcrypt.pc
-
-# Build libcrypt.so.2 if obsolete APIs are excluded, libcrypt.so.1 otherwise.
-if ENABLE_OBSOLETE_API
-libcrypt_la_VERSION = 2:0:1
-else
-libcrypt_la_VERSION = 2:0:0
-endif
-
-libcrypt_la_LDFLAGS = -version-info $(libcrypt_la_VERSION)
-
-if HAVE_VSCRIPT
-libcrypt_la_LDFLAGS += $(VSCRIPT_LDFLAGS),$(builddir)/libcrypt.map
-endif
-
-libcrypt_la_LDFLAGS += $(UNDEF_FLAG) $(TEXT_RELOC_FLAG) $(AM_LDFLAGS)
-
-libcrypt_la_CPPFLAGS = $(AM_CPPFLAGS) -DIN_LIBCRYPT
-
-CONFIG_STATUS_DEPENDENCIES = \
-	lib/hashes.conf \
-	lib/libcrypt.minver \
-	scripts/compute-symver-floor \
-	scripts/expand-selected-hashes
-
-EXTRA_libcrypt_la_DEPENDENCIES = libcrypt.map
-CLEANFILES = \
-	Makefile.deps Makefile.deps.T \
-	libcrypt.map libcrypt.map.T \
-	crypt-symbol-vers.h crypt-symbol-vers.h.T \
-	crypt-hashes.h crypt-hashes.h.T \
-	crypt.h crypt.h.T \
-	xcrypt.h xcrypt.h.T \
-	*.gcda *.gcno \
-	lib/*.gcda lib/*.gcno \
-	test/*.gcda test/*.gcno
-
-DISTCLEANFILES = .deps/*.Plo
+	-rm -f "$(DESTDIR)$(pkgconfigdir)/libcrypt.pc"
 
 # Force generated headers to be generated before any source files that
 # might depend on them are compiled.
@@ -213,37 +271,28 @@ xcrypt.h: lib/xcrypt.h.in scripts/gen-crypt-h config.h Makefile
 	  --config-h=config.h \
 	  xcrypt.h $(srcdir)/lib/xcrypt.h.in
 
-install_exec_hook_targets =
-
 if ENABLE_XCRYPT_COMPAT_FILES
 if ENABLE_STATIC
 # Install libxcrypt.a symlink to libcrypt.a file.
-phony_targets += \
-	install-exec-hook-xcrypt-static uninstall-hook-xcrypt-static
-install_exec_hook_targets += \
-	install-exec-hook-xcrypt-static
-uninstall_hook_targets += \
-	uninstall-hook-xcrypt-static
+install_exec_hook_targets += install-exec-hook-xcrypt-static
 install-exec-hook-xcrypt-static:
-	cd $(DESTDIR)$(libdir) && \
+	cd "$(DESTDIR)$(libdir)" && \
 		$(LN_S) libcrypt.a libxcrypt.a
+
+uninstall_hook_targets += uninstall-hook-xcrypt-static
 uninstall-hook-xcrypt-static:
-	-rm -f $(DESTDIR)$(libdir)/libxcrypt.a
+	-rm -f "$(DESTDIR)$(libdir)/libxcrypt.a"
 endif
 
 if ENABLE_SHARED
-# Install libxcrypt.so symlink to libcrypt.so file.
-phony_targets += \
-	install-exec-hook-xcrypt-shared uninstall-hook-xcrypt-shared
-install_exec_hook_targets += \
-	install-exec-hook-xcrypt-shared
-uninstall_hook_targets += \
-	uninstall-hook-xcrypt-shared
+# Install libxcrypt$(SOEXT) symlink to libcrypt$(SOEXT) file.
+install_exec_hook_targets += install-exec-hook-xcrypt-shared
 install-exec-hook-xcrypt-shared:
-	cd $(DESTDIR)$(libdir) && \
-		$(LN_S) libcrypt.so libxcrypt.so
+	cd "$(DESTDIR)$(libdir)" && $(LN_S) libcrypt$(SOEXT) libxcrypt$(SOEXT)
+
+uninstall_hook_targets += uninstall-hook-xcrypt-shared
 uninstall-hook-xcrypt-shared:
-	-rm -f $(DESTDIR)$(libdir)/libxcrypt.so
+	-rm -f "$(DESTDIR)$(libdir)/libxcrypt$(SOEXT)"
 endif
 endif
 
@@ -253,41 +302,27 @@ if ENABLE_COMPAT_SUSE
 # build, or already has a NEEDED entry for libowcrypt.so.1, will be
 # redirected to libcrypt.  The OW_CRYPT_1.0 symbol versions are already
 # present in libcrypt.so.1.
-#
-# Caution: this hardwires the expected (so)names of the shared
-# libraries involved, libcrypt.so.1 and libowcrypt.so.1.  (We should
-# be able to get away with this because in any circumstance where the
-# soname of libcrypt isn't libcrypt.so.1, ENABLE_OBSOLETE_API should
-# be automatically turned off, and as best I can tell, SUSE only ever
-# shipped libowcrypt.so.1.)
 if ENABLE_OBSOLETE_API
 if ENABLE_STATIC
-phony_targets += \
-	install-exec-hook-libstatic uninstall-hook-libstatic
-install_exec_hook_targets += \
-	install-exec-hook-libstatic
-uninstall_hook_targets += \
-	uninstall-hook-libstatic
-install-exec-hook-libstatic:
-	cd $(DESTDIR)$(libdir) && \
-		$(LN_S) libcrypt.a libowcrypt.a
-uninstall-hook-libstatic:
-	-rm -f $(DESTDIR)$(libdir)/libowcrypt.a
+install_exec_hook_targets += install-exec-hook-owcrypt-static
+install-exec-hook-owcrypt-static:
+	cd "$(DESTDIR)$(libdir)" && $(LN_S) libcrypt.a libowcrypt.a
+
+uninstall_hook_targets += uninstall-hook-owcrypt-static
+uninstall-hook-owcrypt-static:
+	-rm -f "$(DESTDIR)$(libdir)/libowcrypt.a"
 endif
 if ENABLE_SHARED
-phony_targets += \
-	install-exec-hook-libshared uninstall-hook-libshared
-install_exec_hook_targets += \
-	install-exec-hook-libshared
-uninstall_hook_targets += \
-	uninstall-hook-libshared
+install_exec_hook_targets += install-exec-hook-owcrypt-shared
 install-exec-hook-libshared:
-	cd $(DESTDIR)$(libdir) && \
-		$(LN_S) libcrypt.so libowcrypt.so && \
-		$(LN_S) libcrypt.so.1 libowcrypt.so.1
-uninstall-hook-libshared:
-	-rm -f  $(DESTDIR)$(libdir)/libowcrypt.so \
-		$(DESTDIR)$(libdir)/libowcrypt.so.1
+	cd "$(DESTDIR)$(libdir)" && \
+		$(LN_S) libcrypt$(SOEXT) libowcrypt$(SOEXT) && \
+		$(LN_S) $(libcrypt_so) $(libowcrypt_so)
+
+uninstall_hook_targets += uninstall-hook-owcrypt-shared
+uninstall-hook-owcrypt-shared:
+	-rm -f "$(DESTDIR)$(libdir)/libowcrypt$(SOEXT)" \
+	       "$(DESTDIR)$(libdir)/$(libowcrypt_so)"
 endif
 endif
 endif
@@ -391,9 +426,13 @@ CLEANFILES += ka-table.inc.T
 endif
 endif
 
+# ENABLE_SHARED cannot be false when ENABLE_OBSOLETE_API is true,
+# but automake does not know that.
 if ENABLE_OBSOLETE_API
-libcrypt_la_SOURCES += lib/crypt-des-obsolete.c
+if ENABLE_SHARED
+libcrypt_pic_a_SOURCES += lib/crypt-des-obsolete.c
 check_PROGRAMS += test/des-obsolete test/des-obsolete_r test/fcrypt-enosys
+endif
 endif
 
 TESTS = $(check_PROGRAMS)
@@ -412,7 +451,8 @@ endif
 
 AM_TESTS_ENVIRONMENT = \
     host_os="$(host_os)"; \
-    lib_la="./libcrypt.la"; \
+    lib_a="./libcrypt.a"; \
+    lib_so="./libcrypt$(SOEXT)"; \
     lib_map="$(srcdir)/lib/libcrypt.map.in"; \
     CC="$(CC)"; \
     CPP="$(CPP)"; \
@@ -420,7 +460,9 @@ AM_TESTS_ENVIRONMENT = \
     NM="$(NM)"; \
     CPPFLAGS="$(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES)"; \
     CPPFLAGS="$${CPPFLAGS} $(AM_CPPFLAGS) $(CPPFLAGS)"; \
-    export host_os lib_la lib_map CC CPP CPPFLAGS LDD NM;
+    LD_LIBRARY_PATH="$(builddir)"; DYLD_LIBRARY_PATH="$(builddir)"; \
+    export host_os lib_a lib_so lib_map CC CPP CPPFLAGS LDD NM; \
+    export LD_LIBRARY_PATH; export DYLD_LIBRARY_PATH;
 
 TEST_EXTENSIONS = .py
 PY_LOG_COMPILER = $(PYTHON)
@@ -429,10 +471,18 @@ if CROSS_COMPILING
 LOG_COMPILER = scripts/skip-if-exec-format-error
 endif
 
-# Refer to object files that are linked into libxcrypt with the
-# qualified name, lib/libcrypt_la-foobar.lo, to prevent them from
+# Refer to object files that are linked into libcrypt with the
+# qualified name, lib/libcrypt_a-foobar.o, to prevent them from
 # being compiled a second time.
-COMMON_TEST_OBJECTS = lib/libcrypt_la-crypt-common.lo libcrypt.la
+if ENABLE_SHARED
+LIBCRYPT = libcrypt$(SOEXT)
+LIBCRYPT_OBJ = lib/libcrypt_pic_a-
+else
+LIBCRYPT = libcrypt.a
+LIBCRYPT_OBJ = lib/libcrypt_a-
+endif
+
+COMMON_TEST_OBJECTS = $(LIBCRYPT_OBJ)crypt-common.o $(LIBCRYPT)
 
 test_badsalt_LDADD = $(COMMON_TEST_OBJECTS)
 test_badsetting_LDADD = $(COMMON_TEST_OBJECTS)
@@ -467,58 +517,58 @@ test_ka_yescrypt_LDADD = $(COMMON_TEST_OBJECTS)
 # These tests call internal APIs that may not be accessible from the
 # fully linked shared library.
 test_alg_des_LDADD = \
-	lib/libcrypt_la-alg-des.lo \
-	lib/libcrypt_la-alg-des-tables.lo \
+	$(LIBCRYPT_OBJ)alg-des.o \
+	$(LIBCRYPT_OBJ)alg-des-tables.o \
 	$(COMMON_TEST_OBJECTS)
 test_alg_gost3411_2012_LDADD = \
-	lib/libcrypt_la-alg-gost3411-2012-core.lo \
-	lib/libcrypt_la-alg-gost3411-2012-hmac.lo \
+	$(LIBCRYPT_OBJ)alg-gost3411-2012-core.o \
+	$(LIBCRYPT_OBJ)alg-gost3411-2012-hmac.o \
 	$(COMMON_TEST_OBJECTS)
 test_alg_gost3411_2012_hmac_LDADD = \
-	lib/libcrypt_la-alg-gost3411-2012-core.lo \
-	lib/libcrypt_la-alg-gost3411-2012-hmac.lo \
+	$(LIBCRYPT_OBJ)alg-gost3411-2012-core.o \
+	$(LIBCRYPT_OBJ)alg-gost3411-2012-hmac.o \
 	$(COMMON_TEST_OBJECTS)
 test_alg_hmac_sha1_LDADD = \
-	lib/libcrypt_la-alg-sha1.lo \
-	lib/libcrypt_la-alg-hmac-sha1.lo \
+	$(LIBCRYPT_OBJ)alg-sha1.o \
+	$(LIBCRYPT_OBJ)alg-hmac-sha1.o \
 	$(COMMON_TEST_OBJECTS)
 test_alg_md4_LDADD = \
-	lib/libcrypt_la-alg-md4.lo \
+	$(LIBCRYPT_OBJ)alg-md4.o \
 	$(COMMON_TEST_OBJECTS)
 test_alg_md5_LDADD = \
-	lib/libcrypt_la-alg-md5.lo \
+	$(LIBCRYPT_OBJ)alg-md5.o \
 	$(COMMON_TEST_OBJECTS)
 test_alg_pbkdf_hmac_sha256_LDADD = \
-	lib/libcrypt_la-alg-sha256.lo \
+	$(LIBCRYPT_OBJ)alg-sha256.o \
 	$(COMMON_TEST_OBJECTS)
 test_alg_sha1_LDADD = \
-	lib/libcrypt_la-alg-sha1.lo \
+	$(LIBCRYPT_OBJ)alg-sha1.o \
 	$(COMMON_TEST_OBJECTS)
 test_alg_sha256_LDADD = \
-	lib/libcrypt_la-alg-sha256.lo \
+	$(LIBCRYPT_OBJ)alg-sha256.o \
 	$(COMMON_TEST_OBJECTS)
 test_alg_sha512_LDADD = \
-	lib/libcrypt_la-alg-sha512.lo \
+	$(LIBCRYPT_OBJ)alg-sha512.o \
 	$(COMMON_TEST_OBJECTS)
 test_alg_yescrypt_LDADD = \
-	lib/libcrypt_la-alg-sha256.lo \
-	lib/libcrypt_la-alg-yescrypt-common.lo \
-	lib/libcrypt_la-alg-yescrypt-opt.lo \
+	$(LIBCRYPT_OBJ)alg-sha256.o \
+	$(LIBCRYPT_OBJ)alg-yescrypt-common.o \
+	$(LIBCRYPT_OBJ)alg-yescrypt-opt.o \
 	$(COMMON_TEST_OBJECTS)
 test_crypt_gost_yescrypt_LDADD = \
-	lib/libcrypt_la-alg-gost3411-2012-core.lo \
-	lib/libcrypt_la-alg-gost3411-2012-hmac.lo \
-	lib/libcrypt_la-alg-sha256.lo \
-	lib/libcrypt_la-alg-yescrypt-common.lo \
-	lib/libcrypt_la-alg-yescrypt-opt.lo \
-	lib/libcrypt_la-crypt-yescrypt.lo \
+	$(LIBCRYPT_OBJ)alg-gost3411-2012-core.o \
+	$(LIBCRYPT_OBJ)alg-gost3411-2012-hmac.o \
+	$(LIBCRYPT_OBJ)alg-sha256.o \
+	$(LIBCRYPT_OBJ)alg-yescrypt-common.o \
+	$(LIBCRYPT_OBJ)alg-yescrypt-opt.o \
+	$(LIBCRYPT_OBJ)crypt-yescrypt.o \
 	$(COMMON_TEST_OBJECTS)
 
 test_getrandom_interface_LDADD = \
-	lib/libcrypt_la-randombytes.lo \
+	$(LIBCRYPT_OBJ)randombytes.o \
 	$(COMMON_TEST_OBJECTS)
 test_getrandom_fallbacks_LDADD = \
-	lib/libcrypt_la-randombytes.lo \
+	$(LIBCRYPT_OBJ)randombytes.o \
 	$(COMMON_TEST_OBJECTS)
 
 if HAVE_LD_WRAP
@@ -534,6 +584,10 @@ endif
 include $(builddir)/Makefile.deps
 
 # Add additional targets
-.PHONY: $(phony_targets)
+.PHONY: $(phony_targets) \
+	$(install_exec_hook_targets) \
+	$(install_data_hook_targets) \
+	$(uninstall_hook_targets)
 install-exec-hook: $(install_exec_hook_targets)
+install-data-hook: $(install_data_hook_targets)
 uninstall-hook: $(uninstall_hook_targets)

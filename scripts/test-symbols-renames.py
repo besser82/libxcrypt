@@ -17,7 +17,7 @@ the environment:
 $CPP      - C preprocessor (default: 'cc -E')
 $CPPFLAGS - additional arguments to pass to $CPP
 $NM       - nm utility (default: 'nm')
-$lib_la   - full pathname of libcrypt.la
+$lib_a    - pathname of libcrypt.a
 $host_os  - Autoconf's identifier for the host operating system
 """
 
@@ -31,7 +31,6 @@ from common import (
     command,
     ensure_C_locale,
     ensure_absolute_PATH,
-    find_real_alib,
     get_symbol_prefix,
     get_symbols,
     run,
@@ -80,9 +79,9 @@ def main() -> None:
     ensure_absolute_PATH()
     ensure_C_locale()
 
-    lib_la = os.environ.get("lib_la")
-    if lib_la is None:
-        sys.stderr.write("$lib_la environment variable must be set")
+    lib_a = os.environ.get("lib_a")
+    if lib_a is None:
+        sys.stderr.write("$lib_a environment variable must be set")
         sys.exit(1)
 
     host_os = os.environ.get("host_os")
@@ -95,7 +94,7 @@ def main() -> None:
     cppflags = shlex.split(os.environ.get("CPPFLAGS", ""))
 
     sys.stderr.write("host_os=" + shlex.quote(host_os) + "\n")
-    sys.stderr.write("lib_la=" + shlex.quote(lib_la) + "\n")
+    sys.stderr.write("lib_a=" + shlex.quote(lib_a) + "\n")
     sys.stderr.write("NM=" + " ".join(shlex.quote(w) for w in nm) + "\n")
     sys.stderr.write("CPP=" + " ".join(shlex.quote(w) for w in cpp) + "\n")
     sys.stderr.write("CPPFLAGS=" + " ".join(shlex.quote(w) for w in cppflags)
@@ -112,8 +111,8 @@ def main() -> None:
                          .format(e.args[0]))
         sys.exit(77)
 
-    internal_symbols = list_library_internals(nm, get_symbol_prefix(host_os),
-                                              find_real_alib(lib_la))
+    internal_symbols = list_library_internals(
+        nm, get_symbol_prefix(host_os), lib_a)
     renamed_symbols = list_symbol_renames(cpp + cppflags)
 
     extra_renames = renamed_symbols - internal_symbols

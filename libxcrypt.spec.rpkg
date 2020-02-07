@@ -41,27 +41,22 @@
 
 # Shared object version of libcrypt.
 %if %{with new_api}
-%global soc  2
-%global sol  0
-%global sof  0
-%global sov  %{soc}.%{sol}.%{sof}
+%global sov  2
 %else
-%global soc  1
-%global sol  1
-%global sof  0
-%global sov  %{soc}.%{sol}.%{sof}
+%global sov  1
 %endif
 
 %if %{with compat_pkg}
-%global csoc 1
-%global csol 1
-%global csof 0
-%global csov %{csoc}.%{csol}.%{csof}
+%global csov 1
 %endif
 
 
 # First version of glibc built without libcrypt.
 %global glibc_minver     2.27
+
+
+# Minimum version of Python3 required for building.
+%global python3_minver   3.6
 
 
 # The libxcrypt-devel package conflicts with out-dated manuals
@@ -136,17 +131,13 @@
 %{__arch_install_post}                                \
 %{__os_install_post}                                  \
 fipshmac %{buildroot}%{_libdir}/libcrypt.so.%{sov}    \
-ln -s .libcrypt.so.%{sov}.hmac                        \\\
-  %{buildroot}%{_libdir}/.libcrypt.so.%{soc}.hmac     \
 if [[ %{with staticlib} == 1 ]]; then                 \
   fipshmac %{buildroot}%{_libdir}/libcrypt.a          \
   ln -s .libcrypt.a.hmac                              \\\
     %{buildroot}%{_libdir}/.libxcrypt.a.hmac          \
 fi                                                    \
 if [[ %{with compat_pkg} == 1 ]]; then                \
-  fipshmac %{buildroot}%{_libdir}/libcrypt.so.%{csov} \
-  ln -s .libcrypt.so.%{csov}.hmac                     \\\
-    %{buildroot}%{_libdir}/.libcrypt.so.%{csoc}.hmac  \
+  fipshmac %{buildroot}%{_libdir}/libcrypt.so.%{csov}   \
 fi                                                    \
 %{nil}
 
@@ -169,7 +160,7 @@ BuildRequires:  automake
 BuildRequires:  fipscheck
 BuildRequires:  gcc
 BuildRequires:  glibc-devel           >= %{glibc_minver}
-BuildRequires:  libtool
+BuildRequires:  python3               >= %{python3_minver}
 %if %{with memcheck}
 BuildRequires:  valgrind
 %endif
@@ -367,8 +358,8 @@ popd
 %make_install -C %{_vpath_builddir}-compat
 
 # Cleanup everything we do not need from the compatibility library.
-find %{buildroot} -xtype f -not -name 'libcrypt.so.%{csoc}*' -delete -print
-find %{buildroot} -type l -not -name 'libcrypt.so.%{csoc}*' -delete -print
+find %{buildroot} -xtype f -not -name 'libcrypt.so.%{csov}*' -delete -print
+find %{buildroot} -type l -not -name 'libcrypt.so.%{csov}*' -delete -print
 %endif
 
 # Install the default system library.
@@ -430,8 +421,8 @@ done
 %endif
 %doc %{_pkgdocdir}/THANKS
 %license AUTHORS COPYING.LIB LICENSING
-%{_libdir}/.libcrypt.so.{%{soc},%{sov}}.hmac
-%{_libdir}/libcrypt.so.{%{soc},%{sov}}
+%{_libdir}/.libcrypt.so.%{sov}.hmac
+%{_libdir}/libcrypt.so.%{sov}
 %{_mandir}/man5/crypt.5.*
 
 
@@ -440,8 +431,8 @@ done
 %if %{with enosys_stubs}
 %doc %{_pkgdocdir}/README.posix
 %endif
-%{_libdir}/.libcrypt.so.{%{csoc},%{csov}}.hmac
-%{_libdir}/libcrypt.so.{%{csoc},%{csov}}
+%{_libdir}/.libcrypt.so.%{csov}.hmac
+%{_libdir}/libcrypt.so.%{csov}
 %endif
 
 
