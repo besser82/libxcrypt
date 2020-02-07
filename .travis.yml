@@ -34,7 +34,7 @@ notifications:
       - "ircs://chat.freenode.net:6697/#libxcrypt"
     skip_join: true
 
-dist: xenial
+dist: bionic
 
 matrix:
   fast_finish: true
