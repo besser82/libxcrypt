@@ -8,6 +8,7 @@ addons:
       - gawk
       - lcov
       - libtool
+      - llvm
       - pkg-config
       - python3-venv
       - valgrind

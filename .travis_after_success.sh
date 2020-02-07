@@ -16,6 +16,8 @@ if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
   if [[ "$CC" == "gcc" ]] || [[ "$CC" == "gcc-$GCC_VER" ]]; then
     export GCOV="gcov-$GCC_VER"
   fi
+elif [[ "$TRAVIS_OS_NAME" == "linux" ]] && [[ "$CC" == "clang" ]]; then
+  export GCOV="$PWD/.clang_gcov_wrapper.sh"
 fi
 
 . build/venv/bin/activate

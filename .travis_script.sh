@@ -98,7 +98,7 @@ fi
 if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
   export CFLAGS="-O2 -g -arch i386 -arch x86_64 --coverage"
   export CXXFLAGS="$CFLAGS"
-  export LDFLAGS="-arch i386 -arch x86_64"
+  export LDFLAGS="-arch i386 -arch x86_64 --coverage"
   if [[ "$CC" == "gcc" ]]; then
     GCC_VER="$(curl -s https://formulae.brew.sh/api/formula/gcc.json | jq -r '.versions.stable' | cut -d. -f1)"
     export CC="gcc-$GCC_VER"
@@ -117,7 +117,12 @@ else
   export CPPFLAGS="$(dpkg-buildflags --get CPPFLAGS)"
   export CFLAGS="$(dpkg-buildflags --get CFLAGS) --coverage"
   export CXXFLAGS="$(dpkg-buildflags --get CXXFLAGS) --coverage"
-  export LDFLAGS="$(dpkg-buildflags --get LDFLAGS)"
+  export LDFLAGS="$(dpkg-buildflags --get LDFLAGS) --coverage"
+fi
+
+if [[ "$CC" == "clang" ]]; then
+  export CFLAGS="$CFLAGS -fprofile-arcs -ftest-coverage"
+  export CXXFLAGS="$CXXFLAGS -fprofile-arcs -ftest-coverage"
 fi
 
 MAKE_ARGS=
