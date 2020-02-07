@@ -18,7 +18,7 @@ the environment:
 $CC      - C compiler  (default: 'cc')
 $LDD     - ldd utility (default: 'ldd')
 $NM      - nm utility  (default: 'nm')
-$lib_la  - full pathname of libcrypt.la
+$lib_so  - full pathname of libcrypt.so
 $host_os - Autoconf's identifier for the host operating system
 """
 
@@ -33,7 +33,6 @@ from common import (
     command,
     ensure_C_locale,
     ensure_absolute_PATH,
-    find_real_shlib,
     get_symbol_prefix,
     get_symbols,
     run,
@@ -97,9 +96,9 @@ def main() -> None:
     ensure_absolute_PATH()
     ensure_C_locale()
 
-    lib_la = os.environ.get("lib_la")
-    if lib_la is None:
-        sys.stderr.write("$lib_la environment variable must be set")
+    lib_so = os.environ.get("lib_so")
+    if lib_so is None:
+        sys.stderr.write("$lib_so environment variable must be set")
         sys.exit(1)
 
     host_os = os.environ.get("host_os")
@@ -112,7 +111,7 @@ def main() -> None:
     nm = shlex.split(os.environ.get("NM", "nm"))
 
     sys.stderr.write("host_os=" + shlex.quote(host_os) + "\n")
-    sys.stderr.write("lib_la=" + shlex.quote(lib_la) + "\n")
+    sys.stderr.write("lib_so=" + shlex.quote(lib_so) + "\n")
     sys.stderr.write("CC=" + " ".join(shlex.quote(w) for w in cc) + "\n")
     sys.stderr.write("LDD=" + " ".join(shlex.quote(w) for w in ldd) + "\n")
     sys.stderr.write("NM=" + " ".join(shlex.quote(w) for w in nm) + "\n")
@@ -132,8 +131,7 @@ def main() -> None:
     symbol_prefix = get_symbol_prefix(host_os)
     their_symbols = get_symbol_versions(nm, symbol_prefix,
                                         find_system_libcrypt(cc, ldd))
-    our_symbols = get_symbol_versions(nm, symbol_prefix,
-                                      find_real_shlib(lib_la))
+    our_symbols = get_symbol_versions(nm, symbol_prefix, lib_so)
 
     # It's okay if we define more symbol (versions) than they do,
     # but every symbol they define should have a matching

@@ -28,27 +28,22 @@
 
 # Shared object version of libcrypt.
 %if %{with new_api}
-%global soc  2
-%global sol  0
-%global sof  0
-%global sov  %{soc}.%{sol}.%{sof}
+%global sov  2
 %else
-%global soc  1
-%global sol  1
-%global sof  0
-%global sov  %{soc}.%{sol}.%{sof}
+%global sov  1
 %endif
 
 %if %{with compat_pkg}
-%global csoc 1
-%global csol 1
-%global csof 0
-%global csov %{csoc}.%{csol}.%{csof}
+%global csov 1
 %endif
 
 
 # First version of glibc built without libcrypt.
 %global glibc_minver     2.27
+
+
+# Minimum version of Python3 required for building.
+%global python3_minver   3.6
 
 
 # The libxcrypt-devel package conflicts with out-dated manuals
@@ -138,7 +133,7 @@ BuildRequires:  autoconf
 BuildRequires:  automake
 BuildRequires:  gcc
 BuildRequires:  glibc-devel           >= %{glibc_minver}
-BuildRequires:  libtool
+BuildRequires:  python3               >= %{python3_minver}
 
 # We do not need to keep this forever.
 %if !(0%{?fedora} > 31 || 0%{?rhel} > 10)
@@ -333,8 +328,8 @@ popd
 %make_install -C %{_vpath_builddir}-compat
 
 # Cleanup everything we do not need from the compatibility library.
-find %{buildroot} -xtype f -not -name 'libcrypt.so.%{csoc}*' -delete -print
-find %{buildroot} -type l -not -name 'libcrypt.so.%{csoc}*' -delete -print
+find %{buildroot} -xtype f -not -name 'libcrypt.so.%{csov}*' -delete -print
+find %{buildroot} -type l -not -name 'libcrypt.so.%{csov}*' -delete -print
 %endif
 
 # Install the default system library.

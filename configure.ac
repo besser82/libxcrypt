@@ -35,6 +35,12 @@ case "$ac_prog_cc_stdc" in
      c89 | no) AC_MSG_ERROR([a C99- or C11-compliant compiler is required]) ;;
 esac
 
+# AC_USE_SYSTEM_EXTENSIONS and AC_SYS_LARGEFILE should come
+# immediately after AC_PROG_CC because they can change the results of
+# compilation checks.
+AC_USE_SYSTEM_EXTENSIONS
+AC_SYS_LARGEFILE
+
 # Use AC_PATH_PROGS to look for the Python interpreter under a variety
 # of versioned names, in descending order of recency, ending up with
 # the generic names python3 and python.  Then we double-check that we
@@ -57,14 +63,17 @@ else
 fi
 
 AC_PROG_CPP
+AM_PROG_AR
+AC_PROG_RANLIB
 AC_CHECK_TOOL([NM], [nm], [false])
 AC_CHECK_TOOL([LDD], [ldd], [false])
 AC_PROG_MAKE_SET
 AC_PROG_LN_S
-AC_USE_SYSTEM_EXTENSIONS
-AC_SYS_LARGEFILE
+
 zw_SIMPLE_ENABLE_WARNINGS
-LT_INIT
+
+# Do we want to build shared libraries?  If so, do we know how?
+zw_CHECK_SHLIB_FLAGS
 
 # One of the test scripts needs to use -dD.
 AC_CACHE_CHECK([whether the preprocessor ($CPP) supports -dD],
@@ -139,7 +148,6 @@ zw_C_MAX_ALIGN_T
 zw_C_ENDIANNESS
 zw_C_STATIC_ASSERT
 zw_PROG_LD_WRAP
-AX_CHECK_VSCRIPT
 
 # FIXME: This only checks whether the linker accepts either
 # -Wl,-z,defs or -Wl,--no-undefined.  It doesn't check that the switch
@@ -250,6 +258,7 @@ AX_PYTHON_MODULE([passlib])
 AM_CONDITIONAL([ENABLE_KA_TABLE_GEN], [test x"$HAVE_PYMOD_PASSLIB" = "xyes"])
 
 # Configure options.
+
 AC_ARG_ENABLE([failure-tokens],
     AS_HELP_STRING(
         [--disable-failure-tokens],
