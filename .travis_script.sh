@@ -100,7 +100,7 @@ if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
   export CXXFLAGS="$CFLAGS"
   export LDFLAGS="-arch i386 -arch x86_64 --coverage"
   if [[ "$CC" == "gcc" ]]; then
-    GCC_VER="$(curl -s https://formulae.brew.sh/api/formula/gcc.json | jq -r '.versions.stable' | cut -d. -f1)"
+    GCC_VER="$(brew list --versions gcc | sed 's/^gcc \([0-9]*\)\..*$/\1/')"
     export CC="gcc-$GCC_VER"
     export CPP="cpp-$GCC_VER"
     export CXX="g++-$GCC_VER"
