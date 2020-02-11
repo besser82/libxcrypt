@@ -10,7 +10,7 @@ set -e
 GCOV=gcov
 
 if [ "$CC" = "clang" ]; then
-  GCOV="$PWD/scripts/clang-gcov-wrapper"
+  GCOV="$PWD/.clang_gcov_wrapper.sh"
 
 elif [ "$TRAVIS_OS_NAME" = osx ]; then
   GCC_VER="$( (brew list --versions gcc || echo gcc 0) |
