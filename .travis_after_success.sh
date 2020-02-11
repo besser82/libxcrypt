@@ -15,7 +15,7 @@ if [ "$TRAVIS_OS_NAME" = osx ]; then
       GCC_VER="$( (brew list --versions gcc || echo gcc 0) |
                   sed 's/^gcc \([0-9]*\)\..*$/\1/' )"
       if command -V "gcov-$GCC_VER"; then
-        gcov="gcov-$GCC_VER"
+        GCOV="gcov-$GCC_VER"
       fi
     ;;
   esac
