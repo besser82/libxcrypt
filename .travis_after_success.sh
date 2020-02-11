@@ -9,15 +9,22 @@ set -e
 
 GCOV=gcov
 
-if [ "$CC" = "clang" ]; then
-  GCOV="$PWD/.clang_gcov_wrapper.sh"
+if [ "$TRAVIS_OS_NAME" = osx ]; then
+  case "$CC" in
+    gcc*)
+      GCC_VER="$( (brew list --versions gcc || echo gcc 0) |
+                  sed 's/^gcc \([0-9]*\)\..*$/\1/' )"
+      if command -V "gcov-$GCC_VER"; then
+        gcov="gcov-$GCC_VER"
+      fi
+    ;;
+  esac
 
-elif [ "$TRAVIS_OS_NAME" = osx ]; then
-  GCC_VER="$( (brew list --versions gcc || echo gcc 0) |
-              sed 's/^gcc \([0-9]*\)\..*$/\1/' )"
-  if [ "$CC" = gcc ] || [ "$CC" = "gcc-$GCC_VER" ]; then
-    GCOV="gcov-$GCC_VER"
+elif [ "$TRAVIS_OS_NAME" = linux ]; then
+  if [ "$CC" = clang ]; then
+    GCOV="$PWD/.clang_gcov_wrapper.sh"
   fi
+
 fi
 export GCOV
 

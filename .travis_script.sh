@@ -136,7 +136,7 @@ fi
 pushd build
 log_time preparation
 
-../configure --disable-silent-rules $CONF || \
+$(cd .. && pwd)/configure --disable-silent-rules $CONF || \
   (cat config.log && exit 1)
 log_time configure
 
