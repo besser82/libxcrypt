@@ -61,7 +61,12 @@
 
 
 # First version of glibc built without libcrypt.
-%global glibc_minver 2.27
+%global glibc_minver     2.27
+
+
+# The libxcrypt-devel package conflicts with out-dated manuals
+# shipped with the man-pages packages *before* this NEVR.
+%global man_pages_minver 4.15-3
 
 
 # Hash methods and API supported by libcrypt.
@@ -246,7 +251,7 @@ work unmodified with the library supplied by this package.
 %package        devel
 Summary:        Development files for %{name}
 
-Conflicts:      man-pages              < 4.15-3
+Conflicts:      man-pages              < %{man_pages_minver}
 
 Requires:       %{name}%{?_isa}        = %{version}-%{release}
 Requires:       glibc-devel%{?_isa}   >= %{glibc_minver}
