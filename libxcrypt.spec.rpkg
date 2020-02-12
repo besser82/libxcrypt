@@ -65,7 +65,7 @@
 
 
 # The libxcrypt-devel package conflicts with out-dated manuals
-# shipped with the man-pages packages *before* this NEVR.
+# shipped with the man-pages packages *before* this EVR.
 %global man_pages_minver 4.15-3
 
 
