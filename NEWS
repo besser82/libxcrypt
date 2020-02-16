@@ -5,6 +5,14 @@ Please send bug reports, questions and suggestions to
 
 Version 4.4.13
 * libxcrypt now builds (including working tests) on Mac OSX.
+* Speed up ka-sunmd5 by skipping most of the test phrases.
+  ka-sunmd5 is slower than the entire rest of the testsuite put
+  together, because the sunmd5 hash is Just That Slow and we have to do
+  extra tests for it to ensure bug-compatibility.  No easy optimizations
+  are possible and the difficult optimizations are not worth the
+  engineering effort for this obsolete hash.  Instead, skip most of the
+  test phrases.  See comments in test/ka-table-gen.py!h_sunmd5 for
+  further explanation.
 
 Version 4.4.12
 * Another fix for GCC v10.x, which occurs on s390 architectures only.
