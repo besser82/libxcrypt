@@ -1,0 +1,86 @@
+function filter_tags {
+    grep -E "^$1[^-]+$"
+}
+
+function latest_merged_tag {
+    if [ "$LEGACY_GIT" ]; then
+        git for-each-ref --sort=-v:refname refs/tags | cut -f2 |
+            while read tag; do
+                if [ -z "$(basename "$tag" | filter_tags "$1")" ]; then
+                    continue
+                fi
+                if [ "$(git merge-base "$tag" HEAD)"="$(git rev-parse "$tag"^{commit})" ]; then
+                    echo "$(basename "$tag")"
+                    return
+                fi
+            done
+    else
+        git tag --list --sort=-v:refname "$1*" --merged 2> /dev/null | filter_tags "$1" | head -n 1
+    fi
+}
+
+function git_version {
+    declare name="v" lead=0 follow= "$@"
+
+    if [ -z "$name" ]; then
+        log_error "name cannot be empty."
+        return 1
+    fi
+
+    if echo "$lead.$follow" | grep -q '-'; then
+        log_error "lead and follow cannot contain dashes."
+        return 1
+    fi
+
+    if echo "$follow" | grep -q '\.'; then
+        log_error "follow cannot contain dots."
+        return 1
+    fi
+
+    latest_tag="$(latest_merged_tag "$name")"
+    latest_tag_version="$(echo $latest_tag | sed -E -n "s/^$name([^-]+)$/\1/p")"
+
+    if [ -n "$latest_tag" ]; then
+        commit_count="$(git rev-list "$latest_tag"..HEAD | wc -l)"
+    else
+        commit_count="$(git rev-list HEAD 2> /dev/null | wc -l  || printf 0)"
+    fi
+
+    if [ "$commit_count" -eq 0 ]; then
+        commit_count_appendix=
+    else
+        commit_count_appendix=".git.$commit_count.$(git rev-parse --short HEAD)"
+    fi
+
+    latest_ctime="$(git_latest_ctime)"
+    if [ "$latest_ctime" -eq 0 ]; then
+        wtree_appendix=
+    else
+        wtree_appendix=".wtree.$(encode_decimal "$latest_ctime")"
+    fi
+
+    if [ -z "$follow" ]; then
+        follow="$(echo "$latest_tag_version" | sed -E -n "s/^.*\.([^.]*)$/\1/p")"
+    fi
+
+    if [ "$lead" = 0 ]; then
+        lead="$(echo "$latest_tag_version" | sed -E -n "s/\.$follow$//p")"
+    fi
+
+    follow=$((follow+1))
+
+    output "${lead}.${follow:-0}${commit_count_appendix}${wtree_appendix}"
+}
+
+function git_real_version {
+    real_version="$(git_version "$@" | sed -e "s/\.git.*$//")"
+    output "${real_version}"
+}
+
+function git_real_release {
+    git_version > /dev/null
+    commit_sha="$(echo ${commit_count_appendix} | sed -e "s/^.*\.//")"
+    commit_count_no="$(echo ${commit_count_appendix} | sed -e "s/^\.git\.//")"
+    commit_count_no="$(echo ${commit_count_no} | sed -e "s/\.${commit_sha}//")"
+    output "${commit_count_no}.git${commit_sha}${wtree_appendix}"
+}
