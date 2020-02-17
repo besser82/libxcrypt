@@ -106,8 +106,7 @@
 
 
 # Needed for out-of-tree builds.
-%global src_topleveldir %{_builddir}/%{name}-%{version}
-%global _configure      "%{src_topleveldir}/configure"
+%global _configure "$(realpath ../configure)"
 
 
 # Common configure options.
@@ -126,30 +125,30 @@
 %else                                      \
   --disable-valgrind                       \\\
 %endif                                     \
-  --srcdir=%{src_topleveldir}              \\\
+  --srcdir=$(realpath ..)                  \\\
   --with-pkgconfigdir=%{_libdir}/pkgconfig
 
 
 # Add generation of HMAC checksums of the final stripped
 # binaries.  %%define with lazy globbing is used here
 # intentionally, because using %%global does not work.
-%define __spec_install_post                                    \
-%{?__debug_package:%{__debug_install_post}}                    \
-%{__arch_install_post}                                         \
-%{__os_install_post}                                           \
-if [[ %{with staticlib} == 1 ]]; then                          \
-  %{_bindir}/fipshmac %{buildroot}/%{_lib}/libcrypt.a          \
-  %{__ln_s} .libcrypt.a.hmac                                   \\\
-    %{buildroot}/%{_lib}/.libxcrypt.a.hmac                     \
-fi                                                             \
-%{_bindir}/fipshmac %{buildroot}/%{_lib}/libcrypt.so.%{sov}    \
-%{__ln_s} .libcrypt.so.%{sov}.hmac                             \\\
-  %{buildroot}/%{_lib}/.libcrypt.so.%{soc}.hmac                \
-if [[ %{with compat_pkg} == 1 ]]; then                         \
-  %{_bindir}/fipshmac %{buildroot}/%{_lib}/libcrypt.so.%{csov} \
-  %{__ln_s} .libcrypt.so.%{csov}.hmac                          \\\
-    %{buildroot}/%{_lib}/.libcrypt.so.%{csoc}.hmac             \
-fi                                                             \
+%define __spec_install_post                         \
+%{?__debug_package:%{__debug_install_post}}         \
+%{__arch_install_post}                              \
+%{__os_install_post}                                \
+fipshmac %{buildroot}/%{_lib}/libcrypt.so.%{sov}    \
+ln -s .libcrypt.so.%{sov}.hmac                      \\\
+  %{buildroot}/%{_lib}/.libcrypt.so.%{soc}.hmac     \
+if [[ %{with staticlib} == 1 ]]; then               \
+  fipshmac %{buildroot}/%{_lib}/libcrypt.a          \
+  ln -s .libcrypt.a.hmac                            \\\
+    %{buildroot}/%{_lib}/.libxcrypt.a.hmac          \
+fi                                                  \
+if [[ %{with compat_pkg} == 1 ]]; then              \
+  fipshmac %{buildroot}/%{_lib}/libcrypt.so.%{csov} \
+  ln -s .libcrypt.so.%{csov}.hmac                   \\\
+    %{buildroot}/%{_lib}/.libcrypt.so.%{csoc}.hmac  \
+fi                                                  \
 %{nil}
 
 
@@ -203,7 +202,7 @@ Obsoletes:      %{name}-compat         < %{version}-%{release}
 Requires:       glibc%{?_isa}         >= %{glibc_minver}
 
 %if 0%{?fedora} >= 30
-Recommends:     whois-mkpasswd
+Recommends:     mkpasswd
 %endif
 
 %description
@@ -281,10 +280,10 @@ discouraged.
 %prep
 {{{ git_dir_setup_macro }}}
 
-./autogen.sh
+$(realpath ./autogen.sh)
 
 %if %{with new_api}
-%{__cat} << EOF >> README%{distname}
+cat << EOF >> README%{distname}
 This version of the %{name} package ships the libcrypt.so.2
 library and does not provide the legacy API functions that have
 been provided by glibc's libcrypt.so.1.  The removed functions
@@ -303,7 +302,7 @@ EOF
 %endif
 
 %if %{with enosys_stubs}
-%{__cat} << EOF >> README.posix
+cat << EOF >> README.posix
 This version of the libcrypt.so.1 library has entirely removed
 the functionality of the encrypt, encrypt_r, setkey, setkey_r,
 and fcrypt functions, while keeping fully binary compatibility
@@ -322,7 +321,7 @@ EOF
 %endif
 
 %if %{with staticlib}
-%{__cat} << EOF >> README.static
+cat << EOF >> README.static
 Applications that use certain legacy APIs supplied by glibc’s
 libcrypt (encrypt, encrypt_r, setkey, setkey_r, and fcrypt)
 cannot be compiled nor linked against the supplied build of
@@ -332,7 +331,7 @@ EOF
 
 
 %build
-%{__mkdir_p} %{_vpath_builddir}{,-compat}
+mkdir -p %{_vpath_builddir}
 
 # Build the default system library.
 pushd %{_vpath_builddir}
@@ -349,6 +348,8 @@ pushd %{_vpath_builddir}
 popd
 
 %if %{with compat_pkg}
+mkdir -p %{_vpath_builddir}-compat
+
 # Build the compatibility library.
 pushd %{_vpath_builddir}-compat
 %configure                                       \
@@ -367,37 +368,35 @@ popd
 %make_install -C %{_vpath_builddir}-compat
 
 # Cleanup everything we do not need from the compatibility library.
-%{_bindir}/find %{buildroot} -xtype f -not -name 'libcrypt.so.%{csoc}*' \
-  -delete -print
-%{_bindir}/find %{buildroot} -type l -not -name 'libcrypt.so.%{csoc}*'  \
-  -delete -print
+find %{buildroot} -xtype f -not -name 'libcrypt.so.%{csoc}*' -delete -print
+find %{buildroot} -type l -not -name 'libcrypt.so.%{csoc}*' -delete -print
 %endif
 
 # Install the default system library.
 %make_install -C %{_vpath_builddir}
 
 # Get rid of libtool crap.
-%{_bindir}/find %{buildroot} -name '*.la' -delete -print
+find %{buildroot} -name '*.la' -delete -print
 
 # Install documentation to shared %%_pkgdocdir.
-%{__install} -Dpm 0644 -t %{buildroot}%{_pkgdocdir} \
+install -Dpm 0644 -t %{buildroot}%{_pkgdocdir} \
   ChangeLog NEWS README* THANKS TODO
 
 # Drop README.md as it is identical to README.
-%{__rm} -f %{buildroot}%{_pkgdocdir}/README.md
+rm -f %{buildroot}%{_pkgdocdir}/README.md
 
 
 %check
+build_dirs="%{_vpath_builddir}"
 %if %{with compat_pkg}
-for dir in %{_vpath_builddir} %{_vpath_builddir}-compat; do
-%else
-for dir in %{_vpath_builddir}; do
+build_dirs="${build_dirs} %{_vpath_builddir}-compat"
 %endif
+for dir in ${build_dirs}; do
   %make_build -C ${dir} check || \
     {
       rc=$?;
       echo "-----BEGIN TESTLOG: ${dir}-----";
-      %{__cat} ${dir}/test-suite.log;
+      cat ${dir}/test-suite.log;
       echo "-----END TESTLOG: ${dir}-----";
       exit $rc;
     }
@@ -406,7 +405,7 @@ for dir in %{_vpath_builddir}; do
     {
       rc=$?;
       echo "-----BEGIN TESTLOG: ${dir}-----";
-      %{__cat} ${dir}/test-suite-memcheck.log;
+      cat ${dir}/test-suite-memcheck.log;
       echo "-----END TESTLOG: ${dir}-----";
       exit $rc;
     }
