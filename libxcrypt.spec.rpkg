@@ -281,7 +281,7 @@ discouraged.
 %prep
 {{{ git_dir_setup_macro }}}
 
-./bootstrap
+./autogen.sh
 
 %if %{with new_api}
 %{__cat} << EOF >> README%{distname}

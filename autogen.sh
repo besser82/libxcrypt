@@ -22,7 +22,7 @@ LANG=C
 
 run_cmd()
 {
-  echo "bootstrap: running: $@"
+  echo "autogen: running: $@"
   "$@"
 }
 

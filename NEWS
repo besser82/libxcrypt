@@ -4,6 +4,9 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.14
+* Renamed bootstrap script: 'bootstrap' -> 'autogen.sh'.
+  If building from a Git checkout instead of a tarball release,
+  use './autogen.sh' to create the configure script.
 
 Version 4.4.13
 * libxcrypt now builds (including working tests) on Mac OSX.

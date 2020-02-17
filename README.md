@@ -65,7 +65,7 @@ these things before building the software.
 
 Building from a Git checkout additionally requires the Autotools
 suite: `autoconf`, `automake`, `libtool`, and `pkg-config`.
-Run `./bootstrap` at the top level of the source tree, and then
+Run `./autogen.sh` at the top level of the source tree, and then
 follow the instructions in `INSTALL` (which is created by that command).
 
 The oldest versions of Autotools components that are known to work
