@@ -2,6 +2,7 @@
 [![COPR Build Status](https://copr.fedorainfracloud.org/coprs/besser82/libxcrypt_CI/package/libxcrypt/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/besser82/libxcrypt_CI)
 [![codecov](https://codecov.io/gh/besser82/libxcrypt/branch/develop/graph/badge.svg)](https://codecov.io/gh/besser82/libxcrypt)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/17073/badge.svg)](https://scan.coverity.com/projects/besser82-libxcrypt)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/1ebaa2314aca4bab92e14130906d5096)](https://www.codacy.com/manual/besser82/libxcrypt?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=besser82/libxcrypt&amp;utm_campaign=Badge_Grade)
 
 README for libxcrypt
 ====================
