@@ -301,7 +301,6 @@ AC_ARG_ENABLE([xcrypt-compat-files],
         *) AC_MSG_ERROR([bad value ${enableval} for --enable-xcrypt-compat-files]);;
      esac],
     [enable_xcrypt_compat_files=1])
-AM_CONDITIONAL([ENABLE_XCRYPT_COMPAT_FILES], [test x"$enable_xcrypt_compat_files" = x1])
 
 AC_ARG_ENABLE([obsolete-api],
     AS_HELP_STRING(
@@ -490,6 +489,10 @@ AC_SUBST([MINVER_OS])
 AC_SUBST([SYMVER_FLOOR])
 AC_SUBST([SYMVER_MIN])
 
+# If we are not building the obsolete APIs then we shouldn't install
+# xcrypt.h or the compatibility symlinks either.
+if test $enable_obsolete_api = 0; then enable_xcrypt_compat_files=0; fi
+
 AC_DEFINE_UNQUOTED([SYMVER_FLOOR], [$SYMVER_FLOOR],
   [Define as the lowest compatibility symbol version that is actually
    included in libcrypt.so.])
@@ -497,8 +500,11 @@ AC_DEFINE_UNQUOTED([SYMVER_FLOOR], [$SYMVER_FLOOR],
 AC_DEFINE_UNQUOTED([ENABLE_OBSOLETE_API], [$enable_obsolete_api],
  [Define as 1 if the obsolete APIs (fcrypt, encrypt, setkey)
   should be included, 0 otherwise.])
+
 AM_CONDITIONAL([ENABLE_OBSOLETE_API], [test $enable_obsolete_api = 1])
 AM_CONDITIONAL([ENABLE_COMPAT_SUSE], [test $enable_compat_suse = 1])
+AM_CONDITIONAL([ENABLE_XCRYPT_COMPAT_FILES],
+               [test $enable_xcrypt_compat_files = 1])
 
 # The Makefile needs to know which versions of the library we are building.
 AM_CONDITIONAL([ENABLE_STATIC], [test $enable_static = yes])

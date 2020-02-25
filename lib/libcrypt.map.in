@@ -21,14 +21,12 @@ crypt_checksalt		XCRYPT_4.3
 crypt_preferred_method	XCRYPT_4.4
 
 # Interfaces for code compatibility with libxcrypt v3.1.1 and earlier.
-# They need to be exported as default symbols, although we take care they
-# are not linked by new compiled applications, so functions with similar
-# semantics of AC_CHECK_FUNCS will detect them as available.
-crypt_gensalt_r		XCRYPT_2.0
-xcrypt			XCRYPT_2.0
-xcrypt_r		XCRYPT_2.0
-xcrypt_gensalt		XCRYPT_2.0
-xcrypt_gensalt_r	XCRYPT_2.0
+# No longer available to new binaries.
+crypt_gensalt_r		-		XCRYPT_2.0
+xcrypt			-		XCRYPT_2.0
+xcrypt_r		-		XCRYPT_2.0
+xcrypt_gensalt		-		XCRYPT_2.0
+xcrypt_gensalt_r	-		XCRYPT_2.0
 
 # Deprecated interfaces, POSIX and otherwise; also present in GNU libc
 # since 2.0
