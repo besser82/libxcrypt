@@ -1,0 +1,143 @@
+#! /usr/bin/python3
+#
+#   Copyright 2017, 2018, 2019 Zack Weinberg
+#
+#   This library is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU Lesser General Public License
+#   as published by the Free Software Foundation; either version 2.1 of
+#   the License, or (at your option) any later version.
+#
+#   This library is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#
+#   You should have received a copy of the GNU Lesser General Public
+#   License along with this library; if not, see
+#   <https://www.gnu.org/licenses/>.
+
+"""Detect the file format of a machine-code executable.
+"""
+
+import argparse
+import os
+import sys
+
+
+def detect_format_h(fd: int) -> str:
+    pread = os.pread
+    mn = pread(fd, 4, 0)
+
+    # Cases below are sorted from most to least likely.
+
+    # The first four bytes of an ELF executable are always \x7F E L F,
+    # in that order, no matter what the CPU or OS is.
+    if mn == b"\x7FELF":
+        return "ELF"
+
+    # The first four bytes of a Mach-O executable depend on the age of
+    # the OS and the word size and endianness of the CPU.  To make
+    # matters worse, one of the possibilities is also used by Java
+    # bytecode.
+    # It is unclear to me whether BE BA FE CA (little-endian CA FE BA BE)
+    # can happen, or if the CE/CF alternation has a BE/BF analogue; we'll
+    # worry about that if and when we trip over it.
+    if mn in (b"\xFE\xED\xFA\xCE",
+              b"\xFE\xED\xFA\xCF",
+              b"\xCE\xFA\xED\xFE",
+              b"\xCF\xFA\xED\xFE"):
+        return "Mach-O"
+
+    if mn == b"\xCA\xFE\xBA\xBE":
+        # per https://github.com/file/file/blob/master/magic/Magdir/cafebabe:
+        # The long at offset 4 in a Mach-O universal binary tells the
+        # number of architectures; the short at offset 4 in a Java
+        # bytecode file is the JVM minor version and the short at
+        # offset 6 is the JVM major version.  Since there are only
+        # only 18 labeled Mach-O architectures at current, and the
+        # first released Java class format was version 43.0, we can
+        # safely choose any number between 18 and 39 to test the
+        # number of architectures against (and use as a hack). Let's
+        # not use 18, because the Mach-O people might add another one
+        # or two as time goes by...
+        import struct
+        if struct.unpack(">I", pread(fd, 4, 4))[0] > 30:
+            return "Java"
+        else:
+            return "Mach-O"
+
+    # DOS MZ and Windows PE.  The PE signature has enough structure to
+    # be reliable, but I really wish people had realized back in the
+    # day that two bytes of magic number is not enough.  pread() will
+    # return an empty byte string if asked to read at a location
+    # beyond the end of the file, so we don't have to check for that
+    # specially.
+    if mn[0:2] == b"MZ":
+        import struct
+        peoff = struct.unpack("<I", pread(fd, 4, 0x3C))[0]
+        if pread(fd, 4, peoff) == b"PE\x00\x00":
+            return "PE"
+        else:
+            return "MZ"
+
+    # a.out: OMAGIC, NMAGIC, ZMAGIC, QMAGIC (from linux/a.out.h)
+    # Again, unfortunately, only two bytes (but at least they're
+    # unprintable).  An additional complication is that the magic
+    # number is the least significant 16 bits of a 32-bit field, so
+    # it's bytes three and four on big-endian architectures.
+    if (
+            mn[0:2] in (b"\x07\x01", b"\x08\x01", b"\x0B\x01", b"\xCC\x00")
+            or mn[2:4] in (b"\x01\x07", b"\x01\x08", b"\x01\x0B", b"\x00\xCC")
+    ):
+        return "a.out"
+
+    # COFF, ECOFF, and XCOFF have a magic number that is, once again,
+    # too short; moreover, it varies with the CPU, there doesn't seem
+    # to be a canonical list anywhere I can find, and not enough
+    # attention seems to have been paid to avoidance of collisions.
+    # We're not bothering to detect it for now.  Revisit if and when
+    # someone wants to make this work on AIX.
+
+    # Add other formats if and when someone is interested.
+
+    # One final check if we get down here: Is this actually a script
+    # of some sort?
+    if mn[0:2] == b"#!":
+        return "script"
+
+    return "unknown"
+
+
+def detect_format(fname: str) -> str:
+    try:
+        fd = os.open(fname, os.O_RDONLY)
+        try:
+            return detect_format_h(fd)
+        finally:
+            os.close(fd)
+
+    except IsADirectoryError:
+        return "directory"
+
+    except Exception as e:
+        sys.stderr.write("{}: error processing {}: {}\n".format(
+            sys.argv[0], fname, e
+        ))
+        return "unknown"
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("executable", nargs="+",
+                    help="The executable file to examine for its format.")
+    args = ap.parse_args()
+
+    if len(args.executable) == 1:
+        sys.stdout.write(detect_format(args.executable[0]) + "\n")
+
+    else:
+        for exe in args.executable:
+            sys.stdout.write("{}: {}\n".format(exe, detect_format(exe)))
+
+
+main()

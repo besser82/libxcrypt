@@ -219,73 +219,10 @@ AC_DEFUN([zw_CHECK_LIBRARY_BUILD_FLAGS], [
 AC_DEFUN([zw__SHARED_LIBS_TESTS], [
   AC_CACHE_CHECK([object file format], [zw_cv_object_format], [
     AC_LINK_IFELSE([AC_LANG_PROGRAM()], [
-      # get the first sixteen bytes of the compiled executable, in octal
-      magic=$(od -b conftest$EXEEXT | sed -e 's/^@<:@0-7@:>@* *//; y/ /./; q')
-      AS_ECHO("conftest$EXEEXT magic: $magic") >&AS_MESSAGE_LOG_FD
-
-      case $magic in
-         # ELF: \x7F E L F
-         (177.105.114.106.*)
-             zw_cv_object_format=ELF
-             ;;
-
-         # Mach-O:
-         # FE ED FA CE / CF FA ED FE (big/little endian)
-         # CA FE BA BE / BE BA FE CA (ditto)
-         # Java jars also use CA FE BA BE but we don't expect to see
-         # that as the output of a C compiler
-         (376.355.372.317.* | 317.372.355.376.* | \
-          312.376.272.276.* | 276.272.376.312.* ) zw_cv_object_format=Mach-O ;;
-
-         # DOS and Windows: M Z
-         # rather than groveling deep into the file for actual PE
-         # headers, check whether $EXEEXT is ".exe" (arbitrary case)
-         # and then look at $host_os.  unfortunately, the first few bytes
-         # of the "stub" vary too much to key off of.
-         (115.132.*)
-             if test x"$(AS_ECHO(["$EXEEXT"]) |
-                         tr "$as_cr_LETTERS" "$as_cr_letters")" = x.exe; then
-                 case $host_os in
-                   (cygwin*|mingw*|msys*|interix*|uwin*)
-                     zw_cv_object_format=PE ;;
-                   (msdos*)
-                     zw_cv_object_format=MZ ;;
-                   (*)
-                     zw_cv_object_format=unknown;;
-                  esac
-              fi
-          ;;
-
-          # Bare COFF/ECOFF/XCOFF executables are rare nowadays and
-          # difficult to identify from the first 16 bytes alone.  (The
-          # first two bytes of the file identify the CPU, not the file
-          # format as such; there's a long list and not enough effort
-          # seems to have been put into avoiding collisions with other
-          # file types.)  We're not bothering with them for now.
-          # Revisit if and when someone wants this to work on AIX.
-
-          # a.out: OMAGIC, NMAGIC, ZMAGIC, QMAGIC (from linux/a.out.h)
-          # This format is also rare nowadays, but at least the set of
-          # patterns to look for is reasonably short and unlikely to
-          # be mistaken for anything else.  The only complication is
-          # that on big-endian machines the magic number is bytes 3
-          # and 4.  (And I wish people had realized back in the day
-          # that two bytes of magic number is not enough.)
-          (007.001.* | \
-           010.001.* | \
-           013.001.* | \
-           314.000.* | \
-     @<:@!.@:>@@<:@!.@:>@@<:@!.@:>@.@<:@!.@:>@@<:@!.@:>@@<:@!.@:>@.001.007.* | \
-     @<:@!.@:>@@<:@!.@:>@@<:@!.@:>@.@<:@!.@:>@@<:@!.@:>@@<:@!.@:>@.001.010.* | \
-     @<:@!.@:>@@<:@!.@:>@@<:@!.@:>@.@<:@!.@:>@@<:@!.@:>@@<:@!.@:>@.001.013.* | \
-     @<:@!.@:>@@<:@!.@:>@@<:@!.@:>@.@<:@!.@:>@@<:@!.@:>@@<:@!.@:>@.000.314.* )
-              zw_cv_object_format=a.out
-          ;;
-
-         (*)
-             zw_cv_object_format=unknown
-         ;;
-      esac
+      zw_cv_object_format=$(
+        $PYTHON $srcdir/scripts/detect-object-format conftest$EXEEXT \
+            2>&AS_MESSAGE_LOG_FD || echo unknown
+      )
     ],
     [zw_cv_object_format=unknown])
   ])
