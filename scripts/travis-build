@@ -369,7 +369,8 @@ def main() -> None:
         # We intentionally do not invoke ./autogen.sh, because it will
         # run git clean -dfX, which will wipe the build directory,
         # including the virtualenv we're running out of.
-        run(["autoreconf", "-iv", "-Wall,error"])
+        # -Werror temporarily disabled, see autogen.sh.
+        run(["autoreconf", "-iv", "-Wall"])
 
         if E.get("PERFORM_COVERITY_SCAN", "") == "1":
             do_coverity_build(NPROCS)
