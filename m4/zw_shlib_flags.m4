@@ -1,8 +1,8 @@
 # zw_shlib_flags.m4 - Determine how to build shared libraries. -*- Autoconf -*-
 #
 # Copyright 2020 Zack Weinberg <zackw@panix.com>
-# Portions of this file were taken from libtool.m4:
-# Copyright 1996-2001, 2003-2015 Free Software Foundation, Inc.
+# Portions of this file were taken from libtool.m4 and ltmain.sh:
+# Copyright 1996-2015 Free Software Foundation, Inc.
 # Written by Gordon Matzigkeit.
 #
 # This file is free software; the copyright holders give unlimited
@@ -11,96 +11,107 @@
 
 # This Autoconf macro provides an extremely simplified version of the
 # logic Libtool uses to decide how to build shared and static
-# libraries, suitable for use together with plain old Makefile rules.
+# libraries, suitable for use together with Makefile rules.  (Some
+# features of GNU Make, particularly $(call), are required.)
+#
+# Note in particular that Libtool's complicated version numbering
+# scheme for shared libraries is not implemented.  Shared libraries
+# are given an integer major version number in their file name,
+# e.g. libfoo.so.1, and you are responsible for incrementing this
+# number when you make backward incompatible changes.  Finer-grained
+# versioning, e.g. with ELF symbol versions, is your responsibility;
+# this macro does invoke AX_CHECK_VSCRIPT for you when appropriate.
+#
 # It sets the following substitution variables:
 #
-#   @ENABLE_SHARED@ - "yes" if shared libraries are to be built and installed,
-#                     "no" if not.  Controllable by configure switches
-#                     (--(enable|disable)-shared) as well as by the
-#                     system's capabilities.
+#   @ENABLE_SHARED@
+#        "yes" if shared libraries are to be built and installed,
+#        "no" if not.  Controllable by configure switches
+#        (--(enable|disable)-shared) as well as by the
+#        system's capabilities.
 #
-#   @ENABLE_STATIC@ - "yes" if static libraries are to be built and installed,
-#                     "no" if not.  Controllable by configure switches
-#                     (--(enable|disable)-static) as well as by the
-#                     system's capabilities.  At least one of these two
-#                     will be "yes" once this macro completes.
+#   @ENABLE_STATIC@
+#        "yes" if static libraries are to be built and installed,
+#        "no" if not.  Controllable by configure switches
+#        (--(enable|disable)-static) as well as by the
+#        system's capabilities.  At least one of these two
+#        will be "yes" once this macro completes.
 #
-#   @SOEXT@    - The file extension for shared libraries on this
-#                platform, with leading dot.  May be empty.
+#   @SOEXT@
+#        The file extension for shared libraries on this platform,
+#        with leading dot.  May be empty.
 #
-#   @SOVER_AFTER_EXT@ - "yes" if shared library file names have a
-#                       version number after @SOEXT@, "no" if it
-#                       goes before @SOEXT@.
+#   @SO_NAME@
+#        $(call SO_NAME,libfoo,1) expands to the installed name for
+#        the shared library libfoo with major version number 1,
+#        e.g. libfoo.so.1 on ELF platforms or libfoo.1.dylib on
+#        Darwin.  libfoo$(SOEXT) should be created as a symbolic link
+#        to this.
 #
-#   @HAVE_SONAME@ - "yes" if shared libraries have an embedded name that
-#                   needs to be specified at link time, "no" if they don't.
+#   @PICFLAGS@
+#        Switches to make the compiler generate code suitable for
+#        inclusion in a shared library (e.g. -fPIC with gcc).
+#        Note that this will *not* include -DPIC.  Add that to
+#        (AM_)CPPFLAGS yourself if you want it.
 #
-#   @PICFLAGS@ - Switches to make the compiler generate code suitable for
-#                inclusion in a shared library (e.g. -fPIC with gcc).
-#                Note that this will *not* include -DPIC.  Add that to
-#                (AM_)CPPFLAGS yourself if you want it.
+#   @SO_LDFLAGS@
+#        Generic switches to make the compiler link object files into
+#        a shared library.  These should appear before any object
+#        files in the compiler invocation.
 #
-#   @SO_LDFLAGS@ - Switches to make the compiler link object files into
-#                  a shared library.  These should appear before any object
-#                  files in the compiler invocation.
+#   @SO_LIBS@
+#        Any switches that might need to go at the *end* of the
+#        compiler invocation; e.g. -lsomething.  Put any -l switches
+#        specific to your library *before* this variable.
 #
-#   @SO_LIBS@    - Any switches that might need to go at the *end*
-#                  of the compiler invocation; e.g. -lsomething.
-#                  Put any -l switches specific to your library
-#                  *before* this variable.
+#   @SO_SET_VERSION@
+#        $(call SO_SET_VERSION,libfoo,1) expands to command line
+#        switches that will embed version information in a shared
+#        library being linked.  The arguments are the same as for
+#        @SHLIB_NAME@ and must match for any given library.
 #
-#   @SONAME@     - Switch to tell the linker the embedded name of the
-#                  shared library.  In the link command, write this as
-#                  a single argument with the actual name, e.g.
-#                  $(CC) $(SO_LDFLAGS) $(SONAME)libfoo.$(SOEXT).1 ...
+#   @WHOLE_A@
+#        $(call WHOLE_A,libfoo.a) expands to a sequence of arguments
+#        that will cause the compiler to include the entire contents
+#        of libfoo.a in the link.
 #
-#   @WHOLE_A@    - Switch to tell the compiler to include the entire
-#                  contents of subsequent .a libraries in the link.
+#   @LIST_EXPORTS_CMD@
+#        Command using either nm or objconv to list all exported
+#        symbols in a static library.  Uses $< and $@ internally.
 #
-#   @END_WHOLE_A@ - Switch to tell the compiler to stop including
-#                   the entire contents of .a libraries in the link.
-#                   Usage: $(WHOLE_A) libfoo-pic.a $(END_WHOLE_A) -lbar
+#   @RENAME_INTERNALS_CMD@
+#        Command using either objcopy or objconv to rename all
+#        internal symbols in a static library.  Uses $^ and $@
+#        internally; $^ must be the list of symbols to rename and the
+#        input static library, _in that order_.
 #
-#   @LIST_EXPORTS_CMD@ - Command using either nm or objconv to list all
-#                        exported symbols in a static library.  Uses $<
-#                        and $@ internally.
+#   @RENAMES_FORMAT@
+#        If @RENAME_CMD@ uses objconv, this will be the string
+#        "--objconv", otherwise it will be empty.  Use this to tell
+#        the program that generates the list of symbols to rename what
+#        format to produce.
 #
-#   @RENAME_INTERNALS_CMD@ - Command using either objcopy or objconv to
-#                            rename all internal symbols in a static library.
-#                            Uses $^ and $@ internally; $^ must be the list
-#                            of symbols to rename and the input static
-#                            library, _in that order_.
+#        When @RENAMES_FORMAT@ is empty, the expected format is the
+#        format of the file read by objcopy --redefine-syms: one entry
+#        per line, "oldname newname".
 #
-#   @RENAMES_FORMAT@ - If @RENAME_CMD@ uses objconv, this will be the string
-#                      "--objconv", otherwise it will be empty.  Use this to
-#                      tell the program that generates the list of symbols to
-#                      rename what format to produce.
+#        When @RENAMES_FORMAT@ is "objconv", the expected format is an
+#        objconv "response file": one entry per line,
+#        "-nr:oldname:newname"
 #
-#                      When @RENAMES_FORMAT@ is empty, the expected format is
-#                      the format of the file read by objcopy --redefine-syms:
-#                      one entry per line, "oldname newname".
-#
-#                      When @RENAMES_FORMAT@ is "objconv", the expected format
-#                      is an objconv "response file": one entry per line,
-#                      "-nr:oldname:newname"
-#
-# Note that in some cases it does not work to put more than one library
-# between $(WHOLE_A) and $(END_WHOLE_A).
-#
-# If AM_INIT_AUTOMAKE has been called, then ENABLE_SHARED,
-# ENABLE_STATIC, SOVER_AFTER_EXT, and HAVE_SONAME will also be made
-# available as AM_CONDITIONALs.
+# If AM_INIT_AUTOMAKE has been called, then ENABLE_SHARED and
+# ENABLE_STATIC will also be made available as AM_CONDITIONALs.
 #
 # If the appropriate value for *any* of the above variables is
 # unknown, or if appropriate use of the above variables is not enough
-# to build a shared library successfully, then @ENABLE_SHARED@,
-# @SOVER_AFTER_EXT@ and @HAVE_SONAME@ will be set to "no", @PICFLAGS@
-# will be set to "unknown", and all the other variables will be empty.
+# to build a shared library successfully, then @ENABLE_SHARED@ will be
+# set to "no", @PICFLAGS@ will be set to "unknown", and all the other
+# variables will be empty.
 #
 # Similarly, if we are unable to determine how to rename internal
 # symbols in a static library, then @ENABLE_STATIC@ will be set to
-# "no", @RENAME_CMD@ will be set to a command that always fails, and
-# @FOR_OBJCONV@ will be empty.
+# "no", @LIST_EXPORTS_CMD@ and @RENAME_INTERNALS_CMD@ will be set to a
+# command that always fails, and @FOR_OBJCONV@ will be empty.
 #
 # If we cannot determine how to build *either* a static or a shared
 # library, or if --enable-shared or --enable-static was given on the
@@ -150,14 +161,12 @@ AC_DEFUN([zw_CHECK_LIBRARY_BUILD_FLAGS], [
   AC_SUBST([ENABLE_STATIC],        [$enable_static])
   AC_SUBST([ENABLE_SHARED],        [$enable_shared])
   AC_SUBST([SOEXT],                [""])
-  AC_SUBST([SOVER_AFTER_EXT],      [no])
-  AC_SUBST([HAVE_SONAME],          [no])
   AC_SUBST([PICFLAGS],             [unknown])
   AC_SUBST([SO_LDFLAGS],           [""])
   AC_SUBST([SO_LIBS],              [""])
-  AC_SUBST([SONAME],               [""])
+  AC_SUBST([SO_NAME],              [""])
+  AC_SUBST([SO_SET_VERSION],       [""])
   AC_SUBST([WHOLE_A],              [""])
-  AC_SUBST([END_WHOLE_A],          [""])
   AC_SUBST([LIST_EXPORTS_CMD],     [false])
   AC_SUBST([RENAME_INTERNALS_CMD], [false])
   AC_SUBST([RENAMES_FORMAT],       [""])
@@ -212,8 +221,6 @@ AC_DEFUN([zw_CHECK_LIBRARY_BUILD_FLAGS], [
   # of the value it tests.
   AM_CONDITIONAL([ENABLE_STATIC], [test x$enable_static = xyes])
   AM_CONDITIONAL([ENABLE_SHARED], [test x$enable_shared = xyes])
-  AM_CONDITIONAL([SOVER_AFTER_EXT], [test $SOVER_AFTER_EXT = yes])
-  AM_CONDITIONAL([HAVE_SONAME], [test $HAVE_SONAME = yes])
 ])
 
 AC_DEFUN([zw__SHARED_LIBS_TESTS], [
@@ -235,37 +242,45 @@ AC_DEFUN([zw__SHARED_LIBS_TESTS], [
         # explicitly does no harm.
         PICFLAGS="-fPIC"
         SOEXT=".so"
-        SOVER_AFTER_EXT="yes"
-        HAVE_SONAME="yes"
+        SO_NAME="\$(1)\$(SOEXT).\$(2)"
+        SO_SET_VERSION="-Wl,-soname,\$(call SO_NAME,\$(1),\$(2))"
         SO_LDFLAGS="-shared"
         SO_LIBS=""
-        SONAME="-Wl,-soname,"
-        WHOLE_A="-Wl,--whole-archive"
-        END_WHOLE_A="-Wl,--no-whole-archive"
+        WHOLE_A="-Wl,--whole-archive \$(1) -Wl,--no-whole-archive"
       ;;
 
       (Mach-O)
         # We understand how to do this for Darwin only.  Other OSes
         # using this file format had completely different quirks.
+        # We deliberately do not use -install_name because that
+        # is a misfeature; shared libraries should not hardwire
+        # their expected locations within the file system.
         case $host_os in
           (darwin*)
             # PIC is default, but common symbols are not allowed in shared libs
             PICFLAGS="-fno-common"
-            SOEXT=.dylib
-            SOVER_AFTER_EXT="no"
-            HAVE_SONAME="no" # needs further investigation,
-                             # libtool is doing _something_...
-            SO_LDFLAGS="-dynamiclib "
+            SOEXT=".dylib"
+            SO_NAME="\$(1).\$(2)\$(SOEXT)"
+            SO_SET_VERSION="-Wl,-compatibility_version,\$(2) -Wl,-current_version,\$(2)"
+            SO_LDFLAGS="-dynamiclib"
             SO_LIBS=""
-            SONAME=""
-            WHOLE_A="-Wl,-force_load"
-            END_WHOLE_A=""
+            WHOLE_A="-Wl,-force_load \$(1)"
           ;;
         esac
         ;;
 
       (PE)
-        # Windows - to be implemented.
+        # Windows - this matches what libtool does for MinGW.
+        # PIC is on by default, but we need to clue the preprocessor
+        # to enable dllexport annotations.
+        PICFLAGS="-DDLL_EXPORT"
+        SOEXT=".dll"
+        SO_NAME="\$(1)\$(2)\$(SOEXT)"
+        SO_SET_VERSION=""
+        # I'm not sure these are right, ltmain.sh is confusing.
+        SO_LDFLAGS="-shared"
+        SO_LIBS=""
+        WHOLE_A="-Wl,--whole-archive \$(1) -Wl,--no-whole-archive"
         ;;
 
       (MZ)
@@ -313,10 +328,8 @@ AC_DEFUN([zw__SHARED_LIBS_TESTS], [
       AC_MSG_CHECKING([how to embed a name in a shared library])
       AC_MSG_RESULT([$SONAME])
     fi
-    AC_MSG_CHECKING([how to start including static libraries whole])
+    AC_MSG_CHECKING([how to link the whole contents of a static library])
     AC_MSG_RESULT([$WHOLE_A])
-    AC_MSG_CHECKING([how to stop including static libraries whole])
-    AC_MSG_RESULT([$END_WHOLE_A])
   fi
 ])
 

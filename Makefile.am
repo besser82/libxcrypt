@@ -201,22 +201,14 @@ libcrypt_so_VER = 1
 else
 libcrypt_so_VER = 2
 endif
-if SOVER_AFTER_EXT
-libcrypt_so = libcrypt$(SOEXT).$(libcrypt_so_VER)
-libowcrypt_so = libowcrypt$(SOEXT).$(libcrypt_so_VER)
-else
-libcrypt_so = libcrypt.$(libcrypt_so_VER)$(SOEXT)
-libowcrypt_so = libowcrypt.$(libcrypt_so_VER)$(SOEXT)
-endif
+libcrypt_so := $(call SO_NAME,libcrypt,$(libcrypt_so_VER))
+libowcrypt_so := $(call SO_NAME,libowcrypt,$(libcrypt_so_VER))
 
 # These variables must have names that automake does not recognize as
 # per-target variable names, or it will complain about the absence of
 # a buildable "libcrypt_so".
-libcrypt_so_LFLAGS =
-libcrypt_so_XDEPS =
-if HAVE_SONAME
-libcrypt_so_LFLAGS += $(SONAME)$(libcrypt_so)
-endif
+libcrypt_so_LFLAGS := $(call SO_SET_VERSION,libcrypt,$(libcrypt_so_VER))
+libcrypt_so_XDEPS :=
 if HAVE_VSCRIPT
 libcrypt_so_LFLAGS += $(VSCRIPT_LDFLAGS),$(builddir)/libcrypt.map
 libcrypt_so_XDEPS += libcrypt.map
@@ -224,7 +216,7 @@ endif
 
 $(libcrypt_so): libcrypt-pic.a Makefile $(libcrypt_so_XDEPS)
 	$(AM_V_CCLD)$(LINK) $(SO_LDFLAGS) $(libcrypt_so_LFLAGS) \
-              $(WHOLE_A) libcrypt-pic.a $(END_WHOLE_A) $(SO_LIBS)
+              $(call WHOLE_A,libcrypt-pic.a) $(SO_LIBS)
 
 libcrypt$(SOEXT): Makefile
 	-$(AM_V_at)rm -f libcrypt$(SOEXT)
