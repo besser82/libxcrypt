@@ -338,7 +338,7 @@ uninstall-hook-owcrypt-static:
 endif
 if ENABLE_SHARED
 install_exec_hook_targets += install-exec-hook-owcrypt-shared
-install-exec-hook-libshared:
+install-exec-hook-owcrypt-shared:
 	cd "$(DESTDIR)$(libdir)" && \
 		$(LN_S) libcrypt$(SOEXT) libowcrypt$(SOEXT) && \
 		$(LN_S) $(libcrypt_so) $(libowcrypt_so)
