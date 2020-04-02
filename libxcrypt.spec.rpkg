@@ -111,7 +111,6 @@
 
 # Common configure options.
 %global common_configure_options           \\\
-  --libdir=/%{_lib}                        \\\
   --disable-failure-tokens                 \\\
   --disable-silent-rules                   \\\
   --enable-shared                          \\\
@@ -132,23 +131,23 @@
 # Add generation of HMAC checksums of the final stripped
 # binaries.  %%define with lazy globbing is used here
 # intentionally, because using %%global does not work.
-%define __spec_install_post                         \
-%{?__debug_package:%{__debug_install_post}}         \
-%{__arch_install_post}                              \
-%{__os_install_post}                                \
-fipshmac %{buildroot}/%{_lib}/libcrypt.so.%{sov}    \
-ln -s .libcrypt.so.%{sov}.hmac                      \\\
-  %{buildroot}/%{_lib}/.libcrypt.so.%{soc}.hmac     \
-if [[ %{with staticlib} == 1 ]]; then               \
-  fipshmac %{buildroot}/%{_lib}/libcrypt.a          \
-  ln -s .libcrypt.a.hmac                            \\\
-    %{buildroot}/%{_lib}/.libxcrypt.a.hmac          \
-fi                                                  \
-if [[ %{with compat_pkg} == 1 ]]; then              \
-  fipshmac %{buildroot}/%{_lib}/libcrypt.so.%{csov} \
-  ln -s .libcrypt.so.%{csov}.hmac                   \\\
-    %{buildroot}/%{_lib}/.libcrypt.so.%{csoc}.hmac  \
-fi                                                  \
+%define __spec_install_post                           \
+%{?__debug_package:%{__debug_install_post}}           \
+%{__arch_install_post}                                \
+%{__os_install_post}                                  \
+fipshmac %{buildroot}%{_libdir}/libcrypt.so.%{sov}    \
+ln -s .libcrypt.so.%{sov}.hmac                        \\\
+  %{buildroot}%{_libdir}/.libcrypt.so.%{soc}.hmac     \
+if [[ %{with staticlib} == 1 ]]; then                 \
+  fipshmac %{buildroot}%{_libdir}/libcrypt.a          \
+  ln -s .libcrypt.a.hmac                              \\\
+    %{buildroot}%{_libdir}/.libxcrypt.a.hmac          \
+fi                                                    \
+if [[ %{with compat_pkg} == 1 ]]; then                \
+  fipshmac %{buildroot}%{_libdir}/libcrypt.so.%{csov} \
+  ln -s .libcrypt.so.%{csov}.hmac                     \\\
+    %{buildroot}%{_libdir}/.libcrypt.so.%{csoc}.hmac  \
+fi                                                    \
 %{nil}
 
 
@@ -431,8 +430,8 @@ done
 %endif
 %doc %{_pkgdocdir}/THANKS
 %license AUTHORS COPYING.LIB LICENSING
-/%{_lib}/.libcrypt.so.{%{soc},%{sov}}.hmac
-/%{_lib}/libcrypt.so.{%{soc},%{sov}}
+%{_libdir}/.libcrypt.so.{%{soc},%{sov}}.hmac
+%{_libdir}/libcrypt.so.{%{soc},%{sov}}
 %{_mandir}/man5/crypt.5.*
 
 
@@ -441,15 +440,15 @@ done
 %if %{with enosys_stubs}
 %doc %{_pkgdocdir}/README.posix
 %endif
-/%{_lib}/.libcrypt.so.{%{csoc},%{csov}}.hmac
-/%{_lib}/libcrypt.so.{%{csoc},%{csov}}
+%{_libdir}/.libcrypt.so.{%{csoc},%{csov}}.hmac
+%{_libdir}/libcrypt.so.{%{csoc},%{csov}}
 %endif
 
 
 %files          devel
 %doc %{_pkgdocdir}/ChangeLog
 %doc %{_pkgdocdir}/TODO
-/%{_lib}/lib{,x}crypt.so
+%{_libdir}/lib{,x}crypt.so
 %{_includedir}/{,x}crypt.h
 %{_libdir}/pkgconfig/{libcrypt,%{name}}.pc
 %{_mandir}/man3/crypt{,_r,_ra,_rn}.3.*
@@ -461,8 +460,8 @@ done
 %if %{with staticlib}
 %files          static
 %doc %{_pkgdocdir}/README.static
-/%{_lib}/.lib{,x}crypt.a.hmac
-/%{_lib}/lib{,x}crypt.a
+%{_libdir}/.lib{,x}crypt.a.hmac
+%{_libdir}/lib{,x}crypt.a
 %endif
 
 
