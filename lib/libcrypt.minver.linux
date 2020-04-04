@@ -52,4 +52,4 @@ powerpc.*	GLIBC_2.0
 s390.*		GLIBC_2.0
 sh.*		GLIBC_2.0
 sparc.*		GLIBC_2.0
-x86_64.*        GLIBC_2.0       /* 32 */
+x86_64.*	GLIBC_2.0       /* 32 */
