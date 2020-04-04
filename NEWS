@@ -4,6 +4,7 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.16
+* Add support for the e2k architecture.
 
 Version 4.4.15
 * The compatibility symbols crypt_gensalt_r, xcrypt, xcrypt_r,
