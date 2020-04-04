@@ -42,6 +42,7 @@ powerpc64.*	GLIBC_2.3
 x86_64.*	GLIBC_2.2.5     /* 64 */ defined __x86_64__
 s390x.*		GLIBC_2.2
 alpha.*		GLIBC_2.0
+e2k.*		GLIBC_2.0
 hppa.*		GLIBC_2.0
 i[3-9]86.*	GLIBC_2.0
 ia64.*		GLIBC_2.0
