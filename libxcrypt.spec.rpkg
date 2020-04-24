@@ -128,26 +128,38 @@
   --with-pkgconfigdir=%{_libdir}/pkgconfig
 
 
+# Macros for shorthand.
+%global _fipsdir %{_libdir}/fipscheck
+
+
 # Add generation of HMAC checksums of the final stripped
 # binaries.  %%define with lazy globbing is used here
 # intentionally, because using %%global does not work.
-%define __spec_install_post                           \
-%{?__debug_package:%{__debug_install_post}}           \
-%{__arch_install_post}                                \
-%{__os_install_post}                                  \
-fipshmac %{buildroot}%{_libdir}/libcrypt.so.%{sov}    \
-ln -s .libcrypt.so.%{sov}.hmac                        \\\
-  %{buildroot}%{_libdir}/.libcrypt.so.%{soc}.hmac     \
-if [[ %{with staticlib} == 1 ]]; then                 \
-  fipshmac %{buildroot}%{_libdir}/libcrypt.a          \
-  ln -s .libcrypt.a.hmac                              \\\
-    %{buildroot}%{_libdir}/.libxcrypt.a.hmac          \
-fi                                                    \
-if [[ %{with compat_pkg} == 1 ]]; then                \
-  fipshmac %{buildroot}%{_libdir}/libcrypt.so.%{csov} \
-  ln -s .libcrypt.so.%{csov}.hmac                     \\\
-    %{buildroot}%{_libdir}/.libcrypt.so.%{csoc}.hmac  \
-fi                                                    \
+%define __spec_install_post                 \
+%{?__debug_package:%{__debug_install_post}} \
+%{__arch_install_post}                      \
+%{__os_install_post}                        \
+libdir="%{buildroot}%{_libdir}"             \
+fipsdir="$libdir/fipscheck"                 \
+mkdir -p $fipsdir                           \
+fipshmac -d $fipsdir                        \\\
+  $libdir/libcrypt.so.%{sov}                \
+ln -s libcrypt.so.%{sov}.hmac               \\\
+  $fipsdir/libcrypt.so.%{soc}.hmac          \
+if [[ %{with staticlib} == 1 ]]; then       \
+  fipshmac -d $fipsdir                      \\\
+    $libdir/libcrypt.a                      \
+  if [[ %{without new_api} == 1 ]]; then    \
+    ln -s .libcrypt.a.hmac                  \\\
+      $fipsdir/libxcrypt.a.hmac             \
+  fi                                        \
+fi                                          \
+if [[ %{with compat_pkg} == 1 ]]; then      \
+  fipshmac -d $fipsdir                      \\\
+    $libdir/libcrypt.so.%{csov}             \
+  ln -s libcrypt.so.%{csov}.hmac            \\\
+    $fipsdir/libcrypt.so.%{csoc}.hmac       \
+fi                                          \
 %{nil}
 
 
@@ -419,6 +431,7 @@ done
 
 
 %files
+%dir %{_fipsdir}
 %doc %dir %{_pkgdocdir}
 %doc %{_pkgdocdir}/NEWS
 %doc %{_pkgdocdir}/README
@@ -430,38 +443,62 @@ done
 %endif
 %doc %{_pkgdocdir}/THANKS
 %license AUTHORS COPYING.LIB LICENSING
-%{_libdir}/.libcrypt.so.{%{soc},%{sov}}.hmac
-%{_libdir}/libcrypt.so.{%{soc},%{sov}}
-%{_mandir}/man5/crypt.5.*
+%{_fipsdir}/libcrypt.so.%{soc}.hmac
+%{_fipsdir}/libcrypt.so.%{sov}.hmac
+%{_libdir}/libcrypt.so.%{soc}
+%{_libdir}/libcrypt.so.%{sov}
+%{_mandir}/man5/crypt.5*
 
 
 %if %{with compat_pkg}
 %files          compat
+%dir %{_fipsdir}
 %if %{with enosys_stubs}
 %doc %{_pkgdocdir}/README.posix
 %endif
-%{_libdir}/.libcrypt.so.{%{csoc},%{csov}}.hmac
-%{_libdir}/libcrypt.so.{%{csoc},%{csov}}
+%{_fipsdir}/libcrypt.so.%{csoc}.hmac
+%{_fipsdir}/libcrypt.so.%{csov}.hmac
+%{_libdir}/libcrypt.so.%{csoc}
+%{_libdir}/libcrypt.so.%{csov}
 %endif
 
 
 %files          devel
 %doc %{_pkgdocdir}/ChangeLog
 %doc %{_pkgdocdir}/TODO
-%{_libdir}/lib{,x}crypt.so
-%{_includedir}/{,x}crypt.h
-%{_libdir}/pkgconfig/{libcrypt,%{name}}.pc
-%{_mandir}/man3/crypt{,_r,_ra,_rn}.3.*
-%{_mandir}/man3/crypt_checksalt.3.*
-%{_mandir}/man3/crypt_gensalt{,_ra,_rn}.3.*
-%{_mandir}/man3/crypt_preferred_method.3.*
+%{_libdir}/libcrypt.so
+%if %{without new_api}
+%{_libdir}/libxcrypt.so
+%endif
+%{_includedir}/crypt.h
+%if %{without new_api}
+%{_includedir}/xcrypt.h
+%endif
+%{_libdir}/pkgconfig/libcrypt.pc
+%{_libdir}/pkgconfig/%{name}.pc
+%{_mandir}/man3/crypt.3*
+%{_mandir}/man3/crypt_r.3*
+%{_mandir}/man3/crypt_ra.3*
+%{_mandir}/man3/crypt_rn.3*
+%{_mandir}/man3/crypt_checksalt.3*
+%{_mandir}/man3/crypt_gensalt.3*
+%{_mandir}/man3/crypt_gensalt_ra.3*
+%{_mandir}/man3/crypt_gensalt_rn.3*
+%{_mandir}/man3/crypt_preferred_method.3*
 
 
 %if %{with staticlib}
 %files          static
+%dir %{_fipsdir}
 %doc %{_pkgdocdir}/README.static
-%{_libdir}/.lib{,x}crypt.a.hmac
-%{_libdir}/lib{,x}crypt.a
+%{_fipsdir}/libcrypt.a.hmac
+%if %{without new_api}
+%{_fipsdir}/libxcrypt.a.hmac
+%endif
+%{_libdir}/libcrypt.a
+%if %{without new_api}
+%{_libdir}/libxcrypt.a
+%endif
 %endif
 
 
