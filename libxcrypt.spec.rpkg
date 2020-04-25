@@ -163,6 +163,11 @@ fi                                          \
 %{nil}
 
 
+# Fail linking if there are undefined symbols.
+# Required for proper ELF symbol versioning support.
+%global _ld_strict_symbol_defs 1
+
+
 Name:           {{{ git_name }}}
 Version:        {{{ git_real_version }}}
 Release:        0.{{{ git_real_release }}}%{?dist}
