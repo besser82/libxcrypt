@@ -26,19 +26,6 @@
 %bcond_without staticlib
 
 
-# Run memcheck?
-%ifarch %{valgrind_arches}
-# Valgrind does not work well on %%{power64} arches.
-%ifarch %{power64}
-%bcond_with    memcheck
-%else
-%bcond_without memcheck
-%endif
-%else
-%bcond_with    memcheck
-%endif
-
-
 # Shared object version of libcrypt.
 %if %{with new_api}
 %global soc  2
@@ -119,11 +106,7 @@
 %else                                      \
   --disable-static                         \\\
 %endif                                     \
-%if %{with memcheck}                       \
-  --enable-valgrind                        \\\
-%else                                      \
   --disable-valgrind                       \\\
-%endif                                     \
   --srcdir=$(realpath ..)                  \\\
   --with-pkgconfigdir=%{_libdir}/pkgconfig
 
@@ -187,9 +170,6 @@ BuildRequires:  fipscheck
 BuildRequires:  gcc
 BuildRequires:  glibc-devel           >= %{glibc_minver}
 BuildRequires:  libtool
-%if %{with memcheck}
-BuildRequires:  valgrind
-%endif
 
 # We do not need to keep this forever.
 %if !(0%{?fedora} > 31 || 0%{?rhel} > 10)
@@ -416,16 +396,6 @@ for dir in ${build_dirs}; do
       echo "-----END TESTLOG: ${dir}-----";
       exit $rc;
     }
-%if %{with memcheck}
-  %make_build -C ${dir} check-valgrind-memcheck || \
-    {
-      rc=$?;
-      echo "-----BEGIN TESTLOG: ${dir}-----";
-      cat ${dir}/test-suite-memcheck.log;
-      echo "-----END TESTLOG: ${dir}-----";
-      exit $rc;
-    }
-%endif
 done
 
 
