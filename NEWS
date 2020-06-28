@@ -7,6 +7,16 @@ Version 4.4.17
 * Fix compilation error in 'alignas (type)' with older versions
   of glibc and/or gcc (issue #107).
 
+* Salt string compatibility with generic implementations (issue #105).
+  All other existing implementations of the md5crypt, sha256crypt,
+  and sha512crypt hashing methods allow any ASCII character to be
+  present in the salt string.
+  We changed our implementation of these hash methods to be compliant
+  with the general behaviour, except for the colon ':' character,
+  which serves a special purpose in the Unix shadow file, and the
+  newline '\n' character, since all parameters of the user data must
+  be on the same line within the Unix shadow file.
+
 Version 4.4.16
 * Add support for the e2k architecture.
 
