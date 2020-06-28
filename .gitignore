@@ -104,6 +104,7 @@ test/ka-sunmd5
 test/ka-yescrypt
 test/preferred-method
 test/short-outbuf
+test/special-char-salt
 /xcrypt.h
 
 # backup-files

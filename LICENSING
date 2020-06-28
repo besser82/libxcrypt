@@ -55,7 +55,7 @@ source tree.  For specific licensing terms consult the files themselves.
 
  * Copyright Björn Esser; 0-clause BSD:
    crypt-common.c, test-checksalt.c, test-compile-strong-alias.c,
-   test-gensalt-nthash.c, test-short-outbuf.c
+   test-gensalt-nthash.c, test-short-outbuf.c, test-special-char-salt.c
 
  * Copyright Michael Bretterklieber, Björn Esser et al.; 2-clause BSD:
    crypt-nthash.c

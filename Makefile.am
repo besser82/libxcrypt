@@ -344,7 +344,8 @@ check_PROGRAMS = \
 	test/getrandom-fallbacks \
 	test/getrandom-interface \
 	test/preferred-method \
-	test/short-outbuf
+	test/short-outbuf \
+	test/special-char-salt
 
 # All of the known-answer tests are compiled from the same source file,
 # with different macros defined.
@@ -451,6 +452,7 @@ test_fcrypt_enosys_LDADD = $(COMMON_TEST_OBJECTS)
 test_crypt_badargs_LDADD = $(COMMON_TEST_OBJECTS)
 test_short_outbuf_LDADD = $(COMMON_TEST_OBJECTS)
 test_preferred_method_LDADD = $(COMMON_TEST_OBJECTS)
+test_special_char_salt_LDADD = $(COMMON_TEST_OBJECTS)
 
 test_ka_bcrypt_LDADD = $(COMMON_TEST_OBJECTS)
 test_ka_bcrypt_a_LDADD = $(COMMON_TEST_OBJECTS)
