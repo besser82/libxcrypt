@@ -2,6 +2,7 @@
    Compatible with the behavior of MD5 crypt introduced in FreeBSD 2.0.
 
    Copyright (C) 1996-2017 Free Software Foundation, Inc.
+   Modified by Björn Esser <besser82 at fedoraproject.org> in 2020.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -83,12 +84,19 @@ crypt_md5crypt_rn (const char *phrase, size_t phr_size,
     /* Skip salt prefix.  */
     salt += sizeof (md5_salt_prefix) - 1;
 
-  salt_size = strspn (salt, b64t);
-  if (salt[salt_size] && salt[salt_size] != '$')
+
+  /* The salt ends at the next '$' or the end of the string.
+     Ensure ':' does not appear in the salt (it is used as a separator in /etc/passwd).
+     Also check for '\n', as in /etc/passwd the whole parameters of the user data must
+     be on a single line. */
+  salt_size = strcspn (salt, "$:\n");
+  if (!(salt[salt_size] == '$' || !salt[salt_size]))
     {
       errno = EINVAL;
       return;
     }
+
+  /* Ensure we do not use more salt than SALT_LEN_MAX. */
   if (salt_size > SALT_LEN_MAX)
     salt_size = SALT_LEN_MAX;
 

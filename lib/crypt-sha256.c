@@ -3,6 +3,7 @@
  * Written by Ulrich Drepper <drepper at redhat.com> in 2007 [1].
  * Modified by Zack Weinberg <zackw at panix.com> in 2017, 2018.
  * Composed by Björn Esser <besser82 at fedoraproject.org> in 2018.
+ * Modified by Björn Esser <besser82 at fedoraproject.org> in 2020.
  * To the extent possible under law, the named authors have waived all
  * copyright and related or neighboring rights to this work.
  *
@@ -140,12 +141,18 @@ crypt_sha256crypt_rn (const char *phrase, size_t phr_size,
       rounds_custom = true;
     }
 
-  salt_size = strspn (salt, b64t);
-  if (salt[salt_size] && salt[salt_size] != '$')
+  /* The salt ends at the next '$' or the end of the string.
+     Ensure ':' does not appear in the salt (it is used as a separator in /etc/passwd).
+     Also check for '\n', as in /etc/passwd the whole parameters of the user data must
+     be on a single line. */
+  salt_size = strcspn (salt, "$:\n");
+  if (!(salt[salt_size] == '$' || !salt[salt_size]))
     {
       errno = EINVAL;
       return;
     }
+
+  /* Ensure we do not use more salt than SALT_LEN_MAX. */
   if (salt_size > SALT_LEN_MAX)
     salt_size = SALT_LEN_MAX;
 

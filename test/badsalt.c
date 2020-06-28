@@ -252,7 +252,7 @@ check_results (const char *label, const char *fn,
     {
       if (retval[0] == '*' ||
           strncmp (retval, setting,
-                   (setting[l_setting - 1] == '*') ? l_setting - 1 : l_setting))
+                   (setting[l_setting - 1] == ':') ? l_setting - 1 : l_setting))
         {
           printf ("FAIL: %s/%s/%s: expected success, got non-matching %s\n",
                   label, setting, fn, retval);
@@ -432,7 +432,10 @@ test_one_case (const struct testcase *t,
          result of the hash computation.  */
       p = page + pagesize - (t->plen + 2);
       memcpy (p, goodhash, t->plen);
-      p[t->plen] = '*';
+
+      /* The asterisk is a valid salt character for some hashes,
+         but the colon is never a valid salt character.  */
+      p[t->plen] = ':';
       p[t->plen+1] = '\0';
       if (!test_one_setting (t->label, p, cd, true))
         return false;
