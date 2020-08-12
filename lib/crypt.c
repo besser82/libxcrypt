@@ -32,7 +32,7 @@
    struct, since the first field must always have offset 0.  */
 struct crypt_internal
 {
-  char alignas (max_align_t) alg_specific[ALG_SPECIFIC_SIZE];
+  char alignas (alignof (max_align_t)) alg_specific[ALG_SPECIFIC_SIZE];
 };
 
 static_assert(sizeof (struct crypt_internal) + alignof (struct crypt_internal)
