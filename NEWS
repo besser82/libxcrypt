@@ -4,6 +4,8 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.17
+* Fix compilation error in 'alignas (type)' with older versions
+  of glibc and/or gcc (issue #107).
 
 Version 4.4.16
 * Add support for the e2k architecture.
