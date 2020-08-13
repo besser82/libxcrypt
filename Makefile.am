@@ -427,7 +427,8 @@ AM_TESTS_ENVIRONMENT = \
     CPP="$(CPP)"; \
     CPPFLAGS="$(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES)"; \
     CPPFLAGS="$${CPPFLAGS} $(AM_CPPFLAGS) $(CPPFLAGS)"; \
-    export host_os lib_la lib_map AWK CC CPP CPPFLAGS;
+    NM="$(NM)"; \
+    export host_os lib_la lib_map AWK CC CPP CPPFLAGS NM;
 
 if CROSS_COMPILING
 LOG_COMPILER = m4/skip-if-exec-format-error
