@@ -22,7 +22,7 @@ LC_ALL=C; export LC_ALL
 
 get_symbols_with_versions ()
 {
-    nm --dynamic --extern-only --defined-only --with-symbol-versions "$1" |
+    ${NM-nm} --dynamic --extern-only --defined-only --with-symbol-versions "$1" |
         ${AWK-awk} -v symbol_prefix="$symbol_prefix" '
             NF == 0 { next }
             {

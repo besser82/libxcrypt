@@ -24,7 +24,7 @@ LC_ALL=C; export LC_ALL
 list_library_globals ()
 {
     eval $(grep old_library= "$1")
-    nm -o --extern-only --defined-only "${1%/*}/.libs/${old_library}" |
+    ${NM-nm} -o --extern-only --defined-only "${1%/*}/.libs/${old_library}" |
         ${AWK-awk} -v symbol_prefix="$symbol_prefix" '
             NF == 0 { next }
             {
