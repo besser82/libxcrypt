@@ -179,10 +179,28 @@ _crypt_strcpy_or_abort (void *, const size_t, const void *);
 # define _strong_alias(name, aliasname) \
   extern __typeof (name) aliasname __THROW __attribute__ ((alias (#name)))
 
+/* Starting with GCC 10, we can use the symver attribute, which also works
+   with link-time optimization enabled.  */
+# if __GNUC__ >= 10
+
+/* Set the symbol version for EXTNAME, which uses INTNAME as its
+   implementation.  */
+# define symver_set(extstr, intname, version, mode) \
+  extern __typeof (intname) intname __THROW \
+    __attribute__((symver (extstr mode #version)))
+
+/* Referencing specific _compatibility_ symbols still needs inline asm.  */
+# define _symver_ref(extstr, intname, version) \
+  __asm__ (".symver " #intname "," extstr "@" #version)
+
+# else
+
 /* Set the symbol version for EXTNAME, which uses INTNAME as its
    implementation.  */
 # define symver_set(extstr, intname, version, mode) \
   __asm__ (".symver " #intname "," extstr mode #version)
+
+# endif
 
 #else
 # error "Don't know how to do symbol versioning with this compiler"
@@ -239,9 +257,14 @@ _crypt_strcpy_or_abort (void *, const size_t, const void *);
 
 /* Tests may need to _refer_ to compatibility symbols, but should never need
    to _define_ them.  */
-
 #define symver_ref(extstr, intname, version) \
+  _symver_ref(extstr, intname, version)
+
+/* Generic way for referencing specific _compatibility_ symbols.  */
+#ifndef _symver_ref
+#define _symver_ref(extstr, intname, version) \
   symver_set(extstr, intname, version, "@")
+#endif
 
 /* Define configuration macros used during compile-time by the
    GOST R 34.11-2012 "Streebog" hash function.  */
