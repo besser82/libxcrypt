@@ -8,8 +8,13 @@ dnl
 dnl Find out how to query and set data alignment.
 dnl Currently knows about C11's _Alignas and _Alignof,
 dnl and GCC's __attribute__ ((aligned)) and __alignof.
+dnl
 dnl Note: AC_PROG_CC_C11 includes a test for _Alignas and _Alignof,
 dnl but not for <stdalign.h>, which we don't bother using anyway.
+dnl
+dnl Compatibility note: alignas (TYPE) does not work when alignas() is
+dnl defined using __attribute__ ((aligned)).  Use alignas (alignof (TYPE))
+dnl instead.
 AC_DEFUN([zw_C_ALIGNAS],
   [AC_REQUIRE([AC_PROG_CC])
    AC_CACHE_CHECK([how to control data alignment], [zw_cv_c_alignas],
@@ -33,7 +38,7 @@ AC_DEFUN([zw_C_ALIGNAS],
          [AC_MSG_FAILURE([could not find a way to control data alignment])])
    AC_DEFINE_UNQUOTED([alignas(n)], [$zw_c_alignas_expr],
    [Define as a type specifier which sets the alignment of a variable or type
-    to N bytes.])
+    to N bytes.  C11 alignas(TYPE) does not need to be supported.])
 ])
 
 AC_DEFUN([zw_C_ALIGNOF],
