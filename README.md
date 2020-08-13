@@ -93,13 +93,29 @@ not always be able to retrieve cryptographically-sound random numbers
 from the operating system; if you call these functions with a null
 pointer for the “rbytes” argument, be prepared for them to fail.
 
-As of mid-2018, GCC and LLVM don’t support link-time optimization of
-libraries that use symbol versioning.  If you build libxcrypt with
-either of these compilers, do not use `-flto`.  See [GCC bug 48200][1]
-for specifics; the problem is very similar for LLVM.  Because this is,
-at its root, a set of missing compiler features, we expect link-time
-optimization won’t work in other C compilers either, but we haven’t
-tested it ourselves.
+As of August 2020, link-time optimization (`-flto`) of libraries that use
+symbol versioning is initially supported by GCC 10 and LLVM/Clang 10, if
+their compiler specific toolchain is used during compilation.
+
+For GCC the needed tools are called with:
+```
+./configure CC="gcc" AR="gcc-ar" NM="gcc-nm" RANLIB="gcc-ranlib" \
+CFLAGS="-O2 -flto -g" ...
+```
+and for LLVM/Clang those tools are called with:
+```
+./configure CC="clang" AR="llvm-ar" NM="llvm-nm" RANLIB="llvm-ranlib" \
+CFLAGS="-O2 -flto -g" ...
+```
+
+To build static libraries, that can be linked against non-LTO objects
+one may also want to add `-ffat-lto-objects` to the CFLAGS.
+
+If you build libxcrypt with earlier versions of these compilers, do not
+use `-flto`.  See [GCC bug 48200][1] for specifics; the problem is very
+similar for LLVM.  Because this is, at its root, a set of missing compiler
+features, we expect link-time optimization won’t work in other C compilers
+either, but we haven’t tested it ourselves.
 
 [1]: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=48200
 
