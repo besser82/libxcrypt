@@ -250,7 +250,7 @@ int main(void)
 			    {flags, (uint64_t)1 << N_log2, r, p, 0, 0, 0};
 			setting = yescrypt_encode_params(&params,
 			    (const uint8_t *)"WZaPV7LSUEKMo34.", 16 - (i & 15));
-			if (i == 0)
+			if (setting && i == 0)
 				printf("'%s'\n", (char *)setting);
 			if (!setting) {
 				printf("%d yescrypt_encode_params() = NULL\n", i);
