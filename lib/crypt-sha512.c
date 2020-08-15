@@ -149,7 +149,6 @@ crypt_sha512crypt_rn (const char *phrase, size_t phr_size,
     }
   if (salt_size > SALT_LEN_MAX)
     salt_size = SALT_LEN_MAX;
-  phr_size = strlen (phrase);
 
   /* Compute alternate SHA512 sum with input PHRASE, SALT, and PHRASE.  The
      final result will be added to the first context.  */
