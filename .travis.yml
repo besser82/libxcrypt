@@ -5,10 +5,11 @@ addons:
     packages:
       - autoconf
       - automake
+      - clang
       - gawk
       - lcov
       - libtool
-      - llvm
+      - llvm-dev
       - pkg-config
       - python3-venv
       - valgrind
@@ -83,6 +84,13 @@ matrix:
       os: linux
       env:
         - CONF="--enable-obsolete-api --enable-hashes=all"
+        - SANITIZER=1
+    - name: "Linux, Clang, all hashes, obsolete API, LTO, ASan+UBSan"
+      compiler: clang
+      os: linux
+      env:
+        - CONF="--enable-obsolete-api --enable-hashes=all"
+        - LTO=1
         - SANITIZER=1
     - name: "Linux, GCC, all hashes, static lib"
       compiler: gcc
