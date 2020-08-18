@@ -209,7 +209,7 @@ Supported on Linux but not common elsewhere.
 Acceptable for new hashes.
 The default CPU time cost parameter is 5000,
 which is too low for modern hardware.
-.hash "$6$" "\e$6\e$(rounds=[1-9][0-9]+\e$)?[./0-9A-Za-z]{1,16}\e$[./0-9A-Za-z]{86}" unlimited 8 512 512 "6 to 96" "1000 to 999,999,999"
+.hash "$6$" "\e$6\e$(rounds=[1-9][0-9]+\e$)?[^$:\(rsn]{1,16}\e$[./0-9A-Za-z]{86}" unlimited 8 512 512 "6 to 96" "1000 to 999,999,999"
 .Ss sha256crypt
 A hash based on SHA-2 with 256-bit output,
 originally developed by Ulrich Drepper for GNU libc.
@@ -217,7 +217,7 @@ Supported on Linux but not common elsewhere.
 Acceptable for new hashes.
 The default CPU time cost parameter is 5000,
 which is too low for modern hardware.
-.hash "$5$" "\e$5\e$(rounds=[1-9][0-9]+\e$)?[./0-9A-Za-z]{1,16}\e$[./0-9A-Za-z]{43}" unlimited 8 256 256 "6 to 96" "1000 to 999,999,999"
+.hash "$5$" "\e$5\e$(rounds=[1-9][0-9]+\e$)?[^$:\(rsn]{1,16}\e$[./0-9A-Za-z]{43}" unlimited 8 256 256 "6 to 96" "1000 to 999,999,999"
 .Ss sha1crypt
 A hash based on HMAC-SHA1.
 Originally developed by Simon Gerraty for NetBSD.
@@ -242,7 +242,7 @@ Not as weak as the DES-based hashes below,
 but MD5 is so cheap on modern hardware
 that it should not be used for new hashes.
 CPU time cost is not adjustable.
-.hash "$1$" "\e$1\e$[^$]{1,8}\e$[./0-9A-Za-z]{22}" unlimited 8 128 128 "6 to 48" 1000
+.hash "$1$" "\e$1\e$[^$:\(rsn]{1,8}\e$[./0-9A-Za-z]{22}" unlimited 8 128 128 "6 to 48" 1000
 .Ss bsdicrypt (BSDI extended DES)
 A weak extension of traditional DES,
 which eliminates the length limit,
