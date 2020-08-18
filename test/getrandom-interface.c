@@ -15,7 +15,6 @@
 #include <string.h>
 #include <signal.h>
 #include <sys/mman.h>
-#include <unistd.h>
 
 static bool error_occurred;
 

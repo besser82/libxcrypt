@@ -50,6 +50,20 @@
 #include <sys/param.h>
 #endif
 
+/* The prototype of the crypt() function possibly defined in <unistd.h>
+   needs to be renamed as it might be incompatible with our declaration.
+   Defining this macro *AFTER* the crypt-symbol-vers header, which also
+   defines the same macro for symbol-versioning purposes, was included,
+   would lead to a clashing redefinition of this macro, and thus cause
+   our symbol-versioning would not work properly.  */
+#ifdef HAVE_UNISTD_H
+#define crypt unistd_crypt_is_incompatible
+#define crypt_r unistd_crypt_r_is_incompatible
+#include <unistd.h>
+#undef crypt
+#undef crypt_r
+#endif
+
 #ifndef HAVE_SYS_CDEFS_THROW
 #define __THROW /* nothing */
 #endif

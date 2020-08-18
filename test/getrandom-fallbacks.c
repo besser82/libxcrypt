@@ -23,9 +23,6 @@
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 
 /* If arc4random_buf is available, all of the fallback logic is compiled
    out and this test is unnecessary.  If ld --wrap is not available this
