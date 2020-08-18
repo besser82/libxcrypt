@@ -17,6 +17,11 @@ Version 4.4.17
   newline '\n' character, since all parameters of the user data must
   be on the same line within the Unix shadow file.
 
+* Building with link-time optimization (-flto) enabled is now
+  possible with either GCC 10 or LLVM/Clang 10 (issue #24).
+  See the 'Portability Notes' section of the README.md file for
+  detailed instructions and possible caveats.
+
 Version 4.4.16
 * Add support for the e2k architecture.
 

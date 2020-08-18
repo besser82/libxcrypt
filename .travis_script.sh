@@ -133,6 +133,29 @@ if [[ "$SANITIZER" == "1" ]]; then
   export CXXFLAGS="$CXXFLAGS -fsanitize=undefined,address"
 fi
 
+if [[ "$LTO" == "1" ]]; then
+  if [[ "$CC" == "gcc" ]]; then
+    export CC="gcc-10"
+    export CPP="cpp-10"
+    export CXX="g++-10"
+    export AR="gcc-ar-10"
+    export NM="gcc-nm-10"
+    export RANLIB="gcc-ranlib-10"
+    export CFLAGS="$CFLAGS -flto=auto -ffat-lto-objects"
+    export CXXFLAGS="$CXXFLAGS -flto=auto -ffat-lto-objects"
+  fi
+  if [[ "$CC" == "clang" ]]; then
+    export CC="/usr/bin/clang"
+    export CPP="/usr/bin/clang-cpp-10"
+    export CXX="/usr/bin/clang++"
+    export AR="/usr/bin/llvm-ar"
+    export NM="/usr/bin/llvm-nm"
+    export RANLIB="/usr/bin/llvm-ranlib"
+    export CFLAGS="$CFLAGS -flto"
+    export CXXFLAGS="$CXXFLAGS -flto"
+  fi
+fi
+
 pushd build
 log_time preparation
 

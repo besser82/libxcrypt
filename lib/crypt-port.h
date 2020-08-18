@@ -50,6 +50,20 @@
 #include <sys/param.h>
 #endif
 
+/* The prototype of the crypt() function possibly defined in <unistd.h>
+   needs to be renamed as it might be incompatible with our declaration.
+   Defining this macro *AFTER* the crypt-symbol-vers header, which also
+   defines the same macro for symbol-versioning purposes, was included,
+   would lead to a clashing redefinition of this macro, and thus cause
+   our symbol-versioning would not work properly.  */
+#ifdef HAVE_UNISTD_H
+#define crypt unistd_crypt_is_incompatible
+#define crypt_r unistd_crypt_r_is_incompatible
+#include <unistd.h>
+#undef crypt
+#undef crypt_r
+#endif
+
 #ifndef HAVE_SYS_CDEFS_THROW
 #define __THROW /* nothing */
 #endif
@@ -179,10 +193,28 @@ _crypt_strcpy_or_abort (void *, const size_t, const void *);
 # define _strong_alias(name, aliasname) \
   extern __typeof (name) aliasname __THROW __attribute__ ((alias (#name)))
 
+/* Starting with GCC 10, we can use the symver attribute, which also works
+   with link-time optimization enabled.  */
+# if __GNUC__ >= 10
+
+/* Set the symbol version for EXTNAME, which uses INTNAME as its
+   implementation.  */
+# define symver_set(extstr, intname, version, mode) \
+  extern __typeof (intname) intname __THROW \
+    __attribute__((symver (extstr mode #version)))
+
+/* Referencing specific _compatibility_ symbols still needs inline asm.  */
+# define _symver_ref(extstr, intname, version) \
+  __asm__ (".symver " #intname "," extstr "@" #version)
+
+# else
+
 /* Set the symbol version for EXTNAME, which uses INTNAME as its
    implementation.  */
 # define symver_set(extstr, intname, version, mode) \
   __asm__ (".symver " #intname "," extstr mode #version)
+
+# endif
 
 #else
 # error "Don't know how to do symbol versioning with this compiler"
@@ -239,9 +271,14 @@ _crypt_strcpy_or_abort (void *, const size_t, const void *);
 
 /* Tests may need to _refer_ to compatibility symbols, but should never need
    to _define_ them.  */
-
 #define symver_ref(extstr, intname, version) \
+  _symver_ref(extstr, intname, version)
+
+/* Generic way for referencing specific _compatibility_ symbols.  */
+#ifndef _symver_ref
+#define _symver_ref(extstr, intname, version) \
   symver_set(extstr, intname, version, "@")
+#endif
 
 /* Define configuration macros used during compile-time by the
    GOST R 34.11-2012 "Streebog" hash function.  */
