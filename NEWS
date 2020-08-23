@@ -17,6 +17,8 @@ Version 4.4.17
   newline '\n' character, since all parameters of the user data must
   be on the same line within the Unix shadow file.
 
+* Fix for GCC 10.2 on s390x.
+
 Version 4.4.16
 * Add support for the e2k architecture.
 
