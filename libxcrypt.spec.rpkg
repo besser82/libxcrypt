@@ -111,41 +111,6 @@
   --with-pkgconfigdir=%{_libdir}/pkgconfig
 
 
-# Macros for shorthand.
-%global _fipsdir %{_libdir}/fipscheck
-
-
-# Add generation of HMAC checksums of the final stripped
-# binaries.  %%define with lazy globbing is used here
-# intentionally, because using %%global does not work.
-%define __spec_install_post                 \
-%{?__debug_package:%{__debug_install_post}} \
-%{__arch_install_post}                      \
-%{__os_install_post}                        \
-libdir="%{buildroot}%{_libdir}"             \
-fipsdir="$libdir/fipscheck"                 \
-mkdir -p $fipsdir                           \
-fipshmac -d $fipsdir                        \\\
-  $libdir/libcrypt.so.%{sov}                \
-ln -s libcrypt.so.%{sov}.hmac               \\\
-  $fipsdir/libcrypt.so.%{soc}.hmac          \
-if [[ %{with staticlib} == 1 ]]; then       \
-  fipshmac -d $fipsdir                      \\\
-    $libdir/libcrypt.a                      \
-  if [[ %{without new_api} == 1 ]]; then    \
-    ln -s .libcrypt.a.hmac                  \\\
-      $fipsdir/libxcrypt.a.hmac             \
-  fi                                        \
-fi                                          \
-if [[ %{with compat_pkg} == 1 ]]; then      \
-  fipshmac -d $fipsdir                      \\\
-    $libdir/libcrypt.so.%{csov}             \
-  ln -s libcrypt.so.%{csov}.hmac            \\\
-    $fipsdir/libcrypt.so.%{csoc}.hmac       \
-fi                                          \
-%{nil}
-
-
 # Fail linking if there are undefined symbols.
 # Required for proper ELF symbol versioning support.
 %global _ld_strict_symbol_defs 1
@@ -171,7 +136,6 @@ Source0:        {{{ git_dir_pack }}}
 
 BuildRequires:  autoconf
 BuildRequires:  automake
-BuildRequires:  fipscheck
 BuildRequires:  gcc
 BuildRequires:  glibc-devel           >= %{glibc_minver}
 BuildRequires:  libtool
@@ -411,7 +375,6 @@ done
 
 
 %files
-%dir %{_fipsdir}
 %doc %dir %{_pkgdocdir}
 %doc %{_pkgdocdir}/NEWS
 %doc %{_pkgdocdir}/README
@@ -423,8 +386,6 @@ done
 %endif
 %doc %{_pkgdocdir}/THANKS
 %license AUTHORS COPYING.LIB LICENSING
-%{_fipsdir}/libcrypt.so.%{soc}.hmac
-%{_fipsdir}/libcrypt.so.%{sov}.hmac
 %{_libdir}/libcrypt.so.%{soc}
 %{_libdir}/libcrypt.so.%{sov}
 %{_mandir}/man5/crypt.5*
@@ -432,12 +393,9 @@ done
 
 %if %{with compat_pkg}
 %files          compat
-%dir %{_fipsdir}
 %if %{with enosys_stubs}
 %doc %{_pkgdocdir}/README.posix
 %endif
-%{_fipsdir}/libcrypt.so.%{csoc}.hmac
-%{_fipsdir}/libcrypt.so.%{csov}.hmac
 %{_libdir}/libcrypt.so.%{csoc}
 %{_libdir}/libcrypt.so.%{csov}
 %endif
@@ -469,12 +427,7 @@ done
 
 %if %{with staticlib}
 %files          static
-%dir %{_fipsdir}
 %doc %{_pkgdocdir}/README.static
-%{_fipsdir}/libcrypt.a.hmac
-%if %{without new_api}
-%{_fipsdir}/libxcrypt.a.hmac
-%endif
 %{_libdir}/libcrypt.a
 %if %{without new_api}
 %{_libdir}/libxcrypt.a
