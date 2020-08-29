@@ -125,7 +125,7 @@ test_fault (char *page, size_t pagesize)
 }
 
 /* In one of the tests above, a segmentation fault is the expected result.  */
-static jmp_buf env;
+static sigjmp_buf env;
 static void
 segv_handler (int sig)
 {
