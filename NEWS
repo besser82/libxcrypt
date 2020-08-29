@@ -4,6 +4,7 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.18
+* Fix compilation errors on (Free)BSD (issue #110).
 
 Version 4.4.17
 * Fix compilation error in 'alignas (type)' with older versions
