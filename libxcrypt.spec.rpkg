@@ -272,7 +272,7 @@ This version of the libcrypt.so.1 library has entirely removed
 the functionality of the encrypt, encrypt_r, setkey, setkey_r,
 and fcrypt functions, while keeping fully binary compatibility
 with existing (third-party) applications possibly still using
-those funtions.  If such an application attemps to call one of
+those functions.  If such an application attempts to call one of
 these functions, the corresponding function will indicate that
 it is not supported by the system in a POSIX-compliant way.
 

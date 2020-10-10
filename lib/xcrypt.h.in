@@ -28,7 +28,7 @@
    (v3.1.1 and earlier) of libxcrypt.
    We intentionally declare these functions using macros here,
    since we actually want to link compiled applications against
-   the unprefixed indentical functions defined in <crypt.h>.  */
+   the unprefixed identical functions defined in <crypt.h>.  */
 #ifndef IN_LIBCRYPT  /* Defined when building libxcrypt. */
 # ifdef __REDIRECT_NTH
 extern char * __REDIRECT_NTH (xcrypt, (const char *__phrase,

@@ -170,7 +170,7 @@ Version 4.3.2
 * Fix the gensalt function for the NT hashing method ($3$) to
   properly terminate its output string.  The output buffer for the
   returned string must be at least 30 bytes long.
-* Remove the gensalt fuction for the bcrypt x variant ($2x$).
+* Remove the gensalt function for the bcrypt x variant ($2x$).
   This prefix was never intended for use when hashing new passphrases.
   The only use case originally intended was to manually edit '$2a$' to
   '$2x$' in passphrase hashes to knowingly take the risk yet enable
