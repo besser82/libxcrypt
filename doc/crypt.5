@@ -189,6 +189,30 @@ The algorithm was specifically designed to make it costly to perform
 large-scale custom hardware attacks by requiring large amounts of memory.
 In 2016, the scrypt algorithm was published by IETF as RFC 7914.
 .hash "$7$" "\e$7\e$[./A-Za-z0-9]{11,97}\e$[./A-Za-z0-9]{43}" unlimited 8 256 256 "up to 512" "6 to 11 (logarithmic)"
+.Ss argon2_d
+Argon2d is a memory-hard function for password-hashing and proof-of-work
+applications. It aims at the highest memory filling rate and effective use
+of multiple computing units, while still providing defense against tradeoff
+attacks. Argon2d uses data-dependent memory access, which makes it suitable
+for cryptocurrencies and proof-of-work applications with no threats from
+side-channel timing attacks.
+.hash "$argon2d$" "\e$argon2i\e$v=[0-9]{2}\e$m=[0-9]{1,10},t=[0-9]{1,10},p=[0-9]{1,10}\e$[A-Za-z0-9/+]{11,86}$[A-Za-z0-9/+]{43}" unlimited 8 256 256 "64 to 512" "1 to 4,294,967,295"
+.Ss argon2_i
+argon2_i is a memory-hard function for password-hashing and proof-of-work
+applications. It aims at the highest memory filling rate and effective use
+of multiple computing units, while still providing defense against tradeoff
+attacks. Argon2i uses data-independent memory access, which is preferred
+for password hashing and password-based key derivation.
+.hash "$argon2i$" "\e$argon2i\e$v=[0-9]{2}\e$m=[0-9]{1,10},t=[0-9]{1,10},p=[0-9]{1,10}\e$[A-Za-z0-9/+]{11,86}$[A-Za-z0-9/+]{43}" unlimited 8 256 256 "64 to 512" "1 to 4,294,967,295"
+.Ss argon2_id
+Argon2id is a memory-hard function for password-hashing and proof-of-work
+applications. It aims at the highest memory filling rate and effective use
+of multiple computing units, while still providing defense against tradeoff
+attacks. Argon2id works as Argon2i for the first half of the first pass
+over the memory, and as Argon2d for the rest, thus providing both
+side-channel attack protection and brute-force cost savings due to
+time-memory tradeoffs.
+.hash "$argon2id$" "\e$argon2i\e$v=[0-9]{2}\e$m=[0-9]{1,10},t=[0-9]{1,10},p=[0-9]{1,10}\e$[A-Za-z0-9/+]{11,86}$[A-Za-z0-9/+]{43}" unlimited 8 256 256 "64 to 512" "1 to 4,294,967,295"
 .Ss bcrypt
 A hash based on the Blowfish block cipher,
 modified to have an extra-expensive key schedule.

@@ -63,6 +63,7 @@ nodist_noinst_HEADERS = \
 	crypt-hashes.h \
 	crypt-symbol-vers.h
 noinst_HEADERS = \
+	lib/alg-argon2-encoding.h \
 	lib/alg-des.h \
 	lib/alg-gost3411-2012-const.h \
 	lib/alg-gost3411-2012-core.h \
@@ -97,6 +98,7 @@ lib_LTLIBRARIES = \
 	libcrypt.la
 
 libcrypt_la_SOURCES = \
+	lib/alg-argon2-encoding.c \
 	lib/alg-des-tables.c \
 	lib/alg-des.c \
 	lib/alg-gost3411-2012-core.c \
@@ -109,6 +111,7 @@ libcrypt_la_SOURCES = \
 	lib/alg-sha512.c \
 	lib/alg-yescrypt-common.c \
 	lib/alg-yescrypt-opt.c \
+	lib/crypt-argon2.c \
 	lib/crypt-bcrypt.c \
 	lib/crypt-common.c \
 	lib/crypt-des.c \

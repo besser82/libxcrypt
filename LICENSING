@@ -89,6 +89,12 @@ source tree.  For specific licensing terms consult the files themselves.
  * Copyright <vt at altlinux.org>; 0-clause BSD:
    crypt-yescrypt.c, test-crypt-yescrypt.c
 
+ * Copyright Daniel Dinu et al.; CC0 1.0 Universal/Apache 2.0:
+   alg-argon2-encoding.c
+
+ * Copyright <ferivoz at riseup.net>; 0-clause BSD:
+   crypt-argon2.c
+
  * Copyright Kevin Cernekee; FSF All Permissive License:
    m4/ax_check_vscript.m4
 
