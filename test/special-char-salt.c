@@ -16,7 +16,7 @@
  * SUCH DAMAGE.
  */
 
-/* Simple test to ensure compatability of our implementations of the
+/* Simple test to ensure compatibility of our implementations of the
    md5crypt, sha256crypt, and sha512crypt hashing method with the ones
    found in other commonly used libcrypt libraries.  Their implementations
    allow for any ASCII character (with one exception to the colon ':'

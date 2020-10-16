@@ -100,7 +100,7 @@
 
 	* release version 3.0
 
-	* plugins/*: Move all crypt releated code into plugins.
+	* plugins/*: Move all crypt related code into plugins.
 	* plugins/sha256: New, $5$ aka sha256 hash.
 	* plugins/sha512: New, $6$ aka sha512 hash.
 
@@ -153,7 +153,7 @@
 
 	* src/x86.S: Added, optimized, thread safe version for ix86.
 
-	* src/crypt_blowfish.c: Use optimized assember functions on ix86.
+	* src/crypt_blowfish.c: Use optimized assembler functions on ix86.
 
 	* libxcrypt.spec: New.
 

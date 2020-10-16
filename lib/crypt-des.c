@@ -215,7 +215,7 @@ crypt_descrypt_rn (const char *phrase, size_t ARG_UNUSED (phr_size),
    Description: The cleartext is divided into blocks of 8 characters
    or less. Each block is encrypted using the standard UNIX libc crypt
    function. The result of the encryption for one block provides the
-   salt for the suceeding block.  The output is simply the
+   salt for the succeeding block.  The output is simply the
    concatenation of all the blocks.  Up to 16 blocks are supported
    (that is, the password can be no more than 128 characters long).
 

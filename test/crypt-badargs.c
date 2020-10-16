@@ -15,7 +15,6 @@
 #include <string.h>
 #include <signal.h>
 #include <sys/mman.h>
-#include <unistd.h>
 
 /* The behavior tested below should be consistent for all hashing
    methods.  */
@@ -79,7 +78,7 @@ static const char *settings[] =
 };
 
 /* In some of the tests below, a segmentation fault is the expected result.  */
-static jmp_buf env;
+static sigjmp_buf env;
 static void
 segv_handler (int sig)
 {

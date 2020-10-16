@@ -22,7 +22,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/mman.h>
-#include <unistd.h>
 
 static const char phrase[] = "values of β will give rise to dom!";
 
