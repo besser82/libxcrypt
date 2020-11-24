@@ -1,0 +1,12 @@
+install_man(
+    'crypt.3',
+    'crypt_checksalt.3',
+    'crypt_gensalt.3',
+    'crypt_gensalt_ra.3',
+    'crypt_gensalt_rn.3',
+    'crypt_preferred_method.3',
+    'crypt_r.3',
+    'crypt_ra.3',
+    'crypt_rn.3',
+    'crypt.5',
+)

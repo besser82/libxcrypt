@@ -1,0 +1,61 @@
+# If false, make crypt and crypt_r return NULL on failure, instead of a
+# special "failure token" string that isn\'t the hash of any passphrase.
+# This matches the behavior of several other crypt implementations, but
+# will break programs that assume these functions never return NULL.
+# crypt_rn and crypt_ra are not affected by this option, and will always
+# return NULL on failure.
+option('failure-tokens', type: 'boolean', value: true,
+    description: 'Return failure token instead of NULL on failure. Read meson_options.txt for details.'
+)
+
+option('xcrypt-compat-files', type: 'boolean', value: true,
+    description: 'Install compatibility symlinks for <xcrypt.h> and libxcrypt.{a,so}.'
+)
+
+
+# When set to "yes", include all compatibility interfaces.
+# When set to "alt", include interfaces for compatibility with ALT.
+# When set to "glibc", include interfaces for compatibility with glibc.
+# When set to "owl", include interfaces for compatibility with Owl.
+# When set to "suse", include interfaces for compatibility with SUSE.
+# When set to "no", do not include any compatibility definitions at all,
+# and change the soname of the installed library to libcrypt.so.2.
+# This setting only affects existing binaries; new programs cannot be linked
+# magainst the obsolete APIs (bigcrypt, fcrypt, encrypt, setkey) in any case.
+option('obsolete-api', type: 'combo', value: 'yes',
+    choices: [ 'yes', 'alt', 'glibc', 'owl', 'suse', 'no' ],
+    description: 'Enable compatibility APIs. Read meson_options.txt for details.'
+)
+
+
+
+# If set to true, this option replaces the obsolete APIs
+# (fcrypt, encrypt{,_r}, and setkey{,_r}) with stubs that
+# set errno to ENOSYS and return without performing any real
+# operations. This allows one to disable descrypt support
+# while preserving POSIX compliance. For security reasons,
+# the encrypt{,r} functions will also overwrite their data-block
+# argument with random bits. The fcrypt function will always
+# produce a failure token (*0 or *1), unless the library was
+# also configured with --disable-failure-tokens, in which case
+# it will always return NULL.
+
+option('obsolete-api-enosys', type: 'boolean', value: true,
+    description: 'Replace obsolete APIs with stubs that do nothing but returning ENOSYS. Read meson_options.txt for details.'
+)
+
+
+# Select hash methods to support.  Acceptable values are
+# 'all' or a comma-separated list of names from the file
+# 'hashes.conf' and/or the keywords 'strong', 'alt',
+# 'fedora', 'freebsd', 'glibc', 'netbsd', 'openbsd',
+# 'osx', 'owl', 'solaris', and 'suse' which select groups
+# of methods as described in that file.
+# The default is 'all'.
+# Note: if binary compatibility with any historic libcrypt is
+# desired (i.e. any --enable-obsolete-api setting other than
+# 'no'), the 'descrypt' hash must be enabled.
+
+option('hashes', type: 'array', value: [ 'all' ],
+    description: 'Select hash methods to support. Read meson_options.txt for details.'
+)
