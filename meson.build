@@ -1,33 +1,28 @@
 project('xcrypt',
     'c',
-
+    version: '4.4.18',
     default_options: [
         'c_std=gnu11',
     ],
-    version: '4.4.18',
-
     meson_version: '>=0.51.0'
 )
 
 
 pythonmod = import('python')
+pkgconfig = import('pkgconfig')
 
 cc = meson.get_compiler('c')
-
 
 ###############################################################################
 # Project configuration
 
 config = configuration_data()
-config_data = configuration_data()
-
 
 project_url = 'https://github.com/besser82/libxcrypt'
-
 project_version = meson.project_version()
-xcrypt_version_major = project_version.split('.')[0]
-xcrypt_version_minor = project_version.split('.')[1]
 
+static_libs_enabled = [ 'static', 'both' ].contains(get_option('default_library'))
+shared_libs_enabled = [ 'shared', 'both' ].contains(get_option('default_library'))
 
 ###############################################################################
 # Build tools
@@ -46,7 +41,6 @@ else
     enable_ka_table_gen = true
 endif
 
-static_libs_enabled = [ 'static', 'both' ].contains(get_option('default_library'))
 
 ###############################################################################
 # Check build environment
@@ -94,24 +88,23 @@ check_headers = [
     'unistd.h',
 ]
 check_functions = [
-  'arc4random_buf',
-  'explicit_bzero',
-  'explicit_memset',
-  'getentropy',
-  'getrandom',
-  'memset_s',
-  'open64',
-  'syscall',
+    'arc4random_buf',
+    'explicit_bzero',
+    'explicit_memset',
+    'getentropy',
+    'getrandom',
+    'memset_s',
+    'open64',
+    'syscall',
 ]
 
 foreach header : check_headers
     config.set('HAVE_' + header.underscorify().to_upper(), cc.has_header(header) ? 1 : false)
 endforeach
+
 foreach function : check_functions
     config.set('HAVE_' + function.underscorify().to_upper(), cc.has_function(function) ? 1 : false)
 endforeach
-
-
 
 config.set10('ENDIANNESS_IS_BIG',     host_machine.endian() == 'big')
 config.set10('ENDIANNESS_IS_LITTLE',  host_machine.endian() == 'little')
@@ -124,10 +117,10 @@ config.set('HAVE_MAX_ALIGN_T', cc.has_header_symbol('stddef.h', 'max_align_t') ?
 
 
 alignas_test_code = '''
-#define n 8
-int     @0@ global;
-struct  @0@ aggregate { int x, y; };
-int     @0@ local;
+#define alignas(n) @0@
+int     alignas(8) global;
+struct  alignas(8) aggregate { int x, y; };
+int     alignas(8) local;
 '''
 
 alignas = '_Alignas(n)'
@@ -141,24 +134,25 @@ message('Found alignas method: ' + alignas)
 config.set('alignas(n)', alignas)
 
 alignof_test_code = '''
+#define alignof(thing) @0@
 struct agg { int x, y; };
-extern const char align_int[@0@(int)];
-extern const char align_agg[@0@(struct agg)];
+extern const char align_int[alignof(int)];
+extern const char align_agg[alignof(struct agg)];
 int main() {
     double d;
-    char align_var[@0@(d)];
+    char align_var[alignof(d)];
 }
 '''
 
-alignof = '__alignof__'
+alignof = '__alignof__(thing)'
 if not cc.compiles(alignof_test_code.format(alignof))
-    alignof = '_Alignof'
+    alignof = '_Alignof(thing)'
     if not cc.compiles(alignof_test_code.format(alignof))
         error('No method found for alignof !')
     endif
 endif
 message('Found alignof method: ' + alignof)
-config.set('alignof(thing)', alignof + '(thing)')
+config.set('alignof(thing)', alignof)
 
 have_ld_wrap = cc.has_link_argument('-Wl,--wrap')
 config.set('HAVE_LD_WRAP', have_ld_wrap)
@@ -229,28 +223,13 @@ config.set('DEFAULT_PREFIX_ENABLED', '@DEFAULT_PREFIX_ENABLED@')
 
 ###############################################################################
 config.set('PACKAGE_VERSION',       project_version)
-config.set('XCRYPT_VERSION_MAJOR',  xcrypt_version_major)
-config.set('XCRYPT_VERSION_MINOR',  xcrypt_version_minor)
-
-
-config_data.set('PACKAGE',      meson.project_name())
-config_data.set('VERSION',      project_version)
-config_data.set('prefix' ,      get_option('prefix'))
-config_data.set('includedir',   get_option('includedir'))
-config_data.set('libdir',       get_option('libdir'))
-
+config.set('XCRYPT_VERSION_MAJOR',  project_version.split('.')[0])
+config.set('XCRYPT_VERSION_MINOR',  project_version.split('.')[1])
 
 config_h = configure_file(
     output: 'config.h',
     configuration: config,
 )
-
-configure_file(
-    input: 'lib/libxcrypt.pc.in',
-    output: 'libxcrypt.pc',
-    configuration: config_data,
-)
-
 add_project_arguments('-DHAVE_CONFIG_H', language: 'c')
 
 ###############################################################################
@@ -260,3 +239,28 @@ root_include = include_directories('.')
 subdir('doc')
 subdir('lib')
 subdir('test')
+
+pkgconfig.generate(libcrypt,
+    name: 'libxcrypt',
+    description: 'Extended crypt library for DES, MD5, Blowfish and others',
+    version: project_version,
+)
+
+
+meson.add_install_script(
+    'bash', '-c', 'ln -fs libxcrypt.pc '
+    + ('$MESON_INSTALL_DESTDIR_PREFIX' / get_option('libdir') / 'pkgconfig' / 'libcrypt.pc')
+)
+
+if shared_libs_enabled
+    meson.add_install_script(
+        'bash', '-c', 'ln -fs libcrypt.so '
+        + ('$MESON_INSTALL_DESTDIR_PREFIX' / get_option('libdir') / 'libxcrypt.so')
+    )
+endif
+if static_libs_enabled
+    meson.add_install_script(
+        'bash', '-c', 'ln -fs libcrypt.a '
+        + ('$MESON_INSTALL_DESTDIR_PREFIX' / get_option('libdir') / 'libowcrypt.a')
+    )
+endif
