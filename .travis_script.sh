@@ -125,29 +125,27 @@ if [[ "$CC" == "clang" ]]; then
   export CXXFLAGS="$CXXFLAGS -fprofile-arcs -ftest-coverage"
 fi
 
-MAKE_ARGS=
 if [[ "$SANITIZER" == "1" ]]; then
   # ASan is incompatible with -z defs.
-  MAKE_ARGS="UNDEF_FLAG="
   export CFLAGS="$CFLAGS -fsanitize=undefined,address"
   export CXXFLAGS="$CXXFLAGS -fsanitize=undefined,address"
 fi
 
-pushd build
 log_time preparation
 
-$(cd .. && pwd)/configure --disable-silent-rules $CONF || \
+meson build $CONF || \
   (cat config.log && exit 1)
-log_time configure
+
+pushd build
 
 if [[ "$DISTCHECK" == "1" ]]; then
-  make -j$NPROCS $MAKE_ARGS distcheck
-  log_time distcheck
+  ninja dist
+  log_time dist
 else
-  make -j$NPROCS $MAKE_ARGS all
+  ninja all
   log_time build
   travis_wait 60 \
-  make -j$NPROCS $MAKE_ARGS check || (cat test-suite.log && exit 1)
+  ninja test || (cat meson-logs/testlog.txt && exit 1)
   log_time test
 fi
 
@@ -156,7 +154,7 @@ if [[ "$VALGRIND" == "1" ]]; then
   # Travis no-output timeout on individual tests, just because
   # that's how slow memcheck is.
   travis_wait 60 \
-    make -j$NPROCS $MAKE_ARGS check-valgrind-memcheck || \
+    ninja check-valgrind-memcheck || \
     (cat test-suite-memcheck.log && exit 1)
   log_time test-memcheck
 fi

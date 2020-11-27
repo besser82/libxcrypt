@@ -48,7 +48,7 @@ matrix:
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-werror --enable-obsolete-api --enable-hashes=all"
+        - CONF="-Dobsolete-api=yes -Dhashes=all"
         - PERFORM_COVERITY_SCAN="1"
         - COVERITY_SCAN_PROJECT_NAME="$TRAVIS_REPO_SLUG"
         - COVERITY_SCAN_BRANCH_PATTERN="^v(\d+\.)?(\d+\.)?(\d+)$"
@@ -58,212 +58,212 @@ matrix:
       compiler: gcc
       os: linux
       env:
-        - CONF="--enable-obsolete-api --enable-hashes=all"
+        - CONF="-Dobsolete-api=yes -Dhashes=all"
         - DISTCHECK=1
     - name: "Linux, GCC, Unoptimized build for Codecov"
       compiler: gcc
       os: linux
       env:
-        - CONF="--enable-obsolete-api --enable-hashes=all"
+        - CONF="-Dobsolete-api=yes -Dhashes=all"
         - CODECOV=1
     - name: "Linux, Clang, Unoptimized build for Codecov"
       compiler: clang
       os: linux
       env:
-        - CONF="--enable-obsolete-api --enable-hashes=all"
+        - CONF="-Dobsolete-api=yes -Dhashes=all"
         - CODECOV=1
     - name: "Linux, GCC, all hashes, obsolete API, Valgrind"
       compiler: gcc
       os: linux
       env:
-        - CONF="--enable-obsolete-api --enable-hashes=all --enable-valgrind-memcheck"
+        - CONF="-Dobsolete-api=yes -Dhashes=all" #  --enable-valgrind-memcheck
         - VALGRIND=1
     - name: "Linux, Clang, all hashes, obsolete API, ASan+UBSan"
       compiler: clang
       os: linux
       env:
-        - CONF="--enable-obsolete-api --enable-hashes=all"
+        - CONF="-Dobsolete-api=yes -Dhashes=all"
         - SANITIZER=1
     - name: "Linux, GCC, all hashes, static lib"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-shared --disable-obsolete-api --enable-hashes=all"
+        - CONF="-Ddefault_library=static -Dobsolete-api=no -Dhashes=all"
     - name: "Linux, Clang, all hashes, static lib"
       compiler: clang
       os: linux
       env:
-        - CONF="--disable-shared --disable-obsolete-api --enable-hashes=all"
+        - CONF="-Ddefault_library=static -Dobsolete-api=no -Dhashes=all"
     - name: "macOS, GCC (Homebrew), all hashes"
       compiler: gcc
       os: osx
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=all"
+        - CONF="-Dobsolete-api=no -Dhashes=all"
     - name: "macOS, Clang, all hashes"
       compiler: clang
       os: osx
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=all"
+        - CONF="-Dobsolete-api=no -Dhashes=all"
     - name: "macOS, GCC (Homebrew), all hashes, static lib"
       compiler: gcc
       os: osx
       env:
-        - CONF="--disable-shared --disable-obsolete-api --enable-hashes=all"
+        - CONF="-Ddefault_library=static -Dobsolete-api=no -Dhashes=all"
     - name: "macOS, Clang, all hashes, static lib"
       compiler: clang
       os: osx
       env:
-        - CONF="--disable-shared --disable-obsolete-api --enable-hashes=all"
+        - CONF="-Ddefault_library=static -Dobsolete-api=no -Dhashes=all"
     - name: "Linux, GCC, all hashes, obsolete API ENOSYS"
       compiler: gcc
       os: linux
       env:
-        - CONF="--enable-obsolete-api --enable-obsolete-api-enosys --enable-hashes=all"
+        - CONF="-Dobsolete-api=yes -Dobsolete-api=yes-enosys -Dhashes=all"
     - name: "Linux, Clang, all hashes, obsolete API ENOSYS"
       compiler: clang
       os: linux
       env:
-        - CONF="--enable-obsolete-api --enable-obsolete-api-enosys --enable-hashes=all"
+        - CONF="-Dobsolete-api=yes -Dobsolete-api=yes-enosys -Dhashes=all"
     - name: "Linux, GCC, all hashes, obsolete API, no failure-tokens"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-failure-tokens --enable-obsolete-api --enable-hashes=all"
+        - CONF="-Dfailure-tokens=false -Dobsolete-api=yes -Dhashes=all"
     - name: "Linux, Clang, all hashes, obsolete API, no failure-tokens"
       compiler: clang
       os: linux
       env:
-        - CONF="--disable-failure-tokens --enable-obsolete-api --enable-hashes=all"
+        - CONF="-Dfailure-tokens=false -Dobsolete-api=yes -Dhashes=all"
     - name: "Linux, GCC, all hashes, obsolete API ENOSYS, no failure-tokens"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-failure-tokens --enable-obsolete-api --enable-obsolete-api-enosys --enable-hashes=all"
+        - CONF="-Dfailure-tokens=false -Dobsolete-api=yes -Dobsolete-api=yes-enosys -Dhashes=all"
     - name: "Linux, Clang, all hashes, obsolete API ENOSYS, no failure-tokens"
       compiler: clang
       os: linux
       env:
-        - CONF="--disable-failure-tokens --enable-obsolete-api --enable-obsolete-api-enosys --enable-hashes=all"
+        - CONF="-Dfailure-tokens=false -Dobsolete-api=yes -Dobsolete-api=yes-enosys -Dhashes=all"
     - name: "Linux, GCC, all hashes, no obsolete API"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=all"
+        - CONF="-Dobsolete-api=no -Dhashes=all"
     - name: "Linux, Clang, all hashes, no obsolete API"
       compiler: clang
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=all"
+        - CONF="-Dobsolete-api=no -Dhashes=all"
     - name: "Linux, GCC, strong hashes, no obsolete API"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=strong"
+        - CONF="-Dobsolete-api=no -Dhashes=strong"
     - name: "Linux, Clang, strong hashes, no obsolete API"
       compiler: clang
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=strong"
+        - CONF="-Dobsolete-api=no -Dhashes=strong"
     - name: "Linux, GCC, glibc hashes, obsolete API"
       compiler: gcc
       os: linux
       env:
-        - CONF="--enable-obsolete-api --enable-hashes=glibc"
+        - CONF="-Dobsolete-api=yes -Dhashes=glibc"
     - name: "Linux, Clang, glibc hashes, obsolete API"
       compiler: clang
       os: linux
       env:
-        - CONF="--enable-obsolete-api --enable-hashes=glibc"
+        - CONF="-Dobsolete-api=yes -Dhashes=glibc"
     - name: "Linux, GCC, glibc and strong hashes, obsolete API for glibc"
       compiler: gcc
       os: linux
       env:
-        - CONF="--enable-obsolete-api=glibc --enable-hashes=strong,glibc"
+        - CONF="-Dobsolete-api=yes=glibc -Dhashes=strong,glibc"
     - name: "Linux, Clang, glibc and strong hashes, obsolete API for glibc"
       compiler: clang
       os: linux
       env:
-        - CONF="--enable-obsolete-api=glibc --enable-hashes=strong,glibc"
+        - CONF="-Dobsolete-api=yes=glibc -Dhashes=strong,glibc"
     - name: "Linux, GCC, bcrypt only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=bcrypt"
+        - CONF="-Dobsolete-api=no -Dhashes=bcrypt"
     - name: "Linux, GCC, bcrypt_a only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=bcrypt_a"
+        - CONF="-Dobsolete-api=no -Dhashes=bcrypt_a"
     - name: "Linux, GCC, bcrypt_x only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=bcrypt_x"
+        - CONF="-Dobsolete-api=no -Dhashes=bcrypt_x"
     - name: "Linux, GCC, bcrypt_y only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=bcrypt_y"
+        - CONF="-Dobsolete-api=no -Dhashes=bcrypt_y"
     - name: "Linux, GCC, bigcrypt only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=bigcrypt"
+        - CONF="-Dobsolete-api=no -Dhashes=bigcrypt"
     - name: "Linux, GCC, bsdicrypt only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=bsdicrypt"
+        - CONF="-Dobsolete-api=no -Dhashes=bsdicrypt"
     - name: "Linux, GCC, descrypt only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=descrypt"
+        - CONF="-Dobsolete-api=no -Dhashes=descrypt"
     - name: "Linux, GCC, gost-yescrypt only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=gost-yescrypt"
+        - CONF="-Dobsolete-api=no -Dhashes=gost-yescrypt"
     - name: "Linux, GCC, md5crypt only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=md5crypt"
+        - CONF="-Dobsolete-api=no -Dhashes=md5crypt"
     - name: "Linux, GCC, nt only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=nt"
+        - CONF="-Dobsolete-api=no -Dhashes=nt"
     - name: "Linux, GCC, scrypt only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=scrypt"
+        - CONF="-Dobsolete-api=no -Dhashes=scrypt"
     - name: "Linux, GCC, sha1crypt only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=sha1crypt"
+        - CONF="-Dobsolete-api=no -Dhashes=sha1crypt"
     - name: "Linux, GCC, sha256crypt only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=sha256crypt"
+        - CONF="-Dobsolete-api=no -Dhashes=sha256crypt"
     - name: "Linux, GCC, sha512crypt only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=sha512crypt"
+        - CONF="-Dobsolete-api=no -Dhashes=sha512crypt"
     - name: "Linux, GCC, sunmd5 only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=sunmd5"
+        - CONF="-Dobsolete-api=no -Dhashes=sunmd5"
     - name: "Linux, GCC, yescrypt only"
       compiler: gcc
       os: linux
       env:
-        - CONF="--disable-obsolete-api --enable-hashes=yescrypt"
+        - CONF="-Dobsolete-api=no -Dhashes=yescrypt"
 
 install:
   - ./.travis_install.sh
