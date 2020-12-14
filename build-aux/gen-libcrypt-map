@@ -20,7 +20,7 @@
 # used as SYMVER_MIN or SYMVER_FLOOR.
 #
 # Note: if you change the format of .map.in files you probably need to
-# update gen-vers.awk too.
+# update gen-crypt-symbol-vers-h too.
 
 BEGIN {
     split("", SYMBOLS) # ensure SYMBOLS is an array

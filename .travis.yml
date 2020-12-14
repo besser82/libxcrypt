@@ -24,16 +24,16 @@ notifications:
     skip_join: true
 
 install:
-  - ./.travis_install.sh
+  - build-aux/travis-install
 
 before_script:
-  - ./.travis_before_script.sh
+  - build-aux/travis-before
 
 script:
-  - ./.travis_script.sh
+  - build-aux/travis-build
 
 after_success:
-  - ./.travis_after_success.sh
+  - build-aux/travis-after-success
 
 
 # Repeated configuration blocks, referred to below by YAML aliases.

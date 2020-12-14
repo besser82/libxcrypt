@@ -20,19 +20,19 @@
 /libtool
 /libxcrypt.pc
 /stamp-h1
-/m4/compile
-/m4/config.guess
-/m4/config.sub
-/m4/depcomp
-/m4/install-sh
-/m4/libtool.m4
-/m4/ltmain.sh
-/m4/ltoptions.m4
-/m4/ltsugar.m4
-/m4/ltversion.m4
-/m4/lt~obsolete.m4
-/m4/missing
-/m4/test-driver
+/build-aux/compile
+/build-aux/config.guess
+/build-aux/config.sub
+/build-aux/depcomp
+/build-aux/install-sh
+/build-aux/libtool.m4
+/build-aux/ltmain.sh
+/build-aux/ltoptions.m4
+/build-aux/ltsugar.m4
+/build-aux/ltversion.m4
+/build-aux/lt~obsolete.m4
+/build-aux/missing
+/build-aux/test-driver
 
 # compiler output
 *.gcda

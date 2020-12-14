@@ -1,12 +1,12 @@
 # Process this file with autoconf to produce a configure script.
-m4_include([m4/zw_automodern.m4])
+m4_include([build-aux/zw_automodern.m4])
 AC_INIT([xcrypt],
         [4.4.18],
         [https://github.com/besser82/libxcrypt/issues],
         [libxcrypt],
         [https://github.com/besser82/libxcrypt])
-AC_CONFIG_MACRO_DIR([m4])
-AC_CONFIG_AUX_DIR([m4])
+AC_CONFIG_MACRO_DIR([build-aux])
+AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_SRCDIR([lib/crypt.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
@@ -369,7 +369,7 @@ AC_ARG_ENABLE([hashes],
 )
 # This code must run after AC_PROG_AWK.
 hashes_enabled=$(
-    $AWK -f ${srcdir}/lib/sel-hashes.awk \
+    $AWK -f ${srcdir}/build-aux/expand-selected-hashes \
          -v SELECTED_HASHES="$hashes_selected" \
             ${srcdir}/lib/hashes.conf
 )

@@ -1,5 +1,5 @@
-# This file is processed by gen-map.awk to produce the versions map file
-# for libxcrypt.
+# This file is processed by gen-libcrypt-map to produce the versions
+# map file for libxcrypt.
 # symbol default_version compat_version [compat_version ...]
 
 # Actively supported POSIX interfaces; in GNU libc since 2.0
@@ -38,7 +38,7 @@ fcrypt			-		GLIBC_2.0
 
 # This determines the ordering of the version chain.  Each symbol
 # version that appears above must also appear in this list, and to
-# simplify gen-map.awk, so must all of the versions listed in
+# simplify gen-libcrypt-map, so must all of the versions listed in
 # libcrypt.minver.  The ordering is left to right, top to bottom.
 %chain GLIBC_2.0 GLIBC_2.2 GLIBC_2.2.1 GLIBC_2.2.2 GLIBC_2.2.5 GLIBC_2.2.6 GLIBC_2.3
 %chain GLIBC_2.4 GLIBC_2.12 GLIBC_2.16 GLIBC_2.17 GLIBC_2.18 GLIBC_2.21

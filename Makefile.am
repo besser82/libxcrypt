@@ -12,7 +12,7 @@ AUTOMAKE_OPTIONS = \
 	gnits \
 	subdir-objects
 
-ACLOCAL_AMFLAGS = -I m4
+ACLOCAL_AMFLAGS = -I build-aux
 
 AM_CPPFLAGS = -I$(srcdir)/lib
 AM_CFLAGS = $(WARN_CFLAGS) $(OPTI_FLAGS)
@@ -27,19 +27,19 @@ EXTRA_DIST = \
 	THANKS \
 	lib/alg-yescrypt-platform.c \
 	lib/crypt.h.in.in \
-	lib/gen-crypt-h.awk \
-	lib/gen-hashes.awk \
-	lib/gen-map.awk \
-	lib/gen-vers.awk \
 	lib/hashes.conf \
 	lib/libcrypt.map.in \
 	lib/libcrypt.minver.linux \
 	lib/libcrypt.minver.kfreebsd \
 	lib/libcrypt.minver.hurd \
 	lib/libcrypt.minver.no \
-	lib/sel-hashes.awk \
 	lib/xcrypt.h.in \
-	m4/skip-if-exec-format-error \
+	build-aux/expand-selected-hashes \
+	build-aux/gen-crypt-h \
+	build-aux/gen-crypt-hashes-h \
+	build-aux/gen-crypt-symbol-vers-h \
+	build-aux/gen-libcrypt-map \
+	build-aux/skip-if-exec-format-error \
 	test/symbols-compat.sh \
 	test/symbols-renames.sh \
 	test/symbols-static.sh
@@ -179,34 +179,35 @@ Makefile.deps: crypt.h crypt-hashes.h crypt-symbol-vers.h xcrypt.h
 	$(AM_V_GEN)LC_ALL=C echo "# Deps" > Makefile.deps.T
 	$(AM_V_at)mv -f Makefile.deps.T Makefile.deps
 
-libcrypt.map: lib/libcrypt.map.in lib/gen-map.awk Makefile
+libcrypt.map: lib/libcrypt.map.in build-aux/gen-libcrypt-map Makefile
 	$(AM_V_GEN)LC_ALL=C $(AWK) \
 	  -v SYMVER_MIN=$(SYMVER_MIN) \
 	  -v SYMVER_FLOOR=$(SYMVER_FLOOR) \
 	  -v COMPAT_ABI=$(COMPAT_ABI) \
-	  -f $(srcdir)/lib/gen-map.awk \
+	  -f $(srcdir)/build-aux/gen-libcrypt-map \
 	     $(srcdir)/lib/libcrypt.map.in > libcrypt.map.T
 	$(AM_V_at)mv -f libcrypt.map.T libcrypt.map
 
-crypt-hashes.h: lib/hashes.conf lib/gen-hashes.awk Makefile
+crypt-hashes.h: lib/hashes.conf build-aux/gen-crypt-hashes-h Makefile
 	$(AM_V_GEN)LC_ALL=C $(AWK) \
 	  -v ENABLED_HASHES=$(hashes_enabled) \
-	  -f $(srcdir)/lib/gen-hashes.awk \
+	  -f $(srcdir)/build-aux/gen-crypt-hashes-h \
 	     $(srcdir)/lib/hashes.conf > crypt-hashes.h.T
 	$(AM_V_at)mv -f crypt-hashes.h.T crypt-hashes.h
 
-crypt-symbol-vers.h: lib/libcrypt.map.in lib/gen-vers.awk Makefile
+crypt-symbol-vers.h: lib/libcrypt.map.in build-aux/gen-crypt-symbol-vers-h \
+		     Makefile
 	$(AM_V_GEN)LC_ALL=C $(AWK) \
 	  -v SYMVER_MIN=$(SYMVER_MIN) \
 	  -v SYMVER_FLOOR=$(SYMVER_FLOOR) \
 	  -v COMPAT_ABI=$(COMPAT_ABI) \
-	  -f $(srcdir)/lib/gen-vers.awk \
+	  -f $(srcdir)/build-aux/gen-crypt-symbol-vers-h \
 	     $(srcdir)/lib/libcrypt.map.in > crypt-symbol-vers.h.T
 	$(AM_V_at)mv -f crypt-symbol-vers.h.T crypt-symbol-vers.h
 
-crypt.h: crypt.h.in crypt-hashes.h lib/gen-crypt-h.awk config.h Makefile
+crypt.h: crypt.h.in crypt-hashes.h build-aux/gen-crypt-h config.h Makefile
 	$(AM_V_GEN)LC_ALL=C $(AWK) \
-	  -f $(srcdir)/lib/gen-crypt-h.awk config.h \
+	  -f $(srcdir)/build-aux/gen-crypt-h config.h \
 	     $(builddir)/crypt.h.in > crypt.h.T
 	$(AM_V_GEN)LC_ALL=C \
 	$(GREP) -q "#define HASH_ALGORITHM_DEFAULT" crypt-hashes.h && \
@@ -214,9 +215,9 @@ crypt.h: crypt.h.in crypt-hashes.h lib/gen-crypt-h.awk config.h Makefile
 	$(SED) -i -e "s/@DEFAULT_PREFIX_ENABLED@/0/g" crypt.h.T
 	$(AM_V_at)mv -f crypt.h.T crypt.h
 
-xcrypt.h: lib/xcrypt.h.in lib/gen-crypt-h.awk config.h Makefile
+xcrypt.h: lib/xcrypt.h.in build-aux/gen-crypt-h config.h Makefile
 	$(AM_V_GEN)LC_ALL=C $(AWK) \
-	  -f $(srcdir)/lib/gen-crypt-h.awk \
+	  -f $(srcdir)/build-aux/gen-crypt-h \
 	     config.h $(srcdir)/lib/xcrypt.h.in \
 	  > xcrypt.h.T
 	$(AM_V_at)mv -f xcrypt.h.T xcrypt.h
@@ -432,7 +433,7 @@ AM_TESTS_ENVIRONMENT = \
     export host_os lib_la lib_map AWK CC CPP CPPFLAGS NM;
 
 if CROSS_COMPILING
-LOG_COMPILER = m4/skip-if-exec-format-error
+LOG_COMPILER = build-aux/skip-if-exec-format-error
 endif
 
 # Refer to object files that are linked into libxcrypt with the

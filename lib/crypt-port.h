@@ -210,7 +210,8 @@ _crypt_strcpy_or_abort (void *, const size_t, const void *);
 #define symver_nop() __asm__ ("")
 
 /* The macros for versioned symbols work differently in this library
-   than they do in glibc.  They are mostly auto-generated (see gen-vers.awk),
+   than they do in glibc.  They are mostly auto-generated
+   (see build-aux/gen-crypt-symbol-vers-h)
    and we currently don't support compatibility symbols that need a different
    definition from the default version.
 
