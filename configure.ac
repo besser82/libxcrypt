@@ -233,40 +233,30 @@ AX_VALGRIND_DFLT([sgcheck], [off])
 AX_VALGRIND_CHECK()
 
 # Requirements for running test/ka-table-gen.py.
-ENABLE_KA_TABLE_GEN="no"
-
-# Construct PYTHON_CANDIDATE_VERSIONS from most recent version to
-# the minimum version required, ending up with a string containing:
-#   "... python3.7 python3.6 python3 python".
-# This way we just need one call to AC_PATH_PROGS to likely get a
-# suitable version of Python.  The version check afterwards is for
-# the case just a generic 'python3' or 'python' executable was found.
-PYTHON_CANDIDATE_VERSIONS="python3 python"
-
-for ver in `seq 6 1 10`; do
-  PYTHON_CANDIDATE_VERSIONS="python3.$ver $PYTHON_CANDIDATE_VERSIONS"
-done
-
-AC_PATH_PROGS([PYTHON], [$PYTHON_CANDIDATE_VERSIONS], [])
-
-if test x"$PYTHON" != "x"; then
-  AX_PROG_PYTHON_VERSION([3.6], [ENABLE_KA_TABLE_GEN="yes"],
-    [AC_MSG_WARN([Python >= 3.6 is required for optional Makefile targets.])
-  ])
-
-  if test x"$ENABLE_KA_TABLE_GEN" = "xyes"; then
-    AX_PYTHON_MODULE([passlib], [], [$PYTHON])
-    if test x"$HAVE_PYMOD_PASSLIB" = "xno"; then
-      ENABLE_KA_TABLE_GEN="no"
-    fi
-  fi
-fi
-
-if test x"$ENABLE_KA_TABLE_GEN" = "xno"; then
-  AC_MSG_WARN(
+AC_CACHE_CHECK([for Python 3.>=6 with Passlib],
+  [ac_cv_path_python3_passlib],
+  [AC_PATH_PROGS_FEATURE_CHECK([python3_passlib],
+     [python3 m4_for([minor], 10, 6, -1, [[python3.]minor ]) python],
+     [_AS_ECHO_LOG([trying $ac_path_python3_passlib...])
+AS_IF([$ac_path_python3_passlib -c '
+import sys
+if sys.version_info < (3,6,0):
+    sys.stderr.write("too old: " + sys.version + "\n")
+    sys.exit(1)
+import passlib
+' >&AS_MESSAGE_LOG_FD 2>&1],
+        [ac_cv_path_python3_passlib=$ac_path_python3_passlib
+         ac_path_python3_passlib_found=:])],
+     [ac_cv_path_python3_passlib="not found"])])
+if test x"$ac_cv_path_python3_passlib" = x"not found"; then
+  PYTHON=false
+  AC_MSG_NOTICE(
     [Disabling the "regen-ka-table" target, missing Python requirements.])
+else
+  PYTHON="$ac_cv_path_python3_passlib"
 fi
-AM_CONDITIONAL([ENABLE_KA_TABLE_GEN], [test x"$ENABLE_KA_TABLE_GEN" = "xyes"])
+AC_SUBST([PYTHON])
+AM_CONDITIONAL([ENABLE_KA_TABLE_GEN], [test x"$PYTHON" != "xfalse"])
 
 # Configure options.
 AC_ARG_ENABLE([failure-tokens],
