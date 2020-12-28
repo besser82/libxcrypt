@@ -29,7 +29,7 @@ get_symbols_with_versions ()
                sym = $NF;
                if (symbol_prefix != "") { sub("^" symbol_prefix, "", sym); }
                split(sym, t, /@+/);
-               if (t[0] != t[1] || t[0] !~ /^[A-Z0-9._]+$/)) { print sym; }
+               if (t[0] != t[1] || t[0] !~ /^[A-Z0-9._]+$/) { print sym; }
             }
         ' |
         sort -u
