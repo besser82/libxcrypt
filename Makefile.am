@@ -26,14 +26,13 @@ EXTRA_DIST = \
 	LICENSING \
 	THANKS \
 	lib/alg-yescrypt-platform.c \
-	lib/crypt.h.in.in \
+	lib/crypt.h.in \
 	lib/hashes.conf \
 	lib/libcrypt.map.in \
-	lib/libcrypt.minver.linux \
-	lib/libcrypt.minver.kfreebsd \
-	lib/libcrypt.minver.hurd \
-	lib/libcrypt.minver.no \
+	lib/libcrypt.minver \
 	lib/xcrypt.h.in \
+	build-aux/BuildCommon.pm \
+	build-aux/compute-symver-floor \
 	build-aux/expand-selected-hashes \
 	build-aux/gen-crypt-h \
 	build-aux/gen-crypt-hashes-h \
@@ -158,7 +157,7 @@ libcrypt_la_LDFLAGS += $(UNDEF_FLAG) $(TEXT_RELOC_FLAG) $(AM_LDFLAGS)
 
 libcrypt_la_CPPFLAGS = $(AM_CPPFLAGS) -DIN_LIBCRYPT
 
-CONFIG_STATUS_DEPENDENCIES = lib/libcrypt.minver.$(MINVER_OS)
+CONFIG_STATUS_DEPENDENCIES = lib/libcrypt.minver
 EXTRA_libcrypt_la_DEPENDENCIES = libcrypt.map
 CLEANFILES = \
 	Makefile.deps Makefile.deps.T \
@@ -167,7 +166,7 @@ CLEANFILES = \
 	crypt-hashes.h crypt-hashes.h.T \
 	crypt.h crypt.h.T \
 	xcrypt.h xcrypt.h.T \
-	*.gcda *.gcno \
+	./*.gcda ./*.gcno \
 	lib/*.gcda lib/*.gcno \
 	test/*.gcda test/*.gcno
 
@@ -179,46 +178,47 @@ Makefile.deps: crypt.h crypt-hashes.h crypt-symbol-vers.h xcrypt.h
 	$(AM_V_GEN)LC_ALL=C echo "# Deps" > Makefile.deps.T
 	$(AM_V_at)mv -f Makefile.deps.T Makefile.deps
 
-libcrypt.map: lib/libcrypt.map.in build-aux/gen-libcrypt-map Makefile
-	$(AM_V_GEN)LC_ALL=C $(AWK) \
-	  -v SYMVER_MIN=$(SYMVER_MIN) \
-	  -v SYMVER_FLOOR=$(SYMVER_FLOOR) \
-	  -v COMPAT_ABI=$(COMPAT_ABI) \
-	  -f $(srcdir)/build-aux/gen-libcrypt-map \
-	     $(srcdir)/lib/libcrypt.map.in > libcrypt.map.T
+libcrypt.map: lib/libcrypt.map.in build-aux/gen-libcrypt-map \
+	      build-aux/BuildCommon.pm Makefile
+	$(AM_V_GEN)LC_ALL=C $(PERL) $(srcdir)/build-aux/gen-libcrypt-map \
+	  SYMVER_MIN=$(SYMVER_MIN) \
+	  SYMVER_FLOOR=$(SYMVER_FLOOR) \
+	  COMPAT_ABI=$(COMPAT_ABI) \
+	  $(srcdir)/lib/libcrypt.map.in > libcrypt.map.T
 	$(AM_V_at)mv -f libcrypt.map.T libcrypt.map
 
-crypt-hashes.h: lib/hashes.conf build-aux/gen-crypt-hashes-h Makefile
-	$(AM_V_GEN)LC_ALL=C $(AWK) \
-	  -v ENABLED_HASHES=$(hashes_enabled) \
-	  -f $(srcdir)/build-aux/gen-crypt-hashes-h \
-	     $(srcdir)/lib/hashes.conf > crypt-hashes.h.T
+crypt-hashes.h: build-aux/gen-crypt-hashes-h build-aux/BuildCommon.pm \
+	        lib/hashes.conf Makefile
+	$(AM_V_GEN)LC_ALL=C $(PERL) \
+	  $(srcdir)/build-aux/gen-crypt-hashes-h \
+	  $(srcdir)/lib/hashes.conf $(hashes_enabled) > crypt-hashes.h.T
 	$(AM_V_at)mv -f crypt-hashes.h.T crypt-hashes.h
 
-crypt-symbol-vers.h: lib/libcrypt.map.in build-aux/gen-crypt-symbol-vers-h \
-		     Makefile
-	$(AM_V_GEN)LC_ALL=C $(AWK) \
-	  -v SYMVER_MIN=$(SYMVER_MIN) \
-	  -v SYMVER_FLOOR=$(SYMVER_FLOOR) \
-	  -v COMPAT_ABI=$(COMPAT_ABI) \
-	  -f $(srcdir)/build-aux/gen-crypt-symbol-vers-h \
+crypt-symbol-vers.h: build-aux/gen-crypt-symbol-vers-h \
+		     build-aux/BuildCommon.pm \
+		     lib/libcrypt.map.in Makefile
+	$(AM_V_GEN)LC_ALL=C $(PERL) \
+	  $(srcdir)/build-aux/gen-crypt-symbol-vers-h \
+	  SYMVER_MIN=$(SYMVER_MIN) \
+	  SYMVER_FLOOR=$(SYMVER_FLOOR) \
+	  COMPAT_ABI=$(COMPAT_ABI) \
 	     $(srcdir)/lib/libcrypt.map.in > crypt-symbol-vers.h.T
 	$(AM_V_at)mv -f crypt-symbol-vers.h.T crypt-symbol-vers.h
 
-crypt.h: crypt.h.in crypt-hashes.h build-aux/gen-crypt-h config.h Makefile
-	$(AM_V_GEN)LC_ALL=C $(AWK) \
-	  -f $(srcdir)/build-aux/gen-crypt-h config.h \
-	     $(builddir)/crypt.h.in > crypt.h.T
-	$(AM_V_GEN)LC_ALL=C \
-	$(GREP) -q "#define HASH_ALGORITHM_DEFAULT" crypt-hashes.h && \
-	$(SED) -i -e "s/@DEFAULT_PREFIX_ENABLED@/1/g" crypt.h.T || \
-	$(SED) -i -e "s/@DEFAULT_PREFIX_ENABLED@/0/g" crypt.h.T
+crypt.h: build-aux/gen-crypt-h build-aux/BuildCommon.pm \
+	 lib/crypt.h.in lib/hashes.conf config.h Makefile
+	$(AM_V_GEN)LC_ALL=C $(PERL) \
+	  $(srcdir)/build-aux/gen-crypt-h \
+	  $(srcdir)/lib/crypt.h.in config.h \
+	  $(srcdir)/lib/hashes.conf $(hashes_enabled) \
+	  > crypt.h.T
 	$(AM_V_at)mv -f crypt.h.T crypt.h
 
-xcrypt.h: lib/xcrypt.h.in build-aux/gen-crypt-h config.h Makefile
-	$(AM_V_GEN)LC_ALL=C $(AWK) \
-	  -f $(srcdir)/build-aux/gen-crypt-h \
-	     config.h $(srcdir)/lib/xcrypt.h.in \
+xcrypt.h: build-aux/gen-crypt-h build-aux/BuildCommon.pm \
+	  lib/xcrypt.h.in config.h
+	$(AM_V_GEN)LC_ALL=C $(PERL) \
+	  $(srcdir)/build-aux/gen-crypt-h \
+	  $(srcdir)/lib/xcrypt.h.in config.h \
 	  > xcrypt.h.T
 	$(AM_V_at)mv -f xcrypt.h.T xcrypt.h
 

@@ -1,0 +1,90 @@
+# This file defines the minimum symbol version number used by the
+# system-provided libcrypt, for each CPU and OS where libxcrypt can be
+# binary backward compatible with it.  See also lib/libcrypt.map.in,
+# build-aux/compute-symver-floor, and build-aux/gen-libcrypt-map.
+#
+# Lines in this file that start with '#' are comments; # is not
+# otherwise significant.  Blank lines are ignored.  All other lines
+# must have three or four columns: VERSION, SYSTEM, CPU_FAMILY,
+# and PREPROCESSOR_CHECK, in that order.
+#
+# VERSION is the minimum symbol version to use on hosts where SYSTEM
+# and CPU_FAMILY match autoconf's $host_os and $host_cpu values,
+# respectively, when interpreted as (Perl) regexes.  There is an implicit
+# ^ at the beginning of each regex (that is, they must match starting
+# at the beginning of the string) but there is no implicit $ at the end
+# (that is, they do not have to match the entire string).  Use '.'
+# to accept any string.
+#
+# If there is anything more on the line after the CPU_FAMILY field,
+# all of it is taken as a preprocessor #if expression which must be
+# true for this line's version number to be used.  The macros defined
+# in <limits.h> are available to this expression.  This mechanism is
+# for subarchitectures that do not change $host_cpu, e.g. x32 (I wish
+# they wouldn't do that...)
+#
+# The symbol version XCRYPT_2.0 is special; if this file selects that
+# version as the minimum for some platform, configure will
+# automatically switch into --disable-obsolete-api mode.  This is used
+# for platforms where either we have not yet implemented binary
+# backward compatibility with the system-provided libcrypt, or we know
+# there is no system-provided libcrypt to be compatible with.
+#
+# The symbol version ERROR is special; if this file selects that
+# version as the minimum for some platform, configuration will fail.
+# This is used for platforms where we know we ought to support
+# backward binary compatibility and the library shouldn't be allowed
+# to be used until someone's set this up properly.
+#
+# More specific regexes must be sorted below less specific ones, and
+# empty PREPROCESSOR_CHECK must be sorted below non-empty.  If neither
+# constraint applies, sort entries in descending order of symbol
+# version within one SYSTEM, and in alphabetical order of CPU_FAMILY
+# within each symbol version.
+#
+# Future cleanup: the ERROR lines for 'gnu*', 'kfreebsd*gnu*', and
+# 'linux*gnu*' can be removed once GNU libc stops shipping libcrypt.
+# It will be correct to use XCRYPT_2.0 as the minimum symbol version
+# for any platform added to glibc after that release.
+
+#VERSION     SYSTEM          CPU_FAMILY    PREPROCESSOR_CHECK
+
+# GNU Hurd
+GLIBC_2.2.6  gnu             i[3-9]86
+ERROR        gnu             .
+
+# FreeBSD kernel with GNU libc
+GLIBC_2.3    kfreebsd.*gnu   x86_64        !(defined __x86_64__ && ULONG_MAX == UINT_MAX) /* not x32 */
+GLIBC_2.3    kfreebsd.*gnu   i[3-9]86
+ERROR        kfreebsd.*gnu   .
+
+# Linux with GNU libc
+GLIBC_2.27   linux.*gnu      riscv64
+GLIBC_2.21   linux.*gnu      nios2
+GLIBC_2.18   linux.*gnu      microblaze
+GLIBC_2.17   linux.*gnu      aarch64
+GLIBC_2.17   linux.*gnu      powerpc64le
+GLIBC_2.16   linux.*gnu      x86_64        defined __x86_64__ && ULONG_MAX == UINT_MAX /* x32 */
+GLIBC_2.12   linux.*gnu      tilegx
+GLIBC_2.12   linux.*gnu      tilepro
+GLIBC_2.4    linux.*gnu      arm
+GLIBC_2.4    linux.*gnu      m68k          defined __mcoldfire__
+GLIBC_2.3    linux.*gnu      powerpc64
+GLIBC_2.2.5  linux.*gnu      x86_64        defined __x86_64__ && ULONG_MAX != UINT_MAX /* 64 */
+GLIBC_2.2    linux.*gnu      s390x
+GLIBC_2.0    linux.*gnu      alpha
+GLIBC_2.0    linux.*gnu      e2k
+GLIBC_2.0    linux.*gnu      hppa
+GLIBC_2.0    linux.*gnu      i[3-9]86
+GLIBC_2.0    linux.*gnu      ia64
+GLIBC_2.0    linux.*gnu      m68k
+GLIBC_2.0    linux.*gnu      mips
+GLIBC_2.0    linux.*gnu      powerpc
+GLIBC_2.0    linux.*gnu      s390
+GLIBC_2.0    linux.*gnu      sh
+GLIBC_2.0    linux.*gnu      sparc
+GLIBC_2.0    linux.*gnu      x86_64
+ERROR        linux.*gnu      .
+
+# Other systems.
+XCRYPT_2.0   .               .

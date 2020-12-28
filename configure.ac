@@ -11,7 +11,6 @@ AC_CONFIG_SRCDIR([lib/crypt.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
   Makefile
-  crypt.h.in:lib/crypt.h.in.in
   libxcrypt.pc:lib/libxcrypt.pc.in
 ])
 AM_INIT_AUTOMAKE([tar-v7])
@@ -48,6 +47,8 @@ AC_PROG_CPP
 AC_PROG_AWK
 AC_PROG_MAKE_SET
 AC_PROG_LN_S
+zw_PROG_PERL([5.14.0])
+
 AC_USE_SYSTEM_EXTENSIONS
 AC_SYS_LARGEFILE
 zw_SIMPLE_ENABLE_WARNINGS
@@ -367,11 +368,11 @@ AC_ARG_ENABLE([hashes],
       $SED -e 'y!ABCDEFGHIJKLMNOPQRSTUVWXYZ-!abcdefghijklmnopqrstuvwxyz_!'`"],
     [hashes_selected=all]
 )
-# This code must run after AC_PROG_AWK.
+# This code must run after $PERL is set.
 hashes_enabled=$(
-    $AWK -f ${srcdir}/build-aux/expand-selected-hashes \
-         -v SELECTED_HASHES="$hashes_selected" \
-            ${srcdir}/lib/hashes.conf
+    $PERL "$srcdir"/build-aux/expand-selected-hashes \
+          "$srcdir"/lib/hashes.conf \
+          "$hashes_selected"
 )
 if test x"$hashes_enabled" = x || test x"$hashes_enabled" = x,; then
     AC_MSG_ERROR([bad value '${hashes_selected}' for --enable-hashes])
@@ -414,68 +415,33 @@ if test x$enable_shared != xyes; then enable_obsolete_api=0; fi
 
 # Determine whether there's even a GNU libc on this system that we
 # need to be binary backward compatible with.
-MINVER_OS=no
-SYMVER_FLOOR=none
 if test $enable_obsolete_api = 1; then
   AC_MSG_CHECKING([minimum symbol version to use for compatibility symbols])
-  case $host_os in
-    *gnu*)
-      # GNU Systems use glibc
-      case $host_os in
-        *linux*)
-          MINVER_OS=linux
-          ;;
-        kfreebsd-gnu*)
-          MINVER_OS=kfreebsd
-          ;;
-        gnu*)
-          MINVER_OS=hurd
-          ;;
-        *)
-          ;;
-      esac
-
-      if test $MINVER_OS != no ; then
-        while read pattern version cond; do
-          if test -z "$pattern" || test "x$pattern" = 'x#'; then
-            continue
-          fi
-          if expr "$host_cpu" : "$pattern" > /dev/null; then
-            if test -z "$cond"; then
-              cond_matched=yes
-            else
-              AC_PREPROC_IFELSE([AC_LANG_SOURCE([[
-  #include <limits.h>
-  #if $cond
-  #error yes
-  #endif
-              ]])],
-              [cond_matched=no], [cond_matched=yes])
-            fi
-            if test $cond_matched = yes; then
-              SYMVER_FLOOR="$version"
-              break
-            fi
-          fi
-        done < ${srcdir}/lib/libcrypt.minver.$MINVER_OS
-      fi
+  SYMVER_FLOOR=$(
+    $PERL ${srcdir}/build-aux/compute-symver-floor \
+      ${srcdir}/lib/libcrypt.minver $host_os $host_cpu \
+    2>&AS_MESSAGE_LOG_FD
+  )
+  AC_MSG_RESULT([$SYMVER_FLOOR])
+  case "$SYMVER_FLOOR" in
+    ERROR)
+      AC_MSG_ERROR([libxcrypt port to $host is incomplete])
     ;;
-
+    XCRYPT_2.0)
+      SYMVER_MIN=XCRYPT_2.0
+      enable_obsolete_api=0
+      enable_obsolete_api_enosys=0
+      enable_compat_suse=0
+      COMPAT_API=no
+    ;;
     *)
-        # Other host OSes do not use glibc, so there is no reason to
-        # attempt to be binary compatible with it.
+      SYMVER_MIN=GLIBC_2.0
     ;;
   esac
-  AC_MSG_RESULT([$SYMVER_FLOOR])
-fi
-if test x"$SYMVER_FLOOR" = xnone; then
+else
   SYMVER_FLOOR=XCRYPT_2.0
   SYMVER_MIN=XCRYPT_2.0
-  enable_obsolete_api=0
-else
-  SYMVER_MIN=GLIBC_2.0
 fi
-AC_SUBST([MINVER_OS])
 AC_SUBST([SYMVER_FLOOR])
 AC_SUBST([SYMVER_MIN])
 
@@ -503,13 +469,10 @@ AM_CONDITIONAL([ENABLE_SHARED], [test $enable_shared = yes])
 # The Makefile needs to know if we are cross-compiling.
 AM_CONDITIONAL([CROSS_COMPILING], [test $cross_compiling = yes])
 
-XCRYPT_VERSION_MAJOR=$(
-    echo $PACKAGE_VERSION | $AWK -F. '{ print $1 }'
-)
+XCRYPT_VERSION_MAJOR=`echo $PACKAGE_VERSION | cut -d. -f1`
 AC_SUBST([XCRYPT_VERSION_MAJOR])
-XCRYPT_VERSION_MINOR=$(
-    echo $PACKAGE_VERSION | $AWK -F. '{ print $2 }'
-)
+
+XCRYPT_VERSION_MINOR=`echo $PACKAGE_VERSION | cut -d. -f2`
 AC_SUBST([XCRYPT_VERSION_MINOR])
 
 AC_OUTPUT
