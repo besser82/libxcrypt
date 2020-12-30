@@ -20,6 +20,34 @@
 set -e
 LC_ALL=C; export LC_ALL
 
+# Some differences between the symbols exported by heritage libcrypt.so.1
+# and our libcrypt.so.1 are expected:
+#
+#  * All of the symbols we define with GLIBC_2.xx version tags are
+#    compatibility symbols (nm prints only one @); naturally,
+#    glibc-provided libcrypt.so.1 defines some of those symbols as
+#    linkable symbols (two @).
+#
+#  * Older versions of libcrypt defined five symbols as linkable,
+#    with the XCRYPT_2.0 version tag, which are now compatibility-only:
+#    crypt_gensalt_r, xcrypt, xcrypt_gensalt, xcrypt_gensalt_r, and
+#    xcrypt_r.
+#
+# This sed script is applied _only_ to the symbol listing from the
+# system-provided libcrypt.so.1; it edits that listing so that the
+# comparison below succeeds despite any expected differences.
+filter_expected_differences ()
+{
+    sed -e '
+      s/\([a-zA-Z0-9_]\)@@GLIBC_/\1@GLIBC_/
+      /crypt_gensalt_r@@XCRYPT_2\.0$/  s/@@/@/
+      /xcrypt@@XCRYPT_2\.0$/           s/@@/@/
+      /xcrypt_gensalt@@XCRYPT_2\.0$/   s/@@/@/
+      /xcrypt_gensalt_r@@XCRYPT_2\.0$/ s/@@/@/
+      /xcrypt_r@@XCRYPT_2\.0$/         s/@@/@/
+    '
+}
+
 # BSD-format nm output, when restricted to external, defined symbols,
 # has three fields per line: address type name.
 # The symbol version is appended to the name field, set off by one or
@@ -66,7 +94,7 @@ get_their_symbols_with_versions ()
     fi
 
     printf '%s%s\n' '- Their library: ' "$their_library" >&2
-    get_symbols_with_versions "$their_library"
+    get_symbols_with_versions "$their_library" | filter_expected_differences
 }
 
 if [ ! -f "$lib_la" ] || [ -z "$host_os" ]; then
@@ -110,10 +138,9 @@ missing_symbols="$(comm -13 "$workdir/our_symbols" "$workdir/their_symbols")"
 if [ -n "$missing_symbols" ]; then
     {
         printf '%s\n%s\n' '*** Missing symbols:' "$missing_symbols"
-        printf '\n%s\n' '--- Our symbols:'
-        cat "$workdir/our_symbols"
-        printf '\n%s\n' '--- Their symbols:'
-        cat "$workdir/their_symbols"
+        printf '\n'
+        diff -u --label their_symbols --label our_symbols \
+             "$workdir/their_symbols" "$workdir/our_symbols"
     } >&2
     exit 1
 fi
