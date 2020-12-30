@@ -55,10 +55,16 @@ int main(int argc, char **argv)
 }
 EOF
         ${CC-cc} test.c -lcrypt >&2 || exit 77
-        if ldd ./a.out | grep -qF libcrypt.so.1; then
-            get_symbols_with_versions $(ldd ./a.out | grep -F libcrypt.so.1 |
-                                            cut -d' ' -f3)
+
+        their_library=$(ldd ./a.out |
+                            grep -F libcrypt.so.1 |
+                            cut -d' ' -f3)
+
+        if [ -n "$their_library" ]; then
+            printf '%s%s\n' '- Their library: ' "$their_library" >&2
+            get_symbols_with_versions "$their_library"
         else
+            printf '%s\n' '- No libcrypt.so.1 to be compatible with'
             exit 77
         fi
     )
@@ -104,7 +110,13 @@ get_their_symbols_with_versions "$workdir" > "$workdir/their_symbols"
 # symbol they define should have a matching definition in our library.
 missing_symbols="$(comm -13 "$workdir/our_symbols" "$workdir/their_symbols")"
 if [ -n "$missing_symbols" ]; then
-    printf '*** Missing symbols: %s\n' "$missing_symbols" >&2
+    {
+        printf '%s\n%s\n' '*** Missing symbols:' "$missing_symbols"
+        printf '\n%s\n' '--- Our symbols:'
+        cat "$workdir/our_symbols"
+        printf '\n%s\n' '--- Their symbols:'
+        cat "$workdir/their_symbols"
+    } >&2
     exit 1
 fi
 exit 0
