@@ -44,31 +44,19 @@ get_our_symbols_with_versions ()
 
 get_their_symbols_with_versions ()
 {
-    (
-        set -e
-        cd "$1"
-        cat >test.c <<\EOF
-extern char *crypt(const char *, const char *);
-int main(int argc, char **argv)
-{
-  return !!crypt(argv[0], argv[1]);
-}
-EOF
-        ${CC-cc} test.c -lcrypt >&2 || exit 77
+    # Ask the compiler whether a libcrypt.so.1 exists in its search
+    # path.  The compiler option -print-file-name should be supported
+    # on all operating systems where there's an older libcrypt that we
+    # can be backward compatible with.
+    their_library=$(${CC-cc} $CFLAGS $LDFLAGS -print-file-name=libcrypt.so.1)
 
-        their_library=$(ldd ./a.out |
-                            grep -F libcrypt.so.1 |
-                            cut -d' ' -f3)
+    if [ -z "$their_library" ] || [ "$their_library" = "libcrypt.so.1" ]; then
+        printf '%s\n' '- No libcrypt.so.1 to be compatible with' >&2
+        exit 77
+    fi
 
-        if [ -n "$their_library" ]; then
-            printf '%s%s\n' '- Their library: ' "$their_library" >&2
-            get_symbols_with_versions "$their_library"
-        else
-            printf '%s\n' '- No libcrypt.so.1 to be compatible with'
-            exit 77
-        fi
-    )
-    if [ $? -ne 0 ]; then exit $?; fi
+    printf '%s%s\n' '- Their library: ' "$their_library" >&2
+    get_symbols_with_versions "$their_library"
 }
 
 if [ ! -f "$lib_la" ] || [ -z "$host_os" ]; then
@@ -104,7 +92,7 @@ trap '[ -z "$workdir" ] || rm -rf "$workdir" || :' 0
 workdir="$(mktemp -d)"
 
 get_our_symbols_with_versions "$lib_la" > "$workdir/our_symbols"
-get_their_symbols_with_versions "$workdir" > "$workdir/their_symbols"
+get_their_symbols_with_versions > "$workdir/their_symbols"
 
 # It's okay if we define more symbol (versions) than they do, but every
 # symbol they define should have a matching definition in our library.
