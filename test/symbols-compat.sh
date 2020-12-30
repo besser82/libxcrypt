@@ -20,17 +20,27 @@
 set -e
 LC_ALL=C; export LC_ALL
 
+# BSD-format nm output, when restricted to external, defined symbols,
+# has three fields per line: address type name.
+# The symbol version is appended to the name field, set off by one or
+# more @ signs.
+# Symbols whose address is zero and type is A are uninteresting
+# (they define the set of symbol version tags).
+# Strip addresses and type codes from all other symbols.
+# Then, compensate for a bug in some versions of GNU nm where the
+# symbol version is printed twice.
+# Finally, strip any "symbol prefix" off each name.
 get_symbols_with_versions ()
 {
-    ${NM-nm} --dynamic --extern-only --defined-only --with-symbol-versions "$1" |
-        ${AWK-awk} -v symbol_prefix="$symbol_prefix" '
-            NF == 0 { next }
-            {
-               sym = $NF;
-               if (symbol_prefix != "") { sub("^" symbol_prefix, "", sym); }
-               split(sym, t, /@+/);
-               if (t[0] != t[1] || t[0] !~ /^[A-Z0-9._]+$/) { print sym; }
-            }
+    ${NM-nm} --format=bsd --dynamic --extern-only --defined-only \
+             --with-symbol-versions "$1" |
+        tr -s ' \t\r\v\f' ' ' |
+        sed -e '
+          /^00* A /d
+          /^[0-9a-fA-F][0-9a-fA-F]* [A-Z] /!d
+          s/^[0-9a-fA-F]* [A-Z] //
+          s/\(@@*[A-Z0-9_.]*\)\1$/\1/
+          s/^'"$symbol_prefix"'//
         ' |
         sort -u
 }
