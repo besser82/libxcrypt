@@ -10,7 +10,6 @@ addons:
       - libtool
       - llvm
       - pkg-config
-      - python3-venv
       - valgrind
   homebrew:
     packages:

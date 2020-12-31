@@ -1,8 +1,6 @@
 #!/bin/bash
 set -e
 
-. build/venv/bin/activate
-
 log_time () {
    local duration="$SECONDS"
    local secs=$((duration % 60)); duration=$((duration / 60))
@@ -133,6 +131,7 @@ if [[ "$SANITIZER" == "1" ]]; then
   export CXXFLAGS="$CXXFLAGS -fsanitize=undefined,address"
 fi
 
+mkdir build
 pushd build
 log_time preparation
 

@@ -4,9 +4,6 @@ if [ "$PERFORM_COVERITY_SCAN" = 1 ] || [ "$DISTCHECK" = 1 ]; then
   exit 0
 fi
 
-set -e
-. build/venv/bin/activate
-
 GCOV=gcov
 
 if [ "$TRAVIS_OS_NAME" = osx ]; then
