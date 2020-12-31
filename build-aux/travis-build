@@ -94,9 +94,9 @@ if [[ "$PERFORM_COVERITY_SCAN" == "1" ]]; then
 fi
 
 if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-  export CFLAGS="-O2 -g -arch i386 -arch x86_64 --coverage"
+  export CFLAGS="-O2 -g"
   export CXXFLAGS="$CFLAGS"
-  export LDFLAGS="-arch i386 -arch x86_64 --coverage"
+  export LDFLAGS=""
   if [[ "$CC" == "gcc" ]]; then
     GCC_VER="$(brew list --versions gcc | sed 's/^gcc \([0-9]*\)\..*$/\1/')"
     export CC="gcc-$GCC_VER"
@@ -108,19 +108,22 @@ if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
     $CC --version
   fi
 elif [[ "$CODECOV" == "1" ]]; then
-  export CFLAGS="-O0 -g --coverage"
+  export CFLAGS="-O0 -g"
   export CXXFLAGS="$CFLAGS"
 else
   export DEB_BUILD_MAINT_OPTIONS="hardening=+all"
   export CPPFLAGS="$(dpkg-buildflags --get CPPFLAGS)"
-  export CFLAGS="$(dpkg-buildflags --get CFLAGS) --coverage"
-  export CXXFLAGS="$(dpkg-buildflags --get CXXFLAGS) --coverage"
-  export LDFLAGS="$(dpkg-buildflags --get LDFLAGS) --coverage"
+  export CFLAGS="$(dpkg-buildflags --get CFLAGS)"
+  export CXXFLAGS="$(dpkg-buildflags --get CXXFLAGS)"
+  export LDFLAGS="$(dpkg-buildflags --get LDFLAGS)"
 fi
 
 if [[ "$CC" == "clang" ]]; then
   export CFLAGS="$CFLAGS -fprofile-arcs -ftest-coverage"
   export CXXFLAGS="$CXXFLAGS -fprofile-arcs -ftest-coverage"
+else
+  export CFLAGS="$CFLAGS --coverage"
+  export CXXFLAGS="$CXXFLAGS --coverage"
 fi
 
 MAKE_ARGS=

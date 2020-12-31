@@ -85,28 +85,22 @@ _macros:
 
   osx_gcc: &osx_gcc
     os: osx
+    osx_image: xcode12.3
     compiler: gcc
     addons:
       homebrew:
         packages:
-          - autoconf
-          - automake
           - gcc
           - lcov
-          - libtool
-          - pkg-config
 
   osx_clang: &osx_clang
     os: osx
+    osx_image: xcode12.3
     compiler: clang
     addons:
       homebrew:
         packages:
-          - autoconf
-          - automake
           - lcov
-          - libtool
-          - pkg-config
 
 
 # The build "matrix." Really more of a list.
