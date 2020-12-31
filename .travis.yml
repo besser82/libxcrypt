@@ -38,9 +38,8 @@ after_success:
 
 # Repeated configuration blocks, referred to below by YAML aliases.
 # Take care not to install packages that aren't needed in some configuration.
-# Infuriatingly, it is not possible to merge *lists* in YAML, only
-# hashes, so we can't get away from repeating the core set of packages
-# over and over again.
+# Both the Linux and the OSX build workers already have current versions
+# of autoconf, automake, libtool, pkg-config, and a usable awk installed.
 _macros:
   linux_gcc: &linux_gcc
     os: linux
@@ -48,12 +47,7 @@ _macros:
     addons:
       apt:
         packages:
-          - autoconf
-          - automake
-          - gawk
           - lcov
-          - libtool
-          - pkg-config
 
   linux_gcc_valgrind: &linux_gcc_valgrind
     os: linux
@@ -61,12 +55,7 @@ _macros:
     addons:
       apt:
         packages:
-          - autoconf
-          - automake
-          - gawk
           - lcov
-          - libtool
-          - pkg-config
           - valgrind
 
   linux_clang: &linux_clang
@@ -75,13 +64,8 @@ _macros:
     addons:
       apt:
         packages:
-          - autoconf
-          - automake
-          - gawk
           - lcov
-          - libtool
           - llvm
-          - pkg-config
 
   osx_gcc: &osx_gcc
     os: osx
