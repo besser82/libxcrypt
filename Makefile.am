@@ -536,6 +536,10 @@ test_getrandom_fallbacks_LDFLAGS = \
   $(AM_LDFLAGS)
 endif
 
+# Additional checks to run in `make distcheck'.
+distcheck-hook:
+	cd $(top_srcdir) && perlcritic ./
+
 # Every object file depends on crypt-symbol-vers.h and crypt-hashes.h,
 # which are generated files, so automatic dependency generation is not
 # sufficient.

@@ -22,6 +22,9 @@ notifications:
       - "ircs://chat.freenode.net:6697/#libxcrypt"
     skip_join: true
 
+install:
+  - build-aux/travis-install
+
 before_script:
   - build-aux/travis-before
 
@@ -124,6 +127,13 @@ jobs:
       env:
         - CONF="--enable-obsolete-api --enable-hashes=all"
         - SANITIZER=1
+
+    - name: "Linux, GCC, all hashes, obsolete API, Perl 5.14"
+      <<: *linux_gcc
+      dist: trusty
+      env:
+        - CONF="--enable-obsolete-api --enable-hashes=all"
+        - OLDEST_SUPPORTED_PERL=1
 
     - name: "Linux, GCC, all hashes, static lib"
       <<: *linux_gcc

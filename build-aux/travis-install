@@ -1,0 +1,36 @@
+#! /bin/sh
+
+set -e
+
+if [ "$OLDEST_SUPPORTED_PERL" = 1 ]; then
+    command -V perlbrew
+    command -V lsb_release
+
+    PERLV=5.14
+    URL=https://storage.googleapis.com/travis-ci-language-archives/perl/binaries
+    URL="$URL/$(lsb_release -is | tr A-Z a-z)/$(lsb_release -rs)/$(uname -m)"
+    URL="$URL/perl-${PERLV}.tar.bz2"
+    set -x
+    wget -nv $URL
+    sudo tar xjf perl-${PERLV}.tar.bz2 --directory /
+    rm perl-${PERLV}.tar.bz2
+    perlbrew list
+    perlbrew switch ${PERLV}
+    [ -f "$PERLBREW_HOME/init" ] || { ls -l "$PERLBREW_HOME"; exit 1; }
+
+    . "$PERLBREW_HOME/init"
+    PATH="$(echo $PATH | sed "s%:$PERLBREW_ROOT/bin:%:$PERLBREW_PATH:%")"
+    command -v perl
+fi
+
+if [ "$DISTCHECK" = 1 ]; then
+    set -x
+    cpanm -S -i \
+          Perl::Critic \
+          Perl::Critic::Freenode \
+          Perl::Critic::Pulp \
+          Perl::Critic::TooMuchCode \
+          Perl::Tidy
+    perltidy --version
+    perlcritic --version
+fi

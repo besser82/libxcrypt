@@ -1,0 +1,15 @@
+# perltidy configuration
+
+--standard-error-output
+--warning-output
+--character-encoding=utf8
+--converge
+
+--continuation-indentation=4
+
+--cuddled-else
+--noblanks-before-comments
+--noblanks-before-blocks
+--paren-tightness=2            # no spaces inside parens
+--brace-tightness=2            # no spaces inside braces
+--square-bracket-tightness=2   # no spaces inside brackets

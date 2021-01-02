@@ -5,6 +5,17 @@ if [ "$PERFORM_COVERITY_SCAN" = 1 ] || [ "$DISTCHECK" = 1 ]; then
   exit 0
 fi
 
+# All travis-* scripts must begin by initializing perlbrew if
+# possible; travis does not do this for us.  Unfortunately, the
+# code in $PERLBREW_ROOT/etc/bashrc is crawling with bashisms,
+# and the only alternatives offered are for fish and csh, not
+# portable sh.  Fortunately, what we need to do is simple
+# enough to open-code.
+if [ -f "$PERLBREW_HOME/init" ]; then
+    . "$PERLBREW_HOME/init"
+    PATH="$(echo $PATH | sed "s%:$PERLBREW_ROOT/bin:%:$PERLBREW_PATH:%")"
+fi
+
 GCOV=gcov
 
 if [ "$TRAVIS_OS_NAME" = osx ]; then
