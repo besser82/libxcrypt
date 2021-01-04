@@ -433,7 +433,7 @@ AM_TESTS_ENVIRONMENT = \
     export host_os lib_la lib_map AWK CC CPP CPPFLAGS NM;
 
 if CROSS_COMPILING
-LOG_COMPILER = build-aux/skip-if-exec-format-error
+LOG_COMPILER = $(PERL) build-aux/skip-if-exec-format-error
 endif
 
 # Refer to object files that are linked into libxcrypt with the

@@ -1,28 +1,78 @@
-#! /bin/sh
-# Run a test given as "$@" and then munge its exit code to 77 if it
+#! /usr/bin/perl
+# Run a test given as @ARGV, and then munge its exit code to 77 if it
 # failed because of an "exec format error."
 #
-# Written by Zack Weinberg <zackw at panix.com> in 2017.
+# Written by Zack Weinberg <zackw at panix.com> in 2017--2020.
 # To the extent possible under law, Zack Weinberg has waived all
 # copyright and related or neighboring rights to this work.
 #
 # See https://creativecommons.org/publicdomain/zero/1.0/ for further
 # details.
 
-set -u
+use v5.14;    # implicit use strict; use feature ':5.14';
+use warnings FATAL => 'all';
+use utf8;
+use open qw(:std :utf8);
+no  if $] >= 5.022, warnings => 'experimental::re_strict';
+use if $] >= 5.022, re       => 'strict';
 
-tmplog=`mktemp -p "${TMPDIR:-/tmp}" tmplog.XXXXXXXXXX` || exit 99
-trap "rm -f '$tmplog'" 0
+use FindBin ();
+use IPC::Open3 qw(open3);
+use Symbol qw(gensym);
 
-"$@" > "$tmplog" 2>&1
-status="$?"
-cat "$tmplog" || exit 99
+use lib $FindBin::Bin;
+use BuildCommon qw(subprocess_error);
 
-case "$status" in
-  0|77|99) exit "$status";;
-esac
+# We cannot simply exec the program and then check $!{ENOEXEC} if that
+# fails, because Perl's `exec` primitive calls execvp(3), and POSIX
+# requires execvp(3) to retry after rewriting the command line as
+# `/bin/sh PROGRAM ARGUMENTS...` if execve(2) fails with ENOEXEC.
+# This is a backward compatibility quirk for the sake of code written
+# before `#!` was a thing; if you ask me, on modern systems it's a
+# misfeature, but the Austin Group seems unwilling to change anything
+# (see https://austingroupbugs.net/view.php?id=1435).  Even if they
+# did, we would be stuck with build-system C libraries that
+# implemented the old bad behavior for many years.
+#
+# There is no way to call execve(2) directly from Perl.  We could
+# implement this program in C, but then we would need $(CC_FOR_BUILD),
+# which currently we do not.  So what we do, is rely on /bin/sh to
+# have some kind of heuristic to detect when it's being asked to
+# interpret a machine-code executable, and to print a recognizable
+# error message when this happens.  This is the same thing the old
+# shell-based implementation did, so we can live with it.
 
-if grep -q '[eE]xec format error' "$tmplog"
-then exit 77
-else exit "$status"
-fi
+my $status = eval {
+    my $child_err   = gensym;
+    my $pid         = open3('<&STDIN', '>&STDOUT', $child_err, @ARGV);
+    my $saw_enoexec = 0;
+
+    local $_;
+    while (<$child_err>) {
+        $saw_enoexec = 1
+            if m{\b(?:
+                   [Ex]ec \s+ format \s+ error
+                 | cannot \s+ execute \s+ (?:ELF \s+)? binary
+               )\b}x;
+        print {*STDERR} $_;
+    }
+    close $child_err or die "read error: $!\n";
+    waitpid $pid, 0 or die "waitpid: $!\n";
+
+    if (my $sig = ($? & 0x7F)) {
+        # subprocess_error knows how to print symbolic names for signals.
+        subprocess_error($ARGV[0]);
+    } else {
+        return 77 if $saw_enoexec;
+        return $? >> 8;
+    }
+};
+exit $status if defined $status;
+
+# We only get here if there was an error.
+my $err = $@;
+$err =~ s/\s+ at \s+ \S+ \s+ line \s+ \d+ \.? \n? \Z//x;
+$err =~ s/^open3: //;
+
+print {*STDERR} "${FindBin::Script}: $err\n";
+exit(($err =~ /\bExec format error\b/) ? 77 : 99);
