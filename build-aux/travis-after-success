@@ -42,11 +42,17 @@ done
 set fnord; shift  # clear $@
 
 set -x
-lcov --gcov-tool $GCOV --directory . --capture --output-file all_coverage.info
-lcov --gcov-tool $GCOV --remove all_coverage.info \
-     '/usr/*' '*test*' > coverage.info
-rm all_coverage.info
+# Merge all of the gcov output into one overview file using lcov,
+# then prune data for the tests themselves, and for system libraries.
 
-# Upload
+lcov --gcov-tool $GCOV --rc lcov_branch_coverage=1 \
+     --directory . --output-file all_coverage.info \
+     --capture
+
+lcov --gcov-tool $GCOV --rc lcov_branch_coverage=1 \
+     --directory . --output-file coverage.info \
+     --remove all_coverage.info '/usr/*' '*test*'
+
+# Upload the pruned .info file only.
 curl -sS -o codecov.bash https://codecov.io/bash
 bash codecov.bash -f coverage.info
