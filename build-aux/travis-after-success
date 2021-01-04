@@ -27,7 +27,7 @@ fi
 export GCOV
 
 # Log the identities and versions of the coverage tools.
-for tool in "$GCOV" lcov codecov
+for tool in "$GCOV" lcov
 do
     # $tool might include mandatory command-line arguments.
     # Interpret it the same way Make would.
@@ -46,4 +46,7 @@ lcov --gcov-tool $GCOV --directory . --capture --output-file all_coverage.info
 lcov --gcov-tool $GCOV --remove all_coverage.info \
      '/usr/*' '*test*' > coverage.info
 rm all_coverage.info
-codecov -X gcov
+
+# Upload
+curl -sS -o codecov.bash https://codecov.io/bash
+bash codecov.bash -f coverage.info

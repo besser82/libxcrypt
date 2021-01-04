@@ -12,7 +12,6 @@ branches:
 
 cache:
   - ccache
-  - pip
 
 git:
   depth: false
@@ -23,16 +22,11 @@ notifications:
       - "ircs://chat.freenode.net:6697/#libxcrypt"
     skip_join: true
 
-install:
-  - build-aux/travis-install
-
 before_script:
   - build-aux/travis-before
 
 script:
   - build-aux/travis-build
-
-after_success:
   - build-aux/travis-after-success
 
 
