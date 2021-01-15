@@ -333,7 +333,7 @@ main (void)
   if (pagesize < 256)
     {
       printf ("ERROR: pagesize of %zu is too small\n", pagesize);
-      return 1;
+      return 99;
     }
 
   char *page = mmap (0, pagesize * 2, PROT_READ|PROT_WRITE,
@@ -341,13 +341,13 @@ main (void)
   if (page == MAP_FAILED)
     {
       perror ("mmap");
-      return 1;
+      return 99;
     }
   memset (page, 'x', pagesize * 2);
   if (mprotect (page + pagesize, pagesize, PROT_NONE))
     {
       perror ("mprotect");
-      return 1;
+      return 99;
     }
 
   struct sigaction sa, os, ob;
