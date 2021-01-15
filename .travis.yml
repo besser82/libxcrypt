@@ -26,8 +26,7 @@ before_script:
   - build-aux/travis-before
 
 script:
-  - build-aux/travis-build
-  - build-aux/travis-after-success
+  - build-aux/travis-build && build-aux/travis-after-success
 
 
 # Repeated configuration blocks, referred to below by YAML aliases.
