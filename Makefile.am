@@ -20,7 +20,7 @@ AM_LDFLAGS = $(RELRO_FLAG) $(BINDNOW_FLAG)
 
 @VALGRIND_CHECK_RULES@
 
-TEST_EXTENSIONS = .sh
+TEST_EXTENSIONS = .pl
 
 EXTRA_DIST = \
 	LICENSING \
@@ -39,9 +39,10 @@ EXTRA_DIST = \
 	build-aux/gen-crypt-symbol-vers-h \
 	build-aux/gen-libcrypt-map \
 	build-aux/skip-if-exec-format-error \
-	test/symbols-compat.sh \
-	test/symbols-renames.sh \
-	test/symbols-static.sh
+	test/TestCommon.pm \
+	test/symbols-compat.pl \
+	test/symbols-renames.pl \
+	test/symbols-static.pl
 
 notrans_dist_man3_MANS = \
 	doc/crypt.3 \
@@ -409,32 +410,37 @@ endif
 TESTS = $(check_PROGRAMS)
 
 if ENABLE_STATIC
-TESTS += test/symbols-static.sh
-
-if HAVE_CPP_dD
-TESTS += test/symbols-renames.sh
-endif
+TESTS += test/symbols-static.pl test/symbols-renames.pl
 endif
 
 if ENABLE_OBSOLETE_API
-TESTS += test/symbols-compat.sh
+TESTS += test/symbols-compat.pl
 endif
 
 AM_TESTS_ENVIRONMENT = \
-    host_os="$(host_os)"; \
     lib_la="./libcrypt.la"; \
     lib_map="$(srcdir)/lib/libcrypt.map.in"; \
-    AWK="$(AWK)"; \
+    HAVE_CPP_dD="$(HAVE_CPP_dD)"; \
+    SYMBOL_PREFIX="$(SYMBOL_PREFIX)"; \
     CC="$(CC)"; \
     CPP="$(CPP)"; \
     CPPFLAGS="$(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES)"; \
     CPPFLAGS="$${CPPFLAGS} $(AM_CPPFLAGS) $(CPPFLAGS)"; \
+    CFLAGS="$(CFLAGS)"; \
+    LDFLAGS="$(LDFLAGS)"; \
     NM="$(NM)"; \
-    export host_os lib_la lib_map AWK CC CPP CPPFLAGS NM;
+    SHELL="$(SHELL)"; \
+    export lib_la lib_map HAVE_CPP_dD SYMBOL_PREFIX; \
+    export CC CPP CPPFLAGS CFLAGS LDFLAGS NM SHELL;
 
+PL_LOG_COMPILER = $(PERL)
 if CROSS_COMPILING
 LOG_COMPILER = $(PERL) build-aux/skip-if-exec-format-error
 endif
+
+test/symbols-compat.log test/symbols-compat.trs: test/TestCommon.pm
+test/symbols-renames.log test/symbols-renames.trs: test/TestCommon.pm
+test/symbols-static.log test/symbols-static.trs: test/TestCommon.pm
 
 # Refer to object files that are linked into libxcrypt with the
 # qualified name, lib/libcrypt_la-foobar.lo, to prevent them from

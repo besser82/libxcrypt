@@ -44,7 +44,6 @@ case "$ac_prog_cc_stdc" in
 esac
 
 AC_PROG_CPP
-AC_PROG_AWK
 AC_PROG_MAKE_SET
 AC_PROG_LN_S
 zw_PROG_PERL([5.14.0])
@@ -54,21 +53,31 @@ AC_SYS_LARGEFILE
 zw_SIMPLE_ENABLE_WARNINGS
 LT_INIT
 
+# The test scripts need to know whether C global symbols have a
+# leading underscore.
+LT_SYS_SYMBOL_USCORE
+if test x$sys_symbol_underscore = xno; then
+  SYMBOL_PREFIX=
+else
+  SYMBOL_PREFIX=_
+fi
+AC_SUBST([SYMBOL_PREFIX])
+
 # One of the test scripts needs to use -dD.
 AC_CACHE_CHECK([whether the preprocessor ($CPP) supports -dD],
-  [ac_cv_prog_cc_dD],
+  [ac_cv_prog_cpp_dD],
   [printf '#include <errno.h>' |
     $CPP -dD -xc - > conftest.i 2>&AS_MESSAGE_LOG_FD
   if test $? -ne 0; then
-    ac_cv_prog_cc_dD=no
-  elif grep -q '#define EDOM' conftest.i; then
-    ac_cv_prog_cc_dD=yes
+    ac_cv_prog_cpp_dD=no
+  elif grep '#define EDOM' conftest.i > /dev/null 2>&1; then
+    ac_cv_prog_cpp_dD=yes
   else
-    ac_cv_prog_cc_dD=no
+    ac_cv_prog_cpp_dD=no
   fi
   rm -f conftest.i
 ])
-AM_CONDITIONAL([HAVE_CPP_dD], [test $ac_cv_prog_cc_dD = yes])
+AC_SUBST([HAVE_CPP_dD], [$ac_cv_prog_cpp_dD])
 
 # Checks for libraries: currently none needed.
 
