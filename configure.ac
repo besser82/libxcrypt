@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 m4_include([build-aux/zw_automodern.m4])
 AC_INIT([xcrypt],
-        [4.4.18],
+        [4.5],
         [https://github.com/besser82/libxcrypt/issues],
         [libxcrypt],
         [https://github.com/besser82/libxcrypt])
@@ -394,6 +394,14 @@ case "$hashes_enabled" in
        fi
        ;;
 esac
+
+# The argon2 hashes require libargon2.
+AS_CASE(["$hashes_enabled"],
+    [*argon2*], [
+      AC_SEARCH_LIBS([argon2_hash], [argon2])
+      AS_IF([test x"$ac_cv_search_argon2_hash" = xno],
+          [AC_MSG_ERROR([Argon2 hashes require libargon2, which was not found])])
+    ])
 
 # If the obsolete APIs are disabled, the stubs implicitly disabled as well.
 if test x"$COMPAT_ABI" = xno && test x"$enable_obsolete_api_enosys" = x1; then

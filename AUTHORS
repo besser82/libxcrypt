@@ -1,3 +1,8 @@
+The Argon2 hash module is based on algorithms and ideas developed
+by Daniel Dinu, Dmitry Khovratovich, Jean-Philippe Aumasson, and
+Samuel Neves. See: https://github.com/P-H-C/phc-winner-argon2 for
+reference.
+
 The yescrypt code comes from yescrypt by Solar Designer <solar at
 openwall.com>. It builds upon Colin Percival's scrypt.
 See: http://openwall.com/yescrypt/ for reference.
