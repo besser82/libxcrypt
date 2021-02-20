@@ -139,6 +139,8 @@ BuildRequires:  automake
 BuildRequires:  gcc
 BuildRequires:  glibc-devel           >= %{glibc_minver}
 BuildRequires:  libtool
+BuildRequires:  make
+BuildRequires:  perl-core
 
 # We do not need to keep this forever.
 %if !(0%{?fedora} > 31 || 0%{?rhel} > 10)
