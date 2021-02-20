@@ -92,7 +92,7 @@ add512(const uint512_u *x, const uint512_u *y, uint512_u *r)
     for (i = 0; i < 64; i++)
     {
         buf = xp[i] + yp[i] + (buf >> 8);
-        rp[i] = (unsigned char) buf & 0xFF;
+        rp[i] = (unsigned char) (buf & 0xFF);
     }
 #endif
 }
