@@ -5,6 +5,10 @@ Please send bug reports, questions and suggestions to
 
 Version 4.4.18
 * Fix compilation errors on (Free)BSD (issue #110).
+* Fix conversion error in lib/alg-gost3411-core.c, which is seen by
+  some sensitive compilers.
+* Convert build scripts to Perl.
+  The minimum version of Perl required is 5.14.
 
 Version 4.4.17
 * Fix compilation error in 'alignas (type)' with older versions
