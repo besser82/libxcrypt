@@ -77,7 +77,6 @@ noinst_HEADERS = \
 	lib/alg-sha512.h \
 	lib/alg-yescrypt.h \
 	lib/byteorder.h \
-	lib/crypt-common.h \
 	lib/crypt-obsolete.h \
 	lib/crypt-port.h \
 	test/des-cases.h \

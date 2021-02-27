@@ -396,13 +396,50 @@ extern char *fcrypt (const char *key, const char *setting);
 #endif
 
 /* Utility functions */
+
+/* Fill BUF with BUFLEN bytes whose values are chosen uniformly at
+   random, using a cryptographically strong RNG provided by the
+   operating system.  BUFLEN may not be greater than 256.  Returns
+   true if all BUFLEN bytes were successfully filled, false otherwise;
+   sets errno when it returns false.  Can block.  */
 extern bool get_random_bytes (void *buf, size_t buflen);
 
+/* Generate a setting string in the format common to md5crypt,
+   sha256crypt, and sha512crypt.  */
 extern void gensalt_sha_rn (char tag, size_t maxsalt, unsigned long defcount,
                             unsigned long mincount, unsigned long maxcount,
                             unsigned long count,
                             const uint8_t *rbytes, size_t nrbytes,
                             uint8_t *output, size_t output_size);
+
+/* For historical reasons, crypt and crypt_r are not expected ever
+   to return 0, and for internal implementation reasons (see
+   call_crypt_fn, in crypt.c), it is simpler if the individual
+   algorithms' crypt and gensalt functions return nothing.
+
+   This function generates a "failure token" in the output buffer,
+   which is guaranteed not to be equal to any valid password hash or
+   setting string, nor to the setting(+hash) string that was passed
+   in; thus, a subsequent blind attempt to authenticate someone by
+   comparing the output to a previously recorded hash string will
+   fail, even if that string is itself one of these "failure tokens".
+
+   We always call this function on the output buffer as the first
+   step.  If the individual algorithm's crypt or gensalt function
+   succeeds, it overwrites the failure token with real output;
+   otherwise the token is left intact, and the API functions that
+   _can_ return 0 on error notice it.  */
+extern void
+make_failure_token (const char *setting, char *output, int size);
+
+/* The base-64 encoding table used by most hashing methods.
+   (bcrypt uses a slightly different encoding.)  Size 65
+   because it's used as a C string in a few places.  */
+extern const unsigned char ascii64[65];
+
+/* Same table gets used with other names in various places.  */
+#define b64t   ((const char *) ascii64)
+#define itoa64 ascii64
 
 /* Calculate the size of a base64 encoding of N bytes:
    6 bits per output byte, rounded up.  */
@@ -413,6 +450,5 @@ extern void gensalt_sha_rn (char tag, size_t maxsalt, unsigned long defcount,
 #define ALG_SPECIFIC_SIZE 8192
 
 #include "crypt.h"
-#include "crypt-common.h"
 
 #endif /* crypt-port.h */
