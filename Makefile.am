@@ -341,6 +341,7 @@ check_PROGRAMS = \
 	test/compile-strong-alias \
 	test/crypt-badargs \
 	test/crypt-gost-yescrypt \
+	test/explicit-bzero \
 	test/gensalt \
 	test/gensalt-extradata \
 	test/gensalt-nthash \
@@ -490,38 +491,48 @@ test_alg_des_LDADD = \
 test_alg_gost3411_2012_LDADD = \
 	lib/libcrypt_la-alg-gost3411-2012-core.lo \
 	lib/libcrypt_la-alg-gost3411-2012-hmac.lo \
+	lib/libcrypt_la-util-xbzero.lo \
 	$(COMMON_TEST_OBJECTS)
 test_alg_gost3411_2012_hmac_LDADD = \
 	lib/libcrypt_la-alg-gost3411-2012-core.lo \
 	lib/libcrypt_la-alg-gost3411-2012-hmac.lo \
+	lib/libcrypt_la-util-xbzero.lo \
 	$(COMMON_TEST_OBJECTS)
 test_alg_hmac_sha1_LDADD = \
 	lib/libcrypt_la-alg-sha1.lo \
 	lib/libcrypt_la-alg-hmac-sha1.lo \
+	lib/libcrypt_la-util-xbzero.lo \
 	$(COMMON_TEST_OBJECTS)
 test_alg_md4_LDADD = \
 	lib/libcrypt_la-alg-md4.lo \
+	lib/libcrypt_la-util-xbzero.lo \
 	$(COMMON_TEST_OBJECTS)
 test_alg_md5_LDADD = \
 	lib/libcrypt_la-alg-md5.lo \
+	lib/libcrypt_la-util-xbzero.lo \
 	$(COMMON_TEST_OBJECTS)
 test_alg_pbkdf_hmac_sha256_LDADD = \
 	lib/libcrypt_la-alg-sha256.lo \
+	lib/libcrypt_la-util-xbzero.lo \
 	$(COMMON_TEST_OBJECTS)
 test_alg_sha1_LDADD = \
 	lib/libcrypt_la-alg-sha1.lo \
+	lib/libcrypt_la-util-xbzero.lo \
 	$(COMMON_TEST_OBJECTS)
 test_alg_sha256_LDADD = \
 	lib/libcrypt_la-alg-sha256.lo \
+	lib/libcrypt_la-util-xbzero.lo \
 	$(COMMON_TEST_OBJECTS)
 test_alg_sha512_LDADD = \
 	lib/libcrypt_la-alg-sha512.lo \
+	lib/libcrypt_la-util-xbzero.lo \
 	$(COMMON_TEST_OBJECTS)
 test_alg_yescrypt_LDADD = \
 	lib/libcrypt_la-alg-sha256.lo \
 	lib/libcrypt_la-alg-yescrypt-common.lo \
 	lib/libcrypt_la-alg-yescrypt-opt.lo \
 	lib/libcrypt_la-util-base64.lo \
+	lib/libcrypt_la-util-xbzero.lo \
 	$(COMMON_TEST_OBJECTS)
 test_crypt_gost_yescrypt_LDADD = \
 	lib/libcrypt_la-alg-gost3411-2012-core.lo \
@@ -531,15 +542,19 @@ test_crypt_gost_yescrypt_LDADD = \
 	lib/libcrypt_la-alg-yescrypt-opt.lo \
 	lib/libcrypt_la-crypt-yescrypt.lo \
 	lib/libcrypt_la-util-base64.lo \
+	lib/libcrypt_la-util-xbzero.lo \
 	lib/libcrypt_la-util-xstrcpy.lo \
 	$(COMMON_TEST_OBJECTS)
 
+test_explicit_bzero_LDADD = \
+	lib/libcrypt_la-util-xbzero.lo
 test_getrandom_interface_LDADD = \
 	lib/libcrypt_la-util-get-random-bytes.lo \
-	$(COMMON_TEST_OBJECTS)
+	lib/libcrypt_la-util-xbzero.lo
 test_getrandom_fallbacks_LDADD = \
 	lib/libcrypt_la-util-get-random-bytes.lo \
-	$(COMMON_TEST_OBJECTS)
+	lib/libcrypt_la-util-xbzero.lo
+
 
 if HAVE_LD_WRAP
 test_getrandom_fallbacks_LDFLAGS = \

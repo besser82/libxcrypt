@@ -13,7 +13,7 @@ source tree.  For specific licensing terms consult the files themselves.
 
  * Copyright Free Software Foundation, Inc.; LGPL (v2.1 or later):
    crypt.h, crypt-obsolete.h, crypt-md5.c,
-   test-badsalt.c, test-crypt-nonnull.c
+   test-badsalt.c, test-crypt-nonnull.c, test-explicit-bzero.c
 
  * Copyright David Burren et al.; 3-clause BSD:
    alg-des.h, alg-des.c, alg-des-tables.c,

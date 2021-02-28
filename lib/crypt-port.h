@@ -78,6 +78,13 @@
 # define ARG_UNUSED(x) x
 #endif
 
+/* Functions that should not be inlined.  */
+#if defined __GNUC__ && __GNUC__ >= 3
+# define NO_INLINE __attribute__ ((__noinline__))
+#else
+# error "Don't know how to prevent function inlining"
+#endif
+
 /* C99 Static array indices in function parameter declarations.  Syntax
    such as:  void bar(int myArray[static 10]);  is allowed in C99, but
    not all compiler support it properly.  Define MIN_SIZE appropriately

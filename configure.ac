@@ -82,8 +82,15 @@ AC_SUBST([HAVE_CPP_dD], [$ac_cv_prog_cpp_dD])
 # Checks for libraries: currently none needed.
 
 # Checks for header files.
-AC_CHECK_HEADERS_ONCE(
-  [fcntl.h stdbool.h sys/cdefs.h sys/random.h sys/syscall.h])
+AC_CHECK_HEADERS_ONCE([
+  fcntl.h
+  stdbool.h
+  ucontext.h
+  sys/cdefs.h
+  sys/random.h
+  sys/syscall.h
+  valgrind/valgrind.h
+])
 
 # stdint.h and inttypes.h were checked for by AC_INCLUDES_DEFAULT,
 # invoked implicitly by the above.
