@@ -234,7 +234,7 @@ gensalt_scrypt_rn (unsigned long count,
 
   if (out_p)
     {
-      XCRYPT_STRCPY_OR_ABORT (output, o_size, outbuf);
+      strcpy_or_abort (output, o_size, outbuf);
     }
 
   return;

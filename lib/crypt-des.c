@@ -435,8 +435,9 @@ gensalt_bigcrypt_rn (unsigned long count,
   gensalt_descrypt_rn (count, rbytes, nrbytes, output, output_size);
 
 #if !INCLUDE_descrypt
-  /* ... add 12 trailing characters to signalize bigcrypt.  */
-  XCRYPT_STRCPY_OR_ABORT (output + 2, output_size - 2, "............");
+  /* ... add 12 trailing dummy characters, which makes the string too
+     long to be a descrypt setting, thus bigcrypt will be used.  */
+  strcpy_or_abort (output + 2, output_size - 2, "............");
 #endif
 }
 #endif

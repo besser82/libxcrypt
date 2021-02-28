@@ -177,8 +177,6 @@ extern void explicit_bzero (void *, size_t);
    function with unsigned char * arguments.  */
 #define strcpy_or_abort _crypt_strcpy_or_abort
 extern size_t strcpy_or_abort (void *dst, size_t d_size, const void *src);
-#define XCRYPT_STRCPY_OR_ABORT(dst, d_size, src) \
-  strcpy_or_abort (dst, d_size, src)
 
 
 /* Define ALIASNAME as a strong alias for NAME.  */

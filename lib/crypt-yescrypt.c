@@ -86,7 +86,7 @@ crypt_yescrypt_rn (const char *phrase, size_t phr_size,
   if (yescrypt_free_local (&intbuf->local) || !intbuf->retval)
     return;
 
-  XCRYPT_STRCPY_OR_ABORT (output, o_size, intbuf->outbuf);
+  strcpy_or_abort (output, o_size, intbuf->outbuf);
   return;
 }
 
@@ -166,7 +166,7 @@ gensalt_yescrypt_rn (unsigned long count,
       return;
     }
 
-  XCRYPT_STRCPY_OR_ABORT (output, o_size, outbuf);
+  strcpy_or_abort (output, o_size, outbuf);
   return;
 }
 
