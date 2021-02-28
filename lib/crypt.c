@@ -141,7 +141,7 @@ do_crypt (const char *phrase, const char *setting, struct crypt_data *data)
             (unsigned char *)data->output, sizeof data->output,
             cint->alg_specific, sizeof cint->alg_specific);
 
-  XCRYPT_SECURE_MEMSET (data->internal, sizeof data->internal);
+  explicit_bzero (data->internal, sizeof data->internal);
 }
 
 #if INCLUDE_crypt_rn
@@ -270,7 +270,7 @@ crypt_gensalt_rn (const char *prefix, unsigned long count,
               (unsigned char *)output, (size_t)output_size);
 
   if (internal_nrbytes)
-    XCRYPT_SECURE_MEMSET (internal_rbytes, internal_nrbytes);
+    explicit_bzero (internal_rbytes, internal_nrbytes);
 
   return output[0] == '*' ? 0 : output;
 }

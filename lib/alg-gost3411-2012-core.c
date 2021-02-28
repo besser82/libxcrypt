@@ -28,7 +28,7 @@
 void
 GOST34112012Cleanup(GOST34112012Context *CTX)
 {
-    XCRYPT_SECURE_MEMSET(CTX, sizeof (GOST34112012Context));
+    explicit_bzero(CTX, sizeof (GOST34112012Context));
 }
 
 void
@@ -36,7 +36,7 @@ GOST34112012Init(GOST34112012Context *CTX, const unsigned int digest_size)
 {
     unsigned int i;
 
-    XCRYPT_SECURE_MEMSET(CTX, sizeof (GOST34112012Context));
+    memset(CTX, 0, sizeof (GOST34112012Context));
     CTX->digest_size = digest_size;
 
     for (i = 0; i < 8; i++)
@@ -51,13 +51,12 @@ GOST34112012Init(GOST34112012Context *CTX, const unsigned int digest_size)
 static inline void
 pad(GOST34112012Context *CTX)
 {
-    if (CTX->bufsize > 63)
-        return;
-
-    XCRYPT_SECURE_MEMSET(CTX->buffer + CTX->bufsize,
-        sizeof(CTX->buffer) - CTX->bufsize);
-
-    CTX->buffer[CTX->bufsize] = 0x01;
+    if (CTX->bufsize < sizeof CTX->buffer)
+    {
+        memset (CTX->buffer + CTX->bufsize, 0,
+                sizeof(CTX->buffer) - CTX->bufsize);
+        CTX->buffer[CTX->bufsize] = 0x01;
+    }
 }
 
 static inline void

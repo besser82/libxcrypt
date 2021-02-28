@@ -29,10 +29,8 @@
 
 #if INCLUDE_gost_yescrypt || INCLUDE_yescrypt || INCLUDE_scrypt || INCLUDE_sha256crypt
 
-#define insecure_memzero XCRYPT_SECURE_MEMSET
-#include "byteorder.h"
-
 #include "alg-sha256.h"
+#include "byteorder.h"
 
 #ifdef __ICC
 /* Miscompile with icc 14.0.0 (at least), so don't use restrict there */
@@ -272,7 +270,7 @@ SHA256_Update(SHA256_CTX * ctx, const void * in, size_t len)
 	_SHA256_Update(ctx, in, len, tmp32);
 
 	/* Clean the stack. */
-	insecure_memzero(tmp32, 288);
+	explicit_bzero(tmp32, 288);
 }
 
 /**
@@ -302,10 +300,10 @@ SHA256_Final(uint8_t digest[32], SHA256_CTX * ctx)
 	_SHA256_Final(digest, ctx, tmp32);
 
 	/* Clear the context state. */
-	insecure_memzero(ctx, sizeof(SHA256_CTX));
+	explicit_bzero(ctx, sizeof(SHA256_CTX));
 
 	/* Clean the stack. */
-	insecure_memzero(tmp32, 288);
+	explicit_bzero(tmp32, 288);
 }
 
 /**
@@ -323,8 +321,8 @@ SHA256_Buf(const void * in, size_t len, uint8_t digest[32])
 	_SHA256_Final(digest, &ctx, tmp32);
 
 	/* Clean the stack. */
-	insecure_memzero(&ctx, sizeof(SHA256_CTX));
-	insecure_memzero(tmp32, 288);
+	explicit_bzero(&ctx, sizeof(SHA256_CTX));
+	explicit_bzero(tmp32, 288);
 }
 
 #endif /* INCLUDE_gost_yescrypt || INCLUDE_yescrypt || INCLUDE_scrypt || INCLUDE_sha256crypt */
@@ -380,9 +378,9 @@ HMAC_SHA256_Init(HMAC_SHA256_CTX * ctx, const void * _K, size_t Klen)
 	_HMAC_SHA256_Init(ctx, _K, Klen, tmp32, pad, khash);
 
 	/* Clean the stack. */
-	insecure_memzero(tmp32, 288);
-	insecure_memzero(khash, 32);
-	insecure_memzero(pad, 64);
+	explicit_bzero(tmp32, 288);
+	explicit_bzero(khash, 32);
+	explicit_bzero(pad, 64);
 }
 
 /**
@@ -408,7 +406,7 @@ HMAC_SHA256_Update(HMAC_SHA256_CTX * ctx, const void * in, size_t len)
 	_HMAC_SHA256_Update(ctx, in, len, tmp32);
 
 	/* Clean the stack. */
-	insecure_memzero(tmp32, 288);
+	explicit_bzero(tmp32, 288);
 }
 
 /**
@@ -442,8 +440,8 @@ HMAC_SHA256_Final(uint8_t digest[32], HMAC_SHA256_CTX * ctx)
 	_HMAC_SHA256_Final(digest, ctx, tmp32, ihash);
 
 	/* Clean the stack. */
-	insecure_memzero(tmp32, 288);
-	insecure_memzero(ihash, 32);
+	explicit_bzero(tmp32, 288);
+	explicit_bzero(ihash, 32);
 }
 
 /**
@@ -464,9 +462,9 @@ HMAC_SHA256_Buf(const void * K, size_t Klen, const void * in, size_t len,
 	_HMAC_SHA256_Final(digest, &ctx, tmp32, &tmp8[0]);
 
 	/* Clean the stack. */
-	insecure_memzero(&ctx, sizeof(HMAC_SHA256_CTX));
-	insecure_memzero(tmp32, 288);
-	insecure_memzero(tmp8, 96);
+	explicit_bzero(&ctx, sizeof(HMAC_SHA256_CTX));
+	explicit_bzero(tmp32, 288);
+	explicit_bzero(tmp8, 96);
 }
 
 /* Add padding and terminating bit-count, but don't invoke Transform yet. */
@@ -605,15 +603,15 @@ generic:
 	}
 
 	/* Clean the stack. */
-	insecure_memzero(&Phctx, sizeof(HMAC_SHA256_CTX));
-	insecure_memzero(&PShctx, sizeof(HMAC_SHA256_CTX));
-	insecure_memzero(U, 32);
-	insecure_memzero(T, 32);
+	explicit_bzero(&Phctx, sizeof(HMAC_SHA256_CTX));
+	explicit_bzero(&PShctx, sizeof(HMAC_SHA256_CTX));
+	explicit_bzero(U, 32);
+	explicit_bzero(T, 32);
 
 cleanup:
-	insecure_memzero(&hctx, sizeof(HMAC_SHA256_CTX));
-	insecure_memzero(tmp32, 288);
-	insecure_memzero(&u, sizeof(u));
+	explicit_bzero(&hctx, sizeof(HMAC_SHA256_CTX));
+	explicit_bzero(tmp32, 288);
+	explicit_bzero(&u, sizeof(u));
 }
 
 #endif /* INCLUDE_gost_yescrypt || INCLUDE_yescrypt || INCLUDE_scrypt */

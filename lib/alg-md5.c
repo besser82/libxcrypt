@@ -285,7 +285,7 @@ void MD5_Final(uint8_t result[16], MD5_CTX *ctx)
 	OUT(&result[8], ctx->c)
 	OUT(&result[12], ctx->d)
 
-	XCRYPT_SECURE_MEMSET(ctx, sizeof(*ctx));
+	explicit_bzero(ctx, sizeof(*ctx));
 }
 
 #endif

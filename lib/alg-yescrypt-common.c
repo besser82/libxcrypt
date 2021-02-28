@@ -25,7 +25,6 @@
 #include <stdint.h>
 #include <string.h>
 
-#define insecure_memzero XCRYPT_SECURE_MEMSET
 #include "alg-sha256.h"
 
 #define YESCRYPT_INTERNAL
@@ -317,7 +316,7 @@ static void yescrypt_sha256_cipher(unsigned char *data, size_t datalen,
 	} while (1);
 
 	/* ctx is presumably zeroized by SHA256_Final() */
-	insecure_memzero(f, sizeof(f));
+	explicit_bzero(f, sizeof(f));
 }
 
 uint8_t *yescrypt_r(const yescrypt_shared_t *shared, yescrypt_local_t *local,
@@ -452,7 +451,7 @@ uint8_t *yescrypt_r(const yescrypt_shared_t *shared, yescrypt_local_t *local,
 		goto fail;
 
 	if (key) {
-		insecure_memzero(saltbin, sizeof(saltbin));
+		explicit_bzero(saltbin, sizeof(saltbin));
 		yescrypt_sha256_cipher(hashbin, sizeof(hashbin), key, ENC);
 	}
 
@@ -462,7 +461,7 @@ uint8_t *yescrypt_r(const yescrypt_shared_t *shared, yescrypt_local_t *local,
 	*dst++ = '$';
 
 	dst = encode64(dst, buflen - (dst - buf), hashbin, sizeof(hashbin));
-	insecure_memzero(hashbin, sizeof(hashbin));
+	explicit_bzero(hashbin, sizeof(hashbin));
 	if (!dst || dst >= buf + buflen)
 		return NULL;
 
@@ -471,8 +470,8 @@ uint8_t *yescrypt_r(const yescrypt_shared_t *shared, yescrypt_local_t *local,
 	return buf;
 
 fail:
-	insecure_memzero(saltbin, sizeof(saltbin));
-	insecure_memzero(hashbin, sizeof(hashbin));
+	explicit_bzero(saltbin, sizeof(saltbin));
+	explicit_bzero(hashbin, sizeof(hashbin));
 	return NULL;
 }
 
@@ -558,8 +557,8 @@ uint8_t *yescrypt_reencrypt(uint8_t *hash,
 	retval = hash;
 
 out:
-	insecure_memzero(saltbin, sizeof(saltbin));
-	insecure_memzero(hashbin, sizeof(hashbin));
+	explicit_bzero(saltbin, sizeof(saltbin));
+	explicit_bzero(hashbin, sizeof(hashbin));
 
 	return retval;
 }

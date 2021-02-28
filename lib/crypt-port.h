@@ -144,28 +144,25 @@ typedef union
    memory containing sensitive data, and among those that do, there is
    no standard for what it should be called.  (Plain memset and bzero
    are not usable for this purpose, because the compiler may remove
-   calls to these functions if it thinks the stores are dead.)  */
+   calls to these functions if it thinks the stores are dead.)
+
+   All code in libxcrypt is standardized on explicit_bzero() as the
+   name for the function that does this job; here, we map that name
+   to whatever platform routine is available, or to our own fallback
+   implementation.  */
 #define INCLUDE_explicit_bzero 0
-#if defined HAVE_MEMSET_S
-/* Will never be optimized out.  */
-#define XCRYPT_SECURE_MEMSET(s, len) \
-  memset_s (s, len, 0x00, len)
-#elif defined HAVE_EXPLICIT_BZERO
-/* explicit_bzero() should give us enough guarantees.  */
-#define XCRYPT_SECURE_MEMSET(s, len) \
-  explicit_bzero(s, len)
+#if defined HAVE_EXPLICIT_BZERO
+/* nothing to do */
 #elif defined HAVE_EXPLICIT_MEMSET
-/* Same guarantee goes for explicit_memset().  */
-#define XCRYPT_SECURE_MEMSET(s, len) \
-  explicit_memset (s, 0x00, len)
+#define explicit_bzero(s, len) explicit_memset(s, 0, len)
+#elif defined HAVE_MEMSET_S
+#define explicit_bzero(s, len) memset_s(s, len, 0, len)
 #else
-/* The best hope we have in this case.  */
+/* activate our fallback implementation */
 #undef INCLUDE_explicit_bzero
 #define INCLUDE_explicit_bzero 1
 #define explicit_bzero _crypt_explicit_bzero
 extern void explicit_bzero (void *, size_t);
-#define XCRYPT_SECURE_MEMSET(s, len) \
-  explicit_bzero (s, len)
 #endif
 
 /* Provide a safe way to copy strings with the guarantee src,

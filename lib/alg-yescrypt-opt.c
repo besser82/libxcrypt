@@ -92,7 +92,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define insecure_memzero XCRYPT_SECURE_MEMSET
 #include "alg-sha256.h"
 #include "byteorder.h"
 
@@ -331,7 +330,7 @@ static inline void salsa20(salsa20_blk_t *restrict B,
 
 #if 0
 	/* Too expensive */
-	insecure_memzero(&X, sizeof(X));
+	explicit_bzero(&X, sizeof(X));
 #endif
 }
 
@@ -1363,12 +1362,12 @@ static int yescrypt_kdf_body(const yescrypt_shared_t *shared,
 	}
 
 	if (flags) {
-		insecure_memzero(sha256, sizeof(sha256));
-		insecure_memzero(dk, sizeof(dk));
+		explicit_bzero(sha256, sizeof(sha256));
+		explicit_bzero(dk, sizeof(dk));
 	}
 
 	if (free_region(&tmp)) {
-		insecure_memzero(buf, buflen); /* must preserve errno */
+		explicit_bzero(buf, buflen); /* must preserve errno */
 		return -1;
 	}
 
@@ -1432,7 +1431,7 @@ int yescrypt_kdf(const yescrypt_shared_t *shared, yescrypt_local_t *local,
 	    flags, N, r, p, t, NROM, buf, buflen);
 #ifndef SKIP_MEMZERO
 	if (passwd == dk)
-		insecure_memzero(dk, sizeof(dk));
+		explicit_bzero(dk, sizeof(dk));
 #endif
 	return retval;
 }
@@ -1503,11 +1502,11 @@ int yescrypt_init_shared(yescrypt_shared_t *shared,
 	tag[4] = le64dec(salt + 16);
 	tag[5] = le64dec(salt + 24);
 
-	insecure_memzero(salt, sizeof(salt));
+	explicit_bzero(salt, sizeof(salt));
 	return 0;
 
 fail:
-	insecure_memzero(salt, sizeof(salt));
+	explicit_bzero(salt, sizeof(salt));
 	if (!(params->flags & YESCRYPT_SHARED_PREALLOCATED))
 		free_region(shared);
 	return -1;

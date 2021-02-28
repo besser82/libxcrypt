@@ -409,10 +409,10 @@ main (void)
 
   for (tcase = testcases; tcase->prefix; tcase++)
     {
-      XCRYPT_SECURE_MEMSET (prev_output, CRYPT_GENSALT_OUTPUT_SIZE);
+      memset (prev_output, 0, CRYPT_GENSALT_OUTPUT_SIZE);
       for (ent = 0; ent < ARRAY_SIZE (entropy); ent++)
         {
-          XCRYPT_SECURE_MEMSET (output, CRYPT_GENSALT_OUTPUT_SIZE);
+          memset (output, 0, CRYPT_GENSALT_OUTPUT_SIZE);
           char *salt = crypt_gensalt_rn (tcase->prefix, tcase->rounds,
                                          entropy[ent], 16,
                                          output, CRYPT_GENSALT_OUTPUT_SIZE);

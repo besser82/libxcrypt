@@ -111,7 +111,7 @@ pack_bits (unsigned char bitv[8], const char bytev[64])
 static void
 do_setkey_r (const char *key, struct des_ctx *ctx)
 {
-  XCRYPT_SECURE_MEMSET (ctx, sizeof (struct des_ctx));
+  memset (ctx, 0, sizeof (struct des_ctx));
   des_set_salt (ctx, 0);
 
   unsigned char bkey[8];
@@ -155,7 +155,7 @@ encrypt_r (char *block, ARG_UNUSED (int edflag),
 #if ENABLE_OBSOLETE_API_ENOSYS
   /* Make sure sensitive data is erased in case
      case get_random_bytes() fails.  */
-  XCRYPT_SECURE_MEMSET(block, 64);
+  explicit_bzero(block, 64);
 
   /* Overwrite sensitive data with random data.  */
   get_random_bytes(block, 64);
@@ -200,7 +200,7 @@ encrypt (char *block, ARG_UNUSED (int edflag))
 #if ENABLE_OBSOLETE_API_ENOSYS
   /* Make sure sensitive data is erased in case
      case get_random_bytes() fails.  */
-  XCRYPT_SECURE_MEMSET(block, 64);
+  explicit_bzero(block, 64);
 
   /* Overwrite sensitive data with random data.  */
   get_random_bytes(block, 64);
