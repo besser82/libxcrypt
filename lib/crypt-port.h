@@ -137,11 +137,15 @@ typedef union
 #undef MAX
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
-/* ARRAY_SIZE is used in tests.  */
+/* Size of a declared array.  */
 #define ARRAY_SIZE(a_)  (sizeof (a_) / sizeof ((a_)[0]))
 
-/* Provide a guaranteed way to erase sensitive memory at the best we
-   can, given the possibilities of the system.  */
+/* Not all systems provide a library function usable for erasing
+   memory containing sensitive data, and among those that do, there is
+   no standard for what it should be called.  (Plain memset and bzero
+   are not usable for this purpose, because the compiler may remove
+   calls to these functions if it thinks the stores are dead.)  */
+#define INCLUDE_explicit_bzero 0
 #if defined HAVE_MEMSET_S
 /* Will never be optimized out.  */
 #define XCRYPT_SECURE_MEMSET(s, len) \
@@ -156,23 +160,25 @@ typedef union
   explicit_memset (s, 0x00, len)
 #else
 /* The best hope we have in this case.  */
-#define INCLUDE_XCRYPT_SECURE_MEMSET 1
-extern void _crypt_secure_memset (void *, size_t);
+#undef INCLUDE_explicit_bzero
+#define INCLUDE_explicit_bzero 1
+#define explicit_bzero _crypt_explicit_bzero
+extern void explicit_bzero (void *, size_t);
 #define XCRYPT_SECURE_MEMSET(s, len) \
-  _crypt_secure_memset (s, len)
-#endif
-#ifndef INCLUDE_XCRYPT_SECURE_MEMSET
-#define INCLUDE_XCRYPT_SECURE_MEMSET 0
+  explicit_bzero (s, len)
 #endif
 
 /* Provide a safe way to copy strings with the guarantee src,
    including its terminating '\0', will fit d_size bytes.
    The trailing bytes of d_size will be filled with '\0'.
-   dst and src must not be NULL.  Returns strlen (src).  */
-extern size_t
-_crypt_strcpy_or_abort (void *, const size_t, const void *);
+   dst and src must not be NULL.  Returns strlen (src).
+   Note: dst and src are declared as void * instead of char *
+   because some of the hashing methods want to call this
+   function with unsigned char * arguments.  */
+#define strcpy_or_abort _crypt_strcpy_or_abort
+extern size_t strcpy_or_abort (void *dst, size_t d_size, const void *src);
 #define XCRYPT_STRCPY_OR_ABORT(dst, d_size, src) \
-  _crypt_strcpy_or_abort (dst, d_size, src)
+  strcpy_or_abort (dst, d_size, src)
 
 
 /* Define ALIASNAME as a strong alias for NAME.  */

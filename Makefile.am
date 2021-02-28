@@ -108,10 +108,8 @@ libcrypt_la_SOURCES = \
 	lib/alg-yescrypt-common.c \
 	lib/alg-yescrypt-opt.c \
 	lib/crypt-bcrypt.c \
-	lib/crypt-common.c \
 	lib/crypt-des.c \
 	lib/crypt-gensalt-static.c \
-	lib/crypt-gensalt.c \
 	lib/crypt-gost-yescrypt.c \
 	lib/crypt-md5.c \
 	lib/crypt-nthash.c \
@@ -123,7 +121,12 @@ libcrypt_la_SOURCES = \
 	lib/crypt-sunmd5.c \
 	lib/crypt-yescrypt.c \
 	lib/crypt.c \
-	lib/randombytes.c
+	lib/util-base64.c \
+	lib/util-gensalt-sha.c \
+	lib/util-get-random-bytes.c \
+	lib/util-make-failure-token.c \
+	lib/util-xbzero.c \
+	lib/util-xstrcpy.c
 
 pkgconfig_DATA = libxcrypt.pc
 
@@ -440,14 +443,10 @@ test/symbols-compat.log test/symbols-compat.trs: test/TestCommon.pm
 test/symbols-renames.log test/symbols-renames.trs: test/TestCommon.pm
 test/symbols-static.log test/symbols-static.trs: test/TestCommon.pm
 
-# Refer to object files that are linked into libxcrypt with the
-# qualified name, lib/libcrypt_la-foobar.lo, to prevent them from
-# being compiled a second time.
-COMMON_TEST_OBJECTS = lib/libcrypt_la-crypt-common.lo libcrypt.la
+COMMON_TEST_OBJECTS = libcrypt.la
 
 test_badsalt_LDADD = $(COMMON_TEST_OBJECTS)
 test_badsetting_LDADD = $(COMMON_TEST_OBJECTS)
-test_gensalt_LDADD = $(COMMON_TEST_OBJECTS)
 test_gensalt_nthash_LDADD = $(COMMON_TEST_OBJECTS)
 test_gensalt_extradata_LDADD = $(COMMON_TEST_OBJECTS)
 test_checksalt_LDADD = $(COMMON_TEST_OBJECTS)
@@ -478,6 +477,12 @@ test_ka_yescrypt_LDADD = $(COMMON_TEST_OBJECTS)
 
 # These tests call internal APIs that may not be accessible from the
 # fully linked shared library.
+# Refer to object files that are linked into libxcrypt with the
+# qualified name, lib/libcrypt_la-foobar.lo, to prevent them from
+# being compiled a second time.
+test_gensalt_LDADD = \
+	lib/libcrypt_la-util-xstrcpy.lo \
+	$(COMMON_TEST_OBJECTS)
 test_alg_des_LDADD = \
 	lib/libcrypt_la-alg-des.lo \
 	lib/libcrypt_la-alg-des-tables.lo \
@@ -516,6 +521,7 @@ test_alg_yescrypt_LDADD = \
 	lib/libcrypt_la-alg-sha256.lo \
 	lib/libcrypt_la-alg-yescrypt-common.lo \
 	lib/libcrypt_la-alg-yescrypt-opt.lo \
+	lib/libcrypt_la-util-base64.lo \
 	$(COMMON_TEST_OBJECTS)
 test_crypt_gost_yescrypt_LDADD = \
 	lib/libcrypt_la-alg-gost3411-2012-core.lo \
@@ -524,13 +530,15 @@ test_crypt_gost_yescrypt_LDADD = \
 	lib/libcrypt_la-alg-yescrypt-common.lo \
 	lib/libcrypt_la-alg-yescrypt-opt.lo \
 	lib/libcrypt_la-crypt-yescrypt.lo \
+	lib/libcrypt_la-util-base64.lo \
+	lib/libcrypt_la-util-xstrcpy.lo \
 	$(COMMON_TEST_OBJECTS)
 
 test_getrandom_interface_LDADD = \
-	lib/libcrypt_la-randombytes.lo \
+	lib/libcrypt_la-util-get-random-bytes.lo \
 	$(COMMON_TEST_OBJECTS)
 test_getrandom_fallbacks_LDADD = \
-	lib/libcrypt_la-randombytes.lo \
+	lib/libcrypt_la-util-get-random-bytes.lo \
 	$(COMMON_TEST_OBJECTS)
 
 if HAVE_LD_WRAP
