@@ -1,0 +1,96 @@
+.\" Written by Zack Weinberg <zackw at panix.com> in 2018.
+.\"
+.\" To the extent possible under law, the authors have waived
+.\" all copyright and related or neighboring rights to this work.
+.\" See https://creativecommons.org/publicdomain/zero/1.0/ for further
+.\" details.
+.\"
+.Dd August 14, 2018
+.Dt CRYPT-CHECKCONF 8
+.Os "libxcrypt"
+.Sh NAME
+.Nm crypt-checkconf
+.Nd validate crypt.conf
+.Sh SYNOPSIS
+.Nm
+.Op Fl m
+.Op Ar file
+.Sh DESCRIPTION
+The
+.Nm
+utility validates a file in the format of
+.Xr crypt.conf 5 .
+If a
+.Ar file
+is given on the command line, it validates that file;
+otherwise, it validates
+.Pa /etc/security/crypt.conf .
+.Ar file
+may be specified as
+.Sq Li \&-
+to read standard input.
+Problems found are reported to standard error.
+.Pp
+The following problems are detected:
+.Bl -bullet
+.It
+Lines containing syntactic garbage or unprintable characters.
+Characters with the 8th bit set are allowed, but only in comments.
+.It
+Unrecognized hashing method names.
+.It
+Unrecognized values for the
+.Ar allowed use
+field.
+.It
+.Ar key Ns = Ns Ar value
+fields with an unrecognized
+.Ar key .
+.It
+Invalid values for the
+.Ar rounds
+parameter, either syntactically or because they do not meet the
+restrictions for the hashing method.
+.El
+.Sh OPTIONS
+.Bl -tag -width 2m
+.It Fl m , \-merge\-defaults
+Merge all of the valid lines in the input file
+with the compiled-in defaults,
+and write the result to standard output.
+This produces a configuration file
+with the same behavior as the original,
+but having explicit settings for each hashing method.
+Comments are preserved.
+Lines with problems are echoed as comments.
+.Pp
+To print out just the compiled-in defaults,
+ignoring whatever might be in
+.Pa /etc/security/crypt.conf ,
+use
+.Pp
+.Dl crypt-checkconf -m /dev/null
+.El
+.Sh EXIT STATUS
+The exit status is 0 if no problems were found, 1 if at least one problem
+was found, and 2 if a system error occurred.
+.Pp
+Note that if no
+.Ar file
+is given on the command line, and
+.Pa /etc/crypt.conf
+does not exist, that is
+.Em not
+considered to be an error, because
+.Fn crypt
+and
+.Fn crypt_gensalt
+treat a nonexistent
+.Pa /etc/security/crypt.conf
+the same as if it were empty.
+.Sh SEE ALSO
+.Xr crypt 3 ,
+.Xr crypt_gensalt 3 ,
+.Xr crypt 5 ,
+.Xr crypt.conf 5 ,
+.Xr crypt\-tune\-costs 8

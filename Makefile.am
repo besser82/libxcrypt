@@ -55,7 +55,11 @@ notrans_dist_man3_MANS = \
 	doc/crypt_ra.3 \
 	doc/crypt_rn.3
 notrans_dist_man5_MANS = \
-	doc/crypt.5
+	doc/crypt.5 \
+	doc/crypt.conf.5
+notrans_dist_man8_MANS = \
+	doc/crypt-checkconf.8 \
+	doc/crypt-tune-costs.8
 
 nodist_include_HEADERS = \
 	crypt.h
@@ -126,6 +130,9 @@ libcrypt_la_SOURCES = \
 	lib/crypt-yescrypt.c \
 	lib/crypt.c \
 	lib/randombytes.c
+
+sbin_PROGRAMS = crypt-tune-costs
+crypt_tune_costs_LDADD = libcrypt.la -lm
 
 pkgconfig_DATA = libxcrypt.pc
 

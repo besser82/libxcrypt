@@ -1,0 +1,161 @@
+.\" Written by Zack Weinberg <zackw at panix.com> in 2018.
+.\"
+.\" To the extent possible under law, the authors have waived
+.\" all copyright and related or neighboring rights to this work.
+.\" See https://creativecommons.org/publicdomain/zero/1.0/ for further
+.\" details.
+.\"
+.Dd August 14, 2018
+.Dt CRYPT-TUNE-COSTS 8
+.Os "libxcrypt"
+.Sh NAME
+.Nm crypt-tune-costs
+.Nd choose cost parameters for passphrase hashing
+.Sh SYNOPSIS
+.Nm
+.Op Fl sv
+.Op Fl t Ar milliseconds
+.Op Fl T Ar milliseconds
+.Op Fl p Ar method
+.Op Fl e Ar method , Ns Ar method , Ns .\|.\|.
+.Op Fl l Ar method , Ns Ar method , Ns .\|.\|.
+.Op Fl d Ar method , Ns Ar method , Ns .\|.\|.
+.Sh DESCRIPTION
+The
+.Nm
+utility measures the speed of all the hashing methods supported by
+.Xr crypt 3 ,
+and selects cost parameters that will make each of them slow enough
+to impose significant costs on brute-force attackers,
+while not annoying legitimate users.
+Hashing methods that cannot be made to be slow enough
+will be marked as
+.Em legacy ,
+to be used only for authentication against existing hashes.
+.Pp
+.Nm
+writes a configuration file suitable for use as
+.Pa /etc/security/crypt.conf
+(see
+.Xr crypt.conf 5 )
+to its standard output.
+.Sh OPTIONS
+.Bl -tag -width 2m
+.It Fl s , \-strict
+Disable hashing methods that cannot be made to take the
+specified amount of time, instead of marking them as legacy.
+.It Fl v , \-verbose
+Write detailed information about the process of searching for
+appropriate cost parameters to standard error.
+.It Fl t Ar milliseconds ; Fl \-time Ns = Ns Ar milliseconds
+Set the
+.Sy defcost
+parameter for each hashing method so that it will take approximately
+.Ar milliseconds
+milliseconds to hash a passphrase of typical length.
+The number supplied must be positive, and may be either an integer or
+a decimal fraction.
+The default is 250 milliseconds.
+.It Fl T Ar milliseconds ; Fl \-maxtime Ns = Ns Ar milliseconds
+Set the
+.Sy maxcost
+parameter for each hashing method so that it will not be allowed to
+take longer than
+.Ar milliseconds
+milliseconds to hash a passphrase of typical length.
+This prevents accidental or malicious denial of service due to
+over-large cost parameters.
+The default is 10,000 milliseconds (10 seconds).
+.It Fl p Ar method ; Fl \-preferred Ns = Ns Ar method
+Use
+.Ar method
+as the preferred hashing method for new passphrases; that is,
+.Nm crypt_gensalt
+will generate a setting string for this method when its
+.Ar prefix
+argument is NULL.
+.Fl p Ar method
+implies
+.Fl e Ar method .
+.It Fl e Ar method , Ns Ar method , Ns .\|.\|. ; Fl \-enabled Ns = Ns Ar method , Ns Ar method , Ns .\|.\|.
+Use each
+.Ar method
+for authentication against existing hashes,
+and allow them to be used in new hashes.
+.Pp
+.Fl e Ar all
+means to enable all known hashing methods.
+.It Fl l Ar method , Ns Ar method , Ns .\|.\|. ; Fl \-legacy Ns = Ns Ar method , Ns Ar method , Ns .\|.\|.
+Use each
+.Ar method
+only for authentication against existing passphrase hashes;
+.Nm crypt_gensalt
+will refuse to generate new setting strings for them.
+.Nm
+will not bother selecting cost parameters for these hashes.
+.Pp
+.Fl l Ar all
+means to mark all known hashing methods as legacy.
+.It Fl d Ar method , Ns Ar method , Ns .\|.\|. ; Fl \-disabled Ns = Ns Ar method , Ns Ar method , Ns .\|.\|.
+Do not allow any of the
+.Ar method Ns s
+to be used at all; both
+.Nm crypt_gensalt
+and
+.Nm crypt
+will fail if directed to use them.
+.Nm
+will not bother selecting cost parameters for these hashes.
+.Pp
+.Fl d Ar all
+means to disable all known hashing methods.
+.Pp
+.Em Caution:
+Users whose passphrases were hashed using a disabled method
+will not be able to log in with a passphrase.
+If they log in some other way
+(e.g.\& an SSH key)
+they will not be able to
+.Em change
+their passphrase, because
+.Xr passwd 1
+will not be able to validate their old passphrase.
+.El
+.Pp
+The
+.Fl p ,
+.Fl e ,
+.Fl l ,
+and
+.Fl d
+options may be given any number of times and in any order.
+If more than one of these options is given for the same
+.Ar method ,
+the last one on the command line wins.
+.Sh EXIT STATUS
+The exit status is 0 if the generated
+.Pa crypt.conf
+has at least one hashing method enabled for new passphrases.
+It is 1 if it does not, or if a system error occurred.
+.Sh EXAMPLES
+Select cost parameters for all hashes that are enabled by default:
+.Pp
+.Dl # crypt-tune-costs > /etc/crypt.conf
+.Pp
+Select cost parameters for yescrypt, which will be used as the
+default hash; mark all other hashes as disabled:
+.Pp
+.Dl # crypt-tune-costs -d all -p yescrypt > /etc/crypt.conf
+.Pp
+Find cost parameters that will make all hashes take approximately 2 seconds.
+Disable all hashes that cannot be made to take this long.
+Display detailed progress information, and dump the generated
+.Pa crypt.conf
+to the terminal:
+.Pp
+.Dl $ crypt-tune-costs -e all -m 2000 -vs
+.Sh SEE ALSO
+.Xr crypt 3 ,
+.Xr crypt_gensalt 3 ,
+.Xr crypt 5 ,
+.Xr crypt.conf 5

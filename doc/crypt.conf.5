@@ -1,0 +1,303 @@
+.\" Written by Zack Weinberg <zackw at panix.com> in 2018.
+.\"
+.\" To the extent possible under law, the authors have waived
+.\" all copyright and related or neighboring rights to this work.
+.\" See https://creativecommons.org/publicdomain/zero/1.0/ for further
+.\" details.
+.\"
+.Dd August 14, 2018
+.Dt CRYPT.CONF 5
+.Os "libxcrypt"
+.Sh NAME
+.Nm crypt.conf
+.Nd configuration of passphrase hashing
+.Sh DESCRIPTION
+The file
+.Nm
+(normally installed in
+.Pa /etc/security )
+determines which of several
+.Dq hashing methods
+may be used by
+.Xr crypt 3 ,
+.Xr crypt_gensalt 3 ,
+and related functions to hash user passphrases.
+For hashing methods that have tunable parameters,
+it also allows adjustment of the default values for those parameters.
+.Pp
+Each line of
+.Nm
+configures a single hashing method.
+If a hashing method is not mentioned in
+.Nm ,
+compiled-in defaults are used for that method.
+(The utility
+.Nm crypt\-checkconf
+can print out these defaults.)
+If
+.Nm
+does not exist,
+that is the same as if it were empty:
+the compiled-in defaults are used for all methods.
+.Pp
+Fields on each line are separated by tabs or spaces.
+Comments begin with a
+.Sq Li \&#
+and extend to the end of the line.
+(Comments can begin in the middle of a line.)
+Blank lines are ignored.
+All identifiers (method names, allowed uses, etc.) are parsed
+case-insensitively.
+.Pp
+Two fields are required for each hashing method:
+.Bl -tag -width 3n
+.It Sy Method name
+This field identifies the hashing method to be configured.
+It is a short, C-style identifier
+such as
+.Dq Sy bcrypt
+or
+.Dq Sy sha256crypt .
+The names for each supported hashing method are given in
+.Xr crypt 5 .
+Unrecognized hashing methods are ignored.
+.It Sy Allowed use
+This field indicates how this hashing method is allowed to be used
+on this system.
+It has four possible settings:
+.Bl -tag -width 3n
+.It Ar preferred
+This is the preferred method for new hashes: it will be used when a
+.Ar prefix
+is not supplied to
+.Nm crypt_gensalt .
+.It Ar enabled No (also Ar new , on , true , yes )
+This method may be used for new hashes: that is,
+.Nm crypt_gensalt
+will generate
+.Ar setting
+strings specifying this method,
+when directed to do so by its
+.Ar prefix
+argument.
+.It Ar legacy No (also Ar old , existing )
+This method may not be used for new hashes:
+.Nm crypt_gensalt
+will fail if directed to use this method.
+However,
+.Nm crypt
+will accept
+.Nm setting
+strings that specify this method,
+so it can still be used
+to authenticate users against stored hashes.
+.It Ar disabled No (also Ar off , false , no )
+This method may not be used at all.
+Both
+.Nm crypt_gensalt
+and
+.Nm crypt
+will fail if directed to use this method.
+.Pp
+.Em Caution:
+Users whose passphrases were hashed using a disabled method
+will not be able to log in with a passphrase.
+If they log in some other way
+(e.g.\& an SSH key)
+they will not be able to
+.Em change
+their passphrase, because
+.Xr passwd 1
+will not be able to validate their old passphrase.
+.El
+.Pp
+An unrecognized value in this field is treated as
+.Ar disabled .
+.Pp
+The function
+.Xr crypt_checksalt 3
+reports the
+.Sy allowed use
+of a setting string;
+this can be used by programs such as
+.Xr login 1
+to determine whether a user\(aqs passphrase should be re-hashed
+using a newer method.
+.El
+.Pp
+All subsequent fields are optional.
+They must all have the form
+.Bk
+.Sy key Ns = Ns Ar value ,
+.Ek
+where
+.Sy key
+is a C-style identifier, and
+.Ar value
+contains no spaces or tabs.
+(Quotation marks, backslashes, etc.\& are not significant.)
+Unrecognized
+.Sy key Ns s
+are ignored.
+Presently, two keys are recognized:
+.Bl -tag -width 3n
+.It Sy defcost Ns = Ns Ar n
+Set the default cost parameter for this hashing method to
+.Ar n .
+.Nm crypt_gensalt
+will use
+.Ar n
+instead of its compiled-in default for this hashing method,
+when its
+.Ar count
+argument is zero.
+.Nm crypt_checksalt
+will report that the cost parameter is
+.Dq too cheap
+for any existing hash that specifies a smaller cost parameter.
+.Pp
+.It Sy maxcost Ns = Ns Ar n
+Set the maximum cost parameter for this hashing method to
+.Ar n .
+.Nm crypt_gensalt
+will fail when its
+.Ar count
+argument is greater than
+.Ar n ,
+and
+.Nm crypt
+will fail when its
+.Ar setting
+argument encodes a cost greater than
+.Ar n .
+.Pp
+This can be used to prevent accidental or deliberate denial of service
+by users who have the ability to set cost parameters
+for their own passphrases
+(e.g. in
+.Xr htpasswd 5 ) .
+.El
+.Pp
+The
+.Nm
+syntax allows any positive, decimal integer for
+.Ar n ,
+but each hashing method has its own restrictions
+on the values that may be used for
+.Sy defcost
+and
+.Sy maxcost .
+These restrictions are documented in
+.Xr crypt 5 ,
+as are the compiled-in defaults used when these keys are not present.
+Invalid values are ignored.
+If
+.Sy defcost
+is set greater than
+.Sy maxcost ,
+it will be lowered to equal
+.Sy maxcost .
+.Pp
+The utility
+.Nm crypt\-tune\-costs
+can be used to select
+.Sy defcost
+and
+.Sy maxcost
+parameters that are appropriate for the machine it is run on.
+.Sh EXAMPLES
+This
+.Nm
+fragment specifies that
+.Nm bcrypt
+is the preferred method for new hashes,
+but cost parameters greater than 15 are not allowed;
+.Nm sha256crypt
+is acceptable for new hashes,
+but an increased cost parameter should be used;
+.Nm md5crypt
+is allowed only for old hashes;
+and
+.Nm descrypt
+may not be used at all.
+.Bd -literal -offset indent
+bcrypt        preferred maxcost=15
+sha256crypt   yes       defcost=50000  # compiled-in default 5000
+md5crypt      legacy
+descrypt      off
+.Ed
+.Sh ERROR HANDLING
+In general, syntax errors and unrecognized material in
+.Nm
+cause the malformed line or field to be ignored.
+Any unrecognized value for the
+.Sy allowed use
+field is treated as
+.Ar disabled ,
+to ensure that authentication fails closed.
+A warning message is logged with
+.Xr syslog 3
+under these circumstances:
+.Bl -bullet
+.It
+.Nm crypt
+is called with a
+.Ar setting
+that specifies a
+.Ar disabled
+hashing method
+(including a method with an unrecognized
+.Sy allowed use ) .
+.It
+.Nm crypt_gensalt
+is called with a
+.Ar prefix
+explicitly requesting the use of a
+.Ar disabled
+or
+.Ar legacy
+hashing method.
+.It
+An unrecognized
+.Sy key Ns = Ns Ar value
+field appears on the line configuring the hashing method that
+.Nm crypt_gensalt
+is about to generate a
+.Ar setting
+string for.
+.It
+The
+.Sy rounds
+parameter for the hashing method that
+.Nm crypt_gensalt
+is about to generate a
+.Ar setting
+string for
+is either syntactically invalid
+or does not meet the restrictions for that hashing method.
+.El
+.Pp
+The utility
+.Nm crypt\-checkconf
+can be used to scan
+.Nm
+for errors.
+.Sh BUGS
+The
+.Dq Ar legacy
+use is enforced only by
+.Nm crypt_gensalt .
+Applications that generate
+.Ar setting
+strings themselves may continue to create new hashes using methods whose
+allowed use is set to
+.Ar legacy .
+.Sh FILES
+.Pa /etc/crypt.conf
+.Sh SEE ALSO
+.Xr crypt 5 ,
+.Xr crypt 3 ,
+.Xr crypt_gensalt 3 ,
+.Xr crypt_checksalt 3 ,
+.Xr crypt\-checkconf 8 ,
+.Xr crypt\-tune\-costs 8

@@ -71,11 +71,35 @@
 #define __THROW /* nothing */
 #endif
 
+/* C2011 added a keyword _Noreturn with the same effect as
+   gcc's longstanding __attribute__ ((noreturn)) extension,
+   except that it is required to appear _before_ the function
+   type specifier (which must be 'void').  */
+#if (defined __STDC_VERSION__ ? __STDC_VERSION__ : 0) >= 201112 || \
+    defined _Noreturn
+# define NORETURN _Noreturn void
+#elif defined __GNUC__ && __GNUC__ >= 3
+# define NORETURN void __attribute__ ((noreturn))
+#else
+# define NORETURN void
+#endif
+
 /* Suppression of unused-argument warnings.  */
 #if defined __GNUC__ && __GNUC__ >= 3
 # define ARG_UNUSED(x) x __attribute__ ((__unused__))
 #else
 # define ARG_UNUSED(x) x
+#endif
+
+/* Functions that are in some way wrappers around vfprintf or
+   vsnprintf, and that take a printf-like format string and variable
+   argument list, should be declared with this annotation to enable
+   gcc and clang to check their arguments, and to avoid spurious
+   format-string-is-not-a-string-literal warnings.  */
+#if defined __GNUC__ && __GNUC__ >= 3
+# define PRINTF_FMT(x,y) __attribute__ ((__format__ (__printf__, x, y)))
+#else
+# define PRINTF_FMT(x,y)
 #endif
 
 /* C99 Static array indices in function parameter declarations.  Syntax
