@@ -109,20 +109,20 @@ libcrypt_la_SOURCES = \
 	lib/alg-sha512.c \
 	lib/alg-yescrypt-common.c \
 	lib/alg-yescrypt-opt.c \
-	lib/crypt-bcrypt.c \
-	lib/crypt-des.c \
 	lib/crypt-gensalt-static.c \
-	lib/crypt-gost-yescrypt.c \
-	lib/crypt-md5.c \
-	lib/crypt-nthash.c \
-	lib/crypt-pbkdf1-sha1.c \
-	lib/crypt-scrypt.c \
-	lib/crypt-sha256.c \
-	lib/crypt-sha512.c \
 	lib/crypt-static.c \
-	lib/crypt-sunmd5.c \
-	lib/crypt-yescrypt.c \
 	lib/crypt.c \
+	lib/hm-bcrypt.c \
+	lib/hm-descrypt.c \
+	lib/hm-gost-yescrypt.c \
+	lib/hm-md5crypt.c \
+	lib/hm-nt.c \
+	lib/hm-scrypt.c \
+	lib/hm-sha1crypt.c \
+	lib/hm-sha256crypt.c \
+	lib/hm-sha512crypt.c \
+	lib/hm-sunmd5.c \
+	lib/hm-yescrypt.c \
 	lib/util-base64.c \
 	lib/util-gensalt-sha.c \
 	lib/util-get-random-bytes.c \
@@ -568,7 +568,7 @@ test_crypt_gost_yescrypt_LDADD = \
 	lib/libcrypt_la-alg-sha256.lo \
 	lib/libcrypt_la-alg-yescrypt-common.lo \
 	lib/libcrypt_la-alg-yescrypt-opt.lo \
-	lib/libcrypt_la-crypt-yescrypt.lo \
+	lib/libcrypt_la-hm-yescrypt.lo \
 	lib/libcrypt_la-util-base64.lo \
 	lib/libcrypt_la-util-xbzero.lo \
 	lib/libcrypt_la-util-xstrcpy.lo \
