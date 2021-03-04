@@ -1,4 +1,6 @@
-/* Copyright (C) 2007-2017 Thorsten Kukuk
+/* High-level libcrypt interfaces (obsolete): fcrypt.
+
+   Copyright (C) 2007-2017 Thorsten Kukuk
    Copyright (C) 2019 Björn Esser
 
    This library is free software; you can redistribute it and/or
@@ -18,28 +20,21 @@
 #include "crypt-port.h"
 #include <errno.h>
 
-/* The functions that use global state objects are isolated in their
-   own files so that a statically-linked program that doesn't use them
-   will not have the state objects in its data segment.  */
-
-#if INCLUDE_crypt
+#if INCLUDE_fcrypt && ENABLE_OBSOLETE_API_ENOSYS
 char *
-crypt (const char *key, const char *setting)
+fcrypt (ARG_UNUSED (const char *key), ARG_UNUSED (const char *setting))
 {
-  static struct crypt_data nr_crypt_ctx;
-  return crypt_r (key, setting, &nr_crypt_ctx);
+  /* This function is not supported in this configuration.  */
+  errno = ENOSYS;
+
+#if ENABLE_FAILURE_TOKENS
+  /* Return static buffer filled with a failure-token.  */
+  static char retval[3];
+  make_failure_token (setting, retval, 3);
+  return retval;
+#else
+  return NULL;
+#endif
 }
-SYMVER_crypt;
-#endif
-
-/* For code compatibility with old glibc.  */
-#if INCLUDE_fcrypt
-strong_alias (crypt, fcrypt);
 SYMVER_fcrypt;
-#endif
-
-/* For code compatibility with older versions (v3.1.1 and earlier).  */
-#if INCLUDE_crypt && INCLUDE_xcrypt
-strong_alias (crypt, xcrypt);
-SYMVER_xcrypt;
 #endif

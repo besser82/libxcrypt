@@ -291,6 +291,9 @@ extern size_t strcpy_or_abort (void *dst, size_t d_size, const void *src);
 #define ascii64                  _crypt_ascii64
 #define get_random_bytes         _crypt_get_random_bytes
 #define make_failure_token       _crypt_make_failure_token
+#define dispatch_checksalt       _crypt_dispatch_checksalt
+#define dispatch_crypt           _crypt_dispatch_crypt
+#define dispatch_gensalt         _crypt_dispatch_gensalt
 
 #if INCLUDE_descrypt || INCLUDE_bsdicrypt || INCLUDE_bigcrypt
 #define des_crypt_block          _crypt_des_crypt_block
@@ -404,6 +407,34 @@ extern void crypt_yescrypt_rn (const char *, size_t, const char *,
 #if ENABLE_OBSOLETE_API
 extern char *fcrypt (const char *key, const char *setting);
 #endif
+
+/* Hashing method dispatchers */
+struct crypt_data;
+
+/* Validate the setting string SETTING according to whatever syntactic
+   rules are imposed by its hashing method, plus local configuration.
+   Returns one of the CRYPT_SALT_* constants.  */
+int dispatch_checksalt (const char *setting);
+
+/* Hash PHRASE according to the configuration in SETTING.
+   PHRASE and SETTING are of length PHR_SIZE and SET_SIZE respectively.
+   The output is written to DATA->output; DATA may also be used for
+   temporary scratch space.  On failure errno is set and DATA->output
+   is unchanged.  */
+void dispatch_crypt (const char *phrase, size_t phr_size,
+                     const char *setting, size_t set_size,
+                     struct crypt_data *data);
+
+/* Generate a setting string starting with PREFIX, using cost
+   parameter COST.  If RBYTES is not NULL, up to NRBYTES bytes of
+   random data are drawn from there; if it is NULL, or if NRBYTES is
+   inadequate, random data will be drawn from the operating system.
+   The string is written to OUTPUT, at which OUTPUT_SIZE bytes of
+   space are available.  On failure errno is set and OUTPUT is
+   unchanged.  */
+void dispatch_gensalt (const char *prefix, unsigned long cost,
+                       const char *rbytes, int nrbytes, char *output,
+                       int output_size);
 
 /* Utility functions */
 

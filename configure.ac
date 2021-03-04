@@ -7,7 +7,7 @@ AC_INIT([xcrypt],
         [https://github.com/besser82/libxcrypt])
 AC_CONFIG_MACRO_DIR([build-aux])
 AC_CONFIG_AUX_DIR([build-aux])
-AC_CONFIG_SRCDIR([lib/crypt.c])
+AC_CONFIG_SRCDIR([lib/hm-dispatch.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
   Makefile

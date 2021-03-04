@@ -109,11 +109,21 @@ libcrypt_la_SOURCES = \
 	lib/alg-sha512.c \
 	lib/alg-yescrypt-common.c \
 	lib/alg-yescrypt-opt.c \
-	lib/crypt-gensalt-static.c \
-	lib/crypt-static.c \
-	lib/crypt.c \
+	lib/e-crypt-checksalt.c \
+	lib/e-crypt-gensalt-ra.c \
+	lib/e-crypt-gensalt-rn.c \
+	lib/e-crypt-gensalt.c \
+	lib/e-crypt-preferred-method.c \
+	lib/e-crypt-r.c \
+	lib/e-crypt-ra.c \
+	lib/e-crypt-rn.c \
+	lib/e-crypt.c \
+	lib/e-encrypt-r.c \
+	lib/e-encrypt.c \
+	lib/e-fcrypt.c \
 	lib/hm-bcrypt.c \
 	lib/hm-descrypt.c \
+	lib/hm-dispatch.c \
 	lib/hm-gost-yescrypt.c \
 	lib/hm-md5crypt.c \
 	lib/hm-nt.c \
@@ -434,7 +444,6 @@ endif
 endif
 
 if ENABLE_OBSOLETE_API
-libcrypt_la_SOURCES += lib/crypt-des-obsolete.c
 check_PROGRAMS += test/des-obsolete test/des-obsolete_r
 endif
 
