@@ -154,13 +154,16 @@ $(cd .. && pwd)/configure --disable-silent-rules $CONF || \
 log_time configure
 
 if [[ "$DISTCHECK" == "1" ]]; then
-  make -j$NPROCS $MAKE_ARGS distcheck
+  make -j$NPROCS $MAKE_ARGS distcheck || (
+      find . -name test-suite\*.log -print -a -exec cat '{}' ';'
+      exit 1
+  )
   log_time distcheck
 else
   make -j$NPROCS $MAKE_ARGS all
   log_time build
   travis_wait 60 \
-  make -j$NPROCS $MAKE_ARGS check || (cat test-suite.log && exit 1)
+  make -j$NPROCS $MAKE_ARGS check || (cat test-suite.log; exit 1)
   log_time test
 fi
 
@@ -170,7 +173,7 @@ if [[ "$VALGRIND" == "1" ]]; then
   # that's how slow memcheck is.
   travis_wait 60 \
     make -j$NPROCS $MAKE_ARGS check-valgrind-memcheck || \
-    (cat test-suite-memcheck.log && exit 1)
+    (cat test-suite-memcheck.log; exit 1)
   log_time test-memcheck
 fi
 
