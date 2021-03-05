@@ -19,21 +19,22 @@
 #ifndef _CRYPT_OBSOLETE_H
 #define _CRYPT_OBSOLETE_H 1
 
+/* These API functions are obsolete and provided for binary backward
+   compatibility only.  New programs cannot be linked against them,
+   and we do not install this header, but we still need it to build the
+   library itself.  */
 
-/* These functions are obsolete and should never be used, but we have to
-   keep providing them for binary backward compatibility.  */
+/* Prepare to encrypt or decrypt data with DES, using KEY.  */
+extern void setkey (const char *key);
 
-/* Setup DES tables according KEY.  */
-extern void setkey (const char *__key);
-
-extern void setkey_r (const char *__key,
-                      struct crypt_data *restrict __data);
+extern void setkey_r (const char *key,
+                      struct crypt_data *restrict data);
 
 /* Encrypt data in BLOCK in place if EDFLAG is zero; otherwise decrypt
    block in place.  */
-extern void encrypt (char *__block, int __edflag);
+extern void encrypt (char *block, int edflag);
 
-extern void encrypt_r (char *__block, int __edflag,
-                       struct crypt_data *restrict __data);
+extern void encrypt_r (char *block, int edflag,
+                       struct crypt_data *restrict data);
 
 #endif /* crypt-obsolete.h */
