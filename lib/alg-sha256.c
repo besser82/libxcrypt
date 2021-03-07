@@ -30,7 +30,7 @@
 #if INCLUDE_gost_yescrypt || INCLUDE_yescrypt || INCLUDE_scrypt || INCLUDE_sha256crypt
 
 #define insecure_memzero XCRYPT_SECURE_MEMSET
-#include "alg-yescrypt-sysendian.h"
+#include "byteorder.h"
 
 #include "alg-sha256.h"
 
@@ -44,40 +44,6 @@
 #else
 #define restrict
 #endif
-
-/*
- * Encode a length len*2 vector of (uint32_t) into a length len*8 vector of
- * (uint8_t) in big-endian form.
- */
-static void
-be32enc_vect(uint8_t * dst, const uint32_t * src, size_t len)
-{
-
-	/* Encode vector, two words at a time. */
-	do {
-		be32enc(&dst[0], src[0]);
-		be32enc(&dst[4], src[1]);
-		src += 2;
-		dst += 8;
-	} while (--len);
-}
-
-/*
- * Decode a big-endian length len*8 vector of (uint8_t) into a length
- * len*2 vector of (uint32_t).
- */
-static void
-be32dec_vect(uint32_t * dst, const uint8_t * src, size_t len)
-{
-
-	/* Decode vector, two words at a time. */
-	do {
-		dst[0] = be32dec(&src[0]);
-		dst[1] = be32dec(&src[4]);
-		src += 8;
-		dst += 2;
-	} while (--len);
-}
 
 /* SHA256 round constants. */
 static const uint32_t Krnd[64] = {
@@ -139,7 +105,7 @@ SHA256_Transform(uint32_t state[static restrict 8],
 	int i;
 
 	/* 1. Prepare the first part of the message schedule W. */
-	be32dec_vect(W, block, 8);
+	be32dec_vect(W, block, 16);
 
 	/* 2. Initialize working variables. */
 	memcpy(S, state, 32);
@@ -323,7 +289,7 @@ _SHA256_Final(uint8_t digest[32], SHA256_CTX * ctx,
 	SHA256_Pad(ctx, tmp32);
 
 	/* Write the hash. */
-	be32enc_vect(digest, ctx->state, 4);
+	be32enc_vect(digest, ctx->state, 8);
 }
 
 /* Wrapper function for intermediate-values sanitization. */
@@ -586,11 +552,11 @@ PBKDF2_SHA256(const uint8_t * passwd, size_t passwdlen, const uint8_t * salt,
 			memcpy(u.state, hctx.ictx.state, sizeof(u.state));
 			SHA256_Transform(u.state, hctx.ictx.buf,
 			    &tmp32[0], &tmp32[64]);
-			be32enc_vect(hctx.octx.buf, u.state, 4);
+			be32enc_vect(hctx.octx.buf, u.state, 8);
 			memcpy(u.state, hctx.octx.state, sizeof(u.state));
 			SHA256_Transform(u.state, hctx.octx.buf,
 			    &tmp32[0], &tmp32[64]);
-			be32enc_vect(&buf[i * 32], u.state, 4);
+			be32enc_vect(&buf[i * 32], u.state, 8);
 		}
 
 		goto cleanup;

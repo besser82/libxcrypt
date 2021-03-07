@@ -30,8 +30,7 @@ source tree.  For specific licensing terms consult the files themselves.
    alg-yescrypt-common.c, alg-yescrypt-platform.c
 
  * Copyright Solar Designer, Colin Percival; 2-clause BSD:
-   alg-sha256.c, alg-sha256.h, alg-yescrypt.h, alg-yescrypt-opt.c,
-   alg-yescrypt-sysendian.h
+   alg-sha256.c, alg-sha256.h, alg-yescrypt.h, alg-yescrypt-opt.c
 
  * Copyright Colin Percival; 2-clause BSD:
    alg-sha512.h, alg-sha512.c

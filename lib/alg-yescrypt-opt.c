@@ -33,6 +33,7 @@
 #if INCLUDE_yescrypt || INCLUDE_scrypt || INCLUDE_gost_yescrypt
 
 #pragma GCC diagnostic ignored "-Wcast-align"
+#pragma GCC diagnostic ignored "-Wconversion"
 #ifdef __clang__
 #pragma GCC diagnostic ignored "-Wtautological-constant-out-of-range-compare"
 #endif
@@ -93,7 +94,7 @@
 
 #define insecure_memzero XCRYPT_SECURE_MEMSET
 #include "alg-sha256.h"
-#include "alg-yescrypt-sysendian.h"
+#include "byteorder.h"
 
 #define YESCRYPT_INTERNAL
 #include "alg-yescrypt.h"
@@ -833,7 +834,7 @@ static void smix1(uint8_t *B, size_t r, uint32_t N, yescrypt_flags_t flags,
 		salsa20_blk_t *dst = &X[i];
 		size_t k;
 		for (k = 0; k < 16; k++)
-			tmp->w[k] = le32dec(&src->w[k]);
+			tmp->w[k] = le32dec((const uint8_t *) &src->w[k]);
 		salsa20_simd_shuffle(tmp, dst);
 	}
 
@@ -923,7 +924,7 @@ static void smix1(uint8_t *B, size_t r, uint32_t N, yescrypt_flags_t flags,
 		salsa20_blk_t *dst = (salsa20_blk_t *)&B[i * 64];
 		size_t k;
 		for (k = 0; k < 16; k++)
-			le32enc(&tmp->w[k], src->w[k]);
+			le32enc((uint8_t *)&tmp->w[k], src->w[k]);
 		salsa20_simd_unshuffle(tmp, dst);
 	}
 }
@@ -953,7 +954,7 @@ static void smix2(uint8_t *B, size_t r, uint32_t N, uint64_t Nloop,
 		salsa20_blk_t *dst = &X[i];
 		size_t k;
 		for (k = 0; k < 16; k++)
-			tmp->w[k] = le32dec(&src->w[k]);
+			tmp->w[k] = le32dec((const uint8_t *)&src->w[k]);
 		salsa20_simd_shuffle(tmp, dst);
 	}
 
@@ -1008,7 +1009,7 @@ static void smix2(uint8_t *B, size_t r, uint32_t N, uint64_t Nloop,
 		salsa20_blk_t *dst = (salsa20_blk_t *)&B[i * 64];
 		size_t k;
 		for (k = 0; k < 16; k++)
-			le32enc(&tmp->w[k], src->w[k]);
+			le32enc((uint8_t *)&tmp->w[k], src->w[k]);
 		salsa20_simd_unshuffle(tmp, dst);
 	}
 }
@@ -1123,7 +1124,8 @@ static void smix(uint8_t *B, size_t r, uint32_t N, uint32_t p, uint32_t t,
 				ctx_i = (pwxform_ctx_t *)(Si + Sbytes);
 			}
 			smix2(Bp, r, N, Nloop_all - Nloop_rw,
-			    flags & ~YESCRYPT_RW, V, NROM, VROM, XYp, ctx_i);
+                              flags & (yescrypt_flags_t)~YESCRYPT_RW,
+                              V, NROM, VROM, XYp, ctx_i);
 		}
 	}
 #ifdef _OPENMP
@@ -1205,8 +1207,13 @@ static int yescrypt_kdf_body(const yescrypt_shared_t *shared,
 	    N > SIZE_MAX / 128 / r)
 		goto out_EINVAL;
 	if (flags & YESCRYPT_RW) {
+		/* p cannot be greater than SIZE_MAX/Salloc on 64-bit systems,
+		   but it can on 32-bit systems.  */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtype-limits"
 		if (N / p <= 3 || p > SIZE_MAX / Salloc)
 			goto out_EINVAL;
+#pragma GCC diagnostic pop
 	}
 #ifdef _OPENMP
 	else if (N > SIZE_MAX / 128 / (r * p)) {
@@ -1473,7 +1480,7 @@ int yescrypt_init_shared(yescrypt_shared_t *shared,
 	half2.aligned = (uint8_t *)half2.aligned + half1.aligned_size;
 
 	if (yescrypt_kdf(NULL, &half1,
-	    seed, seedlen, (uint8_t *)"yescrypt-ROMhash", 16, &subparams,
+	    seed, seedlen, (const uint8_t *)"yescrypt-ROMhash", 16, &subparams,
 	    salt, sizeof(salt)))
 		goto fail;
 

@@ -30,46 +30,7 @@
 #if INCLUDE_sha512crypt
 
 #include "alg-sha512.h"
-#include "alg-yescrypt-sysendian.h"
-
-#if XCRYPT_USE_BIGENDIAN
-/* Copy a vector of big-endian uint64_t into a vector of bytes */
-#define be64enc_vect(dst, src, len)	\
-	memcpy((void *)dst, (const void *)src, (size_t)len)
-
-/* Copy a vector of bytes into a vector of big-endian uint64_t */
-#define be64dec_vect(dst, src, len)	\
-	memcpy((void *)dst, (const void *)src, (size_t)len)
-
-#else /* XCRYPT_USE_BIGENDIAN */
-
-/*
- * Encode a length len/4 vector of (uint64_t) into a length len vector of
- * (unsigned char) in big-endian form.  Assumes len is a multiple of 8.
- */
-static void
-be64enc_vect(unsigned char *dst, const uint64_t *src, size_t len)
-{
-	size_t i;
-
-	for (i = 0; i < len / 8; i++)
-		be64enc(dst + i * 8, src[i]);
-}
-
-/*
- * Decode a big-endian length len vector of (unsigned char) into a length
- * len/4 vector of (uint64_t).  Assumes len is a multiple of 8.
- */
-static void
-be64dec_vect(uint64_t *dst, const unsigned char *src, size_t len)
-{
-	size_t i;
-
-	for (i = 0; i < len / 8; i++)
-		dst[i] = be64dec(src + i * 8);
-}
-
-#endif /* XCRYPT_USE_BIGENDIAN */
+#include "byteorder.h"
 
 /* SHA512 round constants. */
 static const uint64_t K[80] = {
@@ -155,7 +116,7 @@ SHA512_Transform(uint64_t * state, const unsigned char block[SHA512_BLOCK_LENGTH
 	int i;
 
 	/* 1. Prepare the first part of the message schedule W. */
-	be64dec_vect(W, block, SHA512_BLOCK_LENGTH);
+	be64dec_vect(W, block, SHA512_BLOCK_LENGTH/8);
 
 	/* 2. Initialize working variables. */
 	memcpy(S, state, SHA512_DIGEST_LENGTH);
@@ -238,7 +199,7 @@ SHA512_Pad(SHA512_CTX * ctx)
 	}
 
 	/* Add the terminating bit-count. */
-	be64enc_vect(&ctx->buf[112], ctx->count, 16);
+	be64enc_vect(&ctx->buf[112], ctx->count, 2);
 
 	/* Mix in the final block. */
 	SHA512_Transform(ctx->state, ctx->buf);
@@ -319,7 +280,7 @@ SHA512_Final(unsigned char digest[MIN_SIZE(SHA512_DIGEST_LENGTH)],
 	SHA512_Pad(ctx);
 
 	/* Write the hash */
-	be64enc_vect(digest, ctx->state, SHA512_DIGEST_LENGTH);
+	be64enc_vect(digest, ctx->state, SHA512_DIGEST_LENGTH/8);
 
 	/* Clear the context state */
 	XCRYPT_SECURE_MEMSET(ctx, sizeof(*ctx));

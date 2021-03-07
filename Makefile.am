@@ -75,7 +75,6 @@ noinst_HEADERS = \
 	lib/alg-sha1.h \
 	lib/alg-sha256.h \
 	lib/alg-sha512.h \
-	lib/alg-yescrypt-sysendian.h \
 	lib/alg-yescrypt.h \
 	lib/byteorder.h \
 	lib/crypt-common.h \
