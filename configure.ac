@@ -434,6 +434,7 @@ if test x$enable_shared != xyes; then enable_obsolete_api=0; fi
 if test $enable_obsolete_api = 1; then
   AC_MSG_CHECKING([minimum symbol version to use for compatibility symbols])
   SYMVER_FLOOR=$(
+    export CC
     $PERL ${srcdir}/build-aux/compute-symver-floor \
       ${srcdir}/lib/libcrypt.minver $host_os $host_cpu \
     2>&AS_MESSAGE_LOG_FD
