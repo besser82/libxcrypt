@@ -252,7 +252,7 @@ static inline void salsa20_simd_unshuffle(const salsa20_blk_t *Bin,
 	XOR_X(in) \
 	SALSA20_wrapper(out, SALSA20_8ROUNDS)
 
-#define INTEGERIFY _mm_cvtsi128_si32(X0)
+#define INTEGERIFY (uint32_t)_mm_cvtsi128_si32(X0)
 
 #else /* !defined(__SSE2__) */
 
