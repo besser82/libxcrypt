@@ -115,7 +115,12 @@
 #endif
 
 #ifdef __SSE__
-#define PREFETCH(x, hint) _mm_prefetch((const char *)(x), (hint));
+#define PREFETCH(x, hint) _mm_prefetch((x), (hint));
+/* Older versions of clang have a bug in their xmmintrin.h that causes
+   spurious -Wcast-qual warnings on uses of _mm_prefetch.  */
+# if defined __clang_major__ && __clang_major__ < 11
+#  pragma clang diagnostic ignored "-Wcast-qual"
+# endif
 #else
 #undef PREFETCH
 #endif
