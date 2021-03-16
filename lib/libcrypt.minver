@@ -59,6 +59,9 @@ GLIBC_2.3    kfreebsd.*gnu   i[3-9]86
 ERROR        kfreebsd.*gnu   .
 
 # Linux with GNU libc
+GLIBC_2.33   linux.*gnu      riscv32
+GLIBC_2.32   linux.*gnu      arc
+GLIBC_2.29   linux.*gnu      csky
 GLIBC_2.27   linux.*gnu      riscv64
 GLIBC_2.21   linux.*gnu      nios2
 GLIBC_2.18   linux.*gnu      microblaze
