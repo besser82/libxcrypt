@@ -13,10 +13,6 @@
 #include <stdlib.h>
 #include <errno.h>
 
-#if ENABLE_OBSOLETE_API && !ENABLE_OBSOLETE_API_ENOSYS
-symver_ref("fcrypt", fcrypt, SYMVER_FLOOR);
-#endif
-
 /* The precalculated hashes in ka-table.inc, and some of the
    relationships among groups of test cases (see ka-table-gen.py)
    are invalidated if the execution character set is not ASCII.  */
@@ -24,7 +20,7 @@ static_assert(' ' == 0x20 && 'C' == 0x43 && '~' == 0x7E,
               "Execution character set does not appear to be ASCII");
 
 /* This test verifies three things at once:
-    - crypt, crypt_r, crypt_rn, crypt_ra, and fcrypt (if enabled)
+    - crypt, crypt_r, crypt_rn, and crypt_ra
       all produce the same outputs for the same inputs.
     - given hash <- crypt(phrase, setting),
        then hash == crypt(phrase, hash) also.
@@ -147,7 +143,7 @@ report_result (const char *tag, const char *hash, int errnm,
 }
 
 static int
-calc_hashes_crypt_fcrypt (void)
+calc_hashes_crypt (void)
 {
   char *hash;
   const struct testcase *t;
@@ -159,13 +155,6 @@ calc_hashes_crypt_fcrypt (void)
       hash = crypt (t->input, t->salt);
       status |= report_result ("crypt", hash, errno, t,
                                ENABLE_FAILURE_TOKENS);
-
-#if ENABLE_OBSOLETE_API && !ENABLE_OBSOLETE_API_ENOSYS
-      errno = 0;
-      hash = fcrypt (t->input, t->salt);
-      status |= report_result ("fcrypt", hash, errno, t,
-                               ENABLE_FAILURE_TOKENS);
-#endif
     }
 
   return status;
@@ -243,7 +232,7 @@ main (void)
   if (tests[0].input == 0)
     return 77;
 
-  status |= calc_hashes_crypt_fcrypt ();
+  status |= calc_hashes_crypt ();
   status |= calc_hashes_crypt_r_rn ();
   status |= calc_hashes_crypt_ra_recrypt ();
 

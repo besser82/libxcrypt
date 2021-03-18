@@ -404,7 +404,7 @@ endif
 
 if ENABLE_OBSOLETE_API
 libcrypt_la_SOURCES += lib/crypt-des-obsolete.c
-check_PROGRAMS += test/des-obsolete test/des-obsolete_r test/fcrypt-enosys
+check_PROGRAMS += test/des-obsolete test/des-obsolete_r
 endif
 
 TESTS = $(check_PROGRAMS)
@@ -451,7 +451,6 @@ test_gensalt_extradata_LDADD = $(COMMON_TEST_OBJECTS)
 test_checksalt_LDADD = $(COMMON_TEST_OBJECTS)
 test_des_obsolete_LDADD = $(COMMON_TEST_OBJECTS)
 test_des_obsolete_r_LDADD = $(COMMON_TEST_OBJECTS)
-test_fcrypt_enosys_LDADD = $(COMMON_TEST_OBJECTS)
 test_crypt_badargs_LDADD = $(COMMON_TEST_OBJECTS)
 test_short_outbuf_LDADD = $(COMMON_TEST_OBJECTS)
 test_preferred_method_LDADD = $(COMMON_TEST_OBJECTS)

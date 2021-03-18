@@ -22,39 +22,19 @@
    own files so that a statically-linked program that doesn't use them
    will not have the state objects in its data segment.  */
 
-#if INCLUDE_crypt || INCLUDE_fcrypt
+#if INCLUDE_crypt
 char *
 crypt (const char *key, const char *setting)
 {
   static struct crypt_data nr_crypt_ctx;
   return crypt_r (key, setting, &nr_crypt_ctx);
 }
-#endif
-
-#if INCLUDE_crypt
 SYMVER_crypt;
 #endif
 
+/* For code compatibility with old glibc.  */
 #if INCLUDE_fcrypt
-#if ENABLE_OBSOLETE_API_ENOSYS
-char *
-fcrypt (ARG_UNUSED (const char *key), ARG_UNUSED (const char *setting))
-{
-  /* This function is not supported in this configuration.  */
-  errno = ENOSYS;
-
-#if ENABLE_FAILURE_TOKENS
-  /* Return static buffer filled with a failure-token.  */
-  static char retval[3];
-  make_failure_token (setting, retval, 3);
-  return retval;
-#else
-  return NULL;
-#endif
-}
-#else
 strong_alias (crypt, fcrypt);
-#endif
 SYMVER_fcrypt;
 #endif
 
