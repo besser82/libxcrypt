@@ -441,6 +441,9 @@ if test $enable_obsolete_api = 1; then
   )
   AC_MSG_RESULT([$SYMVER_FLOOR])
   case "$SYMVER_FLOOR" in
+    '')
+      AC_MSG_ERROR([compute-symver-floor failed, see config.log for details])
+    ;;
     ERROR)
       AC_MSG_ERROR([libxcrypt port to $host is incomplete])
     ;;
