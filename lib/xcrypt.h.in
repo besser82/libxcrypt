@@ -24,13 +24,13 @@
 
 @BEGIN_DECLS@
 
-/* Those are kept for code compatibility with older versions
-   (v3.1.1 and earlier) of libxcrypt.
-   We intentionally declare these functions using macros here,
-   since we actually want to link compiled applications against
-   the unprefixed identical functions defined in <crypt.h>.  */
-#ifndef IN_LIBCRYPT  /* Defined when building libxcrypt. */
-# ifdef __REDIRECT_NTH
+/* For backward compatibility with older versions (v3.1.1 and earlier)
+   of libcrypt, this header declares xcrypt, xcrypt_r, xcrypt_gensalt,
+   and xcrypt_gensalt_r as alternative names for crypt, crypt_r,
+   crypt_gensalt, and crypt_gensalt_rn, respectively.  If glibc's
+   <sys/cdefs.h> macro __REDIRECT_NTH (which declares an alternative
+   name at the object-file level) is available, we use it.  */
+#ifdef __REDIRECT_NTH
 extern char * __REDIRECT_NTH (xcrypt, (const char *__phrase,
                               const char *__setting), crypt);
 
@@ -46,12 +46,11 @@ extern char * __REDIRECT_NTH (xcrypt_gensalt_r, (const char *__prefix,
                               unsigned long __count, const char *__rbytes,
                               int __nrbytes, char *__output,
                               int __output_size), crypt_gensalt_rn);
-# else
-#  define xcrypt           crypt
-#  define xcrypt_r         crypt_r
-#  define xcrypt_gensalt   crypt_gensalt
-#  define xcrypt_gensalt_r crypt_gensalt_rn
-# endif
+#else
+# define xcrypt           crypt
+# define xcrypt_r         crypt_r
+# define xcrypt_gensalt   crypt_gensalt
+# define xcrypt_gensalt_r crypt_gensalt_rn
 #endif
 
 @END_DECLS@

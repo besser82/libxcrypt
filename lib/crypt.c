@@ -18,7 +18,6 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include "crypt-port.h"
-#include "xcrypt.h"
 
 #include <errno.h>
 #include <stdlib.h>

@@ -84,8 +84,6 @@ noinst_HEADERS = \
 
 if ENABLE_XCRYPT_COMPAT_FILES
 nodist_include_HEADERS += xcrypt.h
-else
-nodist_noinst_HEADERS += xcrypt.h
 endif
 
 noinst_PROGRAMS = \
@@ -176,7 +174,7 @@ DISTCLEANFILES = .deps/*.Plo
 
 # Force generated headers to be generated before any source files that
 # might depend on them are compiled.
-Makefile.deps: crypt.h crypt-hashes.h crypt-symbol-vers.h xcrypt.h
+Makefile.deps: crypt.h crypt-hashes.h crypt-symbol-vers.h
 	$(AM_V_GEN)LC_ALL=C echo "# Deps" > Makefile.deps.T
 	$(AM_V_at)mv -f Makefile.deps.T Makefile.deps
 
