@@ -694,7 +694,7 @@ sub parse_version_map_in {    ## no critic (Subroutines::RequireArgUnpacking)
 
     my (undef, undef, $basemap) = splitpath($map_in);
     return SymbolVersionMap->new(
-        symbols    => [values %symbols],
+        symbols    => [sort { $a->name cmp $b->name } values %symbols],
         versions   => \@vchain,
         basemap    => $basemap,
         max_symlen => $max_symlen,

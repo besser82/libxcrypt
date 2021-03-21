@@ -18,6 +18,9 @@ AM_CPPFLAGS = -I$(srcdir)/lib
 AM_CFLAGS = $(WARN_CFLAGS) $(OPTI_FLAGS)
 AM_LDFLAGS = $(RELRO_FLAG) $(BINDNOW_FLAG)
 
+AUX = $(srcdir)/build-aux/
+STAMP = echo timestamp >
+
 @VALGRIND_CHECK_RULES@
 
 TEST_EXTENSIONS = .pl
@@ -38,6 +41,7 @@ EXTRA_DIST = \
 	build-aux/gen-crypt-hashes-h \
 	build-aux/gen-crypt-symbol-vers-h \
 	build-aux/gen-libcrypt-map \
+	build-aux/move-if-change \
 	build-aux/skip-if-exec-format-error \
 	test/TestCommon.pm \
 	test/symbols-compat.pl \
@@ -161,11 +165,11 @@ CONFIG_STATUS_DEPENDENCIES = lib/libcrypt.minver
 EXTRA_libcrypt_la_DEPENDENCIES = libcrypt.map
 CLEANFILES = \
 	Makefile.deps Makefile.deps.T \
-	libcrypt.map libcrypt.map.T \
-	crypt-symbol-vers.h crypt-symbol-vers.h.T \
-	crypt-hashes.h crypt-hashes.h.T \
-	crypt.h crypt.h.T \
-	xcrypt.h xcrypt.h.T \
+	libcrypt.map libcrypt.map.T libcrypt.map.stamp \
+	crypt-symbol-vers.h crypt-symbol-vers.h.T crypt-symbol-vers.h.stamp \
+	crypt-hashes.h crypt-hashes.h.T crypt-hashes.h.stamp \
+	crypt.h crypt.h.T crypt.h.stamp \
+	xcrypt.h xcrypt.h.T xcrypt.h.stamp \
 	./*.gcda ./*.gcno \
 	lib/*.gcda lib/*.gcno \
 	test/*.gcda test/*.gcno
@@ -178,49 +182,76 @@ Makefile.deps: crypt.h crypt-hashes.h crypt-symbol-vers.h
 	$(AM_V_GEN)LC_ALL=C echo "# Deps" > Makefile.deps.T
 	$(AM_V_at)mv -f Makefile.deps.T Makefile.deps
 
-libcrypt.map: lib/libcrypt.map.in build-aux/gen-libcrypt-map \
-	      build-aux/BuildCommon.pm Makefile
-	$(AM_V_GEN)LC_ALL=C $(PERL) $(srcdir)/build-aux/gen-libcrypt-map \
+# Almost everything depends on the generated headers; the generated
+# headers depend on the Makefile; *most* changes to the Makefile won't
+# affect the contents of the generated headers.  Arrange for the
+# timestamps of the generated headers not to change if their contents
+# haven't.  The rule idiom used here was borrowed from GCC's Makefile;
+# in https://gcc.gnu.org/git/?p=gcc.git;a=blob;f=gcc/Makefile.in;hb=HEAD
+# search for the phrase "On the use of stamps".
+AM_V_GENS = $(am__v_GENS_$(V))
+am__v_GENS_ = $(am__v_GENS_$(AM_DEFAULT_VERBOSITY))
+am__v_GENS_0 = @echo "  GEN     " $(@:.stamp=);
+am__v_GENS_1 =
+
+libcrypt.map: libcrypt.map.stamp; @:
+libcrypt.map.stamp: \
+		lib/libcrypt.map.in build-aux/gen-libcrypt-map \
+		build-aux/BuildCommon.pm Makefile
+	$(AM_V_GENS)LC_ALL=C $(PERL) $(AUX)gen-libcrypt-map \
 	  SYMVER_MIN=$(SYMVER_MIN) \
 	  SYMVER_FLOOR=$(SYMVER_FLOOR) \
 	  COMPAT_ABI=$(COMPAT_ABI) \
 	  $(srcdir)/lib/libcrypt.map.in > libcrypt.map.T
-	$(AM_V_at)mv -f libcrypt.map.T libcrypt.map
+	$(AM_V_at)$(AUX)move-if-change libcrypt.map.T libcrypt.map
+	$(AM_V_at)$(STAMP) libcrypt.map.stamp
 
-crypt-hashes.h: build-aux/gen-crypt-hashes-h build-aux/BuildCommon.pm \
-	        lib/hashes.conf Makefile
-	$(AM_V_GEN)LC_ALL=C $(PERL) \
-	  $(srcdir)/build-aux/gen-crypt-hashes-h \
+crypt-hashes.h: crypt-hashes.h.stamp; @:
+crypt-hashes.h.stamp: \
+		build-aux/gen-crypt-hashes-h build-aux/BuildCommon.pm \
+		lib/hashes.conf Makefile
+	$(AM_V_GENS)LC_ALL=C $(PERL) \
+	  $(AUX)gen-crypt-hashes-h \
 	  $(srcdir)/lib/hashes.conf $(hashes_enabled) > crypt-hashes.h.T
-	$(AM_V_at)mv -f crypt-hashes.h.T crypt-hashes.h
+	$(AM_V_at)$(AUX)move-if-change crypt-hashes.h.T crypt-hashes.h
+	$(AM_V_at)$(STAMP) crypt-hashes.h.stamp
 
-crypt-symbol-vers.h: build-aux/gen-crypt-symbol-vers-h \
-		     build-aux/BuildCommon.pm \
-		     lib/libcrypt.map.in Makefile
-	$(AM_V_GEN)LC_ALL=C $(PERL) \
-	  $(srcdir)/build-aux/gen-crypt-symbol-vers-h \
+crypt-symbol-vers.h: crypt-symbol-vers.h.stamp; @:
+crypt-symbol-vers.h.stamp: \
+		build-aux/gen-crypt-symbol-vers-h \
+		build-aux/BuildCommon.pm \
+		lib/libcrypt.map.in Makefile
+	$(AM_V_GENS)LC_ALL=C $(PERL) \
+	  $(AUX)gen-crypt-symbol-vers-h \
 	  SYMVER_MIN=$(SYMVER_MIN) \
 	  SYMVER_FLOOR=$(SYMVER_FLOOR) \
 	  COMPAT_ABI=$(COMPAT_ABI) \
 	     $(srcdir)/lib/libcrypt.map.in > crypt-symbol-vers.h.T
-	$(AM_V_at)mv -f crypt-symbol-vers.h.T crypt-symbol-vers.h
+	$(AM_V_at)$(AUX)move-if-change crypt-symbol-vers.h.T crypt-symbol-vers.h
+	$(AM_V_at)$(STAMP) crypt-symbol-vers.h.stamp
 
-crypt.h: build-aux/gen-crypt-h build-aux/BuildCommon.pm \
-	 lib/crypt.h.in lib/hashes.conf config.h Makefile
-	$(AM_V_GEN)LC_ALL=C $(PERL) \
-	  $(srcdir)/build-aux/gen-crypt-h \
+crypt.h: crypt.h.stamp; @:
+crypt.h.stamp: \
+		build-aux/gen-crypt-h build-aux/BuildCommon.pm \
+		lib/crypt.h.in lib/hashes.conf config.h Makefile
+	$(AM_V_GENS)LC_ALL=C $(PERL) \
+	  $(AUX)gen-crypt-h \
 	  $(srcdir)/lib/crypt.h.in config.h \
 	  $(srcdir)/lib/hashes.conf $(hashes_enabled) \
 	  > crypt.h.T
-	$(AM_V_at)mv -f crypt.h.T crypt.h
+	$(AM_V_at)$(AUX)move-if-change crypt.h.T crypt.h
+	$(AM_V_at)$(STAMP) crypt.h.stamp
 
-xcrypt.h: build-aux/gen-crypt-h build-aux/BuildCommon.pm \
-	  lib/xcrypt.h.in config.h
-	$(AM_V_GEN)LC_ALL=C $(PERL) \
-	  $(srcdir)/build-aux/gen-crypt-h \
+xcrypt.h: xcrypt.h.stamp; @:
+xcrypt.h.stamp: \
+		build-aux/gen-crypt-h build-aux/BuildCommon.pm \
+		lib/xcrypt.h.in config.h
+	$(AM_V_GENS)LC_ALL=C $(PERL) \
+	  $(AUX)gen-crypt-h \
 	  $(srcdir)/lib/xcrypt.h.in config.h \
 	  > xcrypt.h.T
-	$(AM_V_at)mv -f xcrypt.h.T xcrypt.h
+	$(AM_V_at)$(AUX)move-if-change xcrypt.h.T xcrypt.h
+	$(AM_V_at)$(STAMP) xcrypt.h.stamp
 
 install_exec_hook_targets =
 
