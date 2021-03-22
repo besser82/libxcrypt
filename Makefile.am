@@ -189,8 +189,8 @@ Makefile.deps: crypt.h crypt-hashes.h crypt-symbol-vers.h
 # haven't.  The rule idiom used here was borrowed from GCC's Makefile;
 # in https://gcc.gnu.org/git/?p=gcc.git;a=blob;f=gcc/Makefile.in;hb=HEAD
 # search for the phrase "On the use of stamps".
-AM_V_GENS = $(am__v_GENS_$(V))
-am__v_GENS_ = $(am__v_GENS_$(AM_DEFAULT_VERBOSITY))
+AM_V_GENS = $(am__v_GENS_@AM_V@)
+am__v_GENS_ = $(am__v_GENS_@AM_DEFAULT_V@)
 am__v_GENS_0 = @echo "  GEN     " $(@:.stamp=);
 am__v_GENS_1 =
 
