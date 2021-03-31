@@ -116,11 +116,6 @@
 %global _ld_strict_symbol_defs 1
 
 
-# The library uses symbol versioning in way
-# that is not compatible with LTO currently.
-%undefine _lto_cflags
-
-
 Name:           {{{ git_name }}}
 Version:        {{{ git_real_version }}}
 Release:        0.{{{ git_real_release }}}%{?dist}
