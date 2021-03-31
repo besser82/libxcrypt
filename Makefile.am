@@ -140,7 +140,7 @@ uninstall_hook_targets = \
 	uninstall-hook-pkgconfig
 install-data-hook-pkgconfig:
 	cd $(DESTDIR)$(pkgconfigdir) && \
-		$(LN_S) libxcrypt.pc libcrypt.pc
+		$(LN_S) -f libxcrypt.pc libcrypt.pc
 uninstall-hook-pkgconfig:
 	-rm -f $(DESTDIR)$(pkgconfigdir)/libcrypt.pc
 
@@ -266,7 +266,7 @@ uninstall_hook_targets += \
 	uninstall-hook-xcrypt-static
 install-exec-hook-xcrypt-static:
 	cd $(DESTDIR)$(libdir) && \
-		$(LN_S) libcrypt.a libxcrypt.a
+		$(LN_S) -f libcrypt.a libxcrypt.a
 uninstall-hook-xcrypt-static:
 	-rm -f $(DESTDIR)$(libdir)/libxcrypt.a
 endif
@@ -281,7 +281,7 @@ uninstall_hook_targets += \
 	uninstall-hook-xcrypt-shared
 install-exec-hook-xcrypt-shared:
 	cd $(DESTDIR)$(libdir) && \
-		$(LN_S) libcrypt.so libxcrypt.so
+		$(LN_S) -f libcrypt.so libxcrypt.so
 uninstall-hook-xcrypt-shared:
 	-rm -f $(DESTDIR)$(libdir)/libxcrypt.so
 endif
@@ -310,7 +310,7 @@ uninstall_hook_targets += \
 	uninstall-hook-libstatic
 install-exec-hook-libstatic:
 	cd $(DESTDIR)$(libdir) && \
-		$(LN_S) libcrypt.a libowcrypt.a
+		$(LN_S) -f libcrypt.a libowcrypt.a
 uninstall-hook-libstatic:
 	-rm -f $(DESTDIR)$(libdir)/libowcrypt.a
 endif
@@ -323,8 +323,8 @@ uninstall_hook_targets += \
 	uninstall-hook-libshared
 install-exec-hook-libshared:
 	cd $(DESTDIR)$(libdir) && \
-		$(LN_S) libcrypt.so libowcrypt.so && \
-		$(LN_S) libcrypt.so.1 libowcrypt.so.1
+		$(LN_S) -f libcrypt.so libowcrypt.so && \
+		$(LN_S) -f libcrypt.so.1 libowcrypt.so.1
 uninstall-hook-libshared:
 	-rm -f  $(DESTDIR)$(libdir)/libowcrypt.so \
 		$(DESTDIR)$(libdir)/libowcrypt.so.1
