@@ -300,7 +300,7 @@ main (void)
   if (page_alignment < sizeof (void *))
     page_alignment = sizeof (void *);
 
-  co_stack_size = SIGSTKSZ + TEST_BUFFER_SIZE;
+  co_stack_size = (size_t) SIGSTKSZ + (size_t) TEST_BUFFER_SIZE;
   if (co_stack_size < page_alignment * 4)
     co_stack_size = page_alignment * 4;
 
