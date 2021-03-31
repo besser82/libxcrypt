@@ -45,9 +45,13 @@
 *.trs
 *.T
 /crypt.h
+/crypt.h.stamp
 /crypt-hashes.h
+/crypt-hashes.h.stamp
 /crypt-symbol-vers.h
+/crypt-symbol-vers.h.stamp
 /libcrypt.map
+/libcrypt.map.stamp
 gen-des-tables
 test/alg-des
 test/alg-gost3411-2012
@@ -81,6 +85,7 @@ test/crypt-sunmd5
 test/crypt-yescrypt
 test/des-obsolete
 test/des-obsolete_r
+test/explicit-bzero
 test/fcrypt-enosys
 test/gensalt
 test/gensalt-nthash
@@ -107,6 +112,7 @@ test/preferred-method
 test/short-outbuf
 test/special-char-salt
 /xcrypt.h
+/xcrypt.h.stamp
 
 # backup-files
 *~
