@@ -229,7 +229,7 @@ void
 SHA512_Update(SHA512_CTX * ctx, const void *in, size_t len)
 {
 	uint64_t bitlen[2];
-	uint64_t r;
+	size_t r;
 	const unsigned char *src = in;
 
 	/* Number of bytes left in the buffer from previous updates */
