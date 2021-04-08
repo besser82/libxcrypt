@@ -4,6 +4,18 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.19
+* Improve fallback implementation of explicit_bzero.
+* Add glibc-on-CSKY, ARC, and RISCV-32 entries to libcrypt.minver.
+  These were added in GNU libc 2.29, 2.32, and 2.33 respectively
+  (issue #122).
+* Do not build xcrypt.h if we’re not going to install it.
+* Do not apply --enable-obsolete-api-enosys mode to fcrypt.
+* Compilation fix for NetBSD.  NetBSD’s <unistd.h> declares encrypt
+  and setkey to return int, contrary to POSIX (which says they return
+  void).  Rename those declarations out of the way with macros.
+* Compilation fixes for building with GCC 11.
+  Basically fixes for explicit type-casting.
+* Force update of existing symlinks during installation (issue #120).
 
 Version 4.4.18
 * Fix compilation errors on (Free)BSD (issue #110).
