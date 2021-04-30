@@ -37,6 +37,10 @@ sub preprocessor_check {
 
         @CFLAGS = sh_split($ENV{CFLAGS} // q{});
 
+        # Remove empty elements, particularly leading ones which
+        # cause issues with popen below.
+        @CFLAGS = grep { $_ } @CFLAGS;
+
         # We call ensure_C_locale here, not from the main section,
         # because this sub might not get called at all, in which
         # case it would be unnecessary work.
