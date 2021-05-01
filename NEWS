@@ -4,6 +4,9 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.20
+* Fix build when the CFLAGS variable, that is passed into the
+  configure script, has a leading whitespace character in it
+  (issue #125).
 
 Version 4.4.19
 * Improve fallback implementation of explicit_bzero.
@@ -29,7 +32,6 @@ Version 4.4.18
 Version 4.4.17
 * Fix compilation error in 'alignas (type)' with older versions
   of glibc and/or gcc (issue #107).
-
 * Salt string compatibility with generic implementations (issue #105).
   All other existing implementations of the md5crypt, sha256crypt,
   and sha512crypt hashing methods allow any ASCII character to be
@@ -39,7 +41,6 @@ Version 4.4.17
   which serves a special purpose in the Unix shadow file, and the
   newline '\n' character, since all parameters of the user data must
   be on the same line within the Unix shadow file.
-
 * Fix for GCC 10.2 on s390x.
 
 Version 4.4.16
@@ -356,7 +357,6 @@ Version 4.0.0
   glibc libcrypt).
 * struct crypt_data is now only 32kB (from 128kB), and divided into a
   public-API section and a properly opaque internal section.
-
 * New feature: supplying a null pointer as the "prefix" argument to
   any of the crypt_gencrypt functions will cause it to select the best
   available hash function (in this release, bcrypt in mode 'a').
@@ -366,7 +366,6 @@ Version 4.0.0
 * New feature: supplying a null pointer as the "rbytes" argument to
   any of the crypt_gencrypt functions will cause it to acquire random
   bytes from the operating system.
-
 * The legacy functions bigcrypt, fcrypt, encrypt, encrypt_r,
   setkey, and setkey_r are no longer available for use by new programs.
   All of these (except fcrypt, which was just another name for crypt)
@@ -383,7 +382,6 @@ Version 4.0.0
   --disable-obsolete-api, and will prevent DES and MD5 password hashes
   from being *verified* -- accounts with such hashes are effectively
   locked.  It is intended for use in high-security new installations.
-
 * Sensitive intermediate data is now thoroughly scrubbed from the
   stack and CPU registers before the crypt functions return to their
   callers.
