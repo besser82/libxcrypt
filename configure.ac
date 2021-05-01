@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 m4_include([build-aux/zw_automodern.m4])
 AC_INIT([xcrypt],
-        [4.4.20],
+        [4.4.21],
         [https://github.com/besser82/libxcrypt/issues],
         [libxcrypt],
         [https://github.com/besser82/libxcrypt])
