@@ -8,7 +8,7 @@ Version 4.4.21
 Version 4.4.20
 * Fix build when the CFLAGS variable, that is passed into the
   configure script, has a leading whitespace character in it
-  (issue #125).
+  (issue #123).
 
 Version 4.4.19
 * Improve fallback implementation of explicit_bzero.
