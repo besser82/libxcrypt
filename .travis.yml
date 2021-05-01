@@ -52,7 +52,6 @@ _macros:
       apt:
         packages:
           - lcov
-          - libc6-dbg
           - valgrind
 
   linux_clang: &linux_clang
