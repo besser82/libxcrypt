@@ -321,7 +321,12 @@ crypt_checksalt (const char *setting)
   const struct hashfn *h = get_hashfn (setting);
 
   if (h)
-    retval = CRYPT_SALT_OK;
+    {
+      retval = CRYPT_SALT_OK;
+
+      if (h->is_strong == 0)
+        retval = CRYPT_SALT_METHOD_LEGACY;
+    }
 
   return retval;
 }
