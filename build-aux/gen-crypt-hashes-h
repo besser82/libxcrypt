@@ -87,15 +87,16 @@ EOT
     } @enabled_hashes;
 
     for my $e (@table_hashes) {
-        my $name_rn  = $e->name . '_rn,';
-        my $q_prefix = '"' . $e->prefix . '",';
-        printf "  { %-*s %d, crypt_%-*s gensalt_%-*s %s }, \\\n",
-            $hconf->max_prefixlen + 2, $q_prefix, length($e->prefix),
-            $hconf->max_namelen + 4,   $name_rn,
-            $hconf->max_namelen + 4,   $name_rn,
-            $e->nrbytes;
+        my $name_rn     = $e->name . '_rn,';
+        my $q_prefix    = '"' . $e->prefix . '",';
+        my $str_nrbytes = $e->nrbytes . ',';
+        printf "  { %-*s %d, crypt_%-*s gensalt_%-*s %-*s %s}, \\\n",
+            $hconf->max_prefixlen + 3,  $q_prefix, length($e->prefix),
+            $hconf->max_namelen + 4,    $name_rn,
+            $hconf->max_namelen + 4,    $name_rn,
+            $hconf->max_nrbyteslen + 1, $str_nrbytes, $e->is_strong;
     }
-    print "  { 0, 0, 0, 0, 0 }\n";
+    print "  { 0, 0, 0, 0, 0, 0 }\n";
 
     # The default_candidates array is in decreasing order of strength;
     # select the first one that's enabled, if any.
