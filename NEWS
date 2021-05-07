@@ -4,6 +4,10 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.21
+* The crypt_checksalt() function will now return the value
+  'CRYPT_SALT_METHOD_LEGACY' in case the setting, that is passed
+  to be checked, uses a hashing method, which is considered to be
+  too weak for use with new passphrases.
 
 Version 4.4.20
 * Fix build when the CFLAGS variable, that is passed into the
