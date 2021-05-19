@@ -326,6 +326,43 @@ pushd %{_vpath_builddir}-compat
 popd
 %endif
 
+mkdir -p %{_vpath_builddir}-all_possible_tests
+
+# The configure scripts want to use -Wl,--wrap to run some
+# special tests, which is not compatible with LTO.
+%global system_lto_cflags_bak %{_lto_cflags}
+%define _lto_cflags %{nil}
+
+# Reset compiler flags in env.
+unset CFLAGS
+unset CXXFLAGS
+unset FFLAGS
+unset FCFLAGS
+unset LDFLAGS
+unset LT_SYS_LIBRARY_PATH
+
+# Build a library suitable for all possible tests.
+pushd %{_vpath_builddir}-all_possible_tests
+%configure                                       \
+%if %{with compat_pkg}
+  %{common_configure_options}                    \
+  --enable-hashes=all                            \
+  --enable-obsolete-api=%{compat_api}            \
+  --enable-obsolete-api-enosys=%{enosys_stubs}
+%else
+  %{common_configure_options}                    \
+  --enable-hashes=%{hash_methods}                \
+  --enable-obsolete-api=%{obsolete_api}          \
+%if %{with new_api}
+  --enable-obsolete-api-enosys=%{obsolete_api}
+%else
+  --enable-obsolete-api-enosys=%{enosys_stubs}
+%endif
+%endif
+%define _lto_cflags %{system_lto_cflags_bak}
+%make_build
+popd
+
 
 %install
 %if %{with compat_pkg}
@@ -356,6 +393,7 @@ build_dirs="%{_vpath_builddir}"
 %if %{with compat_pkg}
 build_dirs="${build_dirs} %{_vpath_builddir}-compat"
 %endif
+build_dirs="${build_dirs} %{_vpath_builddir}-all_possible_tests"
 for dir in ${build_dirs}; do
   %make_build -C ${dir} check || \
     {
