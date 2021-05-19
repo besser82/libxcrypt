@@ -193,6 +193,9 @@ that have been provided by glibc's libcrypt.so.1.
 %package        compat
 Summary:        Compatibility library providing legacy API functions
 
+# For testing the glibc compatibility symbols.
+BuildRequires:  libxcrypt-compat
+
 Requires:       %{name}%{?_isa}        = %{version}-%{release}
 Requires:       glibc%{?_isa}         >= %{glibc_minver}
 
