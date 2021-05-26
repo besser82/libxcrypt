@@ -316,7 +316,7 @@ crypt_checksalt (const char *setting)
   int retval = CRYPT_SALT_INVALID;
 
   if (!setting)
-    return retval;
+    goto end;
 
   const struct hashfn *h = get_hashfn (setting);
 
@@ -325,9 +325,13 @@ crypt_checksalt (const char *setting)
       retval = CRYPT_SALT_OK;
 
       if (h->is_strong == 0)
-        retval = CRYPT_SALT_METHOD_LEGACY;
+        {
+          retval = CRYPT_SALT_METHOD_LEGACY;
+          goto end;
+        }
     }
 
+end:
   return retval;
 }
 SYMVER_crypt_checksalt;
