@@ -315,7 +315,8 @@ crypt_checksalt (const char *setting)
 {
   int retval = CRYPT_SALT_INVALID;
 
-  if (!setting)
+  if (!setting ||          /* NULL string */
+      setting[0] == '\0')  /* empty passphrase, or descrypt without salt */
     goto end;
 
   const struct hashfn *h = get_hashfn (setting);
