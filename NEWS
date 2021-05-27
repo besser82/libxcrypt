@@ -4,6 +4,10 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.22
+* The crypt_checksalt() function has been fixed to correctly return
+  with 'CRYPT_SALT_INVALID', in case the setting, that is passed
+  to be checked, represents an empty passphrase or an uncomputed
+  setting for descrypt without any salt characters.
 
 Version 4.4.21
 * The crypt_checksalt() function will now return the value
