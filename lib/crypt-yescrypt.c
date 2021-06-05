@@ -106,8 +106,8 @@ gensalt_yescrypt_rn (unsigned long count,
                      const uint8_t *rbytes, size_t nrbytes,
                      uint8_t *output, size_t o_size)
 {
-  if (o_size < 3 + 8 * 6 + BASE64_LEN (nrbytes) + 1 ||
-      CRYPT_GENSALT_OUTPUT_SIZE < 3 + 8 * 6 + BASE64_LEN (nrbytes) + 1)
+  if (o_size < 3 + 8 * 6 + 1 + BASE64_LEN (nrbytes) + 1 ||
+      CRYPT_GENSALT_OUTPUT_SIZE < 3 + 8 * 6 + 1 + BASE64_LEN (nrbytes) + 1)
     {
       errno = ERANGE;
       return;
