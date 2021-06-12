@@ -1,0 +1,9 @@
+#!/bin/bash
+
+export DEB_BUILD_MAINT_OPTIONS="hardening=+all"
+export CPPFLAGS="${CPPFLAGS} $(dpkg-buildflags --get CPPFLAGS)"
+export CFLAGS="${CFLAGS} $(dpkg-buildflags --get CFLAGS)"
+export CXXFLAGS="${CXXFLAGS} $(dpkg-buildflags --get CXXFLAGS)"
+export LDFLAGS="${LDFLAGS} $(dpkg-buildflags --get LDFLAGS)"
+
+$PWD/configure "$@"

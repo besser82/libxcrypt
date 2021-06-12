@@ -1,0 +1,76 @@
+name: Codecov
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  skip_duplicates:
+    # continue-on-error: true # Uncomment once integration is finished
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@v3.4.0
+        with:
+          concurrent_skipping: 'same_content'
+          skip_after_successful_duplicate: 'true'
+          paths_ignore: '["doc/**", "**/*.md", "AUTHORS", "NEWS", "THANKS"]'
+          do_not_skip: '["workflow_dispatch", "schedule"]'
+
+  O0-Buildflags:
+    needs: skip_duplicates
+    if: ${{ needs.skip_duplicates.outputs.should_skip != 'true' }}
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+        config_opts:
+          - "--enable-obsolete-api --enable-hashes=all --enable-failure-tokens"
+          - "--enable-obsolete-api --enable-obsolete-api-enosys --enable-hashes=all --enable-failure-tokens"
+          - "--disable-obsolete-api --enable-hashes=all --enable-failure-tokens"
+          # --enable-hashes=strong can only be used with --disable-obsolete-api
+          - "--disable-obsolete-api --enable-failure-tokens --enable-hashes=strong"
+          # failure tokens only affect the generic code so there's no point
+          # testing with all of the hashes; use descrypt only, to get coverage
+          # of the --enable-obsolete-api code in this mode, and to get coverage
+          # of an "only one hash enabled" configuration.
+          - "--enable-obsolete-api --disable-failure-tokens --enable-hashes=descrypt"
+
+    env:
+      CC: ${{matrix.compiler}}
+      CONFIGURE_OPTIONS: ${{matrix.config_opts}}
+      CFLAGS: "-O0 -g -fprofile-arcs -ftest-coverage"
+      CXXFLAGS: "-O0 -g -fprofile-arcs -ftest-coverage"
+      LDFLAGS: "--coverage"
+      VERBOSE: 1
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Install packages
+      if: ${{ matrix.compiler == 'clang' }}
+      run: sudo apt-get install clang llvm
+    - name: Compiler version
+      run: $CC --version
+    - name: Bootstrap
+      run: ./autogen.sh
+    - name: Configure
+      run: ./configure $CONFIGURE_OPTS
+    - name: Build
+      run: make
+    - name: Test
+      run: make check || (cat test-suite.log; exit 1)
+    - name: Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        fail_ci_if_error: true
+        gcov_executable: ./build-aux/gcov-wrapper
+        gcov_path_exclude: "./test/*"
+        gcov_root_dir: .
+        token: ${{ secrets.CODECOV_TOKEN }}
+        verbose: false
