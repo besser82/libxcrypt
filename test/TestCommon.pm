@@ -27,8 +27,6 @@ use FindBin ();
 use POSIX   ();
 
 use lib "$FindBin::Bin/../build-aux";
-## ProhibitUnusedImport does not notice uses from @EXPORT_OK.
-## no critic (TooMuchCode::ProhibitUnusedImport)
 use BuildCommon qw(
     ensure_C_locale
     error
@@ -38,7 +36,6 @@ use BuildCommon qw(
     subprocess_error
     which
 );
-## use critic
 
 our @EXPORT_OK;
 use Exporter qw(import);
