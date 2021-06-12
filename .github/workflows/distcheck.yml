@@ -1,0 +1,67 @@
+name: Distcheck
+
+on:
+  push:
+  pull_request:
+  schedule:
+  - cron: "0 20 * * 0-6"
+
+jobs:
+  skip_duplicates:
+    # continue-on-error: true # Uncomment once integration is finished
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        # pin to unreleased SHA so we can use 'same_content_newer'
+        # see https://github.com/fkirc/skip-duplicate-actions/pull/112
+        uses: fkirc/skip-duplicate-actions@98d1dc89f43a47f8e4fba8e1c1fb8d6c5fc515ee
+        with:
+          concurrent_skipping: 'same_content_newer'
+          skip_after_successful_duplicate: 'true'
+          paths_ignore: '[]' # changes in any file can affect distcheck
+          do_not_skip: '["workflow_dispatch", "schedule"]'
+
+  Distcheck:
+    needs: skip_duplicates
+    if: ${{ needs.skip_duplicates.outputs.should_skip != 'true' }}
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+
+    env:
+      VERBOSE: 1
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      # The distcheck build is run with the oldest version of perl we support,
+      # in order to verify that we still support it.
+    - name: Install Perl 5.14
+      uses: shogo82148/actions-setup-perl@v1
+      with:
+        perl-version: '5.14'
+      # 'make distcheck' runs perlcritic on all our Perl code.
+      # Install exactly the set of critic-related CPAN distributions
+      # documented in .perlcriticrc.
+      # One perlcritic policy has a stealth dependency on aspell.
+    - name: Install perlcritic and perltidy
+      run: |
+        sudo apt-get install aspell
+        cpanm -S -M https://cpan.metacpan.org/ -n -i $(sed -Ene '
+             s/^#[[:space:]]+([A-Z0-9]+\/.+\.tar\.gz)$/\1/p
+             /^$/q
+          ' .perlcriticrc)
+    - name: Versions of build tools
+      run: ./build-aux/ci-log-dependency-versions
+    - name: Bootstrap
+      run: ./autogen.sh
+    - name: Configure
+      run: ./configure --enable-obsolete-api --enable-hashes=all
+    - name: Test
+      run: |
+        make distcheck ||
+          (find . -name test-suite\*.log -print -a -exec cat '{}' ';'; exit 1)
