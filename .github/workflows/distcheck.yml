@@ -1,0 +1,105 @@
+name: Distcheck
+
+on:
+  push:
+  pull_request:
+  schedule:
+  - cron: '31 3 * * 1'  # Monday at 3h31 UTC
+
+jobs:
+  skip_duplicates:
+    # continue-on-error: true # Uncomment once integration is finished
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        # pin to unreleased SHA so we can use 'same_content_newer'
+        # see https://github.com/fkirc/skip-duplicate-actions/pull/112
+        uses: fkirc/skip-duplicate-actions@98d1dc89f43a47f8e4fba8e1c1fb8d6c5fc515ee
+        with:
+          concurrent_skipping: 'same_content_newer'
+          skip_after_successful_duplicate: 'true'
+          paths_ignore: '[]' # changes in any file can affect distcheck
+          do_not_skip: '["workflow_dispatch", "schedule"]'
+
+  Distcheck:
+    needs: skip_duplicates
+    if: ${{ needs.skip_duplicates.outputs.should_skip != 'true' }}
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+
+    env:
+      VERBOSE: 1
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+      # The distcheck build is run with the oldest version of perl we support,
+      # in order to verify that we still support it.
+    - name: Install Perl 5.14
+      uses: shogo82148/actions-setup-perl@v1
+      with:
+        perl-version: '5.14'
+
+      # 'make distcheck' runs perlcritic on all our Perl code.
+      # Install exactly the set of critic-related CPAN distributions
+      # documented in .perlcriticrc.
+      # One perlcritic policy has a stealth dependency on aspell.
+    - name: Install perlcritic and perltidy
+      run: |
+        sudo apt-get install aspell
+        cpanm -S -M https://cpan.metacpan.org/ -n -i $(sed -Ene '
+             s/^#[[:space:]]+([A-Z0-9]+\/.+\.tar\.gz)$/\1/p
+             /^$/q
+          ' .perlcriticrc)
+
+    - name: Versions of build tools
+      id: build-tools
+      run: ./build-aux/ci-log-dependency-versions
+
+    - name: Cache bootstrap
+      id: cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          INSTALL
+          Makefile.in
+          aclocal.m4
+          config.h.in
+          configure
+          autom4te.cache/**
+          build-aux/compile
+          build-aux/config.guess
+          build-aux/config.sub
+          build-aux/depcomp
+          build-aux/install-sh
+          build-aux/libtool.m4
+          build-aux/ltmain.sh
+          build-aux/ltoptions.m4
+          build-aux/ltsugar.m4
+          build-aux/ltversion.m4
+          build-aux/lt~obsolete.m4
+          build-aux/missing
+          build-aux/test-driver
+        key: autoreconf-${{ steps.build-tools.outputs.autotools-ver }}-${{ hashFiles('autogen.sh', 'configure.ac', 'Makefile.am', 'build-aux/*.m4') }}
+
+    - name: Bootstrap
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: ./autogen.sh
+
+      # The configure options used in this step do not matter, we just need
+      # the makefile to exist.
+    - name: Configure
+      run: ./configure
+
+    - name: Test
+      run: make distcheck
+
+    - name: Detailed error logs
+      if: failure()
+      run: ./build-aux/ci-log-logfiles
