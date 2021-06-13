@@ -85,7 +85,7 @@ unpack_bits (char bytev[64], const unsigned char bitv[8])
     {
       c = bitv[i];
       for (int j = 0; j < 8; j++)
-        bytev[i*8 + j] = (c & (0x01 << (7 - j))) != 0;
+        bytev[i*8 + j] = (char)((c & (0x01 << (7 - j))) != 0);
     }
 }
 
