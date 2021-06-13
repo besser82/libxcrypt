@@ -29,7 +29,7 @@ expand (unsigned char ex[64], const unsigned char pk[8])
     {
       t = pk[i];
       for (j = 0; j < 8; j++)
-        ex[i*8 + j] = (t & (0x01u << (7 - j))) != 0;
+        ex[i*8 + j] = (unsigned char)((t & (0x01u << (7 - j))) != 0);
     }
 }
 
