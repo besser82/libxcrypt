@@ -40,4 +40,4 @@ jobs:
   trigger: release
   metadata:
     dist_git_branches:
-      - main
+      - rawhide
