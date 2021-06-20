@@ -4,6 +4,9 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.23
+* Fix output calculation for gensalt_yescrypt_rn().
+* Fix -Werror=conversion in lib/crypt-des-obsolete.c,
+  test/des-obsolete.c, and test/des-obsolete_r.c.
 
 Version 4.4.22
 * The crypt_checksalt() function has been fixed to correctly return
