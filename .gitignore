@@ -130,3 +130,11 @@ vgcore.*
 # Coverage
 all_coverage.info
 coverage.info
+
+# Packit
+libxcrypt.spec
+libxcrypt-*.rpm
+libxcrypt-*.srpm
+libxcrypt-*.src.rpm
+libxcrypt-*/
+*/libxcrypt-*.rpm
