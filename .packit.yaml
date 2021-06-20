@@ -1,0 +1,43 @@
+specfile_path: libxcrypt.spec
+
+synced_files:
+  - libxcrypt.spec
+  - .packit.yaml
+
+upstream_package_name: libxcrypt
+upstream_project_url: https://github.com/besser82/libxcrypt
+upstream_tag_template: v{version}
+downstream_package_name: libxcrypt
+dist_git_namespace: rpms
+create_pr: True
+
+actions:
+  post-upstream-clone: "wget https://src.fedoraproject.org/rpms/libxcrypt/raw/main/f/libxcrypt.spec -O libxcrypt.spec"
+
+jobs:
+- job: copr_build
+  trigger: pull_request
+  metadata:
+    list_on_homepage: False
+    targets:
+      - fedora-all-aarch64
+      - fedora-all-i386
+      - fedora-all-x86_64
+      - fedora-development-s390x
+
+- job: copr_build
+  trigger: commit
+  metadata:
+    branch: develop
+    list_on_homepage: False
+    targets:
+      - fedora-all-aarch64
+      - fedora-all-i386
+      - fedora-all-x86_64
+      - fedora-development-s390x
+
+- job: propose_downstream
+  trigger: release
+  metadata:
+    dist_git_branches:
+      - main
