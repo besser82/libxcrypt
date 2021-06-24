@@ -314,6 +314,7 @@ my %VALID_FLAGS = (
     STRONG  => 1,
     DEFAULT => 1,
     ALT     => 1,
+    DEBIAN  => 1,
     FEDORA  => 1,
     FREEBSD => 1,
     GLIBC   => 1,
