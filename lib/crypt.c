@@ -128,6 +128,25 @@ do_crypt (const char *phrase, const char *setting, struct crypt_data *data)
       errno = ERANGE;
       return;
     }
+  /* Generically reject setting strings containing characters that should
+     not be present.  In principle this check ought to match the rule
+     stated in crypt(5):
+
+         Hashed passphrases are always entirely printable ASCII, and
+         do not contain any whitespace or the characters ':', ';',
+         '*', '!', or '\\'.  (These characters are used as delimiters
+         and special markers in the passwd(5) and shadow(5) files.)"
+
+     However, individual hash function implementations have not always
+     enforced this rule, so for now we are being cautious and
+     rejecting only ':' and '\n'.  See
+     <https://github.com/besser82/libxcrypt/issues/105>.  */
+  if (strcspn (setting, ":\n") != set_size)
+    {
+      errno = EINVAL;
+      return;
+    }
+
   const struct hashfn *h = get_hashfn (setting);
   if (!h)
     {

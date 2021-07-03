@@ -17,478 +17,676 @@
    <http://www.gnu.org/licenses/>.  */
 
 #include "crypt-port.h"
-#include <crypt.h>
+#undef yescrypt
+
 #include <errno.h>
+#include <setjmp.h>
 #include <stdio.h>
 #include <string.h>
+#include <signal.h>
 #include <sys/mman.h>
 
+/* If VERBOSE is true, passing testcases will be printed out as well
+   as failing ones.  */
+static bool verbose = false;
+
+/* All hashes are hashes of this passphrase, an infamous error message
+   used for some forgotten can't-happen condition in Unix V6; see
+   <https://wiki.tuhs.org/doku.php?id=anecdotes:values_of_beta>.  */
 static const char phrase[] = "values of β will give rise to dom!";
 
-struct testcase
+/* Correct setting strings, from which we derive incorrect ones by
+   replacing one character at a time with a character that cannot
+   appear in a valid passphrase (namely ':') and/or truncating the
+   string.  */
+struct valid_setting;
+
+/* Type of functions to use in is_valid_trunc.  */
+typedef bool (*valid_trunc_p)(const struct valid_setting *original,
+                              const char *truncated);
+
+struct valid_setting
 {
-  const char *label;
-  size_t plen;
+  /* Human-readable name for this test */
+  const char *tag;
+
+  /* The setting string */
+  const char *setting;
+
+  /* Length of the actual setting, within the setting string.  This is
+     usually equal to strlen(setting), but a couple of the strings are
+     padded on the right for hash-specific reasons.  */
+  size_t setting_len;
+
+  /* Given a truncation of a valid setting string, decide whether the
+   truncation is also valid.  */
+  valid_trunc_p is_valid_trunc;
+
+  /* Numeric parameter for is_valid_trunc; usually the length of a
+     subfield of the setting.  */
+  uint16_t is_valid_trunc_param;
+
+  /* Whether support for this hash was compiled into the library.  */
+  bool enabled;
+
+};
+
+/* is_valid_trunc functions -- forward declarations */
+
+static bool vt_never(const struct valid_setting *, const char *);
+static bool vt_varsuffix(const struct valid_setting *, const char *);
+static bool vt_sunmd5(const struct valid_setting *, const char *);
+static bool vt_sha2gnu(const struct valid_setting *, const char *);
+static bool vt_yescrypt(const struct valid_setting *, const char *);
+
+/* shorthands for use in valid_cases */
+
+#define V_(  hash,      setting, vt, vp) \
+  { #hash,               setting, sizeof setting - 1, vt, vp, INCLUDE_##hash }
+#define Vp_( hash,      setting, vt, vp) \
+  { #hash,               setting, vp,                 vt, vp, INCLUDE_##hash }
+#define Vt_( hash, tag, setting, vt, vp) \
+  { #hash " (" #tag ")", setting, sizeof setting - 1, vt, vp, INCLUDE_##hash }
+#define Vtp_(hash, tag, setting, vt, vp) \
+  { #hash " (" #tag ")", setting, vp,                 vt, vp, INCLUDE_##hash }
+
+#define V(  hash,          setting) V_(  hash,      setting, vt_never,     0)
+#define Vn( hash,      vt, setting) V_(  hash,      setting, vt_##vt,      0)
+#define Vp( hash,      sl, setting) Vp_( hash,      setting, vt_varsuffix, sl)
+#define Vv( hash,      sl, setting) V_(  hash,      setting, vt_varsuffix, sl)
+#define Vt( hash, tag,     setting) Vt_( hash, tag, setting, vt_never,     0)
+#define Vtn(hash, tag, vt, setting) Vt_( hash, tag, setting, vt_##vt,      0)
+#define Vtp(hash, tag, sl, setting) Vtp_(hash, tag, setting, vt_varsuffix, sl)
+#define Vtv(hash, tag, sl, setting) Vt_( hash, tag, setting, vt_varsuffix, sl)
+
+/* Each of these is a valid setting string for some algorithm,
+   from which we will derive many invalid setting strings.
+   This is an expensive test, so where possible, the number of
+   "rounds" of the hash function has been set abnormally low.  */
+static const struct valid_setting valid_cases[] =
+{
+  V  (descrypt,                            "Mp"                               ),
+  Vp (bigcrypt,                  2,        "Mp............"                   ),
+  V  (bsdicrypt,                           "_J9..MJHn"                        ),
+  Vv (md5crypt,                  3,        "$1$MJHnaAke$"                     ),
+  Vtn(sunmd5,        plain,      sunmd5,   "$md5$1xMeE.at$"                   ),
+  Vtn(sunmd5,        rounds,     sunmd5,   "$md5,rounds=123$1xMeE.at$"        ),
+  Vt (nt,            plain,                "$3$"                              ),
+  Vtp(nt,            fake salt,  3,        "$3$__not_used__c809a450df09a3"    ),
+  Vv (sha1crypt,                 11,       "$sha1$123$GGXpNqoJvglVTkGU$"      ),
+  Vtn(sha256crypt,   plain,      sha2gnu,  "$5$MJHnaAkegEVYHsFK$"             ),
+  Vtn(sha256crypt,   rounds,     sha2gnu,  "$5$rounds=1000$MJHnaAkegEVYHsFK$" ),
+  Vtn(sha512crypt,   plain,      sha2gnu,  "$6$MJHnaAkegEVYHsFK$"             ),
+  Vtn(sha512crypt,   rounds,     sha2gnu,  "$6$rounds=1000$MJHnaAkegEVYHsFK$" ),
+  Vt (bcrypt,        b,                    "$2b$04$UBVLHeMpJ/QQCv3XqJx8zO"    ),
+  Vt (bcrypt,        a,                    "$2a$04$UBVLHeMpJ/QQCv3XqJx8zO"    ),
+  Vt (bcrypt,        x,                    "$2x$04$UBVLHeMpJ/QQCv3XqJx8zO"    ),
+  Vt (bcrypt,        y,                    "$2y$04$UBVLHeMpJ/QQCv3XqJx8zO"    ),
+  Vv (scrypt,                    14,       "$7$C6..../....SodiumChloride$"    ),
+  Vn (yescrypt,                  yescrypt, "$y$j9T$PKXc3hCOSyMqdaEQArI62/$"   ),
+  Vn (gost_yescrypt,             yescrypt, "$gy$j9T$PKXc3hCOSyMqdaEQArI62/$"  ),
+};
+
+#undef V_
+#undef Vp_
+#undef Vt_
+#undef Vtp_
+
+#undef V
+#undef Vn
+#undef Vp
+#undef Vv
+#undef Vt
+#undef Vtn
+#undef Vtp
+#undef Vtv
+
+/* Additional tests of manually constructed, invalid setting
+   strings.  */
+struct invalid_setting
+{
+  const char *tag;
   const char *setting;
 };
-static const struct testcase testcases[] =
+static const struct invalid_setting invalid_cases[] =
 {
   /* These strings are invalid regardless of the algorithm.  */
-  { "*too short",                           1, "/"              },
-  { "*invalid char :",                      1, ":"              },
-  { "*invalid char ;",                      1, ";"              },
-  { "*invalid char *",                      1, "*"              },
-  { "*invalid char !",                      1, "!"              },
-  { "*invalid char \\",                     1, "\\"             },
-  { "*invalid white 1",                     1, " "              },
-  { "*invalid white 2",                     1, "\t"             },
-  { "*invalid white 3",                     1, "\r"             },
-  { "*invalid white 4",                     1, "\n"             },
-  { "*invalid white 5",                     1, "\f"             },
-  { "*invalid ctrl 1",                      1, "\1"             },
-  { "*invalid ctrl 2",                      1, "\177"           },
-  { "*failure token 1",                     2, "*0"             },
-  { "*failure token 2",                     2, "*1"             },
-  { "*bcrypt invalid salt",                 3, "$2$"            },
-  { "*unsupported algorithm",              13, "$un$upp0rt3d$"  },
-  { "*empty string",                        1, "\0"             },
+  { "too short 1",                 "/"                                      },
+  { "too short 2",                 "M"                                      },
+  { "too short 3",                 "$"                                      },
+  { "too short 4",                 "_"                                      },
+  { "too short 5",                 "."                                      },
+  { "invalid char :",              ":"                                      },
+  { "invalid char ;",              ";"                                      },
+  { "invalid char *",              "*"                                      },
+  { "invalid char !",              "!"                                      },
+  { "invalid char \\",             "\\"                                     },
+  { "invalid char SPC",            " "                                      },
+  { "invalid char TAB",            "\t"                                     },
+  { "invalid char ^M",             "\r"                                     },
+  { "invalid char ^J",             "\n"                                     },
+  { "invalid char ^L",             "\f"                                     },
+  { "invalid char ^A",             "\001"                                   },
+  { "invalid char DEL",            "\177"                                   },
+  { "failure token 1",             "*0"                                     },
+  { "failure token 2",             "*1"                                     },
+  { "unsupported algorithm",       "$un$upp0rt3d$"                          },
+  { "empty string",                ""                                       },
 
-  /* Each of these is a valid setting string for some algorithm,
-     from which we will derive many invalid setting strings.
-     This is an expensive test, so where possible, the number of
-     "rounds" of the hash function has been set abnormally low.  */
-#if INCLUDE_descrypt
-  { "DES (trad.)",                          2, "Mp" },
-  { "*DES (trad.), 1st char invalid -",     2, "-p" },
-  { "*DES (trad.), 2nd char invalid -",     2, "M-" },
-  { "*DES (trad.), 1st char invalid :",     2, ":p" },
-  { "*DES (trad.), 2nd char invalid :",     2, "M:" },
-  { "*DES (trad.), 1st char invalid [",     2, "[p" },
-  { "*DES (trad.), 2nd char invalid [",     2, "M[" },
-  { "*DES (trad.), 1st char invalid {",     2, "{p" },
-  { "*DES (trad.), 2nd char invalid {",     2, "M{" },
-#endif
-#if INCLUDE_bigcrypt
-  { "DES (bigcrypt)",                       14, "Mp............" },
-  { "*DES (bigcrypt), 1st char invalid -",  14, "-p............" },
-  { "*DES (bigcrypt), 2nd char invalid -",  14, "M-............" },
-  { "*DES (bigcrypt), 1st char invalid :",  14, ":p............" },
-  { "*DES (bigcrypt), 2nd char invalid :",  14, "M:............" },
-  { "*DES (bigcrypt), 1st char invalid [",  14, "[p............" },
-  { "*DES (bigcrypt), 2nd char invalid [",  14, "M[............" },
-  { "*DES (bigcrypt), 1st char invalid {",  14, "{p............" },
-  { "*DES (bigcrypt), 2nd char invalid {",  14, "M{............" },
-#endif
-#if INCLUDE_bsdicrypt
-  { "DES (BSDi)",                           9, "_J9..MJHn" },
-  { "*DES (BSDi), 1st char invalid -",      9, "_-9..MJHn" },
-  { "*DES (BSDi), 2nd char invalid -",      9, "_J-..MJHn" },
-  { "*DES (BSDi), 3rd char invalid -",      9, "_J9-.MJHn" },
-  { "*DES (BSDi), 4th char invalid -",      9, "_J9.-MJHn" },
-  { "*DES (BSDi), 5th char invalid -",      9, "_J9..-JHn" },
-  { "*DES (BSDi), 6th char invalid -",      9, "_J9..M-Hn" },
-  { "*DES (BSDi), 7th char invalid -",      9, "_J9..MJ-n" },
-  { "*DES (BSDi), 8th char invalid -",      9, "_J9..MJH-" },
-  { "*DES (BSDi), 1st char invalid :",      9, "_:9..MJHn" },
-  { "*DES (BSDi), 2nd char invalid :",      9, "_J:..MJHn" },
-  { "*DES (BSDi), 3rd char invalid :",      9, "_J9:.MJHn" },
-  { "*DES (BSDi), 4th char invalid :",      9, "_J9.:MJHn" },
-  { "*DES (BSDi), 5th char invalid :",      9, "_J9..:JHn" },
-  { "*DES (BSDi), 6th char invalid :",      9, "_J9..M:Hn" },
-  { "*DES (BSDi), 7th char invalid :",      9, "_J9..MJ:n" },
-  { "*DES (BSDi), 8th char invalid :",      9, "_J9..MJH:" },
-  { "*DES (BSDi), 1st char invalid [",      9, "_[9..MJHn" },
-  { "*DES (BSDi), 2nd char invalid [",      9, "_J[..MJHn" },
-  { "*DES (BSDi), 3rd char invalid [",      9, "_J9[.MJHn" },
-  { "*DES (BSDi), 4th char invalid [",      9, "_J9.[MJHn" },
-  { "*DES (BSDi), 5th char invalid [",      9, "_J9..[JHn" },
-  { "*DES (BSDi), 6th char invalid [",      9, "_J9..M[Hn" },
-  { "*DES (BSDi), 7th char invalid [",      9, "_J9..MJ[n" },
-  { "*DES (BSDi), 8th char invalid [",      9, "_J9..MJH[" },
-  { "*DES (BSDi), 1st char invalid {",      9, "_{9..MJHn" },
-  { "*DES (BSDi), 2nd char invalid {",      9, "_J{..MJHn" },
-  { "*DES (BSDi), 3rd char invalid {",      9, "_J9{.MJHn" },
-  { "*DES (BSDi), 4th char invalid {",      9, "_J9.{MJHn" },
-  { "*DES (BSDi), 5th char invalid {",      9, "_J9..{JHn" },
-  { "*DES (BSDi), 6th char invalid {",      9, "_J9..M{Hn" },
-  { "*DES (BSDi), 7th char invalid {",      9, "_J9..MJ{n" },
-  { "*DES (BSDi), 8th char invalid {",      9, "_J9..MJH{" },
-#endif
-#if INCLUDE_md5crypt
-  { "MD5 (FreeBSD)",                       12, "$1$MJHnaAke$" },
-  { "*MD5 (FreeBSD) invalid char",         12, "$1$:JHnaAke$" },
-#endif
-#if INCLUDE_sunmd5
-  { "MD5 (Sun, plain)",                    14, "$md5$1xMeE.at$"            },
-  { "*MD5 (Sun, plain) invalid char",      14, "$md5$:xMeE.at$"            },
-  { "MD5 (Sun, rounds)",                   25, "$md5,rounds=123$1xMeE.at$" },
-  { "*MD5 (Sun, rounds) invalid char",     25, "$md5,rounds=123$:xMeE.at$" },
-  { "*MD5 (Sun, rounds) invalid rounds 1", 25, "$md5,rounds=:23$1xMeE.at$" },
-  { "*MD5 (Sun, rounds) invalid rounds 2", 25, "$md5,rounds=12:$1xMeE.at$" },
-  { "*MD5 (Sun, rounds) invalid rounds 3", 25, "$md5,rounds:123$1xMeE.at$" },
-  { "*MD5 (Sun, rounds) invalid rounds 4", 22, "$md5,rounds=$1xMeE.at$"    },
-  { "*MD5 (Sun, rounds) invalid rounds 5", 23, "$md5,rounds=0$1xMeE.at$"   },
-  { "*MD5 (Sun, rounds) invalid rounds 6", 25, "$md5,rounds=012$1xMeE.at$" },
-  { "*MD5 (Sun, rounds) invalid rounds 7", 32, "$md5,rounds=4294967296$1xMeE.at$" },
-#endif
-#if INCLUDE_nt
-  { "NTHASH (bare)",                        3, "$3$"                           },
-  { "NTHASH (fake salt)",                   3, "$3$__not_used__c809a450df09a3" },
-#endif
-#if INCLUDE_sha1crypt
-  { "HMAC-SHA1",                           27, "$sha1$123$GGXpNqoJvglVTkGU$" },
-  { "*HMAC-SHA1 invalid char",             27, "$sha1$123$:GXpNqoJvglVTkGU$" },
-  { "*HMAC-SHA1 invalid rounds 1",         27, "$sha1$:23$GGXpNqoJvglVTkGU$" },
-  { "*HMAC-SHA1 invalid rounds 2",         27, "$sha1$12:$GGXpNqoJvglVTkGU$" },
-  { "*HMAC-SHA1 invalid rounds 3",         27, "$sha1$12:$GGXpNqoJvglVTkGU$" },
-#endif
-#if INCLUDE_sha256crypt
-  { "SHA-256 (plain)",                     20, "$5$MJHnaAkegEVYHsFK$"             },
-  { "*SHA-256 (plain) invalid char",       20, "$5$:JHnaAkegEVYHsFK$"             },
-  { "SHA-256 (rounds)",                    32, "$5$rounds=1000$MJHnaAkegEVYHsFK$" },
-  { "*SHA-256 (rounds) invalid rounds 1",  32, "$5$rounds=:000$MJHnaAkegEVYHsFK$" },
-  { "*SHA-256 (rounds) invalid rounds 2",  32, "$5$rounds=100:$MJHnaAkegEVYHsFK$" },
-  { "*SHA-256 (rounds) invalid rounds 3",  32, "$5$rounds:1000$MJHnaAkegEVYHsFK$" },
-  { "*SHA-256 (rounds) invalid rounds 4",  28, "$5$rounds=$MJHnaAkegEVYHsFK$" },
-  { "*SHA-256 (rounds) invalid rounds 5",  29, "$5$rounds=0$MJHnaAkegEVYHsFK$" },
-  { "*SHA-256 (rounds) invalid rounds 6",  32, "$5$rounds=0100$MJHnaAkegEVYHsFK$" },
-  { "*SHA-256 (rounds) invalid rounds 7",  38, "$5$rounds=4294967295$MJHnaAkegEVYHsFK$" },
-#endif
-#if INCLUDE_sha512crypt
-  { "SHA-512 (plain)",                     20, "$6$MJHnaAkegEVYHsFK$"             },
-  { "*SHA-512 (plain) invalid char",       20, "$6$:JHnaAkegEVYHsFK$"             },
-  { "SHA-512 (rounds)",                    32, "$6$rounds=1000$MJHnaAkegEVYHsFK$" },
-  { "*SHA-512 (rounds) invalid rounds 1",  32, "$6$rounds=:000$MJHnaAkegEVYHsFK$" },
-  { "*SHA-512 (rounds) invalid rounds 2",  32, "$6$rounds=100:$MJHnaAkegEVYHsFK$" },
-  { "*SHA-512 (rounds) invalid rounds 3",  32, "$6$rounds:1000$MJHnaAkegEVYHsFK$" },
-  { "*SHA-512 (rounds) invalid rounds 4",  28, "$6$rounds=$MJHnaAkegEVYHsFK$" },
-  { "*SHA-512 (rounds) invalid rounds 5",  29, "$6$rounds=0$MJHnaAkegEVYHsFK$" },
-  { "*SHA-512 (rounds) invalid rounds 6",  32, "$6$rounds=0100$MJHnaAkegEVYHsFK$" },
-  { "*SHA-512 (rounds) invalid rounds 6",  38, "$6$rounds=4294967295$MJHnaAkegEVYHsFK$" },
-#endif
-#if INCLUDE_bcrypt
-  { "bcrypt (b04)",                        29, "$2b$04$UBVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (b04) invalid char",          29, "$2b$04$:BVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (b04) invalid rounds 1",      29, "$2b$:4$UBVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (b04) invalid rounds 2",      29, "$2b$0:$UBVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (b) rounds too low",          29, "$2b$03$UBVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (b) rounds too high",         29, "$2b$32$UBVLHeMpJ/QQCv3XqJx8zO" },
-#endif
-#if INCLUDE_bcrypt_a
-  { "bcrypt (a04)",                        29, "$2a$04$UBVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (a04) invalid char",          29, "$2a$04$:BVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (a04) invalid rounds 1",      29, "$2a$:4$UBVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (a04) invalid rounds 2",      29, "$2a$0:$UBVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (a) rounds too low",          29, "$2a$03$UBVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (a) rounds too high",         29, "$2a$32$UBVLHeMpJ/QQCv3XqJx8zO" },
-#endif
-#if INCLUDE_bcrypt_x
-  { "bcrypt (x04)",                        29, "$2x$04$UBVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (x04) invalid char",          29, "$2x$04$:BVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (x04) invalid rounds 1",      29, "$2x$:4$UBVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (x04) invalid rounds 2",      29, "$2x$0:$UBVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (x) rounds too low",          29, "$2x$03$UBVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (x) rounds too high",         29, "$2x$32$UBVLHeMpJ/QQCv3XqJx8zO" },
-#endif
-#if INCLUDE_bcrypt_y
-  { "bcrypt (y04)",                        29, "$2y$04$UBVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (y04) invalid char",          29, "$2y$04$:BVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (y04) invalid rounds 1",      29, "$2y$:4$UBVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (y04) invalid rounds 2",      29, "$2y$0:$UBVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (y) rounds too low",          29, "$2y$03$UBVLHeMpJ/QQCv3XqJx8zO" },
-  { "*bcrypt (y) rounds too high",         29, "$2y$32$UBVLHeMpJ/QQCv3XqJx8zO" },
-#endif
-#if INCLUDE_yescrypt
-  { "yescrypt",                            30, "$y$j9T$PKXc3hCOSyMqdaEQArI62/$" },
-  { "*yescrypt invalid char 1",            30, "$y$j9T$:KXc3hCOSyMqdaEQArI62/$" },
-  { "*yescrypt invalid char 2",            18, "$y$j9T$PKXc:hCOS$" },
-  { "*yescrypt invalid params 1",          30, "$y$:9T$PKXc3hCOSyMqdaEQArI62/$" },
-  { "*yescrypt invalid params 2",          30, "$y$j:T$PKXc3hCOSyMqdaEQArI62/$" },
-  { "*yescrypt invalid params 3",          30, "$y$j9:$PKXc3hCOSyMqdaEQArI62/$" },
-  { "*yescrypt invalid params 4",          30, "$y$$9T$PKXc3hCOSyMqdaEQArI62/$" },
-  { "*yescrypt invalid params 5",          30, "$y$j$:$PKXc3hCOSyMqdaEQArI62/$" },
-  { "*yescrypt invalid params 6",          30, "$y$j9$$PKXc3hCOSyMqdaEQArI62/$" },
-#endif
-#if INCLUDE_scrypt
-  { "scrypt",                              29, "$7$C6..../....SodiumChloride$" },
-  { "*scrypt invalid char",                29, "$7$C6..../....:odiumChloride$" },
-  { "*scrypt invalid params  1",           29, "$7$:6..../....SodiumChloride$" },
-  { "*scrypt invalid params  2",           29, "$7$C:..../....SodiumChloride$" },
-  { "*scrypt invalid params  3",           29, "$7$C6:.../....SodiumChloride$" },
-  { "*scrypt invalid params  4",           29, "$7$C6.:../....SodiumChloride$" },
-  { "*scrypt invalid params  5",           29, "$7$C6..:./....SodiumChloride$" },
-  { "*scrypt invalid params  6",           29, "$7$C6...:/....SodiumChloride$" },
-  { "*scrypt invalid params  7",           29, "$7$C6....:....SodiumChloride$" },
-  { "*scrypt invalid params  8",           29, "$7$C6..../:...SodiumChloride$" },
-  { "*scrypt invalid params  9",           29, "$7$C6..../.:..SodiumChloride$" },
-  { "*scrypt invalid params 10",           29, "$7$C6..../..:.SodiumChloride$" },
-  { "*scrypt invalid params 11",           29, "$7$C6..../...:SodiumChloride$" },
-  { "*scrypt invalid params 12",           29, "$7$$:..../....SodiumChloride$" },
-  { "*scrypt invalid params 13",           29, "$7$C$:.../....SodiumChloride$" },
-  { "*scrypt invalid params 14",           29, "$7$C6.$:./....SodiumChloride$" },
-  { "*scrypt invalid params 15",           29, "$7$C6..../.$:.SodiumChloride$" },
-#endif
-#if INCLUDE_gost_yescrypt
-  { "gost-yescrypt",                       31, "$gy$j9T$PKXc3hCOSyMqdaEQArI62/$" },
-  { "*gost-yescrypt invalid char 1",       31, "$gy$j9T$:KXc3hCOSyMqdaEQArI62/$" },
-  { "*gost-yescrypt invalid char 2",       19, "$gy$j9T$PKXc:hCOS$" },
-  { "*gost-yescrypt invalid params 1",     31, "$gy$:9T$PKXc3hCOSyMqdaEQArI62/$" },
-  { "*gost-yescrypt invalid params 2",     31, "$gy$j:T$PKXc3hCOSyMqdaEQArI62/$" },
-  { "*gost-yescrypt invalid params 3",     31, "$gy$j9:$PKXc3hCOSyMqdaEQArI62/$" },
-  { "*gost-yescrypt invalid params 4",     31, "$gy$$9T$PKXc3hCOSyMqdaEQArI62/$" },
-  { "*gost-yescrypt invalid params 5",     31, "$gy$j$:$PKXc3hCOSyMqdaEQArI62/$" },
-  { "*gost-yescrypt invalid params 6",     31, "$gy$j9$$PKXc3hCOSyMqdaEQArI62/$" },
-#endif
+  /* These strings are invalid for specific algorithms, in ways
+     that the generic error generator cannot produce.  */
+  { "sunmd5 absent rounds",        "$md5,rounds=$1xMeE.at$"                 },
+  { "sunmd5 low rounds",           "$md5,rounds=0$1xMeE.at$"                },
+  { "sunmd5 octal rounds",         "$md5,rounds=012$1xMeE.at$"              },
+  { "sunmd5 high rounds",          "$md5,rounds=4294967296$1xMeE.at$"       },
+  { "sha256 absent rounds",        "$5$rounds=$MJHnaAkegEVYHsFK$"           },
+  { "sha256 low rounds",           "$5$rounds=0$MJHnaAkegEVYHsFK$"          },
+  { "sha256 octal rounds",         "$5$rounds=0100$MJHnaAkegEVYHsFK$"       },
+  { "sha256 high rounds",          "$5$rounds=4294967295$MJHnaAkegEVYHsFK$" },
+  { "sha512 absent rounds",        "$6$rounds=$MJHnaAkegEVYHsFK$"           },
+  { "sha512 low rounds",           "$6$rounds=0$MJHnaAkegEVYHsFK$"          },
+  { "sha512 octal rounds",         "$6$rounds=0100$MJHnaAkegEVYHsFK$"       },
+  { "sha512 high rounds",          "$6$rounds=4294967295$MJHnaAkegEVYHsFK$" },
+  { "bcrypt no subtype",           "$2$04$UBVLHeMpJ/QQCv3XqJx8zO"           },
+  { "bcrypt_b low rounds",         "$2b$03$UBVLHeMpJ/QQCv3XqJx8zO"          },
+  { "bcrypt_b high rounds",        "$2b$32$UBVLHeMpJ/QQCv3XqJx8zO"          },
+  { "bcrypt_a low rounds",         "$2a$03$UBVLHeMpJ/QQCv3XqJx8zO"          },
+  { "bcrypt_a high rounds",        "$2a$32$UBVLHeMpJ/QQCv3XqJx8zO"          },
+  { "bcrypt_x low rounds",         "$2x$03$UBVLHeMpJ/QQCv3XqJx8zO"          },
+  { "bcrypt_x high rounds",        "$2x$32$UBVLHeMpJ/QQCv3XqJx8zO"          },
+  { "bcrypt_y low rounds",         "$2y$03$UBVLHeMpJ/QQCv3XqJx8zO"          },
+  { "bcrypt_y low rounds",         "$2y$32$UBVLHeMpJ/QQCv3XqJx8zO"          },
+  { "yescrypt short params",       "$y$j9$PKXc3hCOSyMqdaEQArI62/$"          },
+  { "gost-yescrypt short params",  "$gy$j9$PKXc3hCOSyMqdaEQArI62/$"         },
 };
 
+/* is_valid_trunc functions -- definitions.
+   Note: these only need to be correct for the patterns we actually test.  */
+
+/* All truncations of this setting string are invalid.  */
 static bool
-check_results (const char *label, const char *fn,
-               const char *retval, const char *setting,
-               bool expected_to_succeed)
+vt_never(const struct valid_setting * ARG_UNUSED(original),
+         const char * ARG_UNUSED(truncated))
 {
-  size_t l_setting = strlen (setting);
-  if (expected_to_succeed)
-    {
-      if (retval[0] == '*' ||
-          strncmp (retval, setting,
-                   (setting[l_setting - 1] == ':') ? l_setting - 1 : l_setting))
-        {
-          printf ("FAIL: %s/%s/%s: expected success, got non-matching %s\n",
-                  label, setting, fn, retval);
-          return false;
-        }
-    }
-  else
-    {
-      if (retval[0] != '*' ||
-          (l_setting >= 2 && !strncmp (retval, setting, l_setting)))
-        {
-          printf ("FAIL: %s/%s/%s: expected failure, got %s\n",
-                  label, setting, fn, retval);
-          return false;
-        }
-    }
-  return true;
+  return false;
 }
 
+/* This setting string has a variable-length suffix; truncations are
+   valid as long as the result has at least `is_valid_trunc_param'
+   characters.  */
 static bool
-check_crypt (const char *label, const char *fn,
-             const char *retval, const char *setting,
-             bool expected_to_succeed)
+vt_varsuffix(const struct valid_setting *original,
+             const char *truncated)
 {
-#if ENABLE_FAILURE_TOKENS
-  /* crypt/crypt_r never return null when failure tokens are enabled */
-  if (!retval)
-    {
-      printf ("FAIL: %s/%s/%s: returned NULL\n", label, setting, fn);
-      return false;
-    }
-#else
-  if (expected_to_succeed && !retval)
-    {
-      printf ("FAIL: %s/%s/%s: returned NULL\n", label, setting, fn);
-      return false;
-    }
-  else if (!expected_to_succeed && retval)
-    {
-      printf ("FAIL: %s/%s/%s: returned %p, should be NULL\n",
-              label, setting, fn, (const void *)retval);
-      return false;
-    }
-  else if (!expected_to_succeed && !retval)
-    return true;
-#endif
-  if (!check_results (label, fn, retval, setting,
-                      expected_to_succeed))
+  return strlen(truncated) >= original->is_valid_trunc_param;
+}
+
+/* Special validity rule for sunmd5, sha256crypt, and sha512crypt: ... */
+static bool
+vt_roundseq(const char *truncated, size_t minlen, size_t roundslen,
+            const char *roundstag1, const char *roundstag2)
+{
+  /* ... the setting cannot be valid if it's shorter than 'minlen'
+     characters ... */
+  if (strlen(truncated) < minlen)
     return false;
+
+  /* ... if it begins with roundstag1 or roundstag2 then a sequence of
+     digits must follow, then a dollar sign; roundstag2 may be null;
+     ... */
+  if (!strncmp(truncated, roundstag1, roundslen)
+      || (roundstag2 && !strncmp(truncated, roundstag2, roundslen)))
+    {
+      size_t i = roundslen;
+      while (truncated[i] >= '0' && truncated[i] <= '9')
+        i++;
+      if (truncated[i] != '$')
+        return false;
+    }
+
+  /* ... otherwise it's ok.  */
   return true;
 }
 
+/* Special validity rule for sunmd5.  */
 static bool
-check_crypt_rn (const char *label, const char *fn,
-                const char *retval, const char *output,
-                const char *setting, bool expected_to_succeed)
+vt_sunmd5(const struct valid_setting *ARG_UNUSED(original),
+          const char *truncated)
 {
-  bool ok = true;
-  if (expected_to_succeed)
-    {
-      if (!retval)
-        {
-          printf ("FAIL: %s/%s/%s: returned NULL\n", label, setting, fn);
-          ok = false;
-        }
-      else if (retval != output)
-        {
-          printf ("FAIL: %s/%s/%s: returned %p but output is %p\n",
-                  label, setting, fn,
-                  (const void *)retval, (const void *)output);
-          ok = false;
-        }
-    }
+  return vt_roundseq(truncated, strlen("$md5$"), strlen("$md5,rounds="),
+                     "$md5,rounds=", 0);
+}
+
+/* Special validity rule for sha256crypt and sha512crypt.  */
+static bool
+vt_sha2gnu(const struct valid_setting *ARG_UNUSED(original),
+           const char *truncated)
+{
+  return vt_roundseq(truncated, strlen("$5$"), strlen("$5$rounds="),
+                     "$5$rounds=", "$6$rounds=");
+}
+
+/* Special validity rule for yescrypt and gost_yescrypt: ... */
+static bool
+vt_yescrypt(const struct valid_setting *ARG_UNUSED(original),
+            const char *truncated)
+{
+  /* ... the setting string must begin with "$y$j9T$" or "$gy$j9T$"
+     (other introductory sequences are possible but those are the
+     only ones we use); ... */
+  size_t y_intro_len = strlen("$y$j9T$");
+  size_t gy_intro_len = strlen("$gy$j9T$");
+  size_t intro_len;
+  if (!strncmp(truncated, "$y$j9T$", y_intro_len))
+    intro_len = y_intro_len;
+  else if (!strncmp(truncated, "$gy$j9T$", gy_intro_len))
+    intro_len = gy_intro_len;
   else
+    return false;
+
+  /* ... and the remainder must be one of these lengths.  (I do not
+     see a pattern.)  */
+  switch (strlen(truncated) - intro_len)
     {
-      if (retval)
-        {
-          printf ("FAIL: %s/%s/%s: returned %p (output is %p), "
-                  "should be NULL\n",
-                  label, setting, fn,
-                  (const void *)retval, (const void *)output);
-          ok = false;
-        }
-    }
-  if (!check_results (label, fn, output, setting,
-                      expected_to_succeed))
-    ok = false;
-  return ok;
-}
-
-static bool
-test_one_setting (const char *label, const char *setting,
-                  struct crypt_data *cd, bool expected_to_succeed)
-{
-  bool ok = true;
-  const char *retval;
-  int cdsize = (int) sizeof (struct crypt_data);
-#ifdef VERBOSE
-  printf ("%s: testing %s (expect: %s)\n", label, setting,
-          expected_to_succeed ? "succeed" : "fail");
-#endif
-  retval = crypt (phrase, setting);
-  if (!check_crypt (label, "crypt", retval, setting, expected_to_succeed))
-    ok = false;
-
-  retval = crypt_r (phrase, setting, cd);
-  if (!check_crypt (label, "crypt_r", retval, setting, expected_to_succeed))
-    ok = false;
-
-  retval = crypt_rn (phrase, setting, cd, cdsize);
-  if (!check_crypt_rn (label, "crypt_rn", retval, cd->output,
-                       setting, expected_to_succeed))
-    ok = false;
-
-  retval = crypt_ra (phrase, setting, (void **)&cd, &cdsize);
-  if (!check_crypt_rn (label, "crypt_ra", retval, cd->output,
-                       setting, expected_to_succeed))
-    ok = false;
-  return ok;
-}
-
-static bool
-test_one_case (const struct testcase *t,
-               char *page, size_t pagesize,
-               struct crypt_data *cd)
-{
-  memset (page, 'a', pagesize);
-
-  size_t l_setting = strlen (t->setting);
-  assert (l_setting <= pagesize);
-  if (t->label[0] == '*')
-    {
-      /* Hashing with this setting is expected to fail already.
-         We still want to verify that we do not read past the end of
-         the string.  */
-      char *p = page + pagesize - (l_setting + 1);
-      memcpy (p, t->setting, l_setting + 1);
-      if (!test_one_setting (t->label + 1, p, cd, false))
-        return false;
-      printf ("PASS: %s\n", t->label + 1);
+    case  0:
+    case  4:
+    case  7:
+    case  8:
+    case 12:
+    case 16:
+    case 20:
+    case 22:
+    case 23:
       return true;
+    default:
+      return false;
+    }
+}
+
+
+/* Some of the test setting strings contain unprintable characters,
+   which we print as hex escapes.  For readability, whenever we print
+   out a setting string we pad it on the right with spaces to the
+   length of the longest setting string we have.  (There is always
+   something after that on the line.)  */
+static size_t longest_setting;
+
+static void
+print_setting (const char *setting, bool pad)
+{
+  size_t n = 0;
+  for (; *setting; setting++)
+    {
+      unsigned int c = (unsigned int)(unsigned char) *setting;
+      if (0x20 <= c && c <= 0x7e)
+        {
+          putchar ((int)c);
+          n += 1;
+        }
+      else
+        {
+          printf ("\\x%02x", c);
+          n += 4;
+        }
+    }
+  if (!pad)
+    return;
+  while (n < longest_setting)
+    {
+      putchar (' ');
+      n += 1;
+    }
+}
+
+static size_t
+measure_setting (const char *setting)
+{
+  size_t n = 0;
+  for (; *setting; setting++)
+    {
+      unsigned int c = (unsigned int)(unsigned char) *setting;
+      if (0x20 <= c && c <= 0x7e)
+        n += 1;
+      else
+        n += 4;
+    }
+  return n;
+}
+
+static void
+measure_settings (void)
+{
+  size_t ls = 0;
+  for (size_t i = 0; i < ARRAY_SIZE (valid_cases); i++)
+    ls = MAX (ls, measure_setting(valid_cases[i].setting));
+
+  for (size_t i = 0; i < ARRAY_SIZE (invalid_cases); i++)
+    ls = MAX (ls, measure_setting(invalid_cases[i].setting));
+
+  longest_setting = ls;
+}
+
+static void
+print_result (const char *result, const char *setting,
+              const char *tag, bool expected_valid)
+{
+  printf ("%s: ", result);
+  print_setting (setting, true);
+  printf (" (%s, %s)", tag, expected_valid ? "valid" : "invalid");
+}
+
+/* Part of what we're testing, is whether any of the hashing methods
+   can read past the end of a properly terminated C string that
+   happens to contain an invalid setting.  We do this by placing the
+   invalid setting right next to a page of inaccessible memory and
+   trapping the fault.  */
+static volatile sig_atomic_t signal_loop = 0;
+static sigjmp_buf env;
+static void
+segv_handler (int sig)
+{
+  if (signal_loop == 0)
+    {
+      signal_loop = 1;
+      siglongjmp (env, sig);
     }
   else
     {
-      /* Hashing with this setting is expected to succeed.  */
-      char goodhash[CRYPT_OUTPUT_SIZE];
-      char *result = crypt_rn (phrase, t->setting, cd,
-                               sizeof (struct crypt_data));
-      if (!result)
+      signal (sig, SIG_DFL);
+      raise (sig);
+    }
+}
+
+/* We use only crypt_rn in this test, because it only exercises the
+   error handling logic within the hashing methods, not the
+   higher-level error handling logic that varies slightly among the
+   entry points (that's all taken care of in crypt-badargs.c).  We use
+   crypt_rn instead of crypt_r so that this test does not need to vary
+   any of its logic based on --enable-failure-tokens.  */
+static bool
+test_one_setting (const char *setting, size_t l_setting,
+                  const char *tag, bool expected_valid,
+                  struct crypt_data *cd)
+{
+  volatile bool fail = false;
+  signal_loop = 0;
+  int sig = sigsetjmp (env, 1);
+  if (!sig)
+    {
+      char *retval = crypt_rn (phrase, setting, cd, (int) sizeof *cd);
+      if (expected_valid)
         {
-          printf ("FAIL: %s: initial hash returned NULL/%s (%s)\n",
-                  t->label, cd->output, strerror (errno));
-          return false;
+          if (!retval)
+            {
+              fail = true;
+              print_result ("FAIL", setting, tag, expected_valid);
+              puts(": returned NULL");
+            }
+          else if (retval != cd->output)
+            {
+              fail = true;
+              print_result ("FAIL", setting, tag, expected_valid);
+              printf(": returned %p, should be %p\n",
+                     (const void *)retval, (const void *)cd->output);
+            }
+          else if (strncmp (retval, setting, l_setting))
+            {
+              fail = true;
+              print_result("FAIL", setting, tag, expected_valid);
+              fputs(": got non-matching ", stdout);
+              print_setting(retval, false);
+              putchar('\n');
+            }
         }
+      else
+        {
+          if (retval)
+            {
+              fail = true;
+              print_result ("FAIL", setting, tag, expected_valid);
+              fputs(": expected NULL, got ", stdout);
+              print_setting (retval, false);
+              putchar('\n');
+            }
+        }
+    }
+  else
+    {
+      fail = true;
+      print_result("FAIL", setting, tag, expected_valid);
+      printf(": %s\n", strsignal (sig));
+    }
 
-      size_t l_hash = strlen (result);
-      assert (l_hash + 1 <= CRYPT_OUTPUT_SIZE);
+  if (verbose && !fail)
+    {
+      print_result("PASS", setting, tag, expected_valid);
+      putchar('\n');
+    }
 
-      memcpy (goodhash, result, l_hash + 1);
+  return fail;
+}
 
+static bool
+test_one_valid(const struct valid_setting *tc,
+               char *page, size_t pagesize, struct crypt_data *cd)
+{
+  /* Caution: tc->setting_len is _not_ always equal to strlen(tc->setting).
+     Sometimes it is smaller.  */
+  size_t l_setting = strlen(tc->setting) + 1;
+  char *setting = page + pagesize - l_setting;
+  memcpy(setting, tc->setting, l_setting);
+
+  /* crypt_rn() using this setting, unmodified, is expected to
+     succeed, unless the hash function is disabled.  */
+  if (test_one_setting (setting, tc->setting_len, tc->tag, tc->enabled, cd))
+    return true;
+
+  /* Rechecking the hash with the full output should also succeed.
+     In this subtest we expect to get the same _complete hash_
+     back out, not just the same setting.  */
+  if (tc->enabled)
+    {
+      size_t l_hash = strlen (cd->output);
       char *p = page + pagesize - (l_hash + 1);
-      memcpy (p, goodhash, l_hash + 1);
+      assert (l_hash + 1 <= CRYPT_OUTPUT_SIZE);
+      memcpy (p, cd->output, l_hash + 1);
 
-      /* Rechecking the hash with the full output should succeed.  */
-      if (!test_one_setting (t->label, p, cd, true))
-        return false;
+      if (test_one_setting (p, l_hash, tc->tag, true, cd))
+        return true;
 
-      /* Recomputing the hash with its own prefix should produce a
-         hash with the same prefix.  */
-      p = page + pagesize - (t->plen + 1);
-      memcpy (p, goodhash, t->plen);
-      p[t->plen] = '\0';
-      if (!test_one_setting (t->label, p, cd, true))
-        return false;
+      /* When crypt() is called with a complete hashed passphrase as the
+         setting string, the hashing method must not look at the hash
+         component of the setting _at all_.  We test this by supplying a
+         string with one extra character, an A, which _could_ be part of
+         the hash component for all supported methods, but which is much
+         too short by itself.  This should produce the same complete hash
+         as the previous test.  (It has to be a character which _could_
+         appear, because the generic crypt() machinery rejects setting
+         strings containing invalid characters in any position.)
 
-      /* An invalid character after the prefix should not affect the
-         result of the hash computation.  */
-      p = page + pagesize - (t->plen + 2);
-      memcpy (p, goodhash, t->plen);
-
-      /* The asterisk is a valid salt character for some hashes,
-         but the colon is never a valid salt character.  */
-      p[t->plen] = ':';
-      p[t->plen+1] = '\0';
-      if (!test_one_setting (t->label, p, cd, true))
-        return false;
-
-      /* However, an invalid character anywhere within the prefix should
-         cause hashing to fail.  */
-      size_t plen = t->plen;
-
-      /* des_big only values the first two characters of the setting,
-         but needs strlen(setting) >= 14.  */
-      const char *des_big_label = "DES (bigcrypt)";
-      if (!strcmp (t->label, des_big_label))
+         Super special case: Don't do this subtest for sunmd5,
+         because, due to a bug in its original implementation, the
+         first character after the end of the salt _does_ affect the
+         hash output.  We have to preserve this bug for compatibility
+         with existing sunmd5 hashed passphrases.  */
+      if (!INCLUDE_sunmd5 || strncmp(tc->setting, "$md5", 4))
         {
-          plen = 2;
+          p = page + pagesize - (l_hash + 1 + l_setting + 1);
+          memcpy (p, cd->output, l_hash + 1);
+
+          char *settingA = page + pagesize - (l_setting + 1);
+          memcpy(settingA, tc->setting, l_setting - 1);
+          settingA[l_setting - 1] = 'A';
+          settingA[l_setting - 0] = '\0';
+          if (test_one_setting (settingA, tc->setting_len, tc->tag, true, cd))
+            return true;
+          if (strcmp (cd->output, p))
+            {
+              print_result ("FAIL", settingA, tc->tag, true);
+              /* Since cd->output and p are both hashed passphrases, not
+                 handcrafted invalid setting strings, we can safely print
+                 them with %s.  */
+              printf (": expected %s, got %s\n", p, cd->output);
+              return true;
+            }
+          else if (verbose)
+            {
+              print_result ("PASS", settingA, tc->tag, true);
+              printf (": got %s, as expected\n", cd->output);
+            }
         }
-      for (size_t i = 1; i < plen; i++)
-        {
-          p = page + pagesize - (plen + 2 - i);
-          memcpy (p, goodhash, plen - i);
-          if (!test_one_setting (t->label, p, cd, false))
-            return false;
-        }
-      printf ("PASS: %s\n", t->label);
-      return true;
+
+      /* Restore the original data at 'setting', as expected by code
+         below.  */
+      memcpy(setting, tc->setting, l_setting);
     }
+
+  /* The rest of the subtests in this function are logically independent.  */
+  bool failed = false;
+
+  /* Replacing any one character of this setting with a ':', leaving
+     the rest of the string intact, should cause crypt_rn to fail.  */
+  for (size_t i = 0; i < l_setting - 1; i++)
+    {
+      char saved = setting[i];
+      setting[i] = ':';
+      failed |= test_one_setting(setting, tc->setting_len, tc->tag, false, cd);
+      setting[i] = saved;
+    }
+
+  /* Chop off the last character of the setting string and test that.
+     Then, replace the new last character of the setting string with a
+     colon, and test that.  (This is different from the earlier test
+     where we replaced each character in turn with a colon but kept
+     the rest of the string intact, because the hashing method might
+     be calling strlen() on the setting string.)  Repeat these two
+     steps until we have just one character left, then stop.
+
+     For instance, if the original setting string is
+         $1$MJHnaAke$
+     then we test
+         $1$MJHnaAke
+         $1$MJHnaAk:
+         $1$MJHnaAk
+         $1$MJHnaA:
+         $1$MJHnaA
+         ...
+         $1
+         $:
+
+     ($1$MJHnaAke: would have been tested by the loop above.  All the
+     single-character strings that can be a prefix of a setting string
+     from valid_cases---"$", "_", "M"---are tested by invalid_cases,
+     is ":".)
+
+     Up till this point l_setting has been _one more than_
+     strlen(setting), but in this loop it is more convenient to have
+     it be equal to strlen(setting).  */
+  l_setting -= 1;
+
+  while (l_setting > 2)
+    {
+      memmove(setting + 1, setting, l_setting - 1);
+      setting += 1;
+      l_setting -= 1;
+      failed |= test_one_setting(setting, MIN (l_setting, tc->setting_len),
+                                 tc->tag,
+                                 tc->enabled
+                                 && tc->is_valid_trunc(tc, setting),
+                                 cd);
+      page[pagesize - 2] = ':';
+      failed |= test_one_setting(setting, l_setting, tc->tag, false, cd);
+    }
+
+  return failed;
+}
+
+static bool
+test_one_invalid(const struct invalid_setting *tc,
+                 char *page, size_t pagesize, struct crypt_data *cd)
+{
+  size_t l_setting = strlen(tc->setting) + 1;
+  char *setting = page + pagesize - l_setting;
+  memcpy(setting, tc->setting, l_setting);
+  return test_one_setting(setting, l_setting - 1, tc->tag, false, cd);
+}
+
+static bool
+do_tests(char *page, size_t pagesize)
+{
+  bool failed = false;
+
+  struct crypt_data cd;
+  memset (&cd, 0, sizeof cd);
+
+  for (size_t i = 0; i < ARRAY_SIZE (valid_cases); i++)
+    failed |= test_one_valid (&valid_cases[i], page, pagesize, &cd);
+
+  for (size_t i = 0; i < ARRAY_SIZE (invalid_cases); i++)
+    failed |= test_one_invalid (&invalid_cases[i], page, pagesize, &cd);
+
+  return failed;
 }
 
 int
-main (void)
+main (int argc, char **argv)
 {
+  if (argc <= 1)
+    ;
+  else if (argc == 2
+           && (!strcmp(argv[1], "-v")
+               || !strcmp(argv[1], "--verbose")))
+    verbose = true;
+  else
+    {
+      fprintf(stderr, "usage: %s [-v | --verbose]\n", argv[0]);
+      return 99;
+    }
+
+  if (setvbuf(stdout, 0, _IOLBF, 0) || setvbuf(stderr, 0, _IOLBF, 0))
+    {
+      perror ("setvbuf");
+      return 99;
+    }
+
   /* Set up a two-page region whose first page is read-write and
      whose second page is inaccessible.  */
   size_t pagesize = (size_t) sysconf (_SC_PAGESIZE);
+  if (pagesize < CRYPT_OUTPUT_SIZE)
+    {
+      printf ("ERROR: pagesize of %zu is too small\n", pagesize);
+      return 99;
+    }
+
   char *page = mmap (0, pagesize * 2, PROT_READ|PROT_WRITE,
                      MAP_PRIVATE|MAP_ANON, -1, 0);
   if (page == MAP_FAILED)
     {
       perror ("mmap");
-      return 1;
+      return 99;
     }
   memset (page, 'x', pagesize * 2);
   if (mprotect (page + pagesize, pagesize, PROT_NONE))
     {
       perror ("mprotect");
+      return 99;
+    }
+
+  struct sigaction sa, os, ob;
+  sigfillset (&sa.sa_mask);
+  sa.sa_flags = SA_RESTART;
+  sa.sa_handler = segv_handler;
+  if (sigaction (SIGBUS, &sa, &ob) || sigaction (SIGSEGV, &sa, &os))
+    {
+      perror ("sigaction");
       return 1;
     }
 
-  struct crypt_data cd;
-  memset (&cd, 0, sizeof cd);
+  measure_settings();
+  bool failed = do_tests (page, pagesize);
 
-  bool ok = true;
-  for (size_t i = 0; i < ARRAY_SIZE (testcases); i++)
-    if (!test_one_case (&testcases[i], page, pagesize, &cd))
-      ok = false;
+  sigaction (SIGBUS, &ob, 0);
+  sigaction (SIGSEGV, &os, 0);
 
-  return ok ? 0 : 1;
+  return failed;
 }
