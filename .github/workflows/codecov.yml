@@ -1,8 +1,8 @@
 name: Codecov
 
 on:
-  push:
   pull_request:
+  push:
 
 jobs:
   skip_duplicates:
@@ -12,9 +12,11 @@ jobs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
       - id: skip_check
-        uses: fkirc/skip-duplicate-actions@v3.4.0
+        # pin to unreleased SHA so we can use 'same_content_newer'
+        # see https://github.com/fkirc/skip-duplicate-actions/pull/112
+        uses: fkirc/skip-duplicate-actions@98d1dc89f43a47f8e4fba8e1c1fb8d6c5fc515ee
         with:
-          concurrent_skipping: 'same_content'
+          concurrent_skipping: 'same_content_newer'
           skip_after_successful_duplicate: 'true'
           paths_ignore: '["doc/**", "**/*.md", "AUTHORS", "NEWS", "THANKS"]'
           do_not_skip: '["workflow_dispatch", "schedule"]'
