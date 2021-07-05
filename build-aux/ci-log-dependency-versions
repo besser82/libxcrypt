@@ -1,0 +1,40 @@
+#! /bin/sh
+set -e
+
+# Log the identities and versions of the build tools.
+for tool in \
+    "${CC-cc}" \
+    "${NM-nm}" \
+    "${AUTOCONF-autoconf}" \
+    "${AUTOMAKE-automake}" \
+    "${LIBTOOLIZE-libtoolize}" \
+    "${PKG_CONFIG-pkg-config}" \
+    "${PERL-perl}" \
+    "${CPANM-cpanm}" \
+    "${PERLCRITIC-perlcritic}" \
+    "${PERLTIDY-perltidy}" \
+    "${PYTHON-python3}"
+do
+    # $tool might include mandatory command-line arguments.
+    # Interpret it the same way Make would.
+    set fnord $tool; shift # word-split $tool and load it into "$@"
+    if command -V "$1"; then
+        echo + "$@" --version
+        "$@" --version
+    fi
+    echo
+    case "$1" in
+        (*python*)
+            "$@" -c '
+try:
+  import passlib
+  import os.path
+  print("passlib is " + os.path.dirname(passlib.__file__))
+  print("passlib: version " + passlib.__version__)
+except ModuleNotFoundError:
+  print("passlib is not installed")
+'
+            ;;
+    esac
+done
+set fnord; shift  # clear $@

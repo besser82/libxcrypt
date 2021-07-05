@@ -57,8 +57,8 @@ jobs:
     - name: Install packages
       if: ${{ matrix.compiler == 'clang' }}
       run: sudo apt-get install clang llvm
-    - name: Compiler version
-      run: $CC --version
+    - name: Versions of build tools
+      run: ./build-aux/ci-log-dependency-versions
     - name: Bootstrap
       run: ./autogen.sh
     - name: Configure
