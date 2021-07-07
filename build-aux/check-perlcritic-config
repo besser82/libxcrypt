@@ -1,0 +1,76 @@
+#! /usr/bin/perl
+# Written by Zack Weinberg <zackw at panix.com> in 2021.
+# To the extent possible under law, Zack Weinberg has waived all
+# copyright and related or neighboring rights to this work.
+#
+# See https://creativecommons.org/publicdomain/zero/1.0/ for further
+# details.
+
+# Compare the set of available Perl::Critic policies with the set of
+# policies mentioned in .perlcriticrc.  Fail the build if there are
+# available policies that are not mentioned, or mentioned policies
+# that are not available.  This ensures that we always have the
+# expected set of policies available when running perlcritic, and
+# that we have thought about whether each one _should_ be enabled.
+# ("Mentioned" does not mean "enabled".  [-APolicy::WeDontWantToUse]
+# counts as mentioning the policy for purpose of this script.)
+
+# Ideally this would be a perlcritic policy itself, so it would get
+# run on any invocation of perlcritic, not just on 'make distcheck'.
+
+use v5.14;    # implicit use strict, use feature ':5.14'
+use warnings FATAL => 'all';
+use utf8;
+use open qw(:std :utf8);
+no  if $] >= 5.022, warnings => 'experimental::re_strict';
+use if $] >= 5.022, re       => 'strict';
+
+use Perl::Critic              ();
+use Perl::Critic::UserProfile ();
+
+sub all_policies {
+    return
+        map { ("$_" => 1) }
+        Perl::Critic->new(-profile => q(), -severity => 1)->policies();
+}
+
+sub mentioned_policies {
+    return
+        map { (s/^Perl::Critic::Policy:://r => 1) }
+        Perl::Critic::UserProfile->new()->listed_policies();
+}
+
+sub compare_mentioned_to_all {
+    my %all       = all_policies();
+    my %mentioned = mentioned_policies();
+
+    my @unmentioned;
+    for my $p (keys %all) {
+        push @unmentioned, $p unless exists $mentioned{$p};
+    }
+
+    my @uninstalled;
+    for my $p (keys %mentioned) {
+        push @uninstalled, $p unless exists $all{$p};
+    }
+
+    my $fail = 0;
+    if (@unmentioned) {
+        print {*STDERR}
+            "*** Unmentioned policies:\n\t",
+            join("\n\t", sort @unmentioned),
+            "\n\n";
+        $fail = 1;
+    }
+    if (@uninstalled) {
+        print {*STDERR}
+            "*** Uninstalled policies:\n\t",
+            join("\n\t", sort @uninstalled),
+            "\n\n";
+        $fail = 1;
+    }
+
+    return $fail;
+}
+
+exit compare_mentioned_to_all();

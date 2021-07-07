@@ -1,99 +1,550 @@
+# Perl::Critic configuration.  -*- conf -*-
+#
+# This .perlcriticrc expects precisely the following set of critic
+# policies and related distributions to be installed, **and no others**:
+#
+#          SHANCOCK/Perl-Tidy-20210402.tar.gz
+#          PETDANCE/Perl-Critic-1.140.tar.gz
+#          DBOOK/Perl-Critic-Community-v1.0.0.tar.gz
+#          KRYDE/Perl-Critic-Pulp-99.tar.gz
+#          GUGOD/Perl-Critic-TooMuchCode-0.15.tar.gz
+#
+# Make sure to keep this list in sync with the CI configuration.
+#
+# In order to ensure stable lint results, we explicitly enable or
+# disable every single policy from the policy packages we use, and we
+# have an ancillary script (build-aux/check-perlcritic-config) that
+# enforces that _all_ installed policies are mentioned and _all_
+# mentioned policies are installed.
 
-# Perl::Critic configuration.  -*- conf-mode -*-
-
-# we turn on all of the policies at theme level, and then
-# we turn off one-by-one the ones I don't like below.
+# Start from the empty set, but with severity maxed.
 severity = 1
-theme =
+only = 1
 
 # compilation-mode--compatible diagnostic formatting
 verbose = %f:%l:%c: warning: %m (%p; %e)\n
 
-### Tuning
+# Policies are listed strictly in alphabetical order.
+# Each disabled policy should be annotated with an explanation.
 
-[CodeLayout::RequireTidyCode]
-perltidyrc = .perltidyrc
-
-[InputOutput::RequireCheckedSyscalls]
-# check everything except print
-functions = :builtins
-exclude_functions = print
-
-[Subroutines::RequireFinalReturn]
-terminal_funcs = fail skip error invocation_error subprocess_error
-
-[TestingAndDebugging::ProhibitNoWarnings]
-allow = experimental::smartmatch experimental::re_strict
-
-### Disabled policies
-
-# Version strings were only problematic in versions of Perl older than
-# our minimum.
-[-ValuesAndExpressions::ProhibitVersionStrings]
-
+[-BuiltinFunctions::ProhibitBooleanGrep]
 # The rationale for prohibiting boolean 'grep' is sensible
 # (it doesn't short-circuit, which could be a huge waste of time)
 # but the recommended alternative is 'any' from List::MoreUtils,
 # which would be the only CPAN dependency we had.
-[-BuiltinFunctions::ProhibitBooleanGrep]
 
-# The "complex" subroutines and regexes are not that bad and splitting
-# them up would only obscure the logic.
-[-Subroutines::ProhibitExcessComplexity]
-[-RegularExpressions::ProhibitComplexRegexes]
+[BuiltinFunctions::ProhibitComplexMappings]
 
-# I can't find any explanation of what qualifies as "brief" and the
-# diagnostic triggers on perfectly sensible code.
-[-InputOutput::RequireBriefOpen]
+[BuiltinFunctions::ProhibitLvalueSubstr]
 
-# I'd *like* to disable this *only* for $_, where the whole point is
-# that it gets written to (and read from) implicitly, but that's not
-# possible.
-[-Variables::RequireInitializationForLocalVars]
+[BuiltinFunctions::ProhibitReverseSortBlock]
 
-# These rules only make sense for large libraries with lots
-# of consumers.
-[-ErrorHandling::RequireCarping]
-[-Modules::RequireVersionVar]
+[BuiltinFunctions::ProhibitShiftRef]
 
-# We intentionally 'use utf8' in every file, regardless of whether it
-# currently has non-ASCII characters in it.
-[-TooMuchCode::ProhibitUnnecessaryUTF8Pragma]
+[BuiltinFunctions::ProhibitSleepViaSelect]
 
-# Doesn't understand the unusual, but unavoidable, uses of -f in this code
-# (to identify executables without actually running them).
-[-ValuesAndExpressions::ProhibitFiletest_f]
+[BuiltinFunctions::ProhibitStringyEval]
 
+[BuiltinFunctions::ProhibitStringySplit]
+
+[BuiltinFunctions::ProhibitUniversalCan]
+
+[BuiltinFunctions::ProhibitUniversalIsa]
+
+[BuiltinFunctions::ProhibitUselessTopic]
+
+[BuiltinFunctions::ProhibitVoidGrep]
+
+[BuiltinFunctions::ProhibitVoidMap]
+
+[BuiltinFunctions::RequireBlockGrep]
+
+[BuiltinFunctions::RequireBlockMap]
+
+[BuiltinFunctions::RequireGlobFunction]
+
+[BuiltinFunctions::RequireSimpleSortBlock]
+
+[ClassHierarchies::ProhibitAutoloading]
+
+[ClassHierarchies::ProhibitExplicitISA]
+
+[ClassHierarchies::ProhibitOneArgBless]
+
+[CodeLayout::ProhibitFatCommaNewline]
+
+[CodeLayout::ProhibitHardTabs]
+
+[CodeLayout::ProhibitIfIfSameLine]
+
+[CodeLayout::ProhibitParensWithBuiltins]
+
+[CodeLayout::ProhibitQuotedWordLists]
+
+[CodeLayout::ProhibitTrailingWhitespace]
+
+[CodeLayout::RequireConsistentNewlines]
+
+[CodeLayout::RequireFinalSemicolon]
+
+[CodeLayout::RequireTidyCode]
+perltidyrc = .perltidyrc
+
+[CodeLayout::RequireTrailingCommaAtNewline]
+
+[CodeLayout::RequireTrailingCommas]
+
+[-Community::AmpersandSubCalls]
+# Duplicates core or pulp policy.
+
+[-Community::ArrayAssignAref]
+# Duplicates core or pulp policy.
+
+[-Community::BarewordFilehandles]
+# Duplicates core or pulp policy.
+
+[-Community::ConditionalDeclarations]
+# Duplicates core or pulp policy.
+
+[Community::ConditionalImplicitReturn]
+
+[Community::DeprecatedFeatures]
+
+[-Community::DiscouragedModules]
 # FindBin works fine for our purposes, and we can't use CPAN modules.
-# There is no option to ignore use of just one module.
-[-Freenode::DiscouragedModules]
+# There is no option to ignore use of just one module
+# (https://github.com/Grinnz/Perl-Critic-Community/issues/42)
 
-# Style rules I don't agree with.
+[Community::DollarAB]
+
+[-Community::Each]
+# I don't agree with this style rule.
+
+[Community::EmptyReturn]
+
+[-Community::IndirectObjectNotation]
+# Duplicates core or pulp policy.
+
+[-Community::LexicalForeachIterator]
+# Duplicates core or pulp policy.
+
+[-Community::LoopOnHash]
+# Duplicates core or pulp policy.
+
+[Community::ModPerl]
+
+[Community::MultidimensionalArrayEmulation]
+
+[-Community::OpenArgs]
+# Duplicates core or pulp policy.
+
+[Community::OverloadOptions]
+
+[-Community::POSIXImports]
+# Duplicates core or pulp policy.
+
+[-Community::PackageMatchesFilename]
+# Duplicates core or pulp policy.
+
+[Community::PreferredAlternatives]
+
+[-Community::Prototypes]
+# Duplicates core or pulp policy.
+
+[-Community::StrictWarnings]
+# Duplicates core or pulp policy.
+
+[Community::Threads]
+
+[-Community::Wantarray]
+# I don't agree with this style rule.
+
+[Community::WarningsSwitch]
+
+[-Community::WhileDiamondDefaultAssignment]
+# I don't agree with this style rule.
+
+[Compatibility::ConstantLeadingUnderscore]
+
+[Compatibility::ConstantPragmaHash]
+
+[Compatibility::Gtk2Constants]
+
+[Compatibility::PodMinimumVersion]
+
+[Compatibility::ProhibitUnixDevNull]
+
+[ControlStructures::ProhibitCStyleForLoops]
+
+[ControlStructures::ProhibitCascadingIfElse]
+
+[ControlStructures::ProhibitDeepNests]
+
+[ControlStructures::ProhibitLabelsWithSpecialBlockNames]
+
+[ControlStructures::ProhibitMutatingListFunctions]
+
+[ControlStructures::ProhibitNegativeExpressionsInUnlessAndUntilConditions]
+
 [-ControlStructures::ProhibitPostfixControls]
-[-Freenode::Each]
-[-Freenode::Wantarray]
-[-Freenode::WhileDiamondDefaultAssignment]
-[-NamingConventions::Capitalization]
-[-RegularExpressions::ProhibitEnumeratedClasses]
-[-RegularExpressions::ProhibitEscapedMetacharacters]
-[-RegularExpressions::RequireDotMatchAnything]
-[-RegularExpressions::RequireExtendedFormatting]
-[-RegularExpressions::RequireLineBoundaryMatching]
-[-TooMuchCode::ProhibitDuplicateLiteral]
-[-ValuesAndExpressions::ProhibitMagicNumbers]
-[-ValuesAndExpressions::ProhibitNoisyQuotes]
-[-Variables::ProhibitPunctuationVars]
+# I don't agree with this style rule.
 
-# Freenode:: modules that duplicate core and pulp perlcritic modules.
+[ControlStructures::ProhibitUnlessBlocks]
+
+[ControlStructures::ProhibitUnreachableCode]
+
+[ControlStructures::ProhibitUntilBlocks]
+
+[ControlStructures::ProhibitYadaOperator]
+
+[Documentation::PodSpelling]
+
+[Documentation::ProhibitAdjacentLinks]
+
+[Documentation::ProhibitBadAproposMarkup]
+
+[Documentation::ProhibitDuplicateHeadings]
+
+[Documentation::ProhibitDuplicateSeeAlso]
+
+[Documentation::ProhibitLinkToSelf]
+
+[Documentation::ProhibitParagraphEndComma]
+
+[Documentation::ProhibitParagraphTwoDots]
+
+[Documentation::ProhibitUnbalancedParens]
+
+[Documentation::ProhibitVerbatimMarkup]
+
+[Documentation::RequireEndBeforeLastPod]
+
+[Documentation::RequireFilenameMarkup]
+
+[Documentation::RequireFinalCut]
+
+[Documentation::RequireLinkedURLs]
+
+[Documentation::RequirePackageMatchesPodName]
+
+[Documentation::RequirePodAtEnd]
+
+[Documentation::RequirePodSections]
+
+[-ErrorHandling::RequireCarping]
+# This only makes sense for large libraries with lots of consumers.
+
+[ErrorHandling::RequireCheckingReturnValueOfEval]
+
+# All Freenode:: backward compatibility aliases are disabled.
+# See https://github.com/Grinnz/Perl-Critic-Community/issues/41
 [-Freenode::AmpersandSubCalls]
 [-Freenode::ArrayAssignAref]
 [-Freenode::BarewordFilehandles]
 [-Freenode::ConditionalDeclarations]
+[-Freenode::ConditionalImplicitReturn]
+[-Freenode::DeprecatedFeatures]
+[-Freenode::DiscouragedModules]
+[-Freenode::DollarAB]
+[-Freenode::Each]
+[-Freenode::EmptyReturn]
 [-Freenode::IndirectObjectNotation]
 [-Freenode::LexicalForeachIterator]
 [-Freenode::LoopOnHash]
+[-Freenode::ModPerl]
+[-Freenode::MultidimensionalArrayEmulation]
 [-Freenode::OpenArgs]
-[-Freenode::PackageMatchesFilename]
+[-Freenode::OverloadOptions]
 [-Freenode::POSIXImports]
+[-Freenode::PackageMatchesFilename]
+[-Freenode::PreferredAlternatives]
 [-Freenode::Prototypes]
 [-Freenode::StrictWarnings]
+[-Freenode::Threads]
+[-Freenode::Wantarray]
+[-Freenode::WarningsSwitch]
+[-Freenode::WhileDiamondDefaultAssignment]
+
+[InputOutput::ProhibitBacktickOperators]
+
+[InputOutput::ProhibitBarewordFileHandles]
+
+[InputOutput::ProhibitExplicitStdin]
+
+[InputOutput::ProhibitInteractiveTest]
+
+[InputOutput::ProhibitJoinedReadline]
+
+[InputOutput::ProhibitOneArgSelect]
+
+[InputOutput::ProhibitReadlineInForLoop]
+
+[InputOutput::ProhibitTwoArgOpen]
+
+[InputOutput::RequireBracedFileHandleWithPrint]
+
+[-InputOutput::RequireBriefOpen]
+# I can't find any explanation of what qualifies as "brief" and the
+# diagnostic triggers on perfectly sensible code.
+
+[InputOutput::RequireCheckedClose]
+
+[InputOutput::RequireCheckedOpen]
+
+[InputOutput::RequireCheckedSyscalls]
+functions = :builtins
+exclude_functions = print
+
+[InputOutput::RequireEncodingWithUTF8Layer]
+
+[Miscellanea::ProhibitFormats]
+
+[Miscellanea::ProhibitTies]
+
+[Miscellanea::ProhibitUnrestrictedNoCritic]
+
+[Miscellanea::ProhibitUselessNoCritic]
+
+[Miscellanea::TextDomainPlaceholders]
+
+[Miscellanea::TextDomainUnused]
+
+[Modules::ProhibitAutomaticExportation]
+
+[Modules::ProhibitConditionalUseStatements]
+
+[Modules::ProhibitEvilModules]
+
+[Modules::ProhibitExcessMainComplexity]
+
+[Modules::ProhibitModuleShebang]
+
+[Modules::ProhibitMultiplePackages]
+
+[Modules::ProhibitPOSIXimport]
+
+[Modules::ProhibitUseQuotedVersion]
+
+[Modules::RequireBarewordIncludes]
+
+[Modules::RequireEndWithOne]
+
+[Modules::RequireExplicitPackage]
+
+[Modules::RequireFilenameMatchesPackage]
+
+[Modules::RequireNoMatchVarsWithUseEnglish]
+
+[-Modules::RequireVersionVar]
+# This only makes sense for large libraries with lots of consumers.
+
+[-NamingConventions::Capitalization]
+# I don't agree with this style rule.
+
+[NamingConventions::ProhibitAmbiguousNames]
+
+[Objects::ProhibitIndirectSyntax]
+
+[References::ProhibitDoubleSigils]
+
+[RegularExpressions::ProhibitCaptureWithoutTest]
+
+[-RegularExpressions::ProhibitComplexRegexes]
+# The "complex" regexes are not that bad and splitting them up
+# would only obscure the logic.
+
+[-RegularExpressions::ProhibitEnumeratedClasses]
+# I don't agree with this style rule.
+
+[-RegularExpressions::ProhibitEscapedMetacharacters]
+# I don't agree with this style rule.
+
+[RegularExpressions::ProhibitFixedStringMatches]
+
+[RegularExpressions::ProhibitSingleCharAlternation]
+
+[RegularExpressions::ProhibitUnusedCapture]
+
+[RegularExpressions::ProhibitUnusualDelimiters]
+
+[RegularExpressions::ProhibitUselessTopic]
+
+[RegularExpressions::RequireBracesForMultiline]
+
+[-RegularExpressions::RequireDotMatchAnything]
+# I don't agree with this style rule.
+
+[-RegularExpressions::RequireExtendedFormatting]
+# I don't agree with this style rule.
+
+[-RegularExpressions::RequireLineBoundaryMatching]
+# I don't agree with this style rule.
+
+[Subroutines::ProhibitAmpersandSigils]
+
+[Subroutines::ProhibitBuiltinHomonyms]
+
+[-Subroutines::ProhibitExcessComplexity]
+# The "complex" subroutines are not that bad and splitting them up
+# would only obscure the logic.
+
+[Subroutines::ProhibitExplicitReturnUndef]
+
+[Subroutines::ProhibitManyArgs]
+
+[Subroutines::ProhibitNestedSubs]
+
+[Subroutines::ProhibitReturnSort]
+
+[Subroutines::ProhibitSubroutinePrototypes]
+
+[Subroutines::ProhibitUnusedPrivateSubroutines]
+
+[Subroutines::ProtectPrivateSubs]
+
+[Subroutines::RequireArgUnpacking]
+
+[Subroutines::RequireFinalReturn]
+terminal_funcs = fail skip error invocation_error subprocess_error
+
+[TestingAndDebugging::ProhibitNoStrict]
+
+[TestingAndDebugging::ProhibitNoWarnings]
+allow = experimental::smartmatch experimental::re_strict
+
+[TestingAndDebugging::ProhibitProlongedStrictureOverride]
+
+[TestingAndDebugging::RequireTestLabels]
+
+[TestingAndDebugging::RequireUseStrict]
+
+[TestingAndDebugging::RequireUseWarnings]
+
+[-TooMuchCode::ProhibitDuplicateLiteral]
+# I don't agree with this style rule.
+
+[TooMuchCode::ProhibitDuplicateSub]
+
+[TooMuchCode::ProhibitExcessiveColons]
+
+[TooMuchCode::ProhibitExtraStricture]
+
+[TooMuchCode::ProhibitLargeBlock]
+
+[TooMuchCode::ProhibitLargeTryBlock]
+
+[TooMuchCode::ProhibitUnnecessaryScalarKeyword]
+
+[-TooMuchCode::ProhibitUnnecessaryUTF8Pragma]
+# We intentionally 'use utf8' in every file, regardless of whether it
+# currently has non-ASCII characters in it.
+
+[TooMuchCode::ProhibitUnusedConstant]
+
+[TooMuchCode::ProhibitUnusedImport]
+
+[TooMuchCode::ProhibitUnusedInclude]
+
+[ValuesAndExpressions::ConstantBeforeLt]
+
+[ValuesAndExpressions::NotWithCompare]
+
+[ValuesAndExpressions::ProhibitArrayAssignAref]
+
+[ValuesAndExpressions::ProhibitBarewordDoubleColon]
+
+[ValuesAndExpressions::ProhibitCommaSeparatedStatements]
+
+[ValuesAndExpressions::ProhibitComplexVersion]
+
+[ValuesAndExpressions::ProhibitConstantPragma]
+
+[ValuesAndExpressions::ProhibitDuplicateHashKeys]
+
+[ValuesAndExpressions::ProhibitEmptyCommas]
+
+[ValuesAndExpressions::ProhibitEmptyQuotes]
+
+[ValuesAndExpressions::ProhibitEscapedCharacters]
+
+[-ValuesAndExpressions::ProhibitFiletest_f]
+# Doesn't understand the unusual, but unavoidable, uses of -f in this code
+# (to identify executables without actually running them).
+
+[ValuesAndExpressions::ProhibitImplicitNewlines]
+
+[ValuesAndExpressions::ProhibitInterpolationOfLiterals]
+
+[ValuesAndExpressions::ProhibitLeadingZeros]
+
+[ValuesAndExpressions::ProhibitLongChainsOfMethodCalls]
+
+[-ValuesAndExpressions::ProhibitMagicNumbers]
+# I don't agree with this style rule.
+
+[ValuesAndExpressions::ProhibitMismatchedOperators]
+
+[ValuesAndExpressions::ProhibitMixedBooleanOperators]
+
+[-ValuesAndExpressions::ProhibitNoisyQuotes]
+# I don't agree with this style rule.
+
+[ValuesAndExpressions::ProhibitNullStatements]
+
+[ValuesAndExpressions::ProhibitQuotesAsQuotelikeOperatorDelimiters]
+
+[ValuesAndExpressions::ProhibitSpecialLiteralHeredocTerminator]
+
+[ValuesAndExpressions::ProhibitUnknownBackslash]
+
+[-ValuesAndExpressions::ProhibitVersionStrings]
+# Version strings were only problematic in versions of Perl older than
+# our minimum.
+
+[ValuesAndExpressions::RequireConstantVersion]
+
+[ValuesAndExpressions::RequireInterpolationOfMetachars]
+
+[ValuesAndExpressions::RequireNumberSeparators]
+
+[ValuesAndExpressions::RequireNumericVersion]
+
+[ValuesAndExpressions::RequireQuotedHeredocTerminator]
+
+[ValuesAndExpressions::RequireUpperCaseHeredocTerminator]
+
+[ValuesAndExpressions::UnexpandedSpecialLiteral]
+
+[Variables::ProhibitAugmentedAssignmentInDeclaration]
+
+[Variables::ProhibitConditionalDeclarations]
+
+[Variables::ProhibitLocalVars]
+
+[Variables::ProhibitLoopOnHash]
+
+[Variables::ProhibitMatchVars]
+
+[Variables::ProhibitPackageVars]
+
+[Variables::ProhibitPerl4PackageNames]
+
+[-Variables::ProhibitPunctuationVars]
+# I don't agree with this style rule.
+
+[Variables::ProhibitReusedNames]
+
+[Variables::ProhibitUnusedVariables]
+
+[Variables::ProtectPrivateVars]
+
+[-Variables::RequireInitializationForLocalVars]
+# I'd *like* to disable this *only* for $_, where the whole point is
+# that it gets written to (and read from) implicitly, but that's not
+# possible.
+
+[Variables::RequireLexicalLoopIterators]
+
+[Variables::RequireLocalizedPunctuationVars]
+
+[Variables::RequireNegativeIndices]
