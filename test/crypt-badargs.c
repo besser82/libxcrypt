@@ -87,6 +87,7 @@ segv_handler (int sig)
 
 static bool error_occurred;
 
+#ifndef XCRYPT_USE_ASAN /* see comments in do_tests */
 static void
 expect_no_fault (const char *tag,
                  const char *phrase, const char *setting, const char *expect,
@@ -102,6 +103,7 @@ expect_no_fault (const char *tag,
       error_occurred = 1;
     }
 }
+#endif
 
 static void
 expect_a_fault (const char *tag,
@@ -208,6 +210,18 @@ do_tests(char *page, size_t pagesize)
   const char *p2 = page + pagesize;
   size_t i;
 
+  /* Our crypt*() functions return NULL / a failure token, with errno set
+     to EINVAL, when either the setting or the phrase argument is NULL.
+     ASan's interceptors for crypt*() instead crash the program when either
+     argument is NULL -- this is arguably a better choice, but for
+     compatibility's sake we can't change what our functions do.  There is
+     no way to disable interception of specific functions as far as I can
+     tell.  Therefore, these tests are skipped when compiled with ASan.
+     Note that there is no built-in macro to detect when ASan is in use;
+     with clang one can use __has_feature(address_sanitizer) but gcc does
+     not support that.  Therefore one must define this macro by hand -- see
+     build-aux/configure-wrapper for example.  */
+#ifndef XCRYPT_USE_ASAN
   /* When SETTING is null, it shouldn't matter what PHRASE is.  */
   expect_no_fault ("0.0.crypt",    0,  0, FT0, test_crypt);
   expect_no_fault ("0.0.crypt_r",  0,  0, FT0, test_crypt_r);
@@ -271,6 +285,7 @@ do_tests(char *page, size_t pagesize)
   expect_a_fault ("0.p2.crypt_r",  0, p2, FT0,  test_crypt_r);
   expect_a_fault ("0.p2.crypt_rn", 0, p2, 0,    test_crypt_rn);
   expect_a_fault ("0.p2.crypt_ra", 0, p2, 0,    test_crypt_ra);
+#endif /* no ASan */
 
   /* When SETTING is valid, passing an invalid string as PHRASE should
      crash reliably.  */

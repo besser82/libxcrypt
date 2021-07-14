@@ -35,6 +35,7 @@ EXTRA_DIST = \
 	lib/libcrypt.minver \
 	lib/xcrypt.h.in \
 	build-aux/BuildCommon.pm \
+	build-aux/check-perlcritic-config \
 	build-aux/compute-symver-floor \
 	build-aux/expand-selected-hashes \
 	build-aux/gen-crypt-h \
@@ -593,7 +594,9 @@ endif
 
 # Additional checks to run in `make distcheck'.
 distcheck-hook:
-	cd $(top_srcdir) && perlcritic ./
+	cd $(top_srcdir) && \
+	  $(PERL) ./build-aux/check-perlcritic-config && \
+	  perlcritic ./
 
 # Every object file depends on crypt-symbol-vers.h and crypt-hashes.h,
 # which are generated files, so automatic dependency generation is not

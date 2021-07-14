@@ -1,9 +1,31 @@
 #!/bin/bash
 
-export DEB_BUILD_MAINT_OPTIONS="hardening=+all"
-export CPPFLAGS="${CPPFLAGS} $(dpkg-buildflags --get CPPFLAGS)"
-export CFLAGS="${CFLAGS} $(dpkg-buildflags --get CFLAGS)"
-export CXXFLAGS="${CXXFLAGS} $(dpkg-buildflags --get CXXFLAGS)"
-export LDFLAGS="${LDFLAGS} $(dpkg-buildflags --get LDFLAGS)"
+DEB_BUILD_MAINT_OPTIONS="${DEB_BUILD_MAINT_OPTIONS:-hardening=+all}"
+export DEB_BUILD_MAINT_OPTIONS
+
+CPPFLAGS="${CPPFLAGS} $(dpkg-buildflags --get CPPFLAGS)"
+CFLAGS="${CFLAGS} $(dpkg-buildflags --get CFLAGS)"
+CXXFLAGS="${CXXFLAGS} $(dpkg-buildflags --get CXXFLAGS)"
+LDFLAGS="${LDFLAGS} $(dpkg-buildflags --get LDFLAGS)"
+
+# We need to know if we're being compiled with ASan in use.
+# See for instance test/crypt-badargs.c.
+# FIXME: This should probably happen in configure proper and should
+# probably not depend on parsing CFLAGS.
+for word in $CFLAGS; do
+    case "$word" in
+        (*sanitize=*address*)
+            CPPFLAGS="${CPPFLAGS} -DXCRYPT_USE_ASAN"
+            break
+            ;;
+        (*)
+            ;;
+    esac
+done
+
+export CPPFLAGS
+export CFLAGS
+export CXXFLAGS
+export LDFLAGS
 
 $PWD/configure "$@"

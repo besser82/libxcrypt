@@ -91,7 +91,7 @@ EOT
         my $q_prefix    = '"' . $e->prefix . '",';
         my $str_nrbytes = $e->nrbytes . ',';
         printf "  { %-*s %d, crypt_%-*s gensalt_%-*s %-*s %s}, \\\n",
-            $hconf->max_prefixlen + 3,  $q_prefix,    length($e->prefix),
+            $hconf->max_prefixlen + 3,  $q_prefix, length($e->prefix),
             $hconf->max_namelen + 4,    $name_rn,
             $hconf->max_namelen + 4,    $name_rn,
             $hconf->max_nrbyteslen + 1, $str_nrbytes, $e->is_strong;
