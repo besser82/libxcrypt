@@ -22,6 +22,7 @@ jobs:
     targets:
       - fedora-all-aarch64
       - fedora-all-i386
+      - fedora-all-ppc64le
       - fedora-all-x86_64
 
 - job: copr_build
@@ -32,6 +33,7 @@ jobs:
     targets:
       - fedora-all-aarch64
       - fedora-all-i386
+      - fedora-all-ppc64le
       - fedora-all-x86_64
 
 - job: propose_downstream
