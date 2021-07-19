@@ -34,7 +34,6 @@ import re
 import sys
 
 # force passlib to allow use of its built-in bcrypt implementation
-import os
 os.environ["PASSLIB_BUILTIN_BCRYPT"] = "enabled"
 
 import passlib.hash

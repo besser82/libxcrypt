@@ -276,26 +276,28 @@ do_tests(char *page, size_t pagesize)
      crash reliably.  */
   for (i = 0; i < ARRAY_SIZE (settings); i++)
     {
-      strcpy (page, "p1.'");
-      strcat (page, settings[i]);
-      strcat (page, "'.crypt");
+      snprintf (page, pagesize, "p1.'%s'.crypt", settings[i]);
       expect_a_fault (page, p1, settings[i], FT0,  test_crypt);
-      strcat (page, "_r");
+
+      snprintf (page, pagesize, "p1.'%s'.crypt_r", settings[i]);
       expect_a_fault (page, p1, settings[i], FT0,  test_crypt_r);
-      strcat (page, "n");
+
+      snprintf (page, pagesize, "p1.'%s'.crypt_rn", settings[i]);
       expect_a_fault (page, p1, settings[i], 0,    test_crypt_rn);
-      page [strlen (page) - 1] = 'a';
+
+      snprintf (page, pagesize, "p1.'%s'.crypt_ra", settings[i]);
       expect_a_fault (page, p1, settings[i], 0,    test_crypt_ra);
 
-      strcpy (page, "p2.'");
-      strcat (page, settings[i]);
-      strcat (page, "'.crypt");
+      snprintf (page, pagesize, "p2.'%s'.crypt", settings[i]);
       expect_a_fault (page, p2, settings[i], FT0,  test_crypt);
-      strcat (page, "_r");
+
+      snprintf (page, pagesize, "p2.'%s'.crypt_r", settings[i]);
       expect_a_fault (page, p2, settings[i], FT0,  test_crypt_r);
-      strcat (page, "n");
+
+      snprintf (page, pagesize, "p2.'%s'.crypt_rn", settings[i]);
       expect_a_fault (page, p2, settings[i], 0,    test_crypt_rn);
-      page [strlen (page) - 1] = 'a';
+
+      snprintf (page, pagesize, "p2.'%s'.crypt_ra", settings[i]);
       expect_a_fault (page, p2, settings[i], 0,    test_crypt_ra);
     }
 
@@ -311,15 +313,16 @@ do_tests(char *page, size_t pagesize)
       p1 = memcpy (page + pagesize - strlen (settings[i]),
                    settings[i], strlen (settings[i]));
 
-      strcpy (page, "ph.'");
-      strcat (page, settings[i]);
-      strcat (page, ".crypt");
+      snprintf (page, pagesize, "ph.'%s'.crypt", settings[i]);
       expect_a_fault (page, phrase, p1, FT0, test_crypt);
-      strcat (page, "_r");
+
+      snprintf (page, pagesize, "ph.'%s'.crypt_r", settings[i]);
       expect_a_fault (page, phrase, p1, FT0, test_crypt_r);
-      strcat (page, "n");
+
+      snprintf (page, pagesize, "ph.'%s'.crypt_rn", settings[i]);
       expect_a_fault (page, phrase, p1, 0,    test_crypt_rn);
-      page [strlen (page) - 1] = 'a';
+
+      snprintf (page, pagesize, "ph.'%s'.crypt_ra", settings[i]);
       expect_a_fault (page, phrase, p1, 0,    test_crypt_ra);
     }
 }
