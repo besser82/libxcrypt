@@ -79,6 +79,18 @@ AC_CACHE_CHECK([whether the preprocessor ($CPP) supports -dD],
 ])
 AC_SUBST([HAVE_CPP_dD], [$ac_cv_prog_cpp_dD])
 
+# Some of the tests need to be conditionally compiled depending on
+# whether ASan is active.
+AC_CACHE_CHECK([whether we are compiling with ASan],
+  [ac_cv_c_address_sanitizer],
+  [zw_ASAN_IFELSE(
+    [ac_cv_c_address_sanitizer=yes],
+    [ac_cv_c_address_sanitizer=no])])
+if test x$ac_cv_c_address_sanitizer = xyes; then
+  AC_DEFINE([XCRYPT_USE_ASAN], [1],
+    [Define when compiling with ASan.  Only affects tests.])
+fi
+
 # Checks for libraries: currently none needed.
 
 # Checks for header files.
