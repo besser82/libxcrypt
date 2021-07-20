@@ -1,0 +1,183 @@
+name: "Code Quality"
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 20 * * 0'
+
+jobs:
+  skip_duplicates:
+    # continue-on-error: true # Uncomment once integration is finished
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        # pin to unreleased SHA so we can use 'same_content_newer'
+        # see https://github.com/fkirc/skip-duplicate-actions/pull/112
+        uses: fkirc/skip-duplicate-actions@98d1dc89f43a47f8e4fba8e1c1fb8d6c5fc515ee
+        with:
+          concurrent_skipping: 'same_content_newer'
+          skip_after_successful_duplicate: 'true'
+          paths_ignore: '[]' # changes in any file can affect distcheck
+          do_not_skip: '["workflow_dispatch", "schedule"]'
+
+  CodeQL:
+    needs: skip_duplicates
+    if: ${{ needs.skip_duplicates.outputs.should_skip != 'true' }}
+
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    # Initializes the CodeQL tools for scanning.
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v1
+      with:
+        # CodeQL lumps C with C++.  Perl is not currently supported.
+        languages: cpp, python
+
+        # If you wish to specify custom queries, you can do so here or in a
+        # config file.  By default, queries listed here will override any
+        # specified in a config file.  Prefix the list here with "+" to use
+        # these queries and those in the config file.
+        #queries:
+        # - ./path/to/local/query
+        # - your-org/your-repo/queries@main
+
+    - name: Versions of build tools
+      run: ./build-aux/ci-log-dependency-versions
+    - name: Bootstrap
+      run: ./autogen.sh
+    - name: Configure
+      run: ./configure --enable-obsolete-api --enable-hashes=all
+    - name: Build
+      run: make all test-programs
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v1
+
+  Coverity:
+    needs: skip_duplicates
+    if: ${{ needs.skip_duplicates.outputs.should_skip != 'true' }}
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+
+    env:
+      CVT_PROJECT: besser82/libxcrypt
+
+    # Coverity doesn't have official Github Actions integration yet.
+    # The steps below were kitbashed together from the contents of
+    # https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh
+    # plus some notions from
+    # https://github.com/ruby/actions-coverity-scan/blob/master/.github/workflows/coverity-scan.yml
+    steps:
+    - name: Check for authorization
+      env:
+        CVT_TOKEN: ${{ secrets.COVERITY_SCAN_TOKEN }}
+      run: |
+        if [ -z "$CVT_TOKEN" ]; then
+          printf '\033[33;1mCoverity Scan token not available.\033[0m\n'
+          exit 1
+        fi
+        AUTH_RES=$(curl -s --form project="$CVT_PROJECT" \
+                           --form token="$CVT_TOKEN" \
+                           https://scan.coverity.com/api/upload_permitted)
+        if [ "$AUTH_RES" = "Access denied" ]; then
+          printf '\033[33;1mCoverity Scan API access denied.\033[0m\n'
+          printf 'Check project name and access token.\n'
+          exit 1
+        else
+          AUTH=$(printf '%s' "$AUTH_RES" | ruby -e "
+            require 'rubygems'
+            require 'json'
+            puts JSON[STDIN.read]['upload_permitted']
+          ")
+          if [ "$AUTH" = "true" ]; then
+            echo ok
+            exit 0
+          else
+            WHEN=$(printf '%s' "$AUTH_RES" | ruby -e "
+              require 'rubygems'
+              require 'json'
+              puts JSON[STDIN.read]['next_upload_permitted_at']
+            ")
+            printf '\033[33;1mCoverity Scan access blocked until %s.\033[0m\n' \
+              "$WHEN"
+            exit 1
+          fi
+        fi
+
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Download Coverity Build Tool
+      env:
+        CVT_TOKEN: ${{ secrets.COVERITY_SCAN_TOKEN }}
+      run: |
+        echo Downloading Coverity tools...
+        cd ..
+        curl --no-progress-meter -o cov-analysis-linux64.tar.gz \
+             --form token="$CVT_TOKEN" \
+             --form project="$CVT_PROJECT" \
+             https://scan.coverity.com/download/cxx/linux64
+        echo Extracting...
+        mkdir cov-analysis-linux64
+        tar xzf cov-analysis-linux64.tar.gz --strip 1 -C cov-analysis-linux64
+        echo done.
+        if [ -f cov-analysis-linux64/VERSION ]; then
+          echo + cat cov-analysis-linux64/VERSION
+          echo
+          cat cov-analysis-linux64/VERSION
+        fi
+
+    - name: Bootstrap
+      run: ./autogen.sh
+    - name: Configure
+      run: ./configure --disable-werror --enable-obsolete-api --enable-hashes=all
+    - name: Build
+      run: |
+        export PATH=$(cd .. && pwd)/cov-analysis-linux64/bin:$PATH
+        cov-build --dir cov-int make all test-programs
+        cov-import-scm --dir cov-int --scm git --log cov-int/scm_log.txt
+        if [ -s cov-int/scm_log.txt ]; then
+          echo + cat cov-int/scm_log.txt
+          cat cov-int/scm_log.txt
+        fi
+
+    - name: Upload analysis results
+      env:
+        CVT_TOKEN: ${{ secrets.COVERITY_SCAN_TOKEN }}
+        CVT_EMAIL: ${{ secrets.COVERITY_SCAN_NOTIFICATION_EMAIL }}
+      run: |
+        tar czvf cov-int.tar.gz cov-int
+        printf 'Uploading Coverity Scan Analysis results...\n'
+        response=$(curl -s --write-out '\n%{http_code}\n' \
+          --form project="$CVT_PROJECT" \
+          --form token="$CVT_TOKEN" \
+          --form email="$CVT_EMAIL" \
+          --form file=@cov-int.tar.gz \
+          --form version="${GITHUB_REF}" \
+          --form description="${GITHUB_SHA}" \
+          https://scan.coverity.com/builds)
+        status_code=$(echo "$response" | sed -n '$p')
+        if [ "$status_code" = "200" ] || [ "$status_code" = "201" ] ; then
+          printf 'Upload complete.\n'
+          exit 0
+        else
+          TEXT=$(echo "$response" | sed '$d')
+          printf '\033[33;1mCoverity Scan upload failed:\033[0m\n%s.\n' "$TEXT"
+          exit 1
+        fi
