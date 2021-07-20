@@ -1,0 +1,86 @@
+name: Memcheck
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  skip_duplicates:
+    # continue-on-error: true # Uncomment once integration is finished
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        # pin to unreleased SHA so we can use 'same_content_newer'
+        # see https://github.com/fkirc/skip-duplicate-actions/pull/112
+        uses: fkirc/skip-duplicate-actions@98d1dc89f43a47f8e4fba8e1c1fb8d6c5fc515ee
+        with:
+          concurrent_skipping: 'same_content_newer'
+          skip_after_successful_duplicate: 'true'
+          paths_ignore: '["doc/**", "**/*.md", "AUTHORS", "NEWS", "THANKS"]'
+          do_not_skip: '["workflow_dispatch", "schedule"]'
+
+  Valgrind:
+    needs: skip_duplicates
+    if: ${{ needs.skip_duplicates.outputs.should_skip != 'true' }}
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+
+    env:
+      CC: ${{matrix.compiler}}
+      VERBOSE: 1
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Install packages
+      run: sudo apt-get install clang valgrind
+    - name: Versions of build tools
+      run: ./build-aux/ci-log-dependency-versions
+    - name: Bootstrap
+      run: ./autogen.sh
+    - name: Configure
+      run: ./build-aux/configure-wrapper --enable-obsolete-api --enable-hashes=all --enable-valgrind-memcheck
+    - name: Build
+      run: make
+    - name: Valgrind Memcheck
+      run: make check-valgrind-memcheck || (cat test-suite-memcheck.log; exit 1)
+
+  ASan-UBSan:
+    needs: skip_duplicates
+    if: ${{ needs.skip_duplicates.outputs.should_skip != 'true' }}
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+
+    env:
+      CC: ${{matrix.compiler}}
+      DEB_BUILD_MAINT_OPTIONS: hardening=+all sanitize=+address,+leak,+undefined
+      VERBOSE: 1
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Install packages
+      if: ${{ matrix.compiler == 'clang' }}
+      run: sudo apt-get install clang
+    - name: Versions of build tools
+      run: ./build-aux/ci-log-dependency-versions
+    - name: Bootstrap
+      run: ./autogen.sh
+    - name: Configure
+      run: ./build-aux/configure-wrapper --enable-obsolete-api --enable-hashes=all
+    - name: Build
+      run: make UNDEF_FLAG=
+    - name: ASan-UBSan Test
+      run: make check || (cat test-suite.log; exit 1)

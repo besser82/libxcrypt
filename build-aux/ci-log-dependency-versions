@@ -16,7 +16,8 @@ for tool in \
     "${PYTHON-python3}" \
     "${GCOV-gcov}" \
     "${LCOV-lcov}" \
-    "${LLVM_COV-llvm-cov}"
+    "${LLVM_COV-llvm-cov}" \
+    "${VALGRIND-valgrind}"
 do
     # $tool might include mandatory command-line arguments.
     # Interpret it the same way Make would.
