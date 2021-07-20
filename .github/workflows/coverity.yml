@@ -1,0 +1,155 @@
+name: Coverity
+
+# Coverity Scan gives relatively low-quality reports and has strict
+# rate limits, so we only run it on the main branch on a schedule.
+on:
+  schedule:
+    - cron: '31 3 * * 1'  # Monday at 3h31 UTC
+
+jobs:
+  Coverity:
+    runs-on: ubuntu-latest
+
+    env:
+      CVT_PROJECT: besser82/libxcrypt
+
+    # Coverity doesn't have official Github Actions integration yet.
+    # The steps below were kitbashed together from the contents of
+    # https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh
+    # plus some notions from
+    # https://github.com/ruby/actions-coverity-scan/blob/master/.github/workflows/coverity-scan.yml
+    steps:
+    - name: Check for authorization
+      env:
+        CVT_TOKEN: ${{ secrets.COVERITY_SCAN_TOKEN }}
+      run: |
+        if [ -z "$CVT_TOKEN" ]; then
+          printf '\033[33;1mCoverity Scan token not available.\033[0m\n'
+          exit 1
+        fi
+        AUTH_RES=$(curl -s --form project="$CVT_PROJECT" \
+                           --form token="$CVT_TOKEN" \
+                           https://scan.coverity.com/api/upload_permitted)
+        if [ "$AUTH_RES" = "Access denied" ]; then
+          printf '\033[33;1mCoverity Scan API access denied.\033[0m\n'
+          printf 'Check project name and access token.\n'
+          exit 1
+        else
+          AUTH=$(printf '%s' "$AUTH_RES" | ruby -e "
+            require 'rubygems'
+            require 'json'
+            puts JSON[STDIN.read]['upload_permitted']
+          ")
+          if [ "$AUTH" = "true" ]; then
+            echo ok
+            exit 0
+          else
+            WHEN=$(printf '%s' "$AUTH_RES" | ruby -e "
+              require 'rubygems'
+              require 'json'
+              puts JSON[STDIN.read]['next_upload_permitted_at']
+            ")
+            printf '\033[33;1mCoverity Scan access blocked until %s.\033[0m\n' \
+              "$WHEN"
+            exit 1
+          fi
+        fi
+
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Download Coverity Build Tool
+      env:
+        CVT_TOKEN: ${{ secrets.COVERITY_SCAN_TOKEN }}
+      run: |
+        echo Downloading Coverity tools...
+        # Put the tools in the parent directory so the build can't
+        # clobber them by accident.
+        cd ..
+        curl --no-progress-meter -o cov-analysis-linux64.tar.gz \
+             --form token="$CVT_TOKEN" \
+             --form project="$CVT_PROJECT" \
+             https://scan.coverity.com/download/cxx/linux64
+        echo Extracting...
+        mkdir cov-analysis-linux64
+        tar xzf cov-analysis-linux64.tar.gz --strip 1 -C cov-analysis-linux64
+        echo done.
+        if [ -f cov-analysis-linux64/VERSION ]; then
+          echo ::group::Coverity tool versions
+          echo + cat cov-analysis-linux64/VERSION
+          echo
+          cat cov-analysis-linux64/VERSION
+          echo ::endgroup::
+        fi
+
+    - name: Versions of build tools
+      id: build-tools
+      run: ./build-aux/ci-log-dependency-versions
+
+    - name: Cache bootstrap
+      id: cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          INSTALL
+          Makefile.in
+          aclocal.m4
+          config.h.in
+          configure
+          autom4te.cache/**
+          build-aux/compile
+          build-aux/config.guess
+          build-aux/config.sub
+          build-aux/depcomp
+          build-aux/install-sh
+          build-aux/libtool.m4
+          build-aux/ltmain.sh
+          build-aux/ltoptions.m4
+          build-aux/ltsugar.m4
+          build-aux/ltversion.m4
+          build-aux/lt~obsolete.m4
+          build-aux/missing
+          build-aux/test-driver
+        key: autoreconf-${{ steps.build-tools.outputs.autotools-ver }}-${{ hashFiles('autogen.sh', 'configure.ac', 'Makefile.am', 'build-aux/*.m4') }}
+
+    - name: Bootstrap
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: ./autogen.sh
+
+    - name: Configure
+      run: ./configure --disable-werror --enable-obsolete-api --enable-hashes=all
+
+    - name: Build
+      run: |
+        export PATH=$(cd .. && pwd)/cov-analysis-linux64/bin:$PATH
+        cov-build --dir cov-int make all test-programs
+        cov-import-scm --dir cov-int --scm git --log cov-int/scm_log.txt
+
+    - name: Upload analysis results
+      env:
+        CVT_TOKEN: ${{ secrets.COVERITY_SCAN_TOKEN }}
+        CVT_EMAIL: ${{ secrets.COVERITY_SCAN_NOTIFICATION_EMAIL }}
+      run: |
+        tar czvf cov-int.tar.gz cov-int
+        printf 'Uploading Coverity Scan Analysis results...\n'
+        response=$(curl -s --write-out '\n%{http_code}\n' \
+          --form project="$CVT_PROJECT" \
+          --form token="$CVT_TOKEN" \
+          --form email="$CVT_EMAIL" \
+          --form file=@cov-int.tar.gz \
+          --form version="${GITHUB_REF}" \
+          --form description="${GITHUB_SHA}" \
+          https://scan.coverity.com/builds)
+        status_code=$(echo "$response" | sed -n '$p')
+        if [ "$status_code" = "200" ] || [ "$status_code" = "201" ] ; then
+          printf 'Upload complete.\n'
+          exit 0
+        else
+          TEXT=$(echo "$response" | sed '$d')
+          printf '\033[33;1mCoverity Scan upload failed:\033[0m\n%s.\n' "$TEXT"
+          exit 1
+        fi
+
+    - name: Detailed error logs
+      if: failure()
+      run: ./build-aux/ci-log-logfiles

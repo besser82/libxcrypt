@@ -1,0 +1,99 @@
+name: "CodeQL static analysis"
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '31 3 * * 1'  # Monday at 3h31 UTC
+
+jobs:
+  skip_duplicates:
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        # pin to unreleased SHA so we can use 'same_content_newer'
+        # see https://github.com/fkirc/skip-duplicate-actions/pull/112
+        uses: fkirc/skip-duplicate-actions@98d1dc89f43a47f8e4fba8e1c1fb8d6c5fc515ee
+        with:
+          concurrent_skipping: 'same_content_newer'
+          skip_after_successful_duplicate: 'true'
+          paths_ignore: '["doc/**", "**/*.md", "AUTHORS", "NEWS", "THANKS"]'
+          do_not_skip: '["workflow_dispatch", "schedule"]'
+
+  CodeQL:
+    needs: skip_duplicates
+    if: ${{ needs.skip_duplicates.outputs.should_skip != 'true' }}
+
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v1
+      with:
+        # CodeQL lumps C with C++.  Perl is not currently supported.
+        languages: cpp, python
+
+        # If you wish to specify custom queries, you can do so here or in a
+        # config file.  By default, queries listed here will override any
+        # specified in a config file.  Prefix the list here with "+" to use
+        # these queries and those in the config file.
+        #queries:
+        # - ./path/to/local/query
+        # - your-org/your-repo/queries@main
+
+    - name: Versions of build tools
+      id: build-tools
+      run: ./build-aux/ci-log-dependency-versions
+
+    - name: Cache bootstrap
+      id: cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          INSTALL
+          Makefile.in
+          aclocal.m4
+          config.h.in
+          configure
+          autom4te.cache/**
+          build-aux/compile
+          build-aux/config.guess
+          build-aux/config.sub
+          build-aux/depcomp
+          build-aux/install-sh
+          build-aux/libtool.m4
+          build-aux/ltmain.sh
+          build-aux/ltoptions.m4
+          build-aux/ltsugar.m4
+          build-aux/ltversion.m4
+          build-aux/lt~obsolete.m4
+          build-aux/missing
+          build-aux/test-driver
+        key: autoreconf-${{ steps.build-tools.outputs.autotools-ver }}-${{ hashFiles('autogen.sh', 'configure.ac', 'Makefile.am', 'build-aux/*.m4') }}
+
+    - name: Bootstrap
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: ./autogen.sh
+
+    - name: Configure
+      run: ./configure --enable-obsolete-api --enable-hashes=all
+
+    - name: Build
+      run: make all test-programs
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v1
+
+    - name: Detailed error logs
+      if: failure()
+      run: ./build-aux/ci-log-logfiles
