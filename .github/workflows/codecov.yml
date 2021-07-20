@@ -54,6 +54,7 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+      # note: the 'llvm' package is needed for llvm-cov (only when using clang)
     - name: Install packages
       if: ${{ matrix.compiler == 'clang' }}
       run: sudo apt-get install clang llvm
