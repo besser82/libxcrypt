@@ -591,6 +591,10 @@ test_getrandom_fallbacks_LDFLAGS = \
   $(AM_LDFLAGS)
 endif
 
+# CI sometimes wants to compile all the test programs but not run them.
+test-programs: $(check_PROGRAMS)
+phony_targets += test-programs
+
 # Additional checks to run in `make distcheck'.
 distcheck-hook:
 	cd $(top_srcdir) && perlcritic ./
