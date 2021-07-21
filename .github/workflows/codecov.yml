@@ -44,8 +44,8 @@ jobs:
           - "--enable-obsolete-api --disable-failure-tokens --enable-hashes=descrypt"
 
     env:
-      CC: ${{matrix.compiler}}
-      CONFIGURE_OPTIONS: ${{matrix.config_opts}}
+      CC: ${{ matrix.compiler }}
+      CONFIG_OPTS: ${{ matrix.config_opts }}
       CFLAGS: "-O0 -g -fprofile-arcs -ftest-coverage"
       CXXFLAGS: "-O0 -g -fprofile-arcs -ftest-coverage"
       LDFLAGS: "--coverage"
@@ -63,7 +63,7 @@ jobs:
     - name: Bootstrap
       run: ./autogen.sh
     - name: Configure
-      run: ./configure $CONFIGURE_OPTS
+      run: ./configure $CONFIG_OPTS
     - name: Build
       run: make
     - name: Test
