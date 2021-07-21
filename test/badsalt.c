@@ -106,7 +106,18 @@ static bool vt_yescrypt(const struct valid_setting *, const char *);
 static const struct valid_setting valid_cases[] =
 {
   V  (descrypt,                            "Mp"                               ),
-  Vp (bigcrypt,                  2,        "Mp............"                   ),
+    /* bigcrypt is extra special:
+       this salt is a valid descrypt salt when bigcrypt isn't enabled
+         but descrypt is;
+       truncations down to 2 are valid when descrypt is enabled, but
+         if *only* bigcrypt is enabled, then truncations can only
+         go down to 14.  */
+  {
+    INCLUDE_bigcrypt ? "bigcrypt" : "descrypt (padded)",
+    "Mp............", 2, vt_varsuffix,
+    INCLUDE_descrypt ? 2 : 14,
+    INCLUDE_descrypt || INCLUDE_bigcrypt
+  },
   V  (bsdicrypt,                           "_J9..MJHn"                        ),
   Vv (md5crypt,                  3,        "$1$MJHnaAke$"                     ),
   Vtn(sunmd5,        plain,      sunmd5,   "$md5$1xMeE.at$"                   ),
