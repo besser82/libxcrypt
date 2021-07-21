@@ -1,0 +1,128 @@
+name: "Config Matrix"
+
+on:
+   pull_request:
+   push:
+
+jobs:
+  skip_duplicates:
+    continue-on-error:
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        # pin to unreleased SHA so we can use 'same_content_newer'
+        # see https://github.com/fkirc/skip-duplicate-actions/pull/112
+        uses: fkirc/skip-duplicate-actions@98d1dc89f43a47f8e4fba8e1c1fb8d6c5fc515ee
+        with:
+          concurrent_skipping: 'same_content_newer'
+          skip_after_successful_duplicate: 'true'
+          paths_ignore: '["doc/**", "**/*.md", "AUTHORS", "NEWS", "THANKS"]'
+          do_not_skip: '["workflow_dispatch", "schedule"]'
+
+  build:
+    needs: skip_duplicates
+    if: ${{ needs.skip_duplicates.outputs.should_skip != 'true' }}
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+        config_opts:
+        # General-purpose configurations with the obsolete APIs present.
+        - "--enable-obsolete-api --enable-hashes=all"
+        - "--enable-obsolete-api --enable-hashes=all --enable-obsolete-api-enosys"
+        - "--enable-obsolete-api --enable-hashes=all --disable-failure-tokens"
+        - "--enable-obsolete-api --enable-hashes=all --enable-obsolete-api-enosys --disable-failure-tokens"
+        - "--enable-obsolete-api --enable-hashes=glibc"
+        - "--enable-obsolete-api=glibc --enable-hashes=strong,glibc"
+
+        # General-purpose configurations with the obsolete APIs absent.
+        # Note that the obsolete APIs are always absent from the static library,
+        # so --disable-shared implies --disable-obsolete-api.
+        - "--disable-obsolete-api --enable-hashes=all"
+        - "--disable-obsolete-api --enable-hashes=all --disable-shared"
+        - "--disable-obsolete-api --enable-hashes=all --disable-static"
+        - "--disable-obsolete-api --enable-hashes=all --disable-failure-tokens"
+        - "--disable-obsolete-api --enable-hashes=strong"
+
+        # Configurations with only one hash enabled.  These exist to
+        # detect build failures due to incorrect ifdeffage.
+        - "--disable-obsolete-api --enable-hashes=bcrypt"
+        - "--disable-obsolete-api --enable-hashes=bcrypt_a"
+        - "--disable-obsolete-api --enable-hashes=bcrypt_x"
+        - "--disable-obsolete-api --enable-hashes=bcrypt_y"
+        - "--disable-obsolete-api --enable-hashes=bigcrypt"
+        - "--disable-obsolete-api --enable-hashes=bsdicrypt"
+        - "--disable-obsolete-api --enable-hashes=descrypt"
+        - "--disable-obsolete-api --enable-hashes=gost-yescrypt"
+        - "--disable-obsolete-api --enable-hashes=md5crypt"
+        - "--disable-obsolete-api --enable-hashes=nt"
+        - "--disable-obsolete-api --enable-hashes=scrypt"
+        - "--disable-obsolete-api --enable-hashes=sha1crypt"
+        - "--disable-obsolete-api --enable-hashes=sha256crypt"
+        - "--disable-obsolete-api --enable-hashes=sha512crypt"
+        - "--disable-obsolete-api --enable-hashes=sunmd5"
+        - "--disable-obsolete-api --enable-hashes=yescrypt"
+
+    env:
+      CC: ${{ matrix.compiler }}
+      CONFIG_OPTS: ${{ matrix.config_opts }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Install packages
+      if: ${{ matrix.compiler == 'clang' }}
+      run: sudo apt-get install clang
+
+    - name: Versions of build tools
+      id: build-tools
+      run: ./build-aux/ci-log-dependency-versions
+
+    - name: Cache bootstrap
+      id: cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          INSTALL
+          Makefile.in
+          aclocal.m4
+          config.h.in
+          configure
+          autom4te.cache/**
+          build-aux/compile
+          build-aux/config.guess
+          build-aux/config.sub
+          build-aux/depcomp
+          build-aux/install-sh
+          build-aux/libtool.m4
+          build-aux/ltmain.sh
+          build-aux/ltoptions.m4
+          build-aux/ltsugar.m4
+          build-aux/ltversion.m4
+          build-aux/lt~obsolete.m4
+          build-aux/missing
+          build-aux/test-driver
+        key: autoreconf-${{ steps.build-tools.outputs.autotools-ver }}-${{ hashFiles('autogen.sh', 'configure.ac', 'Makefile.am', 'build-aux/*.m4') }}
+
+    - name: Bootstrap
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: ./autogen.sh
+
+    - name: Configure
+      run: ./build-aux/configure-wrapper $CONFIG_OPTS
+
+    - name: Build
+      run: make all test-programs
+
+    - name: Test
+      run: make check
+
+    - name: Detailed error logs
+      if: failure()
+      run: ./build-aux/ci-log-logfiles
