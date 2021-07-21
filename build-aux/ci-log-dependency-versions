@@ -1,6 +1,9 @@
 #! /bin/sh
 set -e
 
+# Records certain build tool versions for use as a cache key.
+autotools_ver=
+
 # Log the identities and versions of the build tools.
 for tool in \
     "${CC-cc}" \
@@ -28,6 +31,30 @@ do
     fi
     echo
     case "$1" in
+        (*autoconf*)
+            autotools_ver="${autotools_ver}ac$("$@" --version 2>&1 |
+              sed -Ee '1{;s/^[^\(]+\([^\)]+\) //;q;}'
+            )"
+            ;;
+
+        (*automake*)
+            autotools_ver="${autotools_ver}am$("$@" --version |
+              sed -Ee '1{;s/^[^\(]+\([^\)]+\) //;q;}'
+            )"
+            ;;
+
+        (*libtoolize*)
+            autotools_ver="${autotools_ver}lt$("$@" --version |
+              sed -Ee '1{;s/^[^\(]+\([^\)]+\) //;q;}'
+            )"
+            ;;
+
+        (*pkg-config*)
+            autotools_ver="${autotools_ver}pk$("$@" --version |
+              sed -Ee '1{;s/^[^\(]+\([^\)]+\) //;q;}'
+            )"
+            ;;
+
         (*python*)
             "$@" -c '
 try:
@@ -42,3 +69,5 @@ except ModuleNotFoundError:
     esac
 done
 set fnord; shift  # clear $@
+printf '::set-output name=autotools-ver::%s\n' "$autotools_ver"
+exit 0
