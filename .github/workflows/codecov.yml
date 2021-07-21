@@ -54,10 +54,15 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
-      # note: the 'llvm' package is needed for llvm-cov (only when using clang)
+
     - name: Install packages
-      if: ${{ matrix.compiler == 'clang' }}
-      run: sudo apt-get install clang llvm
+      run: |
+        packages="lcov"
+        if [ "$CC" = clang ]; then
+          # need 'llvm' for llvm-cov, as well as clang
+          packages="$packages clang llvm"
+        fi
+        sudo apt-get install $packages
     - name: Versions of build tools
       run: ./build-aux/ci-log-dependency-versions
     - name: Bootstrap
@@ -68,12 +73,11 @@ jobs:
       run: make
     - name: Test
       run: make check || (cat test-suite.log; exit 1)
-    - name: Codecov
-      uses: codecov/codecov-action@v1
+    - name: Summarize coverage data
+      run: ./build-aux/summarize-coverage coverage.info
+    - name: Upload coverage data to Codecov
+      uses: codecov/codecov-action@v2
       with:
         fail_ci_if_error: true
-        gcov_executable: ./build-aux/gcov-wrapper
-        gcov_path_exclude: "./test/*"
-        gcov_root_dir: .
-        token: ${{ secrets.CODECOV_TOKEN }}
-        verbose: false
+        verbose: true
+        files: coverage.info

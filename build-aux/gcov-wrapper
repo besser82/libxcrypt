@@ -1,9 +1,0 @@
-#!/bin/bash
-
-if [ "x$CC" = "xclang" ]; then
-  exec llvm-cov gcov "$@"
-fi
-
-if [ "x$CC" = "xgcc" ]; then
-  exec gcov "$@"
-fi

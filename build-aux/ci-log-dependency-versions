@@ -13,7 +13,10 @@ for tool in \
     "${CPANM-cpanm}" \
     "${PERLCRITIC-perlcritic}" \
     "${PERLTIDY-perltidy}" \
-    "${PYTHON-python3}"
+    "${PYTHON-python3}" \
+    "${GCOV-gcov}" \
+    "${LCOV-lcov}" \
+    "${LLVM_COV-llvm-cov}"
 do
     # $tool might include mandatory command-line arguments.
     # Interpret it the same way Make would.
@@ -32,7 +35,7 @@ try:
   print("passlib is " + os.path.dirname(passlib.__file__))
   print("passlib: version " + passlib.__version__)
 except ModuleNotFoundError:
-  print("passlib is not installed")
+  print("passlib is not installed\n")
 '
             ;;
     esac

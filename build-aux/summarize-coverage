@@ -1,0 +1,24 @@
+#! /bin/sh
+set -e
+
+case "$CC" in
+    (*clang*)
+        GCOV=$(pwd)/build-aux/clang-gcov-wrapper ;;
+    (*)
+        GCOV=gcov ;;
+esac
+
+unpruned=$(mktemp --tmpdir all-coverage.XXXXXXXXXX.info)
+trap 'rm -f "'"$unpruned"'"' 0
+
+set -x
+# Merge all of the gcov output into one overview file using lcov,
+# then prune data for the tests themselves, and for system libraries.
+
+lcov --gcov-tool "$GCOV" --rc lcov_branch_coverage=1 \
+     --directory . --output-file "$unpruned" \
+     --capture
+
+lcov --gcov-tool "$GCOV" --rc lcov_branch_coverage=1 \
+     --directory . --output-file "$1" \
+     --remove "$unpruned" '/usr/*' '*test*'
