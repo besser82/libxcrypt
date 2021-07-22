@@ -5,6 +5,7 @@ name: Coverity
 on:
   schedule:
     - cron: '31 3 * * 1'  # Monday at 3h31 UTC
+  workflow_dispatch:
 
 jobs:
   Coverity:
