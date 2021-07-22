@@ -42,9 +42,9 @@ bin_to_char (char *buf, size_t bufsz, const char *data, size_t nbytes)
 {
   size_t i;
 
+  buf[0] = '\0';
   if (bufsz <= (nbytes * 2))
     return NULL;
-  buf[0] = '\0';
   for (i = 0; i < nbytes; i++)
     {
       (void)sprintf (&buf[i*2], "%02x", (unsigned char)data[i]);
@@ -156,7 +156,7 @@ main (void)
       X2B(test->data, dbuf);
       hmac_sha1_process_data ((const uint8_t *)test->data, test->data_size,
                               (const uint8_t *)test->key, strlen(test->key), digest);
-      memcpy (dbuf, "0x", 2);
+      strncpy (dbuf, "0x", BUFSIZ);
       bin_to_char (&dbuf[2], (sizeof dbuf) - 2, digest, HASH_LENGTH);
 
       if (strcmp (dbuf, test->expect) != 0)
