@@ -255,7 +255,7 @@ main (void)
   char buf[257];
   char expected[2] = { 0, 0 };
   memset (buf, 'x', sizeof buf - 1);
-  buf[256] = '\0';
+  buf[sizeof buf - 1] = '\0';
   bool failed = false;
   const struct subtest *s;
 
@@ -276,6 +276,7 @@ main (void)
       s++;
 
       bool r = get_random_bytes (buf, sizeof buf - 1);
+      buf[sizeof buf - 1] = '\0';
       if ((s->expected && !r) || (!s->expected && r))
         {
           printf ("FAIL: %s: get_random_bytes: %s\n",
