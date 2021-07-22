@@ -343,7 +343,7 @@ int main(void)
 		rom_bytes = (uint64_t)r << (7 + NROM_log2);
 
 		N_log2 = 0;
-		while ((r << (7 + N_log2)) < ram_bytes)
+		while (((uint64_t)r << (7 + N_log2)) < ram_bytes)
 			N_log2++;
 		ram_bytes = (uint64_t)r << (7 + N_log2);
 
