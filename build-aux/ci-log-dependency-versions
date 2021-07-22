@@ -1,6 +1,9 @@
 #! /bin/sh
 set -e
 
+# Record certain build tool versions for use as a cache key.
+autotools_ver=
+
 # Log the identities and versions of the build tools.
 for tool in \
     "${CC-cc}" \
@@ -16,18 +19,47 @@ for tool in \
     "${PYTHON-python3}" \
     "${GCOV-gcov}" \
     "${LCOV-lcov}" \
-    "${LLVM_COV-llvm-cov}"
+    "${LLVM_COV-llvm-cov}" \
+    "${VALGRIND-valgrind}"
 do
     # $tool might include mandatory command-line arguments.
     # Interpret it the same way Make would.
     set fnord $tool; shift # word-split $tool and load it into "$@"
+
+    echo ::group::"$1"
     if command -V "$1"; then
         echo + "$@" --version
         "$@" --version
     fi
-    echo
+    echo ::endgroup::
+
     case "$1" in
+        (*autoconf*)
+            autotools_ver="${autotools_ver}ac$("$@" --version 2>&1 |
+              sed -Ene '1{s/^[^\(]+\([^\)]+\) //;p}'
+            )"
+            ;;
+
+        (*automake*)
+            autotools_ver="${autotools_ver}am$("$@" --version |
+              sed -Ene '1{s/^[^\(]+\([^\)]+\) //;p}'
+            )"
+            ;;
+
+        (*libtoolize*)
+            autotools_ver="${autotools_ver}lt$("$@" --version |
+              sed -Ene '1{s/^[^\(]+\([^\)]+\) //;p}'
+            )"
+            ;;
+
+        (*pkg-config*)
+            autotools_ver="${autotools_ver}pk$("$@" --version |
+              sed -Ene '1{s/^[^\(]+\([^\)]+\) //;p}'
+            )"
+            ;;
+
         (*python*)
+            echo ::group::passlib
             "$@" -c '
 try:
   import passlib
@@ -35,9 +67,13 @@ try:
   print("passlib is " + os.path.dirname(passlib.__file__))
   print("passlib: version " + passlib.__version__)
 except ModuleNotFoundError:
-  print("passlib is not installed\n")
+  print("passlib is not installed")
 '
+            echo ::endgroup::
             ;;
     esac
 done
+
 set fnord; shift  # clear $@
+echo "::set-output name=autotools-ver::$autotools_ver"
+exit 0

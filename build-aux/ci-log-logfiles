@@ -1,0 +1,16 @@
+#! /bin/sh
+
+dump_log () {
+    if [ -s "$1" ]; then
+        echo "::group::$1"
+        echo '::stop-commands::resume-50YEO1zJ8HSXH4Zy'
+        cat "$1"
+        echo '::resume-50YEO1zJ8HSXH4Zy::'
+        echo '::endgroup::'
+    fi
+}
+
+dump_log config.log
+for ts in $(find . -name 'test-suite*.log' -printf '%P\n'); do
+    dump_log "$ts"
+done

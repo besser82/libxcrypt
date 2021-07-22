@@ -1,4 +1,4 @@
-name: Codecov
+name: "Code coverage"
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   skip_duplicates:
-    # continue-on-error: true # Uncomment once integration is finished
+    continue-on-error: true
     runs-on: ubuntu-latest
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
@@ -63,21 +63,59 @@ jobs:
           packages="$packages clang llvm"
         fi
         sudo apt-get install $packages
+
     - name: Versions of build tools
+      id: build-tools
       run: ./build-aux/ci-log-dependency-versions
+
+    - name: Cache bootstrap
+      id: cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          INSTALL
+          Makefile.in
+          aclocal.m4
+          config.h.in
+          configure
+          autom4te.cache/**
+          build-aux/compile
+          build-aux/config.guess
+          build-aux/config.sub
+          build-aux/depcomp
+          build-aux/install-sh
+          build-aux/libtool.m4
+          build-aux/ltmain.sh
+          build-aux/ltoptions.m4
+          build-aux/ltsugar.m4
+          build-aux/ltversion.m4
+          build-aux/lt~obsolete.m4
+          build-aux/missing
+          build-aux/test-driver
+        key: autoreconf-${{ steps.build-tools.outputs.autotools-ver }}-${{ hashFiles('autogen.sh', 'configure.ac', 'Makefile.am', 'build-aux/*.m4') }}
+
     - name: Bootstrap
+      if: steps.cache.outputs.cache-hit != 'true'
       run: ./autogen.sh
+
     - name: Configure
       run: ./configure $CONFIG_OPTS
+
     - name: Build
-      run: make
+      run: make all test-programs
+
     - name: Test
-      run: make check || (cat test-suite.log; exit 1)
+      run: make check
+
     - name: Summarize coverage data
       run: ./build-aux/summarize-coverage coverage.info
+
     - name: Upload coverage data to Codecov
       uses: codecov/codecov-action@v2
       with:
         fail_ci_if_error: true
-        verbose: true
         files: coverage.info
+
+    - name: Detailed error logs
+      if: failure()
+      run: ./build-aux/ci-log-logfiles
