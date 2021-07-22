@@ -6,7 +6,7 @@ on:
 
 jobs:
   skip_duplicates:
-    continue-on-error:
+    continue-on-error: true
     runs-on: ubuntu-latest
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
