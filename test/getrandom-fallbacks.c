@@ -131,6 +131,7 @@ __wrap_syscall(long number, ...)
           void *buf = va_arg (ap, void *);
           size_t buflen = va_arg (ap, size_t);
           buflen = MIN (buflen, SSIZE_MAX);
+          va_end (ap);
           memset (buf, MOCK_sys_getrandom, buflen);
           return (ssize_t)buflen;
         }
