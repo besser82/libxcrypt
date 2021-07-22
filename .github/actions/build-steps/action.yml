@@ -1,0 +1,109 @@
+name: 'libxcrypt build steps'
+description: 'Common sequence of steps for all libxcrypt build jobs'
+inputs:
+  compiler:
+    description: 'C compiler to use ($CC in Makefiles)'
+    required: false
+    default: 'gcc'
+  config_opts:
+    description: 'Arguments to pass to configure'
+    required: false
+    default: ''
+  build_targets:
+    description: |
+      Make goal targets for the build phase.  Can actually specify
+      arbitrary arguments to the 'make' command.  Set to 'skip' to
+      skip this phase.
+    required: false
+    default: 'all'
+  test_targets:
+    description: |
+      Make goal targets for the test phase.  Can actually specify
+      arbitrary arguments to the 'make' command.  Set to 'skip' to
+      skip this phase.
+    required: false
+    default: 'check'
+outputs:
+#  random-number:
+#    description: "Random number"
+#    value: ${{ steps.random-number-generator.outputs.random-id }}
+runs:
+  using: "composite"
+  steps:
+    - name: Install packages
+      if: ${{ inputs.compiler == 'clang' }}
+      run: sudo apt-get install clang
+
+    - name: Versions of build tools
+      id: build-tools
+      run: ./build-aux/ci-log-dependency-versions
+
+    - name: Cache bootstrap
+      id: cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          INSTALL
+          Makefile.in
+          aclocal.m4
+          config.h.in
+          configure
+          autom4te.cache/**
+          build-aux/compile
+          build-aux/config.guess
+          build-aux/config.sub
+          build-aux/depcomp
+          build-aux/install-sh
+          build-aux/libtool.m4
+          build-aux/ltmain.sh
+          build-aux/ltoptions.m4
+          build-aux/ltsugar.m4
+          build-aux/ltversion.m4
+          build-aux/lt~obsolete.m4
+          build-aux/missing
+          build-aux/test-driver
+        key: autoreconf-${{ steps.build-tools.outputs.autotools-ver }}-${{ hashFiles('autogen.sh', 'configure.ac', 'Makefile.am', 'build-aux/*.m4') }}
+
+    - name: Bootstrap
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: ./autogen.sh
+
+    - name: Configure
+      id: configure
+      run: './build-aux/configure-wrapper $CONFIG_OPTS'
+      env:
+        CC: ${{ inputs.compiler }}
+        CONFIG_OPTS: ${{ inputs.config_opts }}
+
+    - name: Build
+      id: build
+      if: inputs.build_targets != 'skip'
+      run: 'make $BUILD_TARGETS'
+      env:
+        CC: ${{ inputs.compiler }}
+        BUILD_TARGETS: ${{ inputs.build_targets }}
+
+    - name: Test
+      id: test
+      if: inputs.test_targets != 'skip'
+      run: 'make $TEST_TARGETS'
+      env:
+        CC: ${{ inputs.compiler }}
+        TEST_TARGETS: ${{ inputs.test_targets }}
+
+    - name: Failure details
+      if: ${{ failure() }}
+      run: |
+        dump_log () {
+          if [ -s "$1" ]; then
+            echo "::group::$1"
+            echo '::stop-commands::resume-commands-50YEO1zJ8HSXH4Zy'
+            cat "$1"
+            echo '::resume-commands-50YEO1zJ8HSXH4Zy::'
+            echo '::endgroup::'
+          fi
+        }
+        dump_log config.log
+        for ts in $(find . -name 'test-suite*.log' -printf '%P\n'); do
+          dump_log "$ts"
+        done

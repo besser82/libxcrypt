@@ -1,10 +1,11 @@
 name: "Code Quality"
 
 on:
-  push:
-  pull_request:
-  schedule:
-    - cron: '0 20 * * 0'
+#  push:
+  workflow_dispatch:
+#  pull_request:
+#  schedule:
+#    - cron: '0 20 * * 0'
 
 jobs:
   skip_duplicates:
