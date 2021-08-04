@@ -43,12 +43,13 @@ main (void)
 
   for (size_t i = 0; i < ARRAY_SIZE (testcases); i++)
     {
-      size_t j = i + 1;
-      char *outbuf = malloc (sizeof (char) * j);
+      size_t s = i + 1;
+      int j = (int) s;
+      char *outbuf = malloc (sizeof (char) * s);
 
-      crypt_rn ("@@", "@@", outbuf, (int) j);
+      crypt_rn ("@@", "@@", outbuf, j);
 
-      if (!strncmp (testcases[i].exp_rn, outbuf, j))
+      if (!strncmp (testcases[i].exp_rn, outbuf, s))
         {
           strcpy (result, "PASS");
         }
@@ -59,9 +60,9 @@ main (void)
         }
 
       printf ("Test %zu.0: %s, expected: \"%-2s\", got: \"%-2s\"\n",
-              j, result, testcases[i].exp_rn, outbuf);
+              s, result, testcases[i].exp_rn, outbuf);
 
-      crypt_ra ("@@", "@@", (void **) &outbuf, (int *) &j);
+      crypt_ra ("@@", "@@", (void **) &outbuf, &j);
 
       if (!strncmp (testcases[i].exp_ra, outbuf, strlen(outbuf)))
         {
@@ -74,7 +75,7 @@ main (void)
         }
 
       printf ("Test %zu.1: %s, expected: \"%-2s\", got: \"%-2s\"\n",
-              i + 1, result, testcases[i].exp_ra, outbuf);
+              s, result, testcases[i].exp_ra, outbuf);
 
       free (outbuf);
     }
