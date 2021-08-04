@@ -4,6 +4,39 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.24
+* Add hash group for Debian in lib/hashes.conf.
+  Debian has switched to use the yescrypt hashing algorithm as
+  the default for new user passwords, so we should add a group
+  for this distribution.
+* Overhaul the badsalt test.
+  Test patterns are now mostly generated rather than manually coded
+  into a big table.  Not reading past the end of the “setting” part
+  of the string is tested more thoroughly (this would have caught the
+  sunmd5 $$ bug if it had been available at the time).
+  Test logs are tidier.
+* Add ‘test-programs’ utility target to Makefile.
+  It is sometimes useful to compile all the test programs but not run
+  them.  Add a Makefile target that does this.
+* Fix incorrect bcrypt-related ifdeffage in test/badsalt.c
+  The four variants of bcrypt are independently configurable, but the
+  badsalt tests for them were all being toggled by INCLUDE_bcrypt,
+  which is only the macro for the $2b$ variant.
+* Fix bigcrypt-related test cases in test/badsalt.c.
+  The test spec was only correct when both or neither of bigcrypt and
+  descrypt were enabled.
+* Detect ASan in configure and disable incompatible tests.
+  ASan’s “interceptors” for crypt and crypt_r have a semantic conflict
+  with libxcrypt, requiring a few tests to be disabled for builds with
+  -fsanitize-address.  See commentary in test/crypt-badargs.c for an
+  explanation of the conflict, and the commentary in
+  build-aux/zw_detect_asan.m4 for why a configure test is required.
+* Fix several issues found by Covscan in the testsuite.  These include:
+  - CWE-170: String not null terminated (STRING_NULL)
+  - CWE-188: Reliance on integer endianness (INCOMPATIBLE_CAST)
+  - CWE-190: Unintentional integer overflow (OVERFLOW_BEFORE_WIDEN)
+  - CWE-569: Wrong sizeof argument (SIZEOF_MISMATCH)
+  - CWE-573: Missing varargs init or cleanup (VARARGS)
+  - CWE-687: Argument cannot be negative (NEGATIVE_RETURNS)
 
 Version 4.4.23
 * Fix output calculation for gensalt_yescrypt_rn().
