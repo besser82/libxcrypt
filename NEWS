@@ -19,7 +19,7 @@ Version 4.4.24
 * Add ‘test-programs’ utility target to Makefile.
   It is sometimes useful to compile all the test programs but not run
   them.  Add a Makefile target that does this.
-* Fix incorrect bcrypt-related ifdeffage in test/badsalt.c
+* Fix incorrect bcrypt-related ifdeffage in test/badsalt.c.
   The four variants of bcrypt are independently configurable, but the
   badsalt tests for them were all being toggled by INCLUDE_bcrypt,
   which is only the macro for the $2b$ variant.
