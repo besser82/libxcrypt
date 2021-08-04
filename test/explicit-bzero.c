@@ -296,9 +296,10 @@ test_loop (void)
 int
 main (void)
 {
-  size_t page_alignment = (size_t) sysconf (_SC_PAGESIZE);
-  if (page_alignment < sizeof (void *))
-    page_alignment = sizeof (void *);
+  size_t page_alignment = sizeof (void *);
+  long page_alignment_l = sysconf (_SC_PAGESIZE);
+  if (page_alignment_l > (long) sizeof (void *))
+    page_alignment = (size_t) page_alignment_l;
 
   co_stack_size = (size_t) SIGSTKSZ + (size_t) TEST_BUFFER_SIZE;
   if (co_stack_size < page_alignment * 4)
