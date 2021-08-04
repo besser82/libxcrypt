@@ -3,6 +3,8 @@ libxcrypt NEWS -- history of user-visible changes.
 Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
+Version 4.4.25
+
 Version 4.4.24
 * Add hash group for Debian in lib/hashes.conf.
   Debian has switched to use the yescrypt hashing algorithm as
