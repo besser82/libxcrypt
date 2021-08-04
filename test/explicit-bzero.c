@@ -161,13 +161,13 @@ setup_explicit_clear (void)
 }
 
 enum test_expectation
-  {
-    EXPECT_NONE = 1,
-    EXPECT_SOME,
-    EXPECT_ALL,
-    NO_EXPECTATIONS,
-    ARRAY_END = 0
-  };
+{
+  EXPECT_NONE = 1,
+  EXPECT_SOME,
+  EXPECT_ALL,
+  NO_EXPECTATIONS,
+  ARRAY_END = 0
+};
 struct subtest
 {
   void (*setup_subtest) (void);
@@ -193,7 +193,7 @@ test_coroutine (void)
     {
       cur_subtest->setup_subtest ();
       if (swapcontext (&uc_co, &uc_main))
-	abort ();
+        abort ();
     }
 }
 
@@ -216,60 +216,60 @@ count_test_patterns (unsigned char *buf, size_t bufsiz)
     {
       unsigned char *p = first + i*PATTERN_SIZE;
       if (p + PATTERN_SIZE - buf > (ptrdiff_t)bufsiz)
-	break;
+        break;
       if (memcmp (p, test_pattern, PATTERN_SIZE) == 0)
-	cnt++;
+        cnt++;
     }
   return cnt;
 }
 
 static void
 check_test_buffer (enum test_expectation expected,
-		   const char *label, const char *stage)
+                   const char *label, const char *stage)
 {
   unsigned int cnt = count_test_patterns (co_stack_buffer, co_stack_size);
   switch (expected)
     {
     case EXPECT_NONE:
       if (cnt == 0)
-	printf ("PASS: %s/%s: expected 0 got %u\n", label, stage, cnt);
+        printf ("PASS: %s/%s: expected 0 got %u\n", label, stage, cnt);
       else
-	{
-	  printf ("FAIL: %s/%s: expected 0 got %u\n", label, stage, cnt);
-	  test_status = 1;
-	}
+        {
+          printf ("FAIL: %s/%s: expected 0 got %u\n", label, stage, cnt);
+          test_status = 1;
+        }
       break;
 
     case EXPECT_SOME:
       if (cnt > 0)
-	printf ("PASS: %s/%s: expected some got %u\n", label, stage, cnt);
+        printf ("PASS: %s/%s: expected some got %u\n", label, stage, cnt);
       else
-	{
-	  printf ("FAIL: %s/%s: expected some got 0\n", label, stage);
-	  test_status = 1;
-	}
+        {
+          printf ("FAIL: %s/%s: expected some got 0\n", label, stage);
+          test_status = 1;
+        }
       break;
 
-     case EXPECT_ALL:
+    case EXPECT_ALL:
       if (cnt == PATTERN_REPS)
-	printf ("PASS: %s/%s: expected %d got %u\n", label, stage,
-		PATTERN_REPS, cnt);
+        printf ("PASS: %s/%s: expected %d got %u\n", label, stage,
+                PATTERN_REPS, cnt);
       else
-	{
-	  printf ("FAIL: %s/%s: expected %d got %u\n", label, stage,
-		  PATTERN_REPS, cnt);
-	  test_status = 1;
-	}
+        {
+          printf ("FAIL: %s/%s: expected %d got %u\n", label, stage,
+                  PATTERN_REPS, cnt);
+          test_status = 1;
+        }
       break;
 
     case NO_EXPECTATIONS:
       printf ("INFO: %s/%s: found %u patterns%s\n", label, stage, cnt,
-	      cnt == 0 ? " (memset not eliminated)" : "");
+              cnt == 0 ? " (memset not eliminated)" : "");
       break;
 
     default:
       printf ("ERROR: %s/%s: invalid value for 'expected' = %d\n",
-	      label, stage, (int)expected);
+              label, stage, (int)expected);
       test_status = 1;
     }
 }
@@ -281,10 +281,10 @@ test_loop (void)
   while (cur_subtest->setup_subtest)
     {
       if (swapcontext (&uc_main, &uc_co))
-	abort ();
+        abort ();
       check_test_buffer (EXPECT_ALL, cur_subtest->label, "prepare");
       if (swapcontext (&uc_main, &uc_co))
-	abort ();
+        abort ();
       check_test_buffer (cur_subtest->expected, cur_subtest->label, "test");
       cur_subtest++;
     }
