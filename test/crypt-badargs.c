@@ -343,13 +343,14 @@ main (void)
 {
   /* Set up a two-page region whose first page is read-write and
      whose second page is inaccessible.  */
-  size_t pagesize = (size_t) sysconf (_SC_PAGESIZE);
-  if (pagesize < 256)
+  long pagesize_l = sysconf (_SC_PAGESIZE);
+  if (pagesize_l < 256)
     {
-      printf ("ERROR: pagesize of %zu is too small\n", pagesize);
+      printf ("ERROR: pagesize of %ld is too small\n", pagesize_l);
       return 99;
     }
 
+  size_t pagesize = (size_t) pagesize_l;
   char *page = mmap (0, pagesize * 2, PROT_READ|PROT_WRITE,
                      MAP_PRIVATE|MAP_ANON, -1, 0);
   if (page == MAP_FAILED)
