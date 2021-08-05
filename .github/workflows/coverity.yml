@@ -87,6 +87,9 @@ jobs:
       id: build-tools
       run: ./build-aux/ci-log-dependency-versions
 
+    - name: Get nprocs
+      run: echo "NPROCS=$((`nproc --all 2>/dev/null || sysctl -n hw.ncpu` * 2))" | tee $GITHUB_ENV
+
     - name: Cache bootstrap
       id: cache
       uses: actions/cache@v2
@@ -120,10 +123,17 @@ jobs:
     - name: Configure
       run: ./configure --disable-werror --enable-obsolete-api --enable-hashes=all
 
+    - name: Prepare build script
+      run: |
+        echo '#! /bin/sh' > cov_make.sh
+        echo "make -j${{ env.NPROCS }} all" >> cov_make.sh
+        echo "make -j${{ env.NPROCS }} test-programs" >> cov_make.sh
+        chmod +x cov_make.sh
+
     - name: Build
       run: |
         export PATH=$(cd .. && pwd)/cov-analysis-linux64/bin:$PATH
-        cov-build --dir cov-int make all test-programs
+        cov-build --dir cov-int ./cov_make.sh
         cov-import-scm --dir cov-int --scm git --log cov-int/scm_log.txt
 
     - name: Upload analysis results

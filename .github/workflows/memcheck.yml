@@ -47,6 +47,9 @@ jobs:
       id: build-tools
       run: ./build-aux/ci-log-dependency-versions
 
+    - name: Get nprocs
+      run: echo "NPROCS=$((`nproc --all 2>/dev/null || sysctl -n hw.ncpu` * 2))" | tee $GITHUB_ENV
+
     - name: Cache bootstrap
       id: cache
       uses: actions/cache@v2
@@ -81,10 +84,12 @@ jobs:
       run: ./build-aux/configure-wrapper --enable-obsolete-api --enable-hashes=all --enable-valgrind-memcheck
 
     - name: Build
-      run: make all test-programs
+      run: |
+        make -j${{ env.NPROCS }} all
+        make -j${{ env.NPROCS }} test-programs
 
     - name: Test
-      run: make check-valgrind-memcheck
+      run: make -j${{ env.NPROCS }} check-valgrind-memcheck
 
     - name: Detailed error logs
       if: failure()
@@ -152,10 +157,12 @@ jobs:
       run: ./build-aux/configure-wrapper --enable-obsolete-api --enable-hashes=all
 
     - name: Build
-      run: make all test-programs UNDEF_FLAG=
+      run: |
+        make -j${{ env.NPROCS }} all UNDEF_FLAG=
+        make -j${{ env.NPROCS }} test-programs UNDEF_FLAG=
 
     - name: Test
-      run: make check
+      run: make -j${{ env.NPROCS }} check
 
     - name: Detailed error logs
       if: failure()
