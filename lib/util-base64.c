@@ -1,4 +1,4 @@
-/* Copyright (C) 2018-2019 Björn Esser <besser82@fedoraproject.org>
+/* Copyright (C) 2018-2021 Björn Esser <besser82@fedoraproject.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted.
@@ -21,6 +21,7 @@
 #include "crypt-port.h"
 
 const unsigned char ascii64[65] =
-  "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 /* 0000000000111111111122222222223333333333444444444455555555556666 */
 /* 0123456789012345678901234567890123456789012345678901234567890123 */
+  "\x00";
