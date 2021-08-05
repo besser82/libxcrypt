@@ -18,7 +18,7 @@ jobs:
         with:
           concurrent_skipping: 'same_content_newer'
           skip_after_successful_duplicate: 'true'
-          paths_ignore: '["doc/**", "**/*.md", "AUTHORS", "NEWS", "THANKS"]'
+          paths_ignore: '["doc/**", "**/*.md", ".gitignore", "libxcrypt.spec.rpkg", ".packit.yaml", "rpkg.macros", "AUTHORS", "ChangeLog", "COPYING.LIB", "LICENSING", "NEWS", "README", "THANKS", "TODO"]'
           do_not_skip: '["workflow_dispatch", "schedule"]'
 
   O0-Buildflags:
