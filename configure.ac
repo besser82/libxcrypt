@@ -265,7 +265,7 @@ AX_VALGRIND_CHECK()
 AC_CACHE_CHECK([for Python 3.>=6 with Passlib],
   [ac_cv_path_python3_passlib],
   [AC_PATH_PROGS_FEATURE_CHECK([python3_passlib],
-     [python3 m4_for([minor], 10, 6, -1, [[python3.]minor ]) python],
+     [python3 m4_for([minor], 11, 6, -1, [[python3.]minor ]) python],
      [_AS_ECHO_LOG([trying $ac_path_python3_passlib...])
 AS_IF([$ac_path_python3_passlib -c '
 import sys
