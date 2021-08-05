@@ -1,7 +1,7 @@
 /* High-level libcrypt interfaces.
 
    Copyright 2007-2017 Thorsten Kukuk and Zack Weinberg
-   Copyright 2018-2019 Björn Esser
+   Copyright 2018-2021 Björn Esser
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -110,6 +110,39 @@ get_hashfn (const char *setting)
   return 0;
 }
 
+/* Check a setting string for generic validity, according to the rule
+   stated in crypt(5):
+
+      "Hashed passphrases are always entirely printable ASCII, and do
+      not contain any whitespace or the characters ':', ';', '*', '!',
+      or '\\'.  (These characters are used as delimiters and special
+      markers in the passwd(5) and shadow(5) files.)"
+
+   There is a precautionary case for rejecting additional ASCII
+   punctuation, particularly other characters often given syntactic
+   significance in configuration files, such as " ' and #.  However,
+   this check didn't used to exist at all, and some of the hash
+   function implementations don't restrict the set of byte values they
+   they will accept in their setting strings (particularly in the salt
+   component) either.  Thus, to maintain compatibility with the widest
+   variety of existing hashed passphrases, we are only enforcing the
+   documented rule for now.
+
+   See <https://github.com/besser82/libxcrypt/issues/135> for
+   additional discussion.  */
+static int
+check_badsalt_chars (const char *setting)
+{
+  size_t i;
+
+  for (i = 0; setting[i] != '\0'; i++)
+    if ((unsigned char) setting[i] <= 0x20 ||
+        (unsigned char) setting[i] >= 0x7f)
+      return 1;
+
+  return strcspn (setting, "!*:;\\") != i;
+}
+
 static void
 do_crypt (const char *phrase, const char *setting, struct crypt_data *data)
 {
@@ -128,20 +161,7 @@ do_crypt (const char *phrase, const char *setting, struct crypt_data *data)
       errno = ERANGE;
       return;
     }
-  /* Generically reject setting strings containing characters that should
-     not be present.  In principle this check ought to match the rule
-     stated in crypt(5):
-
-         Hashed passphrases are always entirely printable ASCII, and
-         do not contain any whitespace or the characters ':', ';',
-         '*', '!', or '\\'.  (These characters are used as delimiters
-         and special markers in the passwd(5) and shadow(5) files.)"
-
-     However, individual hash function implementations have not always
-     enforced this rule, so for now we are being cautious and
-     rejecting only ':' and '\n'.  See
-     <https://github.com/besser82/libxcrypt/issues/105>.  */
-  if (strcspn (setting, ":\n") != set_size)
+  if (check_badsalt_chars (setting))
     {
       errno = EINVAL;
       return;
@@ -334,8 +354,9 @@ crypt_checksalt (const char *setting)
 {
   int retval = CRYPT_SALT_INVALID;
 
-  if (!setting ||          /* NULL string */
-      setting[0] == '\0')  /* empty passphrase, or descrypt without salt */
+  if (!setting ||                     /* NULL string */
+      setting[0] == '\0' ||           /* empty passphrase */
+      check_badsalt_chars (setting))  /* bad salt chars */
     goto end;
 
   const struct hashfn *h = get_hashfn (setting);
