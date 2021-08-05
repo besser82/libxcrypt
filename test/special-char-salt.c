@@ -878,9 +878,9 @@ main (void)
         {
           fputs ("FAIL:     ", stderr);
           fprint_not_printable_as_hex (stderr, testcases[i].setting, false);
-          fputs ("\nexpected: %s", stderr);
+          fputs ("\nexpected: ", stderr);
           fprint_not_printable_as_hex (stderr, testcases[i].expected, false);
-          fputs ("\ngot:      %s", stderr);
+          fputs ("\ngot:      ", stderr);
           fprint_not_printable_as_hex (stderr, cd.output, false);
           fputs ("\n\n", stderr);
           ok = false;
