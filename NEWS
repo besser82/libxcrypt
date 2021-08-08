@@ -4,6 +4,12 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.25
+* Add support for Python 3.11 in the configure script.
+* Stricter checking of invalid salt characters (issue #135).
+  Hashed passphrases are always entirely printable ASCII, and do
+  not contain any whitespace or the characters ':', ';', '*', '!',
+  or '\'.  (These characters are used as delimiters and special
+  markers in the passwd(5) and shadow(5) files.)
 
 Version 4.4.24
 * Add hash group for Debian in lib/hashes.conf.
