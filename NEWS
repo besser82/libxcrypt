@@ -3,6 +3,8 @@ libxcrypt NEWS -- history of user-visible changes.
 Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
+Version 4.4.26
+
 Version 4.4.25
 * Add support for Python 3.11 in the configure script.
 * Stricter checking of invalid salt characters (issue #135).
