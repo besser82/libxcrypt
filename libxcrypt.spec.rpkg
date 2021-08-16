@@ -310,6 +310,7 @@ pushd %{_vpath_builddir}
   --enable-obsolete-api-enosys=%{enosys_stubs}
 %endif
 %make_build
+%make_build test-programs
 popd
 
 %if %{with compat_pkg}
@@ -323,6 +324,7 @@ pushd %{_vpath_builddir}-compat
   --enable-obsolete-api=%{compat_api}            \
   --enable-obsolete-api-enosys=%{enosys_stubs}
 %make_build
+%make_build test-programs
 popd
 %endif
 
@@ -361,6 +363,7 @@ pushd %{_vpath_builddir}-all_possible_tests
 %endif
 %define _lto_cflags %{system_lto_cflags_bak}
 %make_build
+%make_build test-programs
 popd
 
 
