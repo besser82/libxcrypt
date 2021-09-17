@@ -4,6 +4,8 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.26
+* Fix compilation on systems with GCC >= 10, that do not support
+  declarations with __attribute__((symver)).
 
 Version 4.4.25
 * Add support for Python 3.11 in the configure script.
