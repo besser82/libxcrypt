@@ -64,6 +64,7 @@
 #    warn_unused_result
 #    weak
 #    weakref
+#    symver
 #
 #   Unsupported function attributes will be tested with a prototype
 #   returning an int and not accepting any arguments and the result of the
@@ -219,6 +220,9 @@ AC_DEFUN([AX_GCC_FUNC_ATTRIBUTE], [
                     static int foo( void ) { return 0; }
                     static int bar( void ) __attribute__(($1("foo")));
                 ],
+                [symver], [
+                    __attribute__(($1("foo@2.0"))) void bar( void ) {}
+                ],
                 [
                  m4_warn([syntax], [Unsupported attribute $1, the test may fail])
                  int foo( void ) __attribute__(($1));
@@ -228,7 +232,7 @@ AC_DEFUN([AX_GCC_FUNC_ATTRIBUTE], [
             dnl GCC doesn't exit with an error if an unknown attribute is
             dnl provided but only outputs a warning, so accept the attribute
             dnl only if no warning were issued.
-            [AS_IF([grep -- -Wattributes conftest.err],
+            [AS_IF([grep -q -e -Wattributes -e -Wunknown-attributes -e error -e warning conftest.err],
                 [AS_VAR_SET([ac_var], [no])],
                 [AS_VAR_SET([ac_var], [yes])])],
             [AS_VAR_SET([ac_var], [no])])
