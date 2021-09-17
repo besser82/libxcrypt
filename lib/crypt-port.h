@@ -208,7 +208,7 @@ extern size_t strcpy_or_abort (void *dst, size_t d_size, const void *src);
 
 /* Starting with GCC 10, we can use the symver attribute, which is also
    needed at the point we decide to enable link-time optimization.  */
-# if __GNUC__ >= 10
+# if defined HAVE_FUNC_ATTRIBUTE_SYMVER
 
 /* Set the symbol version for EXTNAME, which uses INTNAME as its
    implementation.  */

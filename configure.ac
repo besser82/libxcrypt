@@ -156,6 +156,7 @@ zw_C_ENDIANNESS
 zw_C_STATIC_ASSERT
 zw_PROG_LD_WRAP
 AX_CHECK_VSCRIPT
+AX_GCC_FUNC_ATTRIBUTE(symver)
 
 # FIXME: This only checks whether the linker accepts either
 # -Wl,-z,defs or -Wl,--no-undefined.  It doesn't check that the switch
