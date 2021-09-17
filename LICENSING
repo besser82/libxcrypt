@@ -102,6 +102,9 @@ source tree.  For specific licensing terms consult the files themselves.
  * Copyright Mike Frysinger; FSF All Permissive License:
    build-aux/ax_require_defined.m4
 
+ * Copyright Gabriele Svelto; FSF All Permissive License:
+   build-aux/ax_gcc_func_attribute.m4
+
  * Copyright Scott James Remnant, Dan Nicholson;
    GPL (v2 or later), with Autoconf exception:
    build-aux/pkg_installdir_compat.m4
