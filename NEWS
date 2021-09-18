@@ -43,7 +43,7 @@ Version 4.4.24
   with libxcrypt, requiring a few tests to be disabled for builds with
   -fsanitize-address.  See commentary in test/crypt-badargs.c for an
   explanation of the conflict, and the commentary in
-  build-aux/zw_detect_asan.m4 for why a configure test is required.
+  build-aux/m4/zw_detect_asan.m4 for why a configure test is required.
 * Fix several issues found by Covscan in the testsuite.  These include:
   - CWE-170: String not null terminated (STRING_NULL)
   - CWE-188: Reliance on integer endianness (INCOMPATIBLE_CAST)

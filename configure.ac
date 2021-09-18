@@ -1,11 +1,11 @@
 # Process this file with autoconf to produce a configure script.
-m4_include([build-aux/zw_automodern.m4])
+m4_include([build-aux/m4/zw_automodern.m4])
 AC_INIT([xcrypt],
         [4.4.27],
         [https://github.com/besser82/libxcrypt/issues],
         [libxcrypt],
         [https://github.com/besser82/libxcrypt])
-AC_CONFIG_MACRO_DIR([build-aux])
+AC_CONFIG_MACRO_DIR([build-aux/m4])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_SRCDIR([lib/crypt.c])
 AC_CONFIG_HEADERS([config.h])

@@ -12,7 +12,7 @@ AUTOMAKE_OPTIONS = \
 	gnits \
 	subdir-objects
 
-ACLOCAL_AMFLAGS = -I build-aux
+ACLOCAL_AMFLAGS = -I build-aux/m4
 
 AM_CPPFLAGS = -I$(srcdir)/lib
 AM_CFLAGS = $(WARN_CFLAGS) $(OPTI_FLAGS)
