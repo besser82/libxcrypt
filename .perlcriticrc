@@ -13,8 +13,8 @@
 #
 # In order to ensure stable lint results, we explicitly enable or
 # disable every single policy from the policy packages we use, and we
-# have an ancillary script (build-aux/check-perlcritic-config) that
-# enforces that _all_ installed policies are mentioned and _all_
+# have an ancillary script (build-aux/scripts/check-perlcritic-config)
+# that enforces that _all_ installed policies are mentioned and _all_
 # mentioned policies are installed.
 
 # Start from the empty set, but with severity maxed.

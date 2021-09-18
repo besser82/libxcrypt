@@ -239,7 +239,7 @@ extern size_t strcpy_or_abort (void *dst, size_t d_size, const void *src);
 
 /* The macros for versioned symbols work differently in this library
    than they do in glibc.  They are mostly auto-generated
-   (see build-aux/gen-crypt-symbol-vers-h)
+   (see build-aux/scripts/gen-crypt-symbol-vers-h)
    and we currently don't support compatibility symbols that need a different
    definition from the default version.
 

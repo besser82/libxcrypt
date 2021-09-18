@@ -26,7 +26,7 @@ use File::Spec::Functions qw(
 use FindBin ();
 use POSIX   ();
 
-use lib "$FindBin::Bin/../build-aux";
+use lib "$FindBin::Bin/../build-aux/scripts";
 ## ProhibitUnusedImport does not notice uses from @EXPORT_OK.
 ## no critic (TooMuchCode::ProhibitUnusedImport)
 use BuildCommon qw(

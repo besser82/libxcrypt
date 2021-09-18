@@ -77,8 +77,10 @@ source tree.  For specific licensing terms consult the files themselves.
    test-badsetting.c, test-crypt-badargs.c, test-getrandom-fallbacks.c,
    test-getrandom-interface.c, test-symbols-compat.sh,
    test-symbols-renames.sh, test-symbols-static.sh,
-   build-aux/gen-crypt-h, build-aux/gen-crypt-symbol-vers-h,
-   build-aux/gen-libcrypt-map, build-aux/skip-if-exec-format-error,
+   build-aux/scripts/gen-crypt-h,
+   build-aux/scripts/gen-crypt-symbol-vers-h,
+   build-aux/scripts/gen-libcrypt-map,
+   build-aux/scripts/skip-if-exec-format-error,
    build-aux/m4/zw_alignment.m4, build-aux/m4/zw_static_assert.m4,
    build-aux/m4/zw_endianness.m4, build-aux/m4/zw_ld_wrap.m4
 

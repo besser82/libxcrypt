@@ -1,7 +1,8 @@
 # This file defines the minimum symbol version number used by the
 # system-provided libcrypt, for each CPU and OS where libxcrypt can be
 # binary backward compatible with it.  See also lib/libcrypt.map.in,
-# build-aux/compute-symver-floor, and build-aux/gen-libcrypt-map.
+# build-aux/scripts/compute-symver-floor, and
+# build-aux/scripts/gen-libcrypt-map.
 #
 # Lines in this file that start with '#' are comments; # is not
 # otherwise significant.  Blank lines are ignored.  All other lines

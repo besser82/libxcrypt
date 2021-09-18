@@ -399,7 +399,7 @@ AC_ARG_ENABLE([hashes],
 )
 # This code must run after $PERL is set.
 hashes_enabled=$(
-    $PERL "$srcdir"/build-aux/expand-selected-hashes \
+    $PERL "$srcdir"/build-aux/scripts/expand-selected-hashes \
           "$srcdir"/lib/hashes.conf \
           "$hashes_selected"
 )
@@ -448,8 +448,8 @@ if test $enable_obsolete_api = 1; then
   AC_MSG_CHECKING([minimum symbol version to use for compatibility symbols])
   SYMVER_FLOOR=$(
     export CC
-    $PERL ${srcdir}/build-aux/compute-symver-floor \
-      ${srcdir}/lib/libcrypt.minver $host_os $host_cpu \
+    $PERL "$srcdir"/build-aux/scripts/compute-symver-floor \
+      "$srcdir"/lib/libcrypt.minver $host_os $host_cpu \
     2>&AS_MESSAGE_LOG_FD
   )
   AC_MSG_RESULT([$SYMVER_FLOOR])
