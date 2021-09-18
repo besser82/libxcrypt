@@ -30,4 +30,4 @@ if [ -d .git ]; then
   run_cmd git clean -dfX
 fi
 
-run_cmd autoreconf -iv -Wall,error
+run_cmd autoreconf -fiv -Wall,error
