@@ -15,27 +15,6 @@ actions:
   post-upstream-clone: "wget https://src.fedoraproject.org/rpms/libxcrypt/raw/main/f/libxcrypt.spec -O libxcrypt.spec"
 
 jobs:
-- job: copr_build
-  trigger: commit
-  metadata:
-    branch: develop
-    list_on_homepage: False
-    targets:
-      - fedora-all-aarch64
-      - fedora-all-i386
-      - fedora-all-ppc64le
-      - fedora-all-x86_64
-
-- job: copr_build
-  trigger: pull_request
-  metadata:
-    list_on_homepage: False
-    targets:
-      - fedora-all-aarch64
-      - fedora-all-i386
-      - fedora-all-ppc64le
-      - fedora-all-x86_64
-
 - job: production_build
   trigger: commit
   metadata:
