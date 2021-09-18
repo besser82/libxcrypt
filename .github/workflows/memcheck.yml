@@ -45,7 +45,7 @@ jobs:
 
     - name: Versions of build tools
       id: build-tools
-      run: ./build-aux/ci-log-dependency-versions
+      run: ./build-aux/ci/ci-log-dependency-versions
 
     - name: Get nprocs
       run: echo "NPROCS=$((`nproc --all 2>/dev/null || sysctl -n hw.ncpu` * 2))" | tee $GITHUB_ENV
@@ -74,7 +74,7 @@ jobs:
       run: ./autogen.sh
 
     - name: Configure
-      run: ./build-aux/configure-wrapper --enable-obsolete-api --enable-hashes=all --enable-valgrind-memcheck
+      run: ./build-aux/ci/configure-wrapper --enable-obsolete-api --enable-hashes=all --enable-valgrind-memcheck
 
     - name: Build
       run: |
@@ -86,7 +86,7 @@ jobs:
 
     - name: Detailed error logs
       if: failure()
-      run: ./build-aux/ci-log-logfiles
+      run: ./build-aux/ci/ci-log-logfiles
 
   ASan-UBSan:
     needs: skip_duplicates
@@ -114,7 +114,7 @@ jobs:
 
     - name: Versions of build tools
       id: build-tools
-      run: ./build-aux/ci-log-dependency-versions
+      run: ./build-aux/ci/ci-log-dependency-versions
 
     - name: Cache bootstrap
       id: cache
@@ -140,7 +140,7 @@ jobs:
       run: ./autogen.sh
 
     - name: Configure
-      run: ./build-aux/configure-wrapper --enable-obsolete-api --enable-hashes=all
+      run: ./build-aux/ci/configure-wrapper --enable-obsolete-api --enable-hashes=all
 
     - name: Build
       run: |
@@ -152,4 +152,4 @@ jobs:
 
     - name: Detailed error logs
       if: failure()
-      run: ./build-aux/ci-log-logfiles
+      run: ./build-aux/ci/ci-log-logfiles

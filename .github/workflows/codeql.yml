@@ -53,7 +53,7 @@ jobs:
 
     - name: Versions of build tools
       id: build-tools
-      run: ./build-aux/ci-log-dependency-versions
+      run: ./build-aux/ci/ci-log-dependency-versions
 
     - name: Get nprocs
       run: echo "NPROCS=$((`nproc --all 2>/dev/null || sysctl -n hw.ncpu` * 2))" | tee $GITHUB_ENV
@@ -94,4 +94,4 @@ jobs:
 
     - name: Detailed error logs
       if: failure()
-      run: ./build-aux/ci-log-logfiles
+      run: ./build-aux/ci/ci-log-logfiles

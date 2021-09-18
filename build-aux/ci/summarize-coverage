@@ -3,7 +3,7 @@ set -e
 
 case "$CC" in
     (*clang*)
-        GCOV=$(pwd)/build-aux/clang-gcov-wrapper ;;
+        GCOV=$(pwd)/build-aux/ci/clang-gcov-wrapper ;;
     (*)
         GCOV=gcov ;;
 esac

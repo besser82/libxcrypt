@@ -66,7 +66,7 @@ jobs:
 
     - name: Versions of build tools
       id: build-tools
-      run: ./build-aux/ci-log-dependency-versions
+      run: ./build-aux/ci/ci-log-dependency-versions
 
     - name: Get nprocs
       run: echo "NPROCS=$((`nproc --all 2>/dev/null || sysctl -n hw.ncpu` * 2))" | tee $GITHUB_ENV
@@ -106,7 +106,7 @@ jobs:
       run: make -j${{ env.NPROCS }} check
 
     - name: Summarize coverage data
-      run: ./build-aux/summarize-coverage coverage.info
+      run: ./build-aux/ci/summarize-coverage coverage.info
 
     - name: Upload coverage data to Codecov
       uses: codecov/codecov-action@v2
@@ -116,4 +116,4 @@ jobs:
 
     - name: Detailed error logs
       if: failure()
-      run: ./build-aux/ci-log-logfiles
+      run: ./build-aux/ci/ci-log-logfiles
