@@ -6,7 +6,7 @@ AC_INIT([xcrypt],
         [libxcrypt],
         [https://github.com/besser82/libxcrypt])
 AC_CONFIG_MACRO_DIR([build-aux/m4])
-AC_CONFIG_AUX_DIR([build-aux])
+AC_CONFIG_AUX_DIR([build-aux/m4-autogen])
 AC_CONFIG_SRCDIR([lib/crypt.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
