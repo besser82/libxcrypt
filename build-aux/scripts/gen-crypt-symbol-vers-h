@@ -60,6 +60,26 @@ EOT
             $sym->included && !$sym->compat_only;
     }
 
+    if (defined $ENV{"DO_NOT_GENERATE_SYMVERS"}) {
+        print <<'EOT';
+
+#endif
+
+/* We are building this library with no symbol versioning
+   enabled, so let's define all macros for SYMVER_ to do
+   nothing. */
+EOT
+        for my $sym (@{$symvers->symbols}) {
+            my $name = $sym->name;
+            print "#define SYMVER_$name symver_nop()\n";
+        }
+        print <<'EOT';
+#endif
+EOT
+        close STDOUT or die "write error: $!\n";
+        return;
+    }
+
     print <<'EOT';
 
 #endif
