@@ -513,6 +513,14 @@ fi
 AC_SUBST([SYMVER_FLOOR])
 AC_SUBST([SYMVER_MIN])
 
+# If symbol versioning is disabled for any reason, we should not rely on
+# versioned symbols in the testsuite.
+have_symver=0
+if test x$ax_check_vscript_flag != x; then have_symver=1; fi
+
+AC_DEFINE_UNQUOTED([HAVE_SYMVER], [$have_symver],
+  [Define as 1 if symbol versioning is enabled and applied.])
+
 # If we are not building the obsolete APIs then we shouldn't install
 # xcrypt.h or the compatibility symlinks either.
 if test $enable_obsolete_api = 0; then enable_xcrypt_compat_files=0; fi

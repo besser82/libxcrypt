@@ -156,6 +156,9 @@ libcrypt_la_LDFLAGS = -version-info $(libcrypt_la_VERSION)
 
 if HAVE_VSCRIPT
 libcrypt_la_LDFLAGS += $(VSCRIPT_LDFLAGS),$(builddir)/libcrypt.map
+APPLY_SYMVERS = yes
+else
+APPLY_SYMVERS = no
 endif
 
 libcrypt_la_LDFLAGS += $(UNDEF_FLAG) $(TEXT_RELOC_FLAG) $(AM_LDFLAGS)
@@ -224,6 +227,7 @@ crypt-symbol-vers.h.stamp: \
 		lib/libcrypt.map.in Makefile
 	$(AM_V_GENS)LC_ALL=C $(PERL) \
 	  $(SCRIPTS_AUX)/gen-crypt-symbol-vers-h \
+	  $(APPLY_SYMVERS) \
 	  SYMVER_MIN=$(SYMVER_MIN) \
 	  SYMVER_FLOOR=$(SYMVER_FLOOR) \
 	  COMPAT_ABI=$(COMPAT_ABI) \

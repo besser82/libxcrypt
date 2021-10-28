@@ -30,7 +30,7 @@ use BuildCommon qw(
 );
 
 sub output {
-    my ($symvers) = @_;
+    my ($apply_symvers, $symvers) = @_;
     my $basemap = $symvers->basemap;
     print "/* Generated from $basemap by ${FindBin::Script}.  "
         . "DO NOT EDIT.  */\n";
@@ -58,6 +58,26 @@ EOT
         printf "#define INCLUDE_%-*s %d\n",
             $symvers->max_symlen, $sym->name,
             $sym->included && !$sym->compat_only;
+    }
+
+    if ($apply_symvers =~ m/no/) {
+        print <<'EOT';
+
+#endif
+
+/* We are building this library with no symbol versioning
+   enabled, so let's define all macros for SYMVER_ to do
+   nothing. */
+EOT
+        for my $sym (@{$symvers->symbols}) {
+            my $name = $sym->name;
+            print "#define SYMVER_$name symver_nop()\n";
+        }
+        print <<'EOT';
+#endif
+EOT
+        close STDOUT or die "write error: $!\n";
+        return;
     }
 
     print <<'EOT';
@@ -122,7 +142,7 @@ EOT
 # Main
 #
 exit 0 if eval {
-    output(parse_version_map_in(@ARGV));
+    output($ARGV[0], parse_version_map_in(@ARGV[1 .. 4]));
     1;
 };
 

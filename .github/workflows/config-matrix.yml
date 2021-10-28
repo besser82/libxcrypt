@@ -37,6 +37,7 @@ jobs:
         - "--enable-obsolete-api --enable-hashes=all --enable-obsolete-api-enosys"
         - "--enable-obsolete-api --enable-hashes=all --disable-failure-tokens"
         - "--enable-obsolete-api --enable-hashes=all --enable-obsolete-api-enosys --disable-failure-tokens"
+        - "--enable-obsolete-api --enable-hashes=all --disable-symvers"
         - "--enable-obsolete-api --enable-hashes=glibc"
         - "--enable-obsolete-api=glibc --enable-hashes=strong,glibc"
 
@@ -47,6 +48,7 @@ jobs:
         - "--disable-obsolete-api --enable-hashes=all --disable-shared"
         - "--disable-obsolete-api --enable-hashes=all --disable-static"
         - "--disable-obsolete-api --enable-hashes=all --disable-failure-tokens"
+        - "--disable-obsolete-api --enable-hashes=all --disable-symvers"
         - "--disable-obsolete-api --enable-hashes=strong"
 
         # Configurations with only one hash enabled.  These exist to

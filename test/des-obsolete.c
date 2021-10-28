@@ -16,8 +16,10 @@
 #include <errno.h>
 #endif
 
+#if HAVE_SYMVER
 symver_ref("encrypt", encrypt, SYMVER_FLOOR);
 symver_ref("setkey", setkey, SYMVER_FLOOR);
+#endif
 
 static void
 expand (unsigned char ex[64], const unsigned char pk[8])
