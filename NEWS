@@ -4,6 +4,9 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.27
+* Limit the maximum amount of rbytes to 64 bytes (512 bits) for
+  yescrypt, gost-yescrypt, and scrypt.  Also reflect this limit
+  in the documentation (issue #145).
 
 Version 4.4.26
 * Fix compilation on systems with GCC >= 10, that do not support
