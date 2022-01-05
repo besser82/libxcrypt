@@ -6,7 +6,7 @@ generate_secure_token() {
 
 dump_log () {
     if [ -s "$1" ]; then
-        local stop_command_token="$(generate_secure_token)"
+        stop_command_token="$(generate_secure_token)"
         echo "::group::$1"
         echo "::stop-commands::$stop_command_token"
         cat "$1"
