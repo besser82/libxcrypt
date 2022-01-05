@@ -1,12 +1,18 @@
 #! /bin/sh
 
+generate_secure_token() {
+    echo head --bytes 64 /dev/urandom | sha512sum --binary | cut --fields 1 --delimiter ' '
+}
+
 dump_log () {
     if [ -s "$1" ]; then
+        local stop_command_token="$(generate_secure_token)"
         echo "::group::$1"
-        echo '::stop-commands::resume-50YEO1zJ8HSXH4Zy'
+        echo "::stop-commands::$stop_command_token"
         cat "$1"
-        echo '::resume-50YEO1zJ8HSXH4Zy::'
+        echo "::$stop_command_token::"
         echo '::endgroup::'
+        unset stop_command_token
     fi
 }
 
