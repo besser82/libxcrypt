@@ -17,6 +17,6 @@ dump_log () {
 }
 
 dump_log config.log
-for ts in $(find . -name 'test-suite*.log' -printf '%P\n'); do
+find . -name 'test-suite*.log' -printf '%P\n' | while read -r ts; do
     dump_log "$ts"
 done
