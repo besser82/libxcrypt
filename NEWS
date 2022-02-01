@@ -3,6 +3,8 @@ libxcrypt NEWS -- history of user-visible changes.
 Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
+Version 4.4.29
+
 Version 4.4.28
 * Add glibc-on-or1k (OpenRISC 1000) entry to libcrypt.minver.
   This was added in GNU libc 2.35.
