@@ -48,7 +48,7 @@
 
 
 # First version of glibc built without libcrypt.
-%global glibc_minver     2.27
+%global glibc_minver     2.28
 
 
 # The libxcrypt-devel package conflicts with out-dated manuals
@@ -138,7 +138,7 @@ BuildRequires:  make
 BuildRequires:  perl-core
 
 # We do not need to keep this forever.
-%if !(0%{?fedora} > 31 || 0%{?rhel} > 10)
+%if !(0%{?fedora} > 31 || 0%{?rhel} > 9)
 # Inherited from former libcrypt package.
 Obsoletes:      libcrypt-nss           < %{glibc_minver}
 Provides:       libcrypt-nss           = %{glibc_minver}
@@ -160,8 +160,10 @@ Provides:       %{name}-common         = %{version}-%{release}
 Obsoletes:      %{name}-compat         < %{version}-%{release}
 %endif
 
+%if !(0%{?fedora} > 34 || 0%{?rhel} > 9)
 # We need a version of glibc, that doesn't build libcrypt anymore.
 Requires:       glibc%{?_isa}         >= %{glibc_minver}
+%endif
 
 %if 0%{?fedora} >= 30
 Recommends:     mkpasswd
@@ -197,7 +199,11 @@ Summary:        Compatibility library providing legacy API functions
 BuildRequires:  libxcrypt-compat
 
 Requires:       %{name}%{?_isa}        = %{version}-%{release}
+
+%if !(0%{?fedora} > 34 || 0%{?rhel} > 9)
+# We need a version of glibc, that doesn't build libcrypt anymore.
 Requires:       glibc%{?_isa}         >= %{glibc_minver}
+%endif
 
 %description    compat
 This package contains the library providing the compatibility API
@@ -272,7 +278,7 @@ This version of the libcrypt.so.1 library has entirely removed
 the functionality of the encrypt, encrypt_r, setkey, setkey_r,
 and fcrypt functions, while keeping fully binary compatibility
 with existing (third-party) applications possibly still using
-those functions.  If such an application attempts to call one of
+those funtions.  If such an application attemps to call one of
 these functions, the corresponding function will indicate that
 it is not supported by the system in a POSIX-compliant way.
 
