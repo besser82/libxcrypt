@@ -2,6 +2,15 @@ The yescrypt code comes from yescrypt by Solar Designer <solar at
 openwall.com>. It builds upon Colin Percival's scrypt.
 See: http://openwall.com/yescrypt/ for reference.
 
+The Argon2 hash module use an independent implementation by Mattias
+Andrée of the Argon2 algorithm by Alex Biryukov, Daniel Dinu, and
+Dmitry Khovratovich (see https://github.com/P-H-C/phc-winner-argon2
+for referenced) as well as the underlying BLAKE2b algorithm by
+Jean-Philippe Aumasson, Samuel Neves, Zooko Wilcox-O'Hearn, Christian
+Winnerlein. The Argon2 hash modules uses libar2simplified and
+libar2 which depend on libblake for the BLAKE2b implementation.
+These libraries are licensed under the ISC license.
+
 The bcrypt hash module comes from crypt_blowfish, originally written
 by Solar Designer <solar at openwall.com> and based on algorithms and
 ideas by Niels Provos <provos at citi.umich.edu> and David Mazieres

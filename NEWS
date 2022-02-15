@@ -3,7 +3,9 @@ libxcrypt NEWS -- history of user-visible changes.
 Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
-Version 4.4.29
+Version 4.5.0
+* Implement Argon2 ($argon2i$, $argon2d$, $argon2id$, $argon2ds$)
+  hashing algorithms.
 
 Version 4.4.28
 * Add glibc-on-or1k (OpenRISC 1000) entry to libcrypt.minver.
