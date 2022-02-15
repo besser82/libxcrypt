@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 m4_include([build-aux/m4/zw_automodern.m4])
 AC_INIT([xcrypt],
-        [4.4.29],
+        [4.5.0],
         [https://github.com/besser82/libxcrypt/issues],
         [libxcrypt],
         [https://github.com/besser82/libxcrypt])
@@ -426,6 +426,28 @@ case "$hashes_enabled" in
        fi
        ;;
 esac
+
+
+# The Argon2 hash module requires libar2simplified, libar2, libblake, and libpthread.
+case "$hashes_enabled" in
+    *,argon2*)
+       AC_SEARCH_LIBS([libar2simplified_init_context], [ar2simplified])
+       if test x"$ac_cv_search_libar2simplified_init_context" = xno; then
+         AC_MSG_ERROR([Could not find libar2simplified version 1.1+, required for the Argon2 hash module])
+       fi
+       AC_SEARCH_LIBS([libar2_hash_buf_size], [ar2])
+       if test x"$ac_cv_search_libar2_hash_buf_size" = xno; then
+         AC_MSG_ERROR([Could not find libar2 version 1.1+, required for the Argon2 hash module])
+       fi
+       AC_SEARCH_LIBS([libblake_blake2b_init], [blake])
+       if test x"$ac_cv_search_libblake_blake2b_init" = xno; then
+         AC_MSG_ERROR([Could not find libblake, required for the Argon2 hash module])
+       fi
+       AX_PTHREAD
+       ;;
+esac
+
+
 
 # If the obsolete APIs are disabled, the stubs implicitly disabled as well.
 if test x"$COMPAT_ABI" = xno && test x"$enable_obsolete_api_enosys" = x1; then

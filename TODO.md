@@ -35,7 +35,6 @@ It was last updated 20 October 2018.
     whether we can use these.
 
 * Additional hashing methods
-  * Argon2 <https://password-hashing.net/>
   * ...?
 
 * Runtime configurability (in progress on the [crypt.conf branch][])

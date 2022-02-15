@@ -64,6 +64,7 @@ test/bigcrypt
 test/byteorder
 test/checksalt
 test/compile-strong-alias
+test/crypt-argon2
 test/crypt-badargs
 test/crypt-bcrypt
 test/crypt-des

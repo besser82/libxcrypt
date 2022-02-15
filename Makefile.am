@@ -110,6 +110,7 @@ libcrypt_la_SOURCES = \
 	lib/alg-sha512.c \
 	lib/alg-yescrypt-common.c \
 	lib/alg-yescrypt-opt.c \
+	lib/crypt-argon2.c \
 	lib/crypt-bcrypt.c \
 	lib/crypt-des.c \
 	lib/crypt-gensalt-static.c \
@@ -369,6 +370,7 @@ check_PROGRAMS = \
 	test/byteorder \
 	test/checksalt \
 	test/compile-strong-alias \
+	test/crypt-argon2 \
 	test/crypt-badargs \
 	test/crypt-gost-yescrypt \
 	test/explicit-bzero \
