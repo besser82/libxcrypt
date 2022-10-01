@@ -290,6 +290,39 @@ fi
 AC_SUBST([PYTHON])
 AM_CONDITIONAL([ENABLE_KA_TABLE_GEN], [test x"$PYTHON" != "xfalse"])
 
+# The ucontext.h functions that we use were withdrawn from
+# POSIX.1-2008, so the existence of the header does not prove
+# we can use the functions.
+AS_IF([test $ac_cv_header_ucontext_h = yes],
+  [AC_CACHE_CHECK([whether all ucontext.h functions are available],
+     [ac_cv_header_ucontext_h_fns_available],
+     [AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+// This code isn't intended to make sense; it just validates the
+// type signature of all four context functions, and avoids tripping
+// any of the many warnings we may have active.
+#include <ucontext.h>
+static int x;
+static void fn1(void) {}
+static void fn2(int a, int b) { x = a - b; }
+]], [[
+  ucontext_t uc1, uc2;
+  if (getcontext(&uc1)) return 1;
+  if (setcontext(&uc1)) return 1;
+  makecontext(&uc1, fn1, 0);
+  makecontext(&uc2, fn2, 2, 1, 1);
+  if (swapcontext(&uc1, &uc2)) return 1;
+  return x;
+]])],
+        [ac_cv_header_ucontext_h_fns_available=yes],
+        [ac_cv_header_ucontext_h_fns_available=no])])],
+  [ac_cv_header_ucontext_h_fns_available=no])
+
+if test $ac_cv_header_ucontext_h_fns_available = yes; then
+  AC_DEFINE([USE_SWAPCONTEXT], 1,
+    [Define to 1 if getcontext, setcontext, makecontext, and swapcontext are
+     available from ucontext.h without deprecation warnings.])
+fi
+
 # Configure options.
 AC_ARG_ENABLE([failure-tokens],
     AS_HELP_STRING(
