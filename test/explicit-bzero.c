@@ -40,7 +40,7 @@
 
 #include "crypt-port.h"
 
-#ifndef HAVE_UCONTEXT_H
+#ifndef USE_SWAPCONTEXT
 /* We can't do this test if we don't have the ucontext API.  */
 int main(void)
 {
