@@ -3,6 +3,8 @@ libxcrypt NEWS -- history of user-visible changes.
 Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
+Version 4.4.30
+
 Version 4.4.29
 * Add glibc-on-loongarch-lp64 (Loongson LA464 / LA664) entry to
   libcrypt.minver.  This was added in GNU libc 2.36.
