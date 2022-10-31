@@ -4,6 +4,8 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.29
+* Add glibc-on-loongarch-lp64 (Loongson LA464 / LA664) entry to
+  libcrypt.minver.  This was added in GNU libc 2.36.
 
 Version 4.4.28
 * Add glibc-on-or1k (OpenRISC 1000) entry to libcrypt.minver.
