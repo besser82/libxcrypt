@@ -4,6 +4,18 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.30
+* configure: Restore ucontext api functionality check.
+  In c3f01c72b303cbbb0cc8983120677edee2f3fa4b the use of the ucontext api
+  in the main program was removed, and with it the configure check for it.
+  However, the ucontext api is still used in the "explicit_bzero" test and
+  thus this test still needs to be in place.
+  See also: https://bugs.gentoo.org/838172
+* configure: Restore the functionality of the '--disable-symvers' switch.
+  Without this fix the build was simply broken, if symbol versioning was
+  disabled for any reason, e.g. whether the compiler nor the linker
+  supporting it, or if disabled on purpose by the user (issue #142).
+* Fix variable name in crypt(3) for a datamember of 'struct crypt_data'
+  (issue #153).
 
 Version 4.4.29
 * Add glibc-on-loongarch-lp64 (Loongson LA464 / LA664) entry to
