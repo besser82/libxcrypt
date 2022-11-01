@@ -3,6 +3,8 @@ libxcrypt NEWS -- history of user-visible changes.
 Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
+Version 4.4.31
+
 Version 4.4.30
 * configure: Restore ucontext api functionality check.
   In c3f01c72b303cbbb0cc8983120677edee2f3fa4b the use of the ucontext api
