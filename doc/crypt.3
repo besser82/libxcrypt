@@ -90,7 +90,7 @@ It has at least these fields:
 struct crypt_data {
     char output[CRYPT_OUTPUT_SIZE];
     char setting[CRYPT_OUTPUT_SIZE];
-    char phrase[CRYPT_MAX_PASSPHRASE_SIZE];
+    char input[CRYPT_MAX_PASSPHRASE_SIZE];
     char initialized;
 };
 .Ed
@@ -100,11 +100,11 @@ Upon a successful return from
 the hashed passphrase will be stored in
 .Fa output .
 Applications are encouraged, but not required, to use the
-.Fa phrase
+.Fa input
 and
 .Fa setting
 fields to store the strings that they will pass as
-.Fa phrase
+.Fa input phrase
 and
 .Fa setting
 to
@@ -126,7 +126,7 @@ before the first use.
 (Of course, do this before storing anything in
 .Fa setting
 and
-.Fa phrase . )
+.Fa input . )
 .Pp
 The
 .Fa data
@@ -143,7 +143,7 @@ When used with
 the entire
 .Fa data
 object (except for the
-.Fa phrase
+.Fa input
 and
 .Fa setting
 fields) must be zeroed before its first use;
