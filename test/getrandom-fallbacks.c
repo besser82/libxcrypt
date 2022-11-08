@@ -77,7 +77,7 @@ __wrap_getrandom (void *buf, size_t buflen, unsigned int ARG_UNUSED(flags))
     }
   else
     {
-      buflen = MIN (buflen, SSIZE_MAX);
+      buflen = MIN (buflen, INT16_MAX);
       memset (buf, MOCK_getrandom, buflen);
       return (ssize_t)buflen;
     }
@@ -130,7 +130,7 @@ __wrap_syscall(long number, ...)
           va_start (ap, number);
           void *buf = va_arg (ap, void *);
           size_t buflen = va_arg (ap, size_t);
-          buflen = MIN (buflen, SSIZE_MAX);
+          buflen = MIN (buflen, INT16_MAX);
           va_end (ap);
           memset (buf, MOCK_sys_getrandom, buflen);
           return (ssize_t)buflen;
@@ -205,7 +205,7 @@ __wrap_read (int fd, void *buf, size_t count)
         }
       else
         {
-          count = MIN (count, SSIZE_MAX);
+          count = MIN (count, INT16_MAX);
           memset (buf, MOCK_urandom, count);
           return (ssize_t)count;
         }
