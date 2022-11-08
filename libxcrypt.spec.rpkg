@@ -351,7 +351,10 @@ unset LT_SYS_LIBRARY_PATH
 
 # Build a library suitable for all possible tests.
 pushd %{_vpath_builddir}-all_possible_tests
+# Disable arc4random_buf on purpose, so we are able
+# to run test/getrandom-fallback from testsuite.
 %configure                                       \
+ac_cv_func_arc4random_buf=no                     \
 %if %{with compat_pkg}
   %{common_configure_options}                    \
   --enable-hashes=all                            \
