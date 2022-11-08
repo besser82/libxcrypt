@@ -514,7 +514,7 @@ static volatile uint64_t Smask2var = Smask2;
 #define PWXFORM_SIMD(X) { \
 	uint64_t x; \
 	FORCE_REGALLOC_1 \
-	uint32_t lo = (uint32_t)(x = EXTRACT64(X) & Smask2reg); \
+	uint32_t lo = (uint32_t)(x = ((uint64_t)EXTRACT64(X)) & Smask2reg); \
 	FORCE_REGALLOC_2 \
 	uint32_t hi = x >> 32; \
 	X = _mm_mul_epu32(HI32(X), X); \
