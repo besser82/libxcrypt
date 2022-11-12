@@ -3,6 +3,8 @@ libxcrypt NEWS -- history of user-visible changes.
 Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
+Version 4.4.32
+
 Version 4.4.31
 * Fix -Werror=conversion in lib/alg-yescrypt-opt.c (issue #162).
 * Add some SHA-2 Maj() optimization in lib/alg-sha256.c.
