@@ -4,6 +4,11 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.31
+* Fix -Werror=conversion in lib/alg-yescrypt-opt.c (issue #162).
+* Add some SHA-2 Maj() optimization in lib/alg-sha256.c.
+* Fix issues found by Covscan in test/getrandom-fallback.c.
+* Fix -Werror=strict-overflow in lib/crypt-des.c, which is seen
+  by GCC 12.x (issues #155 and #163).
 
 Version 4.4.30
 * configure: Restore ucontext api functionality check.
