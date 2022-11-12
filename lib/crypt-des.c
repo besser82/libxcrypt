@@ -114,7 +114,7 @@ des_gen_hash (struct des_ctx *ctx, uint32_t count, uint8_t *output,
       c1 = *sptr++;
       *output++ = ascii64[c1 >> 2];
       c1 = (c1 & 0x03) << 4;
-      if (sptr >= end)
+      if (end - sptr <= 0)
         {
           *output++ = ascii64[c1];
           break;
@@ -124,7 +124,7 @@ des_gen_hash (struct des_ctx *ctx, uint32_t count, uint8_t *output,
       c1 |= c2 >> 4;
       *output++ = ascii64[c1];
       c1 = (c2 & 0x0f) << 2;
-      if (sptr >= end)
+      if (end - sptr <= 0)
         {
           *output++ = ascii64[c1];
           break;
@@ -135,7 +135,7 @@ des_gen_hash (struct des_ctx *ctx, uint32_t count, uint8_t *output,
       *output++ = ascii64[c1];
       *output++ = ascii64[c2 & 0x3f];
     }
-  while (sptr < end);
+  while (end - sptr > 0);
   *output = '\0';
 }
 #endif
