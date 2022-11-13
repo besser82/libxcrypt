@@ -6,7 +6,8 @@ Please send bug reports, questions and suggestions to
 Version 4.4.32
 
 Version 4.4.31
-* Fix -Werror=conversion in lib/alg-yescrypt-opt.c (issue #162).
+* Fix -Werror=conversion in lib/alg-yescrypt-opt.c
+  (issues #161 and #162).
 * Add some SHA-2 Maj() optimization in lib/alg-sha256.c.
 * Fix issues found by Covscan in test/getrandom-fallback.c.
 * Fix -Werror=strict-overflow in lib/crypt-des.c, which is seen
