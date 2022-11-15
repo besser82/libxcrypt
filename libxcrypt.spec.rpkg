@@ -135,7 +135,10 @@ BuildRequires:  gcc
 BuildRequires:  glibc-devel           >= %{glibc_minver}
 BuildRequires:  libtool
 BuildRequires:  make
-BuildRequires:  perl-core
+BuildRequires:  perl-interpreter
+BuildRequires:  perl(FindBin)
+BuildRequires:  perl(lib)
+BuildRequires:  perl(open)
 
 # We do not need to keep this forever.
 %if !(0%{?fedora} > 31 || 0%{?rhel} > 9)
