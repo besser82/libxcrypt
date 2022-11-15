@@ -132,13 +132,23 @@ Source0:        {{{ git_dir_pack }}}
 BuildRequires:  autoconf
 BuildRequires:  automake
 BuildRequires:  gcc
-BuildRequires:  glibc-devel           >= %{glibc_minver}
+BuildRequires:  glibc-devel                  >= %{glibc_minver}
 BuildRequires:  libtool
 BuildRequires:  make
 BuildRequires:  perl-interpreter
+BuildRequires:  perl(Class::Struct)
+BuildRequires:  perl(Cwd)
+BuildRequires:  perl(Exporter)
+BuildRequires:  perl(File::Spec::Functions)
+BuildRequires:  perl(File::Temp)
 BuildRequires:  perl(FindBin)
+BuildRequires:  perl(if)
 BuildRequires:  perl(lib)
 BuildRequires:  perl(open)
+BuildRequires:  perl(POSIX)
+BuildRequires:  perl(utf8)
+BuildRequires:  perl(:VERSION)               >= 5.14.0
+BuildRequires:  perl(warnings)
 
 # We do not need to keep this forever.
 %if !(0%{?fedora} > 31 || 0%{?rhel} > 9)
