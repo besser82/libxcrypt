@@ -51,6 +51,10 @@
 %global glibc_minver     2.28
 
 
+# Minimum version of Perl needed for some build-scripts.
+%global perl_minver      5.14
+
+
 # The libxcrypt-devel package conflicts with out-dated manuals
 # shipped with the man-pages packages *before* this EVR.
 %global man_pages_minver 4.15-3
@@ -135,7 +139,7 @@ BuildRequires:  gcc
 BuildRequires:  glibc-devel                  >= %{glibc_minver}
 BuildRequires:  libtool
 BuildRequires:  make
-BuildRequires:  perl-interpreter             >= 5.14.0
+BuildRequires:  perl-interpreter             >= %{perl_minver}
 BuildRequires:  perl(Class::Struct)
 BuildRequires:  perl(Cwd)
 BuildRequires:  perl(Exporter)
@@ -149,6 +153,7 @@ BuildRequires:  perl(open)
 BuildRequires:  perl(POSIX)
 BuildRequires:  perl(Symbol)
 BuildRequires:  perl(utf8)
+BuildRequires:  perl(:VERSION)               >= %{perl_minver}
 BuildRequires:  perl(warnings)
 
 # We do not need to keep this forever.
