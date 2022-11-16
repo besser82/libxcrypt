@@ -135,7 +135,7 @@ BuildRequires:  gcc
 BuildRequires:  glibc-devel                  >= %{glibc_minver}
 BuildRequires:  libtool
 BuildRequires:  make
-BuildRequires:  perl-interpreter
+BuildRequires:  perl-interpreter             >= 5.14.0
 BuildRequires:  perl(Class::Struct)
 BuildRequires:  perl(Cwd)
 BuildRequires:  perl(Exporter)
@@ -149,7 +149,6 @@ BuildRequires:  perl(open)
 BuildRequires:  perl(POSIX)
 BuildRequires:  perl(Symbol)
 BuildRequires:  perl(utf8)
-BuildRequires:  perl(:VERSION)               >= 5.14.0
 BuildRequires:  perl(warnings)
 
 # We do not need to keep this forever.
