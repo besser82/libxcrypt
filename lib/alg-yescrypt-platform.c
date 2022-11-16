@@ -1,5 +1,5 @@
 /*-
- * Copyright 2013-2018 Alexander Peslyak
+ * Copyright 2013-2018,2022 Alexander Peslyak
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -21,6 +21,9 @@
 #ifdef __unix__
 #include <sys/mman.h>
 #endif
+#ifdef __linux__
+#include <linux/mman.h> /* for MAP_HUGE_2MB */
+#endif
 
 #define HUGEPAGE_THRESHOLD		(32 * 1024 * 1024)
 
@@ -40,11 +43,11 @@ static void *alloc_region(yescrypt_region_t *region, size_t size)
 	    MAP_NOCORE |
 #endif
 	    MAP_ANON | MAP_PRIVATE;
-#if defined(MAP_HUGETLB) && defined(HUGEPAGE_SIZE)
+#if defined(MAP_HUGETLB) && defined(MAP_HUGE_2MB) && defined(HUGEPAGE_SIZE)
 	size_t new_size = size;
 	const size_t hugepage_mask = (size_t)HUGEPAGE_SIZE - 1;
 	if (size >= HUGEPAGE_THRESHOLD && size + hugepage_mask >= size) {
-		flags |= MAP_HUGETLB;
+		flags |= MAP_HUGETLB | MAP_HUGE_2MB;
 /*
  * Linux's munmap() fails on MAP_HUGETLB mappings if size is not a multiple of
  * huge page size, so let's round up to huge page size here.
@@ -56,7 +59,7 @@ static void *alloc_region(yescrypt_region_t *region, size_t size)
 	if (base != MAP_FAILED) {
 		base_size = new_size;
 	} else if (flags & MAP_HUGETLB) {
-		flags &= ~MAP_HUGETLB;
+		flags &= ~(MAP_HUGETLB | MAP_HUGE_2MB);
 		base = mmap(NULL, size, PROT_READ | PROT_WRITE, flags, -1, 0);
 	}
 
