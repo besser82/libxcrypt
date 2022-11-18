@@ -4,6 +4,10 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.33
+* Fix -Werror=sign-conversion in lib/alg-yescrypt-platform.c.
+  With commit 894aee75433b4dc8d9724b126da6e79fa5f6814b we introduced some
+  changes to huge page handling, that show this error when building with
+  GCC v12.2.1, and thus need a small fix.
 
 Version 4.4.32
 * Improvements to huge page handling in lib/alg-yescrypt-platform.c.
