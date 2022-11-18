@@ -38,7 +38,7 @@ static void *alloc_region(yescrypt_region_t *region, size_t size)
 	size_t base_size = size;
 	uint8_t *base, *aligned;
 #ifdef MAP_ANON
-	int flags =
+	unsigned int flags =
 #ifdef MAP_NOCORE
 	    MAP_NOCORE |
 #endif
@@ -47,7 +47,7 @@ static void *alloc_region(yescrypt_region_t *region, size_t size)
 	size_t new_size = size;
 	const size_t hugepage_mask = (size_t)HUGEPAGE_SIZE - 1;
 	if (size >= HUGEPAGE_THRESHOLD && size + hugepage_mask >= size) {
-		flags |= (int)(MAP_HUGETLB | MAP_HUGE_2MB);
+		flags |= MAP_HUGETLB | MAP_HUGE_2MB;
 /*
  * Linux's munmap() fails on MAP_HUGETLB mappings if size is not a multiple of
  * huge page size, so let's round up to huge page size here.
@@ -55,16 +55,16 @@ static void *alloc_region(yescrypt_region_t *region, size_t size)
 		new_size = size + hugepage_mask;
 		new_size &= ~hugepage_mask;
 	}
-	base = mmap(NULL, new_size, PROT_READ | PROT_WRITE, flags, -1, 0);
+	base = mmap(NULL, new_size, PROT_READ | PROT_WRITE, (int)flags, -1, 0);
 	if (base != MAP_FAILED) {
 		base_size = new_size;
 	} else if (flags & MAP_HUGETLB) {
-		flags &= ~(int)(MAP_HUGETLB | MAP_HUGE_2MB);
-		base = mmap(NULL, size, PROT_READ | PROT_WRITE, flags, -1, 0);
+		flags &= (unsigned int)~(MAP_HUGETLB | MAP_HUGE_2MB);
+		base = mmap(NULL, size, PROT_READ | PROT_WRITE, (int)flags, -1, 0);
 	}
 
 #else
-	base = mmap(NULL, size, PROT_READ | PROT_WRITE, flags, -1, 0);
+	base = mmap(NULL, size, PROT_READ | PROT_WRITE, (int)flags, -1, 0);
 #endif
 	if (base == MAP_FAILED)
 		base = NULL;
