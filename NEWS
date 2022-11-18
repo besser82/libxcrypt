@@ -3,6 +3,8 @@ libxcrypt NEWS -- history of user-visible changes.
 Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
+Version 4.4.33
+
 Version 4.4.32
 * Improvements to huge page handling in lib/alg-yescrypt-platform.c.
   When explicitly using huge pages, request the 2 MiB page size.
