@@ -4,6 +4,13 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.32
+* Improvements to huge page handling in lib/alg-yescrypt-platform.c.
+  When explicitly using huge pages, request the 2 MiB page size.
+  This should fix the issue where on a system configured to use 1 GiB
+  huge pages we'd fail on munmap() as we're only rounding the size up
+  to a multiple of 2 MiB.  With the fix, we wouldn't use huge pages on
+  such a system.  Unfortunately, now we also wouldn't use huge pages on
+  Linux kernels too old to have MAP_HUGE_2MB (issue #152).
 
 Version 4.4.31
 * Fix -Werror=conversion in lib/alg-yescrypt-opt.c
