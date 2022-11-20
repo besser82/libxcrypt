@@ -59,7 +59,7 @@ static void *alloc_region(yescrypt_region_t *region, size_t size)
 	if (base != MAP_FAILED) {
 		base_size = new_size;
 	} else if (flags & MAP_HUGETLB) {
-		flags &= (unsigned int)~(MAP_HUGETLB | MAP_HUGE_2MB);
+		flags &= ~(unsigned int)(MAP_HUGETLB | MAP_HUGE_2MB);
 		base = mmap(NULL, size, PROT_READ | PROT_WRITE, (int)flags, -1, 0);
 	}
 
