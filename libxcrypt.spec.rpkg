@@ -127,7 +127,7 @@ Summary:        Extended crypt library for descrypt, md5crypt, bcrypt, and other
 
 # For explicit license breakdown, see the
 # LICENSING file in the source tarball.
-License:        LGPLv2+ and BSD and Public Domain
+License:        LGPL-2.1-or-later AND BSD-3-Clause AND BSD-2-Clause AND BSD-2-Clause-FreeBSD AND 0BSD AND CC0-1.0 AND LicenseRef-Fedora-Public-Domain
 URL:            https://github.com/besser82/%{name}
 VCS:            {{{ git_dir_vcs }}}
 
