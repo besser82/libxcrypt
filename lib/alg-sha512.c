@@ -1,6 +1,7 @@
 /*-
  * Copyright 2005 Colin Percival
  * Copyright (c) 2015 Allan Jude <allanjude@FreeBSD.org>
+ * Copyright 2021, 2022 Alexander Peslyak
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,7 +79,11 @@ static const uint64_t K[80] = {
 
 /* Elementary functions used by SHA512 */
 #define Ch(x, y, z)	((x & (y ^ z)) ^ z)
-#define Maj(x, y, z)	((x & (y | z)) | (y & z))
+#if 1 /* Explicit caching/reuse of common subexpression between rounds */
+#define Maj(x, y, z)	(y ^ ((x_xor_y = x ^ y) & y_xor_z))
+#else /* Let the compiler cache/reuse or not */
+#define Maj(x, y, z)	(y ^ ((x ^ y) & (y ^ z)))
+#endif
 #define SHR(x, n)	(x >> n)
 #define ROTR(x, n)	((x >> n) | (x << (64 - n)))
 #define S0(x)		(ROTR(x, 28) ^ ROTR(x, 34) ^ ROTR(x, 39))
@@ -90,7 +95,8 @@ static const uint64_t K[80] = {
 #define RND(a, b, c, d, e, f, g, h, k)			\
 	h += S1(e) + Ch(e, f, g) + k;			\
 	d += h;						\
-	h += S0(a) + Maj(a, b, c);
+	h += S0(a) + Maj(a, b, c);			\
+	y_xor_z = x_xor_y;
 
 /* Adjusted round function for rotating state */
 #define RNDr(S, W, i, ii)			\
@@ -123,6 +129,7 @@ SHA512_Transform(uint64_t * state, const unsigned char block[SHA512_BLOCK_LENGTH
 
 	/* 3. Mix. */
 	for (i = 0; i < 80; i += 16) {
+		uint64_t x_xor_y, y_xor_z = S[(65 - i) % 8] ^ S[(66 - i) % 8];
 		RNDr(S, W, 0, i);
 		RNDr(S, W, 1, i);
 		RNDr(S, W, 2, i);
