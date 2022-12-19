@@ -141,13 +141,14 @@ Source0:        {{{ git_dir_pack }}}
 
 BuildRequires:  autoconf
 BuildRequires:  automake
+BuildRequires:  coreutils
 BuildRequires:  gcc
 %if 0%{?trans_pkg}
 BuildRequires:  glibc-devel                  >= %{glibc_minver}
 %endif
 BuildRequires:  libtool
 BuildRequires:  make
-BuildRequires:  perl-interpreter
+BuildRequires:  perl(:VERSION)               >= %{perl_minver}
 BuildRequires:  perl(Class::Struct)
 BuildRequires:  perl(Cwd)
 BuildRequires:  perl(Exporter)
@@ -161,8 +162,8 @@ BuildRequires:  perl(open)
 BuildRequires:  perl(POSIX)
 BuildRequires:  perl(Symbol)
 BuildRequires:  perl(utf8)
-BuildRequires:  perl(:VERSION)               >= %{perl_minver}
 BuildRequires:  perl(warnings)
+BuildRequires:  perl-interpreter
 
 # We do not need to keep this forever.
 %if 0%{?trans_pkg}
