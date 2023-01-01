@@ -407,8 +407,8 @@ popd
 %make_install -C %{_vpath_builddir}-compat
 
 # Cleanup everything we do not need from the compatibility library.
-find %{buildroot} -xtype f -not -name 'libcrypt.so.%{csoc}*' -delete -print
-find %{buildroot} -type l -not -name 'libcrypt.so.%{csoc}*' -delete -print
+find %{buildroot}                                               \
+  -not -type d -not -name 'libcrypt.so.%{csoc}*' -delete -print
 %endif
 
 # Install the default system library.
