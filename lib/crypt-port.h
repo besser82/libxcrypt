@@ -201,6 +201,11 @@ extern size_t strcpy_or_abort (void *dst, size_t d_size, const void *src);
   __asm__(".globl _" extstr);                           \
   __asm__(".set _" extstr ", _" #intname)
 
+#elif defined _WIN32
+
+/* .symver is only supported for ELF format, Windows uses COFF/PE */
+# define symver_set(extstr, intname, version, mode)
+
 #elif defined __GNUC__ && __GNUC__ >= 3
 
 # define _strong_alias(name, aliasname) \
