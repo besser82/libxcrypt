@@ -4,6 +4,13 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.34
+* Update build-aux/m4/ax_valgrind_check.m4 to v23.
+* Optimize some cast operation for performance in
+  lib/alg-yescrypt-platform.c.
+* Add SHA-2 Maj() optimization proposed by Wei Dai in lib/alg-sha512.c.
+* Explicitly clean the stack and context state after computation in
+  lib/alg-gost3411-2012-hmac.c, lib/alg-hmac-sha1.c, and lib/alg-sha256.c
+  (issue #168).
 
 Version 4.4.33
 * Fix -Werror=sign-conversion in lib/alg-yescrypt-platform.c.
