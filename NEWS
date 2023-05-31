@@ -3,6 +3,8 @@ libxcrypt NEWS -- history of user-visible changes.
 Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
+Version 4.4.35
+
 Version 4.4.34
 * Update build-aux/m4/ax_valgrind_check.m4 to v23.
 * Optimize some cast operation for performance in
