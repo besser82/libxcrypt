@@ -445,6 +445,9 @@ HMAC_SHA256_Final(uint8_t digest[32], HMAC_SHA256_CTX * ctx)
 	/* Call the real function. */
 	_HMAC_SHA256_Final(digest, ctx, tmp32, ihash);
 
+	/* Clear the context state. */
+	explicit_bzero(ctx, sizeof(HMAC_SHA256_CTX));
+
 	/* Clean the stack. */
 	explicit_bzero(tmp32, 288);
 	explicit_bzero(ihash, 32);
