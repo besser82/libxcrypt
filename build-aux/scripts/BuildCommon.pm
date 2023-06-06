@@ -11,7 +11,6 @@ use v5.14;    # implicit use strict, use feature ':5.14'
 use warnings FATAL => 'all';
 use utf8;
 use open qw(:utf8);
-no  if $] >= 5.018, warnings => 'experimental::smartmatch';
 no  if $] >= 5.022, warnings => 'experimental::re_strict';
 use if $] >= 5.022, re       => 'strict';
 
@@ -519,19 +518,19 @@ sub parse_symver_args {
     my $COMPAT_ABI;
     local $_;
     for (@args) {
-        when (/^SYMVER_MIN=(.+)$/) {
+        if (/^SYMVER_MIN=(.+)$/) {
             $usage_error->() if defined $SYMVER_MIN;
             $SYMVER_MIN = $1;
         }
-        when (/^SYMVER_FLOOR=(.+)$/) {
+        elsif (/^SYMVER_FLOOR=(.+)$/) {
             $usage_error->() if defined $SYMVER_FLOOR;
             $SYMVER_FLOOR = $1;
         }
-        when (/^COMPAT_ABI=(.+)$/) {
+        elsif (/^COMPAT_ABI=(.+)$/) {
             $usage_error->() if defined $COMPAT_ABI;
             $COMPAT_ABI = $1;
         }
-        default {
+        else {
             $usage_error->() if defined $map_in;
             $map_in = $_;
         }
