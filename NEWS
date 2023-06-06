@@ -3,6 +3,8 @@ libxcrypt NEWS -- history of user-visible changes.
 Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
+Version 4.4.36
+
 Version 4.4.35
 * Fix build with Perl v5.38.0 (issue #170).
 * Fix build with MinGW-w(32|64).
