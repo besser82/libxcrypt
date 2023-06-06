@@ -81,9 +81,6 @@ hmac_sha1_process_data (const uint8_t *text, size_t text_len,
       sha1_process_bytes (key, &tctx, key_len);
       sha1_finish_ctx(&tctx, &tk);
 
-      /* Clean the stack. */
-      explicit_bzero (&tctx, sizeof (struct sha1_ctx));
-
       key = tk;
       key_len = HASH_LENGTH;
     }
@@ -124,7 +121,6 @@ hmac_sha1_process_data (const uint8_t *text, size_t text_len,
   sha1_finish_ctx(&ctx, resbuf);
 
   /* Clean the stack. */
-  explicit_bzero (&ctx, sizeof (struct sha1_ctx));
   explicit_bzero (k_ipad, HMAC_BLOCKSZ);
 
   /*
@@ -138,7 +134,6 @@ hmac_sha1_process_data (const uint8_t *text, size_t text_len,
   sha1_finish_ctx(&ctx, resbuf);
 
   /* Clean the stack. */
-  explicit_bzero (&ctx, sizeof (struct sha1_ctx));
   explicit_bzero (k_opad, HMAC_BLOCKSZ);
 }
 

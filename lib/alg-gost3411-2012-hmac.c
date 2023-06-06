@@ -29,15 +29,9 @@ void
 gost_hash256 (const uint8_t *t, size_t n, uint8_t *out32,
               GOST34112012Context *ctx)
 {
-  /* Clear the context state. */
-  explicit_bzero (ctx, sizeof (GOST34112012Context));
-
   GOST34112012Init (ctx, GOSTR3411_2012_BITS);
   GOST34112012Update (ctx, t, n);
   GOST34112012Final (ctx, out32);
-
-  /* Clear the context state. */
-  explicit_bzero (ctx, sizeof (GOST34112012Context));
 }
 
 /* HMAC_GOSTR3411_2012_256 */
@@ -46,9 +40,6 @@ gost_hmac256 (const uint8_t *k, size_t n, const uint8_t *t, size_t len,
               uint8_t *out32, gost_hmac_256_t *gostbuf)
 {
   size_t i;
-
-  /* Clear the context state. */
-  explicit_bzero (gostbuf, sizeof (gost_hmac_256_t));
 
   /* R 50.1.113-2016 only allowed N to be in range 256..512 bits */
   assert (n >= GOSTR3411_2012_L && n <= GOSTR3411_2012_B);
