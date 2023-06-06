@@ -4,6 +4,8 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.35
+* Fix build with Perl v5.38.0 (issue #170).
+* Fix build with MinGW-w(32|64).
 
 Version 4.4.34
 * Update build-aux/m4/ax_valgrind_check.m4 to v23.
