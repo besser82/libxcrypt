@@ -192,13 +192,13 @@ In 2016, the scrypt algorithm was published by IETF as RFC 7914.
 .Ss argon2_d
 argon2_d is one of the variants of Argon2 key derivation functions that won
 the Password Hashing Competition 2015. argon2d is designed for environments
-taht are safe from side-channel attacks. Acceptable for new hashes, but
+that are safe from side-channel attacks. Acceptable for new hashes, but
 not widely supported.
 .hash "$argon2d$" "\e$argon2d\e$(v=(16|19)\e$)?m=[1-9][0-9]*,t=[1-9][0-9]*,p=[1-9][0-9]*\e$[A-Za-z0-9+/]{11,}\e$[A-Za-z0-9+/]{6,}" 4,294,967,295 8 "32 to 34,359,738,360 (256 default)" "32 to 34,359,738,360 (256 default)" "64 to 34,359,738,360 (128+ recommended)" "1 to 4,294,967,295"
 .Ss argon2_i
 argon2_i is one of the variants of Argon2 key derivation functions that won
 the Password Hashing Competition 2015. argon2i is designed for environments
-taht are not safe from side-channel attacks. Acceptable for new hashes, but
+that are not safe from side-channel attacks. Acceptable for new hashes, but
 not widely supported.
 .hash "$argon2i$" "\e$argon2i\e$(v=(16|19)\e$)?m=[1-9][0-9]*,t=[1-9][0-9]*,p=[1-9][0-9]*\e$[A-Za-z0-9+/]{11,}\e$[A-Za-z0-9+/]{6,}" 4,294,967,295 8 "32 to 34,359,738,360 (256 default)" "32 to 34,359,738,360 (256 default)" "64 to 34,359,738,360 (128+ recommended)" "1 to 4,294,967,295"
 .Ss argon2_id
