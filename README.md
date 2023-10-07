@@ -94,13 +94,13 @@ not always be able to retrieve cryptographically-sound random numbers
 from the operating system; if you call these functions with a null
 pointer for the “rbytes” argument, be prepared for them to fail.
 
-As of mid-2018, GCC and LLVM don’t support link-time optimization of
-libraries that use symbol versioning.  If you build libxcrypt with
-either of these compilers, do not use `-flto`.  See [GCC bug 48200][1]
-for specifics; the problem is very similar for LLVM.  Because this is,
-at its root, a set of missing compiler features, we expect link-time
-optimization won’t work in other C compilers either, but we haven’t
-tested it ourselves.
+Link-time optimization of libraries that use symbol versioning is only
+supported with a recent GCC (>= 10.1) or LLVM (>= 10.0) release.  If you
+build libxcrypt with an earlier GCC or LLVM compilers, do not use `-flto`.
+See [GCC bug 48200][1] for specifics; the problem is very similar for LLVM.
+Because this is, at its root, a set of missing compiler features, we expect
+link-time optimization won’t work in other C compilers either, but we
+haven’t tested it ourselves.
 
 [1]: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=48200
 
