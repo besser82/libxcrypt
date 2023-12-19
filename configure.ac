@@ -303,13 +303,11 @@ AS_IF([test $ac_cv_header_ucontext_h = yes],
 #include <ucontext.h>
 static int x;
 static void fn1(void) {}
-static void fn2(int a, int b) { x = a - b; }
 ]], [[
   ucontext_t uc1, uc2;
   if (getcontext(&uc1)) return 1;
   if (setcontext(&uc1)) return 1;
   makecontext(&uc1, fn1, 0);
-  makecontext(&uc2, fn2, 2, 1, 1);
   if (swapcontext(&uc1, &uc2)) return 1;
   return x;
 ]])],
