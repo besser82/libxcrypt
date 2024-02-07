@@ -165,8 +165,10 @@ crypt_sha1crypt_rn (const char *phrase, size_t phr_size,
       hmac_sha1_process_data (hmac_buf, SHA1_SIZE, pwu, pl, hmac_buf);
     }
   /* Now output... */
-  pl = (size_t)snprintf ((char *)output, out_size, "%s%lu$%.*s$",
-                         magic, iterations, (int)sl, setting);
+  dl = snprintf ((char *)output, out_size, "%s%lu$%.*s$",
+                 magic, iterations, (int)sl, setting);
+  assert (dl > 0);
+  pl = (size_t) dl;
   ep = output + pl;
 
   /* Every 3 bytes of hash gives 24 bits which is 4 base64 chars */
