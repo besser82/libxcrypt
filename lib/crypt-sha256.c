@@ -261,6 +261,7 @@ crypt_sha256crypt_rn (const char *phrase, size_t phr_size,
       int n = snprintf (cp,
                         SHA256_HASH_LENGTH - (sizeof (sha256_salt_prefix) - 1),
                         "%s%zu$", sha256_rounds_prefix, rounds);
+      assert (n > 0);
       cp += n;
     }
 
