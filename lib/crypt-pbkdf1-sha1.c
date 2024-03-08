@@ -148,6 +148,7 @@ crypt_sha1crypt_rn (const char *phrase, size_t phr_size,
     }
 
   sl = (size_t)(sp - setting);
+  assert (sl <= CRYPT_SHA1_SALT_LENGTH);
 
   /*
    * Now get to work...
@@ -155,6 +156,7 @@ crypt_sha1crypt_rn (const char *phrase, size_t phr_size,
    */
   dl = snprintf ((char *)output, out_size, "%.*s%s%lu",
                  (int)sl, setting, magic, iterations);
+  assert (dl > 0);
   /*
    * Then hmac using <phrase> as key, and repeat...
    */
