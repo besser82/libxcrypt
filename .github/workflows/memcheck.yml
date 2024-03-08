@@ -81,6 +81,9 @@ jobs:
         make -j${{ env.NPROCS }} all
         make -j${{ env.NPROCS }} test-programs
 
+    - name: Valgrind version
+      run: valgrind --version
+
     - name: Test
       run: make -j${{ env.NPROCS }} check-valgrind-memcheck
 
