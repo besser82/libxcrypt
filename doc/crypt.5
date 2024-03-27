@@ -13,7 +13,7 @@
 .\"
 .\" There's ABSOLUTELY NO WARRANTY, express or implied.
 .\"
-.Dd October 11, 2017
+.Dd March 27, 2024
 .Dt CRYPT 5
 .Os "Openwall Project"
 .Sh NAME
@@ -59,10 +59,13 @@ they use many iterations of an underlying cryptographic primitive
 to increase the cost of each guess.
 The newer hashing methods allow the number of iterations to be adjusted,
 using the
-.Dq CPU time cost
+.Dq processing cost
 parameter to
 .Xr crypt_gensalt 3 .
-This makes it possible to keep the hash slow as hardware improves.
+For memory-hard hashing methods such as yescrypt,
+this parameter also adjusts the amount of memory needed to compute a hash.
+Having this configurable makes it possible to keep password guessing attacks
+against the hashes slow and costly as hardware improves.
 .Sh FORMAT OF HASHED PASSPHRASES
 All of the hashing methods supported by
 .Xr crypt 3
@@ -162,7 +165,7 @@ and does not show the division into prefix, options, salt, and hash.
 .\}
 .It Sy Salt size
 \\$7 bits
-.It Sy CPU time cost parameter
+.It Sy Processing cost parameter
 \\$8
 .El
 ..
@@ -170,7 +173,7 @@ and does not show the division into prefix, options, salt, and hash.
 yescrypt is a scalable passphrase hashing scheme designed by Solar Designer,
 which is based on Colin Percival's scrypt.
 Recommended for new hashes.
-.hash "$y$" "\e$y\e$[./A-Za-z0-9]+\e$[./A-Za-z0-9]{,86}\e$[./A-Za-z0-9]{43}" unlimited 8 256 256 "up to 512 (128+ recommended)" "1 to 11 (logarithmic)"
+.hash "$y$" "\e$y\e$[./A-Za-z0-9]+\e$[./A-Za-z0-9]{,86}\e$[./A-Za-z0-9]{43}" unlimited 8 256 256 "up to 512 (128+ recommended)" "1 to 11 (logarithmic, also affects memory usage)"
 .Ss gost-yescrypt
 gost-yescrypt uses the output from the yescrypt hashing method in place of a
 hmac message.  Thus, the yescrypt crypto properties are superseded by the
@@ -181,14 +184,14 @@ algorithms.
 The GOST R 34.11-2012 (Streebog) hash function has been published by the IETF
 as RFC 6986.
 Recommended for new hashes.
-.hash "$gy$" "\e$gy\e$[./A-Za-z0-9]+\e$[./A-Za-z0-9]{,86}\e$[./A-Za-z0-9]{43}" unlimited 8 256 256 "up to 512 (128+ recommended)" "1 to 11 (logarithmic)"
+.hash "$gy$" "\e$gy\e$[./A-Za-z0-9]+\e$[./A-Za-z0-9]{,86}\e$[./A-Za-z0-9]{43}" unlimited 8 256 256 "up to 512 (128+ recommended)" "1 to 11 (logarithmic, also affects memory usage)"
 .Ss scrypt
 scrypt is a password-based key derivation function created by Colin Percival,
 originally for the Tarsnap online backup service.
 The algorithm was specifically designed to make it costly to perform
 large-scale custom hardware attacks by requiring large amounts of memory.
 In 2016, the scrypt algorithm was published by IETF as RFC 7914.
-.hash "$7$" "\e$7\e$[./A-Za-z0-9]{11,97}\e$[./A-Za-z0-9]{43}" unlimited 8 256 256 "up to 512 (128+ recommended)" "6 to 11 (logarithmic)"
+.hash "$7$" "\e$7\e$[./A-Za-z0-9]{11,97}\e$[./A-Za-z0-9]{43}" unlimited 8 256 256 "up to 512 (128+ recommended)" "6 to 11 (logarithmic, also affects memory usage)"
 .Ss bcrypt
 A hash based on the Blowfish block cipher,
 modified to have an extra-expensive key schedule.
@@ -207,7 +210,7 @@ A hash based on SHA-2 with 512-bit output,
 originally developed by Ulrich Drepper for GNU libc.
 Supported on Linux but not common elsewhere.
 Acceptable for new hashes.
-The default CPU time cost parameter is 5000,
+The default processing cost parameter is 5000,
 which is too low for modern hardware.
 .hash "$6$" "\e$6\e$(rounds=[1-9][0-9]+\e$)?[^$:\(rsn]{1,16}\e$[./0-9A-Za-z]{86}" unlimited 8 512 512 "6 to 96" "1000 to 999,999,999"
 .Ss sha256crypt
@@ -215,7 +218,7 @@ A hash based on SHA-2 with 256-bit output,
 originally developed by Ulrich Drepper for GNU libc.
 Supported on Linux but not common elsewhere.
 Acceptable for new hashes.
-The default CPU time cost parameter is 5000,
+The default processing cost parameter is 5000,
 which is too low for modern hardware.
 .hash "$5$" "\e$5\e$(rounds=[1-9][0-9]+\e$)?[^$:\(rsn]{1,16}\e$[./0-9A-Za-z]{43}" unlimited 8 256 256 "6 to 96" "1000 to 999,999,999"
 .Ss sha1crypt
@@ -241,7 +244,7 @@ Supported on most free Unixes and newer versions of Solaris.
 Not as weak as the DES-based hashes below,
 but MD5 is so cheap on modern hardware
 that it should not be used for new hashes.
-CPU time cost is not adjustable.
+Processing cost is not adjustable.
 .hash "$1$" "\e$1\e$[^$:\(rsn]{1,8}\e$[./0-9A-Za-z]{22}" unlimited 8 128 128 "6 to 48" 1000
 .Ss bsdicrypt (BSDI extended DES)
 A weak extension of traditional DES,
