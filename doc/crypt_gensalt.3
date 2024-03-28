@@ -13,7 +13,7 @@
 .\"
 .\" There's ABSOLUTELY NO WARRANTY, express or implied.
 .\"
-.Dd October 11, 2017
+.Dd March 27, 2024
 .Dt CRYPT_GENSALT 3
 .Os "Openwall Project"
 .Sh NAME
@@ -63,13 +63,12 @@ and
 .Fa prefix
 selects the hashing method to use.
 .Fa count
-controls the CPU time cost of the hash;
-the valid range for
+controls the processing cost of the hash;
+the valid range and exact meaning of
 .Fa count
-and the exact meaning of
-.Dq CPU time cost
-depends on the hashing method,
-but larger numbers correspond to more costly hashes.
+depend on the hashing method,
+but larger numbers correspond to more costly hashes
+in terms of CPU time and possibly memory usage.
 .Fa rbytes
 should point to
 .Fa nrbytes
