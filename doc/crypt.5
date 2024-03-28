@@ -1,4 +1,4 @@
-.\" Written and revised by Solar Designer <solar at openwall.com> in 2000-2011.
+.\" Written and revised by Solar Designer <solar at openwall.com> in 2000-2024.
 .\" Revised by Zack Weinberg <zackw at panix.com> in 2017.
 .\" Converted to mdoc format by Zack Weinberg in 2018.
 .\"
@@ -98,8 +98,8 @@ argument to
 must begin with the first three components of a valid hashed passphrase,
 but anything after that is ignored.
 This makes authentication simple:
-hash the input passphrase using the stored passphrase as the setting,
-and then compare the result to the stored passphrase.
+hash the input passphrase using the stored hashed passphrase as the setting,
+and then compare the result to the stored hashed passphrase.
 .Pp
 Hashed passphrases are always entirely printable ASCII,
 and do not contain any whitespace
@@ -132,7 +132,7 @@ This is a list of
 .Em all
 the hashing methods supported by
 .Xr crypt 3 ,
-in decreasing order of strength.
+roughly in decreasing order of strength.
 Many of the older methods
 are now considered too weak to use for new passphrases.
 The hashed passphrase format is expressed
@@ -172,18 +172,24 @@ and does not show the division into prefix, options, salt, and hash.
 .Ss yescrypt
 yescrypt is a scalable passphrase hashing scheme designed by Solar Designer,
 which is based on Colin Percival's scrypt.
+While yescrypt's strength against password guessing attacks comes from its
+algorithm design, its cryptographic security is guaranteed by its use of
+SHA-256 on the outer layer.
+The SHA-256 hash function has been published by NIST in FIPS PUB 180-2
+(and its subsequent revisions such as FIPS PUB 180-4)
+and by the IETF as RFC 4634 (and subsequently RFC 6234).
 Recommended for new hashes.
 .hash "$y$" "\e$y\e$[./A-Za-z0-9]+\e$[./A-Za-z0-9]{,86}\e$[./A-Za-z0-9]{43}" unlimited 8 256 256 "up to 512 (128+ recommended)" "1 to 11 (logarithmic, also affects memory usage)"
 .Ss gost-yescrypt
-gost-yescrypt uses the output from the yescrypt hashing method in place of a
-hmac message.  Thus, the yescrypt crypto properties are superseded by the
-GOST R 34.11-2012 (Streebog) hash function with a 256 bit digest.
+gost-yescrypt uses the output from yescrypt as an input message to HMAC with
+the GOST R 34.11-2012 (Streebog) hash function with a 256-bit digest.
+Thus, yescrypt's cryptographic properties are superseded by those of the GOST
+hash function.
 This hashing method is useful in applications that need modern passphrase
-hashing methods, but require to rely on the cryptographic properties of GOST
-algorithms.
+hashing, but have to rely on GOST algorithms.
 The GOST R 34.11-2012 (Streebog) hash function has been published by the IETF
 as RFC 6986.
-Recommended for new hashes.
+Acceptable for new hashes where required.
 .hash "$gy$" "\e$gy\e$[./A-Za-z0-9]+\e$[./A-Za-z0-9]{,86}\e$[./A-Za-z0-9]{43}" unlimited 8 256 256 "up to 512 (128+ recommended)" "1 to 11 (logarithmic, also affects memory usage)"
 .Ss scrypt
 scrypt is a password-based key derivation function created by Colin Percival,
@@ -225,13 +231,12 @@ which is too low for modern hardware.
 A hash based on HMAC-SHA1.
 Originally developed by Simon Gerraty for NetBSD.
 Not as weak as the DES-based hashes below,
-but SHA1 is so cheap on modern hardware
+but SHA-1 is so cheap on modern hardware
 that it should not be used for new hashes.
 .hash "$sha1" "\e$sha1\e$[1-9][0-9]+\e$[./0-9A-Za-z]{1,64}\e$[./0-9A-Za-z]{8,64}[./0-9A-Za-z]{32}" unlimited 8 160 160 "6 to 384" "4 to 4,294,967,295"
 .Ss SunMD5
 A hash based on the MD5 algorithm,
-with additional cleverness to make precomputation difficult,
-originally developed by Alec David Muffet for Solaris.
+originally developed by Alec David Muffett for Solaris.
 Not adopted elsewhere, to our knowledge.
 Not as weak as the DES-based hashes below,
 but MD5 is so cheap on modern hardware
@@ -247,44 +252,45 @@ that it should not be used for new hashes.
 Processing cost is not adjustable.
 .hash "$1$" "\e$1\e$[^$:\(rsn]{1,8}\e$[./0-9A-Za-z]{22}" unlimited 8 128 128 "6 to 48" 1000
 .Ss bsdicrypt (BSDI extended DES)
-A weak extension of traditional DES,
+An extension of traditional DES,
 which eliminates the length limit,
 increases the salt size,
 and makes the time cost tunable.
-It originates with BSDI
+It originates with BSDI BSD/OS
 and is also available on at least NetBSD, OpenBSD, and FreeBSD
 due to the use of David Burren's FreeSec library.
-It is better than bigcrypt and traditional DES,
+It is much better than traditional DES and bigcrypt,
 but still should not be used for new hashes.
-.hash _ "_[./0-9A-Za-z]{19}" unlimited 7 56 64 24 "1 to 16,777,215 (must be odd)"
-.Ss bigcrypt
-A weak extension of traditional DES,
-available on some System V-derived Unixes.
-All it does is raise the length limit from 8 to 128 characters,
-and it does this in a crude way that allows attackers to
-guess chunks of a long passphrase in parallel.
-It should not be used for new hashes.
-.hash "" "[./0-9A-Za-z]{13,178}" 128 7 "up to 896" "up to 1024" 12 25
+.hash _ "_[./0-9A-Za-z]{19}" unlimited 7 "up to 56" 64 24 "1 to 16,777,215 (must be odd)"
 .Ss descrypt (Traditional DES)
 The original hashing method from Unix V7, based on the DES block cipher.
 Because DES is cheap on modern hardware,
-because there are only 4096 possible salts and 2**56 possible hashes,
-and because it truncates passphrases to 8 characters,
+because there are only 4096 possible salts and 2**56 distinct passphrases,
+which it truncates to 8 characters,
 it is feasible to discover
 .Em any
 passphrase hashed with this method.
 It should only be used if you absolutely have to generate hashes
 that will work on an old operating system that supports nothing else.
-.hash "" "[./0-9A-Za-z]{13}" 8 7 56 64 12 25
+.hash "" "[./0-9A-Za-z]{13}" 8 7 "up to 56" 64 12 25
+.Ss bigcrypt
+A weak extension of traditional DES,
+available on some commercial Unixes.
+All it does is raise the length limit from 8 to 128 characters,
+and it does this in a crude way that allows attackers to
+guess chunks of a long passphrase separately and in parallel,
+which may make guessing even easier than for traditional DES above.
+It should not be used for new hashes.
+.hash "" "[./0-9A-Za-z]{13,178}" 128 7 "up to 56" "up to 1024" 12 25
 .Ss NT
 The hashing method used for network authentication
 in some versions of the SMB/CIFS protocol.
 Available, for cross-compatibility's sake, on FreeBSD.
 Based on MD4.
 Has no salt or tunable cost parameter.
-Like traditional DES, it is so weak that
+It is so weak that almost
 .Em any
-passphrase hashed with this method is guessable.
+human-chosen passphrase hashed with this method is guessable.
 It should only be used if you absolutely have to generate hashes
 that will work on an old operating system that supports nothing else.
 .hash "$3$" "\e$3\e$\e$[0-9a-f]{32}" unlimited 8 256 256 0 1
