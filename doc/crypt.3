@@ -243,7 +243,7 @@ and
 .Nm crypt_ra
 write an
 .Em invalid
-hashed passphrase to the
+hash to the
 .Fa output
 field of their
 .Fa data
@@ -350,7 +350,7 @@ returned by
 The behavior described above for this implementation,
 setting
 .Va errno
-and returning an invalid hashed passphrase different from
+and returning an invalid hash different from
 .Fa setting ,
 is chosen to make these applications fail closed when an error occurs.
 .Pp
