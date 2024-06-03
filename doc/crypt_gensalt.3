@@ -124,6 +124,9 @@ for more detail on the format of this string.
 Upon error, they return a null pointer and set
 .Va errno
 to an appropriate error code.
+When the functions succeed, the value of
+.Va errno
+is unspecified and must not be relied upon.
 .Pp
 .Nm crypt_gensalt
 places its result in a static storage area,
