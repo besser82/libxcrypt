@@ -33,7 +33,7 @@ However, with a strong hashing method,
 guessing will be too slow for the attacker
 to discover a strong passphrase.
 .Pp
-All of the hashing methods use a
+Most of the hashing methods use a
 .Dq salt
 to perturb the hash function,
 so that the same passphrase may produce many possible hashes.
@@ -54,7 +54,7 @@ must have an entry for each possible salt,
 which makes them impractically large.
 .El
 .Pp
-All of the hashing methods are also deliberately engineered to be slow;
+Most of the hashing methods are also deliberately engineered to be slow;
 they use many iterations of an underlying cryptographic primitive
 to increase the cost of each guess.
 The newer hashing methods allow the number of iterations to be adjusted,
