@@ -227,6 +227,16 @@ Acceptable for new hashes.
 The default processing cost parameter is 5000,
 which is too low for modern hardware.
 .hash "$5$" "\e$5\e$(rounds=[1-9][0-9]+\e$)?[^$:\(rsn]{1,16}\e$[./0-9A-Za-z]{43}" unlimited 8 256 256 "6 to 96" "1000 to 999,999,999"
+.Ss sm3crypt
+A hash based on the ShangMi 3 hash function
+with 256-bit output, that uses the same design as
+sha256crypt and/or sha512crypt.
+Supported on EulerOS, openEuler, KylinOS and openKylin,
+but not common elsewhere.
+Acceptable for new hashes.
+The default processing cost parameter is 5000,
+which is too low for modern hardware.
+.hash "$sm3$" "\e$sm3\e$(rounds=[1-9][0-9]+\e$)?[^$:\(rsn]{1,16}\e$[./0-9A-Za-z]{86}" unlimited 8 256 256 "6 to 96" "1000 to 999,999,999"
 .Ss sha1crypt
 A hash based on HMAC-SHA1.
 Originally developed by Simon Gerraty for NetBSD.

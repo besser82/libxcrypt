@@ -13,10 +13,10 @@
 #include <errno.h>
 #include <stdio.h>
 
-#if INCLUDE_md5crypt || INCLUDE_sha256crypt || INCLUDE_sha512crypt
+#if INCLUDE_md5crypt || INCLUDE_sha256crypt || INCLUDE_sha512crypt || INCLUDE_sm3crypt
 
 void
-gensalt_sha_rn (char tag, size_t maxsalt, unsigned long defcount,
+gensalt_sha_rn (const char *tag, size_t maxsalt, unsigned long defcount,
                 unsigned long mincount, unsigned long maxcount,
                 unsigned long count,
                 const uint8_t *rbytes, size_t nrbytes,
@@ -54,14 +54,11 @@ gensalt_sha_rn (char tag, size_t maxsalt, unsigned long defcount,
   size_t written;
   if (count == defcount)
     {
-      output[0] = '$';
-      output[1] = (unsigned char)tag;
-      output[2] = '$';
-      written = 3;
+      written = (size_t) snprintf ((char *)output, output_size, "$%s$", tag);
     }
   else
     written = (size_t) snprintf ((char *)output, output_size,
-                                 "$%c$rounds=%lu$", tag, count);
+                                 "$%s$rounds=%lu$", tag, count);
 
   /* The length calculation above should ensure that this is always true.  */
   assert (written + 5 < output_size);
