@@ -35,6 +35,8 @@
 #define HASH_PREFIX "$6$"
 #elif INCLUDE_sha256crypt
 #define HASH_PREFIX "$5$"
+#elif INCLUDE_sm3crypt
+#define HASH_PREFIX "$sm3$"
 #elif INCLUDE_sha1crypt
 #define HASH_PREFIX "$sha1"
 #elif INCLUDE_sunmd5

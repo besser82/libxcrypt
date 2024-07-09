@@ -76,6 +76,7 @@ struct valid_setting
 static bool vt_never(const struct valid_setting *, const char *);
 static bool vt_varsuffix(const struct valid_setting *, const char *);
 static bool vt_sunmd5(const struct valid_setting *, const char *);
+static bool vt_sm3(const struct valid_setting *, const char *);
 static bool vt_sha2gnu(const struct valid_setting *, const char *);
 static bool vt_yescrypt(const struct valid_setting *, const char *);
 
@@ -118,24 +119,26 @@ static const struct valid_setting valid_cases[] =
     INCLUDE_descrypt ? 2 : 14,
     INCLUDE_descrypt || INCLUDE_bigcrypt
   },
-  V  (bsdicrypt,                           "_J9..MJHn"                        ),
-  Vv (md5crypt,                  3,        "$1$MJHnaAke$"                     ),
-  Vtn(sunmd5,        plain,      sunmd5,   "$md5$1xMeE.at$"                   ),
-  Vtn(sunmd5,        rounds,     sunmd5,   "$md5,rounds=123$1xMeE.at$"        ),
-  Vt (nt,            plain,                "$3$"                              ),
-  Vtp(nt,            fake salt,  3,        "$3$__not_used__c809a450df09a3"    ),
-  Vv (sha1crypt,                 11,       "$sha1$123$GGXpNqoJvglVTkGU$"      ),
-  Vtn(sha256crypt,   plain,      sha2gnu,  "$5$MJHnaAkegEVYHsFK$"             ),
-  Vtn(sha256crypt,   rounds,     sha2gnu,  "$5$rounds=1000$MJHnaAkegEVYHsFK$" ),
-  Vtn(sha512crypt,   plain,      sha2gnu,  "$6$MJHnaAkegEVYHsFK$"             ),
-  Vtn(sha512crypt,   rounds,     sha2gnu,  "$6$rounds=1000$MJHnaAkegEVYHsFK$" ),
-  V  (bcrypt,                              "$2b$04$UBVLHeMpJ/QQCv3XqJx8zO"    ),
-  V  (bcrypt_a,                            "$2a$04$UBVLHeMpJ/QQCv3XqJx8zO"    ),
-  V  (bcrypt_x,                            "$2x$04$UBVLHeMpJ/QQCv3XqJx8zO"    ),
-  V  (bcrypt_y,                            "$2y$04$UBVLHeMpJ/QQCv3XqJx8zO"    ),
-  Vv (scrypt,                    14,       "$7$C6..../....SodiumChloride$"    ),
-  Vn (yescrypt,                  yescrypt, "$y$j9T$PKXc3hCOSyMqdaEQArI62/$"   ),
-  Vn (gost_yescrypt,             yescrypt, "$gy$j9T$PKXc3hCOSyMqdaEQArI62/$"  ),
+  V  (bsdicrypt,                           "_J9..MJHn"                          ),
+  Vv (md5crypt,                  3,        "$1$MJHnaAke$"                       ),
+  Vtn(sunmd5,        plain,      sunmd5,   "$md5$1xMeE.at$"                     ),
+  Vtn(sunmd5,        rounds,     sunmd5,   "$md5,rounds=123$1xMeE.at$"          ),
+  Vt (nt,            plain,                "$3$"                                ),
+  Vtp(nt,            fake salt,  3,        "$3$__not_used__c809a450df09a3"      ),
+  Vv (sha1crypt,                 11,       "$sha1$123$GGXpNqoJvglVTkGU$"        ),
+  Vtn(sha256crypt,   plain,      sha2gnu,  "$5$MJHnaAkegEVYHsFK$"               ),
+  Vtn(sha256crypt,   rounds,     sha2gnu,  "$5$rounds=1000$MJHnaAkegEVYHsFK$"   ),
+  Vtn(sha512crypt,   plain,      sha2gnu,  "$6$MJHnaAkegEVYHsFK$"               ),
+  Vtn(sha512crypt,   rounds,     sha2gnu,  "$6$rounds=1000$MJHnaAkegEVYHsFK$"   ),
+  Vtn(sm3crypt,      plain,      sm3,      "$sm3$MJHnaAkegEVYHsFK$"             ),
+  Vtn(sm3crypt,      rounds,     sm3,      "$sm3$rounds=1000$MJHnaAkegEVYHsFK$" ),
+  V  (bcrypt,                              "$2b$04$UBVLHeMpJ/QQCv3XqJx8zO"      ),
+  V  (bcrypt_a,                            "$2a$04$UBVLHeMpJ/QQCv3XqJx8zO"      ),
+  V  (bcrypt_x,                            "$2x$04$UBVLHeMpJ/QQCv3XqJx8zO"      ),
+  V  (bcrypt_y,                            "$2y$04$UBVLHeMpJ/QQCv3XqJx8zO"      ),
+  Vv (scrypt,                    14,       "$7$C6..../....SodiumChloride$"      ),
+  Vn (yescrypt,                  yescrypt, "$y$j9T$PKXc3hCOSyMqdaEQArI62/$"     ),
+  Vn (gost_yescrypt,             yescrypt, "$gy$j9T$PKXc3hCOSyMqdaEQArI62/$"    ),
 };
 
 #undef V_
@@ -162,53 +165,57 @@ struct invalid_setting
 static const struct invalid_setting invalid_cases[] =
 {
   /* These strings are invalid regardless of the algorithm.  */
-  { "too short 1",                 "/"                                      },
-  { "too short 2",                 "M"                                      },
-  { "too short 3",                 "$"                                      },
-  { "too short 4",                 "_"                                      },
-  { "too short 5",                 "."                                      },
-  { "invalid char :",              ":"                                      },
-  { "invalid char ;",              ";"                                      },
-  { "invalid char *",              "*"                                      },
-  { "invalid char !",              "!"                                      },
-  { "invalid char \\",             "\\"                                     },
-  { "invalid char SPC",            " "                                      },
-  { "invalid char TAB",            "\t"                                     },
-  { "invalid char ^M",             "\r"                                     },
-  { "invalid char ^J",             "\n"                                     },
-  { "invalid char ^L",             "\f"                                     },
-  { "invalid char ^A",             "\001"                                   },
-  { "invalid char DEL",            "\177"                                   },
-  { "failure token 1",             "*0"                                     },
-  { "failure token 2",             "*1"                                     },
-  { "unsupported algorithm",       "$un$upp0rt3d$"                          },
-  { "empty string",                ""                                       },
+  { "too short 1",                 "/"                                        },
+  { "too short 2",                 "M"                                        },
+  { "too short 3",                 "$"                                        },
+  { "too short 4",                 "_"                                        },
+  { "too short 5",                 "."                                        },
+  { "invalid char :",              ":"                                        },
+  { "invalid char ;",              ";"                                        },
+  { "invalid char *",              "*"                                        },
+  { "invalid char !",              "!"                                        },
+  { "invalid char \\",             "\\"                                       },
+  { "invalid char SPC",            " "                                        },
+  { "invalid char TAB",            "\t"                                       },
+  { "invalid char ^M",             "\r"                                       },
+  { "invalid char ^J",             "\n"                                       },
+  { "invalid char ^L",             "\f"                                       },
+  { "invalid char ^A",             "\001"                                     },
+  { "invalid char DEL",            "\177"                                     },
+  { "failure token 1",             "*0"                                       },
+  { "failure token 2",             "*1"                                       },
+  { "unsupported algorithm",       "$un$upp0rt3d$"                            },
+  { "empty string",                ""                                         },
 
   /* These strings are invalid for specific algorithms, in ways
      that the generic error generator cannot produce.  */
-  { "sunmd5 absent rounds",        "$md5,rounds=$1xMeE.at$"                 },
-  { "sunmd5 low rounds",           "$md5,rounds=0$1xMeE.at$"                },
-  { "sunmd5 octal rounds",         "$md5,rounds=012$1xMeE.at$"              },
-  { "sunmd5 high rounds",          "$md5,rounds=4294967296$1xMeE.at$"       },
-  { "sha256 absent rounds",        "$5$rounds=$MJHnaAkegEVYHsFK$"           },
-  { "sha256 low rounds",           "$5$rounds=0$MJHnaAkegEVYHsFK$"          },
-  { "sha256 octal rounds",         "$5$rounds=0100$MJHnaAkegEVYHsFK$"       },
-  { "sha256 high rounds",          "$5$rounds=4294967295$MJHnaAkegEVYHsFK$" },
-  { "sha512 absent rounds",        "$6$rounds=$MJHnaAkegEVYHsFK$"           },
-  { "sha512 low rounds",           "$6$rounds=0$MJHnaAkegEVYHsFK$"          },
-  { "sha512 octal rounds",         "$6$rounds=0100$MJHnaAkegEVYHsFK$"       },
-  { "sha512 high rounds",          "$6$rounds=4294967295$MJHnaAkegEVYHsFK$" },
-  { "bcrypt no subtype",           "$2$04$UBVLHeMpJ/QQCv3XqJx8zO"           },
-  { "bcrypt_b low rounds",         "$2b$03$UBVLHeMpJ/QQCv3XqJx8zO"          },
-  { "bcrypt_b high rounds",        "$2b$32$UBVLHeMpJ/QQCv3XqJx8zO"          },
-  { "bcrypt_a low rounds",         "$2a$03$UBVLHeMpJ/QQCv3XqJx8zO"          },
-  { "bcrypt_a high rounds",        "$2a$32$UBVLHeMpJ/QQCv3XqJx8zO"          },
-  { "bcrypt_x low rounds",         "$2x$03$UBVLHeMpJ/QQCv3XqJx8zO"          },
-  { "bcrypt_x high rounds",        "$2x$32$UBVLHeMpJ/QQCv3XqJx8zO"          },
-  { "bcrypt_y low rounds",         "$2y$03$UBVLHeMpJ/QQCv3XqJx8zO"          },
-  { "bcrypt_y low rounds",         "$2y$32$UBVLHeMpJ/QQCv3XqJx8zO"          },
-  { "yescrypt short params",       "$y$j9$PKXc3hCOSyMqdaEQArI62/$"          },
-  { "gost-yescrypt short params",  "$gy$j9$PKXc3hCOSyMqdaEQArI62/$"         },
+  { "sunmd5 absent rounds",        "$md5,rounds=$1xMeE.at$"                   },
+  { "sunmd5 low rounds",           "$md5,rounds=0$1xMeE.at$"                  },
+  { "sunmd5 octal rounds",         "$md5,rounds=012$1xMeE.at$"                },
+  { "sunmd5 high rounds",          "$md5,rounds=4294967296$1xMeE.at$"         },
+  { "sha256 absent rounds",        "$5$rounds=$MJHnaAkegEVYHsFK$"             },
+  { "sha256 low rounds",           "$5$rounds=0$MJHnaAkegEVYHsFK$"            },
+  { "sha256 octal rounds",         "$5$rounds=0100$MJHnaAkegEVYHsFK$"         },
+  { "sha256 high rounds",          "$5$rounds=4294967295$MJHnaAkegEVYHsFK$"   },
+  { "sha512 absent rounds",        "$6$rounds=$MJHnaAkegEVYHsFK$"             },
+  { "sha512 low rounds",           "$6$rounds=0$MJHnaAkegEVYHsFK$"            },
+  { "sha512 octal rounds",         "$6$rounds=0100$MJHnaAkegEVYHsFK$"         },
+  { "sha512 high rounds",          "$6$rounds=4294967295$MJHnaAkegEVYHsFK$"   },
+  { "sm3 absent rounds",           "$sm3$rounds=$MJHnaAkegEVYHsFK$"           },
+  { "sm3 low rounds",              "$sm3$rounds=0$MJHnaAkegEVYHsFK$"          },
+  { "sm3 octal rounds",            "$sm3$rounds=0100$MJHnaAkegEVYHsFK$"       },
+  { "sm3 high rounds",             "$sm3$rounds=4294967295$MJHnaAkegEVYHsFK$" },
+  { "bcrypt no subtype",           "$2$04$UBVLHeMpJ/QQCv3XqJx8zO"             },
+  { "bcrypt_b low rounds",         "$2b$03$UBVLHeMpJ/QQCv3XqJx8zO"            },
+  { "bcrypt_b high rounds",        "$2b$32$UBVLHeMpJ/QQCv3XqJx8zO"            },
+  { "bcrypt_a low rounds",         "$2a$03$UBVLHeMpJ/QQCv3XqJx8zO"            },
+  { "bcrypt_a high rounds",        "$2a$32$UBVLHeMpJ/QQCv3XqJx8zO"            },
+  { "bcrypt_x low rounds",         "$2x$03$UBVLHeMpJ/QQCv3XqJx8zO"            },
+  { "bcrypt_x high rounds",        "$2x$32$UBVLHeMpJ/QQCv3XqJx8zO"            },
+  { "bcrypt_y low rounds",         "$2y$03$UBVLHeMpJ/QQCv3XqJx8zO"            },
+  { "bcrypt_y low rounds",         "$2y$32$UBVLHeMpJ/QQCv3XqJx8zO"            },
+  { "yescrypt short params",       "$y$j9$PKXc3hCOSyMqdaEQArI62/$"            },
+  { "gost-yescrypt short params",  "$gy$j9$PKXc3hCOSyMqdaEQArI62/$"           },
 };
 
 /* is_valid_trunc functions -- definitions.
@@ -266,6 +273,15 @@ vt_sunmd5(const struct valid_setting *ARG_UNUSED(original),
 {
   return vt_roundseq(truncated, strlen("$md5$"), strlen("$md5,rounds="),
                      "$md5,rounds=", 0);
+}
+
+/* Special validity rule for sm3.  */
+static bool
+vt_sm3(const struct valid_setting *ARG_UNUSED(original),
+          const char *truncated)
+{
+  return vt_roundseq(truncated, strlen("$sm3$"), strlen("$sm3$rounds="),
+                     "$sm3$rounds=", 0);
 }
 
 /* Special validity rule for sha256crypt and sha512crypt.  */

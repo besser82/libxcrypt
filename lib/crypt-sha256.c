@@ -301,7 +301,7 @@ gensalt_sha256crypt_rn (unsigned long count,
                         const uint8_t *rbytes, size_t nrbytes,
                         uint8_t *output, size_t output_size)
 {
-  gensalt_sha_rn ('5', SALT_LEN_MAX, ROUNDS_DEFAULT, ROUNDS_MIN, ROUNDS_MAX,
+  gensalt_sha_rn ("5", SALT_LEN_MAX, ROUNDS_DEFAULT, ROUNDS_MIN, ROUNDS_MAX,
                   count, rbytes, nrbytes, output, output_size);
 }
 
