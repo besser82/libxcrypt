@@ -202,6 +202,11 @@ It exists for historical reasons only.
 The alternative prefixes "$2a$" and "$2x$"
 provide bug-compatibility with crypt_blowfish 1.0.4 and earlier,
 which incorrectly processed characters with the 8th bit set.
+.Ss sm3crypt
+A hash based on SM3 output,
+originally developed by Tianjia Zhang.
+Supported on Linux but not common elsewhere.
+.hash "$sm3$" "\e$sm3\e$(rounds=[1-9][0-9]+\e$)?[^$:\(rsn]{1,16}\e$[./0-9A-Za-z]{86}" unlimited 8 256 256 "6 to 96" "1000 to 999,999,999"
 .Ss sha512crypt
 A hash based on SHA-2 with 512-bit output,
 originally developed by Ulrich Drepper for GNU libc.
