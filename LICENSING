@@ -20,7 +20,7 @@ source tree.  For specific licensing terms consult the files themselves.
    crypt-des.c, crypt-des-obsolete.c, gen-des-tables.c
 
  * Public domain, written by Ulrich Drepper et al.:
-   crypt-sha256.c, crypt-sha512.c
+   crypt-sha256.c, crypt-sha512.c, crypt-sm3.c
 
  * Public domain, written by Solar Designer et al.:
    alg-md4.h, alg-md4.c, alg-md5.h, alg-md5.c,
@@ -67,6 +67,9 @@ source tree.  For specific licensing terms consult the files themselves.
 
  * Copyright Juniper Networks, Inc.; 3-clause BSD:
    crypt-pbkdf1-sha1.c, crypt-pbkdf1-sha1.c
+
+ * Copyright Tianjia Zhang; 3-clause BSD:
+   alg-sm3.c, alg-sm3.h
 
  * Copyright Björn Esser; 2-clause BSD:
    alg-hmac-sha1.c, alg-hmac-sha1.h, test-alg-hmac-sha1.c

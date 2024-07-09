@@ -527,6 +527,10 @@ def xcrypt_crypt(phrase, setting):
         raise OSError(err, os.strerror(err))
     return bytes(rv)
 
+def h_sm3crypt(phrase, rounds, salt):
+    setting = "$sm3$rounds={r}${s}".format(r=rounds, s=salt)
+    yield (phrase, setting, xcrypt_crypt(phrase, setting))
+
 def yescrypt_gensalt(ident, rounds, salt):
     if rounds == 1:
         params = "j75"
@@ -656,6 +660,13 @@ SETTINGS = [
     ]),
 
     ('sha512crypt', [
+        (1000, 'saltstring'),
+        (1000, 'short'),
+        (5000, 'saltstring'),
+        (5000, 'short'),
+    ]),
+
+    ('sm3crypt', [
         (1000, 'saltstring'),
         (1000, 'short'),
         (5000, 'saltstring'),
