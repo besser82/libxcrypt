@@ -51,6 +51,7 @@
 #VERSION     SYSTEM          CPU_FAMILY    PREPROCESSOR_CHECK
 
 # GNU Hurd
+GLIBC_2.38   gnu             x86_64
 GLIBC_2.2.6  gnu             i[3-9]86
 ERROR        gnu             .
 
