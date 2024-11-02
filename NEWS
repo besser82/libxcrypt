@@ -3,7 +3,7 @@ libxcrypt NEWS -- history of user-visible changes.
 Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
-Version 4.4.39
+Version 4.5.0
 * crypt and crypt_gensalt now use per-thread storage areas for their
   output, allocated upon the first call in each thread that uses them.
   This makes it safe to call these functions from multiple threads
@@ -13,6 +13,8 @@ Version 4.4.39
   still strongly encouraged to use the reentrant functions instead,
   because this safety net is not guaranteed by any standard
   (although we are informed that Solaris also does this).
+* Implement the sm3crypt ($sm3$) hashing algorithm.
+* Implement the sm3-yescrypt ($sm3y$) hashing algorithm.
 
 Version 4.4.38
 * Fix several "-Wunterminated-string-initialization", which are seen by
