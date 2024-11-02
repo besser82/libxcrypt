@@ -11,9 +11,9 @@ README for libxcrypt
 
 libxcrypt is a modern library for one-way hashing of passwords.  It
 supports a wide variety of both modern and historical hashing methods:
-yescrypt, gost-yescrypt, scrypt, bcrypt, sha512crypt, sha256crypt,
-sm3crypt, md5crypt, SunMD5, sha1crypt, NT, bsdicrypt, bigcrypt,
-and descrypt.
+yescrypt, gost-yescrypt, sm3-yescrypt, scrypt, bcrypt, sha512crypt,
+sha256crypt, sm3crypt, md5crypt, SunMD5, sha1crypt, NT, bsdicrypt,
+bigcrypt, and descrypt.
 It provides the traditional Unix `crypt` and `crypt_r` interfaces, as
 well as a set of extended interfaces pioneered by Openwall Linux,
 `crypt_rn`, `crypt_ra`, `crypt_gensalt`, `crypt_gensalt_rn`, and

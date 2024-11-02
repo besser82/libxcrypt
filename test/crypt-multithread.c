@@ -25,6 +25,8 @@
 #define HASH_PREFIX "$y$"
 #elif INCLUDE_gost_yescrypt
 #define HASH_PREFIX "$gy$"
+#elif INCLUDE_sm3_yescrypt
+#define HASH_PREFIX "$sm3y$"
 #elif INCLUDE_bcrypt
 #define HASH_PREFIX "$2b$"
 #elif INCLUDE_bcrypt_y

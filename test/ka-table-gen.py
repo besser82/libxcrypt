@@ -550,6 +550,11 @@ def h_gost_yescrypt(phrase, rounds, salt):
     setting = yescrypt_gensalt("gy", rounds, salt)
     yield (phrase, setting, xcrypt_crypt(phrase, setting))
 
+def h_sm3_yescrypt(phrase, rounds, salt):
+    setting = yescrypt_gensalt("sm3y", rounds, salt)
+    yield (phrase, setting, xcrypt_crypt(phrase, setting))
+
+
 # Each method should contribute a group of parameters to the array
 # below.  Each block has the form
 #
@@ -671,6 +676,13 @@ SETTINGS = [
         (1000, 'short'),
         (5000, 'saltstring'),
         (5000, 'short'),
+    ]),
+
+    ('sm3_yescrypt', [
+        (1, '.......'),
+        (1, 'LdJMENpBABJJ3hIHjB1Bi.'),
+        (2, '.......'),
+        (2, 'LdJMENpBABJJ3hIHjB1Bi.'),
     ]),
 
     ('sunmd5', [
