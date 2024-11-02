@@ -29,7 +29,7 @@
 
 #include "crypt-port.h"
 
-#if INCLUDE_sm3crypt
+#if INCLUDE_sm3crypt || INCLUDE_sm3_yescrypt
 
 #include "alg-sm3.h"
 #include "byteorder.h"
@@ -292,4 +292,4 @@ void sm3_buf(const void *in, size_t len, uint8_t digest[SM3_DIGEST_SIZE])
     sm3_hash(in, len, digest, &ctx);
 }
 
-#endif /* INCLUDE_sm3crypt */
+#endif /* INCLUDE_sm3crypt || INCLUDE_sm3_yescrypt */

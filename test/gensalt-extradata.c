@@ -85,6 +85,9 @@ static const struct testcase testcases[] =
 #if INCLUDE_gost_yescrypt
   { "$gy$", 7, 11, },
 #endif
+#if INCLUDE_sm3_yescrypt
+  { "$sm3y$", 7, 11, },
+#endif
   { 0, 0, 0, }
 };
 

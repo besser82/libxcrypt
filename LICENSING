@@ -53,8 +53,9 @@ source tree.  For specific licensing terms consult the files themselves.
    crypt-scrypt.c
 
  * Copyright Björn Esser; 0-clause BSD:
-   crypt-common.c, test-checksalt.c, test-compile-strong-alias.c,
-   test-gensalt-nthash.c, test-short-outbuf.c, test-special-char-salt.c
+   alg-sm3-hmac.h, alg-sm3-hmac.c, crypt-sm3-yescrypt.c, crypt-common.c,
+   test-checksalt.c, test-compile-strong-alias.c, test-gensalt-nthash.c,
+   test-short-outbuf.c, test-special-char-salt.c
 
  * Copyright Michael Bretterklieber, Björn Esser et al.; 2-clause BSD:
    crypt-nthash.c

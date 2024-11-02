@@ -139,6 +139,7 @@ static const struct valid_setting valid_cases[] =
   Vv (scrypt,                    14,       "$7$C6..../....SodiumChloride$"      ),
   Vn (yescrypt,                  yescrypt, "$y$j9T$PKXc3hCOSyMqdaEQArI62/$"     ),
   Vn (gost_yescrypt,             yescrypt, "$gy$j9T$PKXc3hCOSyMqdaEQArI62/$"    ),
+  Vn (sm3_yescrypt,              yescrypt, "$sm3y$j9T$PKXc3hCOSyMqdaEQArI62/$"  ),
 };
 
 #undef V_
@@ -216,6 +217,7 @@ static const struct invalid_setting invalid_cases[] =
   { "bcrypt_y low rounds",         "$2y$32$UBVLHeMpJ/QQCv3XqJx8zO"            },
   { "yescrypt short params",       "$y$j9$PKXc3hCOSyMqdaEQArI62/$"            },
   { "gost-yescrypt short params",  "$gy$j9$PKXc3hCOSyMqdaEQArI62/$"           },
+  { "sm3-yescrypt short params",   "$sm3y$j9$PKXc3hCOSyMqdaEQArI62/$"         },
 };
 
 /* is_valid_trunc functions -- definitions.
@@ -303,11 +305,14 @@ vt_yescrypt(const struct valid_setting *ARG_UNUSED(original),
      only ones we use); ... */
   size_t y_intro_len = strlen("$y$j9T$");
   size_t gy_intro_len = strlen("$gy$j9T$");
+  size_t sm3y_intro_len = strlen("$sm3y$j9T$");
   size_t intro_len;
   if (!strncmp(truncated, "$y$j9T$", y_intro_len))
     intro_len = y_intro_len;
   else if (!strncmp(truncated, "$gy$j9T$", gy_intro_len))
     intro_len = gy_intro_len;
+  else if (!strncmp(truncated, "$sm3y$j9T$", sm3y_intro_len))
+    intro_len = sm3y_intro_len;
   else
     return false;
 

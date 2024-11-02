@@ -92,7 +92,7 @@ crypt_yescrypt_rn (const char *phrase, size_t phr_size,
 
 #endif /* INCLUDE_yescrypt || INCLUDE_scrypt */
 
-#if INCLUDE_gost_yescrypt || INCLUDE_yescrypt
+#if INCLUDE_gost_yescrypt || INCLUDE_yescrypt || INCLUDE_sm3_yescrypt
 
 /*
  * As OUTPUT is initialized with a failure token before gensalt_yescrypt_rn
@@ -174,4 +174,4 @@ gensalt_yescrypt_rn (unsigned long count,
   return;
 }
 
-#endif /* INCLUDE_gost_yescrypt || INCLUDE_yescrypt */
+#endif /* INCLUDE_gost_yescrypt || INCLUDE_yescrypt || INCLUDE_sm3_yescrypt */

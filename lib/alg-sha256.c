@@ -27,7 +27,8 @@
 
 #include "crypt-port.h"
 
-#if INCLUDE_gost_yescrypt || INCLUDE_yescrypt || INCLUDE_scrypt || INCLUDE_sha256crypt
+#if INCLUDE_gost_yescrypt || INCLUDE_yescrypt || INCLUDE_scrypt || \
+    INCLUDE_sha256crypt || INCLUDE_sm3_yescrypt
 
 #include "alg-sha256.h"
 #include "byteorder.h"
@@ -331,9 +332,11 @@ SHA256_Buf(const void * in, size_t len, uint8_t digest[32])
 	explicit_bzero(tmp32, 288);
 }
 
-#endif /* INCLUDE_gost_yescrypt || INCLUDE_yescrypt || INCLUDE_scrypt || INCLUDE_sha256crypt */
+#endif /* INCLUDE_gost_yescrypt || INCLUDE_yescrypt || INCLUDE_scrypt ||
+          INCLUDE_sha256crypt || INCLUDE_sm3_yescrypt */
 
-#if INCLUDE_gost_yescrypt || INCLUDE_yescrypt || INCLUDE_scrypt
+#if INCLUDE_gost_yescrypt || INCLUDE_yescrypt || INCLUDE_scrypt || \
+    INCLUDE_sm3_yescrypt
 
 /**
  * HMAC_SHA256_Init(ctx, K, Klen):
@@ -623,4 +626,5 @@ cleanup:
 	explicit_bzero(&u, sizeof(u));
 }
 
-#endif /* INCLUDE_gost_yescrypt || INCLUDE_yescrypt || INCLUDE_scrypt */
+#endif /* INCLUDE_gost_yescrypt || INCLUDE_yescrypt || INCLUDE_scrypt ||
+          INCLUDE_sm3_yescrypt */

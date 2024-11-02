@@ -200,6 +200,16 @@ static const struct testcase testcases[] =
 #else
   { "$gy$",  0, 0, 0 },
 #endif
+
+  /* sm3-yescrypt */
+#if INCLUDE_sm3_yescrypt
+  { "$sm3y",  0,  0, 0 },         // truncated prefix
+  { "$sm3y$", 32, 0, 0 },         // too large
+  { "$sm3y$", 0,  2, 0 },         // inadequate rbytes
+  { "$sm3y$", 0,  0, 4 },         // inadequate osize
+#else
+  { "$sm3y$",  0, 0, 0 },
+#endif
 };
 
 static void
