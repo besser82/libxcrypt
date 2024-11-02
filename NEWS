@@ -4,6 +4,9 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.37
+* Several fixes to the manpages (issue #185).
+* Add binary compatibility for x86_64 GNU/Hurd (issue #189).
+* Only test the needed makecontext signature during configure (issue #178).
 
 Version 4.4.36
 * Fix left over bits failing with Perl v5.38.0 (issue #173).
