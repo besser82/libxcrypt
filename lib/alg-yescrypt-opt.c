@@ -30,7 +30,8 @@
 
 #include "crypt-port.h"
 
-#if INCLUDE_yescrypt || INCLUDE_scrypt || INCLUDE_gost_yescrypt
+#if INCLUDE_yescrypt || INCLUDE_scrypt || INCLUDE_gost_yescrypt || \
+    INCLUDE_sm3_yescrypt
 
 #pragma GCC diagnostic ignored "-Wcast-align"
 #pragma GCC diagnostic ignored "-Wconversion"
@@ -1555,4 +1556,5 @@ int yescrypt_free_local(yescrypt_local_t *local)
 	return free_region(local);
 }
 
-#endif /* INCLUDE_yescrypt || INCLUDE_scrypt || INCLUDE_gost_yescrypt */
+#endif /* INCLUDE_yescrypt || INCLUDE_scrypt || INCLUDE_gost_yescrypt ||
+          INCLUDE_sm3_yescrypt */

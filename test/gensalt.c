@@ -310,6 +310,29 @@ static const char *gost_yescrypt_expected_output_h[] =
   "$gy$jFT$UqGBkVu01rurVZqgNchTB0"
 };
 #endif
+#if INCLUDE_sm3_yescrypt
+static const char *const sm3_yescrypt_expected_output[] =
+{
+  "$sm3y$j9T$MJHnaAkegEVYHsFKkmfzJ1",
+  "$sm3y$j9T$PKXc3hCOSyMqdaEQArI62/",
+  "$sm3y$j9T$ZAFlICwYRETzIzIjEIC86.",
+  "$sm3y$j9T$UqGBkVu01rurVZqgNchTB0"
+};
+static const char *const sm3_yescrypt_expected_output_l[] =
+{
+  "$sm3y$j75$MJHnaAkegEVYHsFKkmfzJ1",
+  "$sm3y$j75$PKXc3hCOSyMqdaEQArI62/",
+  "$sm3y$j75$ZAFlICwYRETzIzIjEIC86.",
+  "$sm3y$j75$UqGBkVu01rurVZqgNchTB0"
+};
+static const char *const sm3_yescrypt_expected_output_h[] =
+{
+  "$sm3y$jFT$MJHnaAkegEVYHsFKkmfzJ1",
+  "$sm3y$jFT$PKXc3hCOSyMqdaEQArI62/",
+  "$sm3y$jFT$ZAFlICwYRETzIzIjEIC86.",
+  "$sm3y$jFT$UqGBkVu01rurVZqgNchTB0"
+};
+#endif
 
 struct testcase
 {
@@ -411,6 +434,11 @@ static const struct testcase testcases[] =
   { "$gy$",  gost_yescrypt_expected_output,   30, 30,  0 },
   { "$gy$",  gost_yescrypt_expected_output_l, 30, 30,  1 },
   { "$gy$",  gost_yescrypt_expected_output_h, 30, 30, 11 },
+#endif
+#if INCLUDE_sm3_yescrypt
+  { "$sm3y$",  sm3_yescrypt_expected_output,   32, 32,  0 },
+  { "$sm3y$",  sm3_yescrypt_expected_output_l, 32, 32,  1 },
+  { "$sm3y$",  sm3_yescrypt_expected_output_h, 32, 32, 11 },
 #endif
   { 0, 0, 0, 0, 0 }
 };

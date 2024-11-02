@@ -20,7 +20,8 @@
 
 #include "crypt-port.h"
 
-#if INCLUDE_yescrypt || INCLUDE_scrypt || INCLUDE_gost_yescrypt
+#if INCLUDE_yescrypt || INCLUDE_scrypt || INCLUDE_gost_yescrypt || \
+    INCLUDE_sm3_yescrypt
 
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
@@ -461,4 +462,5 @@ main (void)
 	return 77; /* UNSUPPORTED */
 }
 
-#endif /* INCLUDE_yescrypt || INCLUDE_scrypt || INCLUDE_gost_yescrypt */
+#endif /* INCLUDE_yescrypt || INCLUDE_scrypt || INCLUDE_gost_yescrypt ||
+          INCLUDE_sm3_yescrypt */

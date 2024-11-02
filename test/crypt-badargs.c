@@ -79,6 +79,9 @@ static const char *settings[] =
 #if INCLUDE_gost_yescrypt
   "$gy$j9T$MJHnaAkegEVYHsFKkmfzJ1",
 #endif
+#if INCLUDE_sm3_yescrypt
+  "$sm3y$j9T$MJHnaAkegEVYHsFKkmfzJ1",
+#endif
 };
 
 /* In some of the tests below, a segmentation fault is the expected result.  */

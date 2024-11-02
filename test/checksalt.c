@@ -30,88 +30,93 @@ struct testcase
 static const struct testcase testcases[] =
 {
 #if INCLUDE_descrypt || INCLUDE_bigcrypt
-  { "",      CRYPT_SALT_INVALID,       CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY },
-  { "..",    CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY },
-  { "MN",    CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY },
+  { "",        CRYPT_SALT_INVALID,       CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY },
+  { "..",      CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY },
+  { "MN",      CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY },
 #else
-  { "",      CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
-  { "..",    CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
-  { "MN",    CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
+  { "",        CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
+  { "..",      CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
+  { "MN",      CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
 #endif
 #if INCLUDE_bsdicrypt
-  { "_",     CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY },
+  { "_",       CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY },
 #else
-  { "_",     CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
+  { "_",       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
 #endif
 #if INCLUDE_md5crypt
-  { "$1$",   CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY },
+  { "$1$",     CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY },
 #else
-  { "$1$",   CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
+  { "$1$",     CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
 #endif
 #if INCLUDE_nt
-  { "$3$",   CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY },
+  { "$3$",     CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY },
 #else
-  { "$3$",   CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
+  { "$3$",     CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
 #endif
 #if INCLUDE_sunmd5
-  { "$md5",  CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY },
+  { "$md5",    CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY },
 #else
-  { "$md5",  CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
+  { "$md5",    CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
 #endif
 #if INCLUDE_sha1crypt
-  { "$sha1", CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY },
+  { "$sha1",   CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY },
 #else
-  { "$sha1", CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
+  { "$sha1",   CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
 #endif
 #if INCLUDE_sha256crypt
-  { "$5$",   CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY },
+  { "$5$",     CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY },
 #else
-  { "$5$",   CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
+  { "$5$",     CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
 #endif
 #if INCLUDE_sha512crypt
-  { "$6$",   CRYPT_SALT_OK,            CRYPT_SALT_OK,            CRYPT_SALT_OK            },
+  { "$6$",     CRYPT_SALT_OK,            CRYPT_SALT_OK,            CRYPT_SALT_OK            },
 #else
-  { "$6$",   CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
+  { "$6$",     CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
 #endif
 #if INCLUDE_sm3crypt
-  { "$sm3$", CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY },
+  { "$sm3$",   CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_METHOD_LEGACY },
 #else
-  { "$sm3$", CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
+  { "$sm3$",   CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
 #endif
 #if INCLUDE_bcrypt
-  { "$2b$",  CRYPT_SALT_OK,            CRYPT_SALT_OK,            CRYPT_SALT_OK            },
+  { "$2b$",    CRYPT_SALT_OK,            CRYPT_SALT_OK,            CRYPT_SALT_OK            },
 #else
-  { "$2b$",  CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
+  { "$2b$",    CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
 #endif
 #if INCLUDE_bcrypt_a
-  { "$2a$",  CRYPT_SALT_OK,            CRYPT_SALT_OK,            CRYPT_SALT_OK            },
+  { "$2a$",    CRYPT_SALT_OK,            CRYPT_SALT_OK,            CRYPT_SALT_OK            },
 #else
-  { "$2a$",  CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
+  { "$2a$",    CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
 #endif
 #if INCLUDE_bcrypt_x
-  { "$2x$",  CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
+  { "$2x$",    CRYPT_SALT_METHOD_LEGACY, CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
 #else
-  { "$2x$",  CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
+  { "$2x$",    CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
 #endif
 #if INCLUDE_bcrypt_y
-  { "$2y$",  CRYPT_SALT_OK,            CRYPT_SALT_OK,            CRYPT_SALT_OK            },
+  { "$2y$",    CRYPT_SALT_OK,            CRYPT_SALT_OK,            CRYPT_SALT_OK            },
 #else
-  { "$2y$",  CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
+  { "$2y$",    CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
 #endif
 #if INCLUDE_yescrypt
-  { "$y$",   CRYPT_SALT_OK,            CRYPT_SALT_OK,            CRYPT_SALT_OK            },
+  { "$y$",     CRYPT_SALT_OK,            CRYPT_SALT_OK,            CRYPT_SALT_OK            },
 #else
-  { "$y$",   CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
+  { "$y$",     CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
 #endif
 #if INCLUDE_scrypt
-  { "$7$",   CRYPT_SALT_OK,            CRYPT_SALT_OK,            CRYPT_SALT_OK            },
+  { "$7$",     CRYPT_SALT_OK,            CRYPT_SALT_OK,            CRYPT_SALT_OK            },
 #else
-  { "$7$",   CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
+  { "$7$",     CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
 #endif
 #if INCLUDE_gost_yescrypt
-  { "$gy$",  CRYPT_SALT_OK,            CRYPT_SALT_OK,            CRYPT_SALT_OK            },
+  { "$gy$",    CRYPT_SALT_OK,            CRYPT_SALT_OK,            CRYPT_SALT_OK            },
 #else
-  { "$gy$",  CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
+  { "$gy$",    CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
+#endif
+#if INCLUDE_sm3_yescrypt
+  { "$sm3y$",  CRYPT_SALT_OK,            CRYPT_SALT_OK,            CRYPT_SALT_OK            },
+#else
+  { "$sm3y$",  CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID,       CRYPT_SALT_INVALID       },
 #endif
 
   /* All of these are invalid. */
