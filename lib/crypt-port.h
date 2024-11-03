@@ -73,6 +73,12 @@
 #define __THROW /* nothing */
 #endif
 
+/* Thread-local storage may not be supported by
+   all compilers and their specific releases.  */
+#ifndef HAVE_THREAD_LOCAL_STORAGE
+# error "Unable to determine how to declare thread-local storage"
+#endif
+
 /* Suppression of unused-argument warnings.  */
 #if defined __GNUC__ && __GNUC__ >= 3
 # define ARG_UNUSED(x) x __attribute__ ((__unused__))
