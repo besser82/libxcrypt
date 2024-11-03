@@ -1,5 +1,5 @@
 /* Copyright (C) 2007-2017 Thorsten Kukuk
-   Copyright (C) 2019,2024 Björn Esser
+   Copyright (C) 2019,2024,2025 Björn Esser
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -17,6 +17,8 @@
 
 #include "crypt-port.h"
 
+#include <stdlib.h>
+
 /* The functions that use global state objects are isolated in their
    own files so that a statically-linked program that doesn't use them
    will not have the state objects in its data segment.  */
@@ -26,12 +28,23 @@ char *
 crypt (const char *key, const char *setting)
 {
   static TLS char output[CRYPT_OUTPUT_SIZE];
-  struct crypt_data nr_crypt_ctx;
+  struct crypt_data *nr_crypt_ctx = NULL;
+  int ctx_size = 0;
 
-  memset (&nr_crypt_ctx, 0, sizeof (nr_crypt_ctx));
-  crypt_r (key, setting, &nr_crypt_ctx);
-  strcpy_or_abort (output, sizeof (output), nr_crypt_ctx.output);
+  crypt_ra (key, setting, (void **) &nr_crypt_ctx, &ctx_size);
 
+  /* Call to malloc from crypt_ra failed.  */
+  if (!nr_crypt_ctx)
+    {
+      explicit_bzero (output, sizeof (output));
+      make_failure_token (setting, output, sizeof (output));
+      goto end;
+    }
+
+  strcpy_or_abort (output, sizeof (output), nr_crypt_ctx->output);
+  free (nr_crypt_ctx);
+
+end:
 #if ENABLE_FAILURE_TOKENS
   return output;
 #else
