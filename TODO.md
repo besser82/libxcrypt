@@ -67,15 +67,6 @@ It was last updated 20 October 2018.
     * If we do, should it know how to trigger the trusted-path
       password prompt in modern GUI environments? (probably)
 
-  * Make the crypt and crypt_gensalt static state thread-specific?
-    * Solaris 11 may have done this (its `crypt(3)` manpage describes
-      it as MT-Safe and I don’t see any other way they could have
-      accomplished that).
-    * if allocated on first use, this would also shave 32kB of
-      data segment off the shared library
-    * alternatively, add a global lock and *crash the program* if we
-      detect concurrent calls
-
   * Allow access to more of yescrypt’s tunable parameters and ROM
     feature, in a way that’s generic enough that we could also use it
     for e.g. Argon2’s tunable parameters
