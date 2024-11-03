@@ -1,5 +1,5 @@
 /* Copyright (C) 2007-2017 Thorsten Kukuk
-   Copyright (C) 2019 Björn Esser
+   Copyright (C) 2019,2024 Björn Esser
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -25,8 +25,18 @@
 char *
 crypt (const char *key, const char *setting)
 {
-  static struct crypt_data nr_crypt_ctx;
-  return crypt_r (key, setting, &nr_crypt_ctx);
+  static TLS char output[CRYPT_OUTPUT_SIZE];
+  struct crypt_data nr_crypt_ctx;
+
+  memset (&nr_crypt_ctx, 0, sizeof (nr_crypt_ctx));
+  crypt_r (key, setting, &nr_crypt_ctx);
+  strcpy_or_abort (output, sizeof (output), nr_crypt_ctx.output);
+
+#if ENABLE_FAILURE_TOKENS
+  return output;
+#else
+  return output[0] == '*' ? 0 : output;
+#endif /* ENABLE_FAILURE_TOKENS */
 }
 SYMVER_crypt;
 #endif
