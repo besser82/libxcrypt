@@ -375,6 +375,7 @@ check_PROGRAMS = \
 	test/compile-strong-alias \
 	test/crypt-badargs \
 	test/crypt-gost-yescrypt \
+	test/crypt-multithread \
 	test/explicit-bzero \
 	test/gensalt \
 	test/gensalt-extradata \
@@ -478,6 +479,10 @@ test/symbols-compat.log test/symbols-compat.trs: test/TestCommon.pm
 test/symbols-renames.log test/symbols-renames.trs: test/TestCommon.pm
 test/symbols-static.log test/symbols-static.trs: test/TestCommon.pm
 
+# test/crypt-multithread.c uses pthreads.
+test_crypt_multithread_CFLAGS = $(PTHREAD_CFLAGS)
+test_crypt_multithread_LIBS = $(PTHREAD_LIBS)
+
 COMMON_TEST_OBJECTS = libcrypt.la
 
 test_badsalt_LDADD = $(COMMON_TEST_OBJECTS)
@@ -488,6 +493,7 @@ test_checksalt_LDADD = $(COMMON_TEST_OBJECTS)
 test_des_obsolete_LDADD = $(COMMON_TEST_OBJECTS)
 test_des_obsolete_r_LDADD = $(COMMON_TEST_OBJECTS)
 test_crypt_badargs_LDADD = $(COMMON_TEST_OBJECTS)
+test_crypt_multithread_LDADD = $(COMMON_TEST_OBJECTS)
 test_short_outbuf_LDADD = $(COMMON_TEST_OBJECTS)
 test_preferred_method_LDADD = $(COMMON_TEST_OBJECTS)
 test_special_char_salt_LDADD = $(COMMON_TEST_OBJECTS)
