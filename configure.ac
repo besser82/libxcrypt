@@ -93,7 +93,18 @@ if test x$ac_cv_c_address_sanitizer = xyes; then
     [Define when compiling with ASan.  Only affects tests.])
 fi
 
-# Checks for libraries: currently none needed.
+# Checks for libraries.
+# Some tests are multithreaded.
+AX_PTHREAD([
+  # this could be worked around with sufficient hackery in the Makefile,
+  # maybe, but considering it only affects (old versions of?) AIX, I can't
+  # be bothered.
+  if test x"$PTHREAD_CC" != x"$CC"; then
+    AC_MSG_ERROR([Automake does not support PTHREAD_CC different from CC.])
+  fi
+  AC_DEFINE([HAVE_PTHREAD],[1],
+      [Define if you have POSIX threads libraries and header files.])
+])
 
 # Checks for header files.
 AC_CHECK_HEADERS_ONCE([
@@ -151,6 +162,10 @@ if test $ac_cv_header_sys_cdefs_THROW = yes; then
 fi
 
 # Checks for typedefs, structures, and compiler characteristics.
+AX_TLS(
+  [AC_DEFINE([HAVE_THREAD_LOCAL_STORAGE], [1],
+    [Define if thread-local storage (TLS) is supported by the compiler.])]
+)
 zw_C_ALIGNAS
 zw_C_ALIGNOF
 zw_C_MAX_ALIGN_T

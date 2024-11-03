@@ -132,7 +132,9 @@ is unspecified and must not be relied upon.
 places its result in a static storage area,
 which will be overwritten by subsequent calls to
 .Nm crypt_gensalt .
-It is not safe to call
+In this version of libcrypt,
+the static storage area is allocated separately for each thread,
+but portable code should not call
 .Nm crypt_gensalt
 from multiple threads simultaneously.
 However, it
@@ -229,6 +231,15 @@ A function with the name
 .Nm crypt_gensalt
 also exists on Solaris 10 and newer, but its prototype and semantics differ.
 .Pp
+Some implementations of
+.Nm crypt_gensalt
+use a single storage area for all callers,
+even in the presence of threads.
+This library uses per-thread storage areas,
+but portable code should avoid calling
+.Nm crypt_gensalt
+from multiple threads simultaneously.
+.Pp
 The default prefix and auto entropy features are available since libxcrypt
 version 4.0.0.  Portable software can use feature test macros to find out
 whether null pointers can be used for the
@@ -250,14 +261,17 @@ l l l.
 Interface	Attribute	Value
 T{
 .Nm crypt_gensalt
-T}	Thread safety	MT-Unsafe race:crypt_gensalt
+T}	Thread safety	MT-Safe*
 T{
 .Nm crypt_gensalt_rn ,
 .Nm crypt_gensalt_ra
 T}	Thread safety	MT-Safe
 .TE
 .ad
-.sp
+.Pp
+\&* In this implementation.
+See
+.Sx PORTABILITY NOTES .
 .Sh SEE ALSO
 .Xr crypt 3 ,
 .Xr getpass 3 ,
