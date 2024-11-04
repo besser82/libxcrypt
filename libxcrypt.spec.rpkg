@@ -7,10 +7,10 @@
 
 
 # Build the compat package?
-%if !(0%{?fedora} >= 999 || 0%{?rhel} >= 99) && %{with new_api}
-%bcond_without compat_pkg
-%else
+%if 0%{?fedora} >= 999 || 0%{?rhel} >= 10 || %{without new_api}
 %bcond_with    compat_pkg
+%else
+%bcond_without compat_pkg
 %endif
 
 
