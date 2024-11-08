@@ -256,6 +256,89 @@ AX_APPEND_COMPILE_FLAGS([-fno-plt], [OPTI_FLAGS])
 # Export compiler flags for optimization.
 AC_SUBST([OPTI_FLAGS])
 
+# The following tests apply for ppc64 architectures, only.
+AC_CACHE_CHECK([if the host cpu is any ppc64 architecture],
+  [ac_cv_host_cpu_is_ppc64], [
+  case "$host_cpu" in
+    powerpc64*) ac_cv_host_cpu_is_ppc64=yes;;
+    *) ac_cv_host_cpu_is_ppc64=no;;
+  esac])
+
+# On ppc64 architectures we need to turn off the __tls_get_addr
+# runtime optimization for -fno-plt code in dynamic shared objects
+# by passing a certain flag (-Wl,--no-tls-get-addr-optimize) to
+# the linker, when compiling with gcc and using ld.bfd < 2.43.2.
+# See: https://sourceware.org/PR32387
+AS_IF([test "x$ac_cv_host_cpu_is_ppc64"       = xyes  &&
+       test "x$ac_cv_tls"                    != xnone &&
+       test "x$ax_cv_check_cflags___fno_plt"  = xyes], [
+  # Get compiler vendor (gcc = gnu).
+  AX_COMPILER_VENDOR
+
+  # Check if compiler is gcc that uses ld.bfd.
+  AC_CACHE_CHECK([if $ax_cv_c_compiler_vendor compiler uses GNU bfd as linker],
+    [ac_cv_cc_ld_is_gnu_bfd], [
+    AS_IF([test "x$ax_cv_c_compiler_vendor" = xgnu], [
+      AS_IF([`$CC $CFLAGS -Wl,--version 2>/dev/null | \
+              $GREP -q "GNU ld version"`], [
+        ac_cv_cc_ld_is_gnu_bfd=yes], [
+        ac_cv_cc_ld_is_gnu_bfd=no])], [
+      ac_cv_cc_ld_is_gnu_bfd="$ax_cv_c_compiler_vendor compiler not affected by https://sourceware.org/PR32387"])])])
+
+# Determine if ld.bfd has bugfix.
+AS_IF([test "x$ac_cv_cc_ld_is_gnu_bfd" = xyes], [
+  AC_CACHE_CHECK([GNU ld.bfd version used by $ax_cv_c_compiler_vendor compiler],
+    [ac_cv_ld_version], [
+    ac_cv_ld_version=`$CC $CFLAGS -Wl,--version 2>/dev/null | \
+                      $SED -e "s/GNU gold /GNU ld /; \
+                               s/GNU ld version /GNU ld /; \
+                               s/GNU ld ([^)]*) /GNU ld /; \
+                               s/GNU ld \([0-9.][0-9.]*\).*/\1/; q"`])
+  AC_CACHE_CHECK([if the GNU bfd linker is version <= 2.30],
+    [ac_cv_gnu_bfd_le_2_30], [
+    AX_COMPARE_VERSION([$ac_cv_ld_version], [le], [2.31], [
+        ac_cv_gnu_bfd_le_2_30=yes], [
+        ac_cv_gnu_bfd_le_2_30=no])])
+  AS_IF([test "x$ac_cv_gnu_bfd_le_2_30" = xno], [
+    AC_CACHE_CHECK([if the GNU bfd linker is version >= 2.42.1 and < 2.43],
+      [ac_cv_gnu_bfd_ge_2_42_1], [
+      AX_COMPARE_VERSION([$ac_cv_ld_version], [ge], [2.42.1], [
+        AX_COMPARE_VERSION([$ac_cv_ld_version], [lt], [2.43.0], [
+          ac_cv_gnu_bfd_ge_2_42_1=yes], [
+          ac_cv_gnu_bfd_ge_2_42_1=no])], [
+        ac_cv_gnu_bfd_ge_2_42_1=no])])])
+  AS_IF([test "x$ac_cv_gnu_bfd_ge_2_42_1" = xno], [
+    AC_CACHE_CHECK([if the GNU bfd linker is version >= 2.43.2],
+       [ac_cv_gnu_bfd_ge_2_43_2], [
+       AX_COMPARE_VERSION([$ac_cv_ld_version], [ge], [2.43.2], [
+         ac_cv_gnu_bfd_ge_2_43_2=yes], [
+         ac_cv_gnu_bfd_ge_2_43_2=no])])])
+  AC_CACHE_CHECK([if the GNU bfd linker is affected by ppc64 TLS optimization bug with -fno-plt],
+    [ac_cv_need_tls_opt_bugfix], [
+    AS_IF([test "x$ac_cv_gnu_bfd_le_2_30"   = xyes ||
+           test "x$ac_cv_gnu_bfd_ge_2_42_1" = xyes ||
+           test "x$ac_cv_gnu_bfd_ge_2_43_2" = xyes], [
+      ac_cv_need_tls_opt_bugfix=no], [
+      ac_cv_need_tls_opt_bugfix=yes])])])
+
+AS_IF([test "x$ac_cv_need_tls_opt_bugfix" = xyes], [
+  # FIXME: This only checks whether the linker accepts
+  # -Wl,--no-tls-get-addr-optimize.  It doesn't check that the switch
+  # actually does what we want it to do.
+  AC_CACHE_CHECK([how to explicitly disable __tls_get_addr_opt runtime optimization],
+    [ac_cv_no_tls_get_addr_opt], [
+    ac_cv_no_tls_get_addr_opt=unknown
+    SAVED_LDFLAGS="$LDFLAGS"
+    LDFLAGS="$SAVED_LDFLAGS -Wl,--no-tls-get-addr-optimize"
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([], [int i = 1;])],
+      [ac_cv_no_tls_get_addr_opt=-Wl,--no-tls-get-addr-optimize])
+    LDFLAGS="$SAVED_LDFLAGS"])
+
+  NO_TLS_GET_ADDR_OPT_FLAG=
+  AS_IF([test "x$ac_cv_no_tls_get_addr_opt" != xunknown], [
+    NO_TLS_GET_ADDR_OPT_FLAG="$ac_cv_no_tls_get_addr_opt"])
+  AC_SUBST([NO_TLS_GET_ADDR_OPT_FLAG])])
+
 # Checks for library functions.
 AC_CHECK_FUNCS_ONCE([
   arc4random_buf

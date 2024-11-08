@@ -162,6 +162,7 @@ APPLY_SYMVERS = no
 endif
 
 libcrypt_la_LDFLAGS += $(UNDEF_FLAG) $(TEXT_RELOC_FLAG) $(AM_LDFLAGS)
+libcrypt_la_LDFLAGS += $(NO_TLS_GET_ADDR_OPT_FLAG)
 
 libcrypt_la_CPPFLAGS = $(AM_CPPFLAGS) -DIN_LIBCRYPT
 
