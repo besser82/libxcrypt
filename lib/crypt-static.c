@@ -16,7 +16,6 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include "crypt-port.h"
-#include <errno.h>
 
 /* The functions that use global state objects are isolated in their
    own files so that a statically-linked program that doesn't use them
