@@ -182,6 +182,8 @@ typedef SSIZE_T ssize_t;
 #define explicit_bzero(s, len) explicit_memset(s, 0, len)
 #elif defined HAVE_MEMSET_S
 #define explicit_bzero(s, len) memset_s(s, len, 0, len)
+#elif defined _MSC_VER
+#define explicit_bzero(s, len) SecureZeroMemory(s, len)
 #else
 /* activate our fallback implementation */
 #undef INCLUDE_explicit_bzero
