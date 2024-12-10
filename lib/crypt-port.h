@@ -49,6 +49,9 @@
 #ifdef HAVE_SYS_PARAM_H
 #include <sys/param.h>
 #endif
+#ifdef _MSC_VER
+#include <Windows.h>
+#endif
 
 /* unistd.h may contain declarations of crypt, crypt_r, crypt_data,
    encrypt, and setkey; if present, they may be incompatible with our
@@ -146,6 +149,10 @@ typedef union
   void *vp;
   void (*vpf)(void);
 } max_align_t;
+#endif
+
+#ifdef _MSC_VER
+typedef SSIZE_T ssize_t;
 #endif
 
 /* Several files expect the traditional definitions of these macros.
