@@ -83,6 +83,8 @@
 /* Functions that should not be inlined.  */
 #if defined __GNUC__ && __GNUC__ >= 3
 # define NO_INLINE __attribute__ ((__noinline__))
+#elif defined(_MSC_VER)
+# define NO_INLINE __declspec(noinline)
 #else
 # error "Don't know how to prevent function inlining"
 #endif
