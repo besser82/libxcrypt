@@ -101,6 +101,13 @@
 #define MIN_SIZE(x) (x)
 #endif
 
+/* MSVC does not support static restrict array declarations. */
+#ifdef _MSC_VER
+#define STATIC_RESTRICT
+#else
+#define STATIC_RESTRICT static restrict
+#endif
+
 /* Detect system endianness.  */
 #if ENDIANNESS_IS_BIG
 # define XCRYPT_USE_BIGENDIAN 1
