@@ -115,6 +115,7 @@ test/special-char-salt
 *.tar*
 
 # GnuPG keyrings
+*.asc
 *.gpg
 
 # Valgrind
