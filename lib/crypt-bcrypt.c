@@ -433,7 +433,7 @@ BF_encode (unsigned char *dst, const BF_word * src, int size)
       c1 = *sptr++;
       *dptr++ = BF_itoa64[c1 >> 2];
       c1 = (c1 & 0x03) << 4;
-      if (sptr >= end)
+      if (end - sptr <= 0)
         {
           *dptr++ = BF_itoa64[c1];
           break;
@@ -443,7 +443,7 @@ BF_encode (unsigned char *dst, const BF_word * src, int size)
       c1 |= c2 >> 4;
       *dptr++ = BF_itoa64[c1];
       c1 = (c2 & 0x0f) << 2;
-      if (sptr >= end)
+      if (end - sptr <= 0)
         {
           *dptr++ = BF_itoa64[c1];
           break;
@@ -454,7 +454,7 @@ BF_encode (unsigned char *dst, const BF_word * src, int size)
       *dptr++ = BF_itoa64[c1];
       *dptr++ = BF_itoa64[c2 & 0x3f];
     }
-  while (sptr < end);
+  while (end - sptr > 0);
 }
 
 #if XCRYPT_USE_BIGENDIAN
