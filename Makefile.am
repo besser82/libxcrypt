@@ -607,7 +607,7 @@ distcheck-hook:
 	  perlcritic --quiet ./
 
 # Target for generating a signed release tarball.
-release: libxcrypt-$(VERSION).tar.xz.sha256sum libxcrypt-gpgkey.gpg
+release: libxcrypt-$(VERSION).tar.xz.sha256sum libxcrypt-gpgkey.asc
 phony_targets += release
 
 libxcrypt-$(VERSION).tar.xz.asc: dist-xz
@@ -631,21 +631,22 @@ libxcrypt-$(VERSION).tar.xz.sha256sum: libxcrypt-$(VERSION).tar.xz.asc
 		libxcrypt-$(VERSION).tar.xz.sha256sum.T \
 		libxcrypt-$(VERSION).tar.xz.sha256sum
 
-libxcrypt-gpgkey.gpg:
+libxcrypt-gpgkey.asc:
 	$(GPG2) \
+		--armor \
 		--export \
 		--export-options \
 			export-minimal \
 			F52E98007594C21D \
-		> libxcrypt-gpgkey.gpg.T
+		> libxcrypt-gpgkey.asc.T
 	$(AM_V_at)$(SCRIPTS_AUX)/move-if-change \
-		libxcrypt-gpgkey.gpg.T \
-		libxcrypt-gpgkey.gpg
+		libxcrypt-gpgkey.asc.T \
+		libxcrypt-gpgkey.asc
 
 CLEANFILES += \
 	libxcrypt-$(VERSION).tar.xz.asc* \
 	libxcrypt-$(VERSION).tar.xz.sha256sum* \
-	libxcrypt-gpgkey.gpg*
+	libxcrypt-gpgkey.asc*
 
 # Every object file depends on crypt-symbol-vers.h and crypt-hashes.h,
 # which are generated files, so automatic dependency generation is not
