@@ -101,6 +101,10 @@ m4_define([zw_C_ENDIANNESS_options], [
 [ [_MIPSEB and _MIPSEL],
   [(defined _MIPSEB) != (defined _MIPSEL)],
   [defined _MIPSEB], [defined _MIPSEL], [0],
+],
+[ [_MSC_VER and _M_X64 or _M_IX86],
+  [defined _MSC_VER && (defined _M_X64 || defined _M_IX86)],
+  [0], [1], [0],
 ]
 ])
 
