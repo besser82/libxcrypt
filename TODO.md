@@ -27,7 +27,6 @@ It was last updated 20 October 2018.
   * something bespoke for not having to write serialization and
     deserialization logic for hash strings by hand, as this is
     probably the most error-prone part of writing a hashing method
-
   * the most sensitive piece of data handled by this library is a
     cleartext passphrase.  OS may have trusted-path facilities for
     prompting the user for a passphrase and feeding it to a KDF
@@ -53,20 +52,15 @@ It was last updated 20 October 2018.
     probably not match them (they have a `crypt.conf` but it’s not the
     same, and their `crypt_gensalt` is API-incompatible anyway).
 
-[crypt.conf branch]: https://github.com/besser82/libxcrypt/tree/zack/crypt.conf
-
 * Potential API enhancements:
-
   * Support for "pepper" (an additional piece of information, _not_
     stored in the password file, that you need to check a password)
-
   * Reading passphrases from the terminal is finicky and there are
     several competing, poorly portable, questionably sound library
     functions to do it (`getpass`, `readpassphrase`, etc) -- should we
     incorporate one?
     * If we do, should it know how to trigger the trusted-path
       password prompt in modern GUI environments? (probably)
-
   * Make the crypt and crypt_gensalt static state thread-specific?
     * Solaris 11 may have done this (its `crypt(3)` manpage describes
       it as MT-Safe and I don’t see any other way they could have
@@ -75,11 +69,9 @@ It was last updated 20 October 2018.
       data segment off the shared library
     * alternatively, add a global lock and *crash the program* if we
       detect concurrent calls
-
   * Allow access to more of yescrypt’s tunable parameters and ROM
     feature, in a way that’s generic enough that we could also use it
     for e.g. Argon2’s tunable parameters
-
   * Other yescrypt-inspired features relevant to using this library to
     back a “dedicated authentication service,” e.g. preallocation of
     large blocks of scratch memory
@@ -98,3 +90,5 @@ It was last updated 20 October 2018.
     arguably uncopyrightable).
   * Most of the test suite lacks any license or even authorship
     information.  We would have to track down the original authors.
+
+[crypt.conf branch]: https://github.com/besser82/libxcrypt/tree/zack/crypt.conf
