@@ -1,6 +1,6 @@
 specfile_path: libxcrypt.spec
 
-synced_files:
+files_to_sync:
   - libxcrypt.spec
   - .packit.yaml
 
@@ -15,18 +15,18 @@ actions:
   post-upstream-clone: "wget https://src.fedoraproject.org/rpms/libxcrypt/raw/main/f/libxcrypt.spec -O libxcrypt.spec"
 
 jobs:
-- job: production_build
+- job: upstream_koji_build
   trigger: commit
   metadata:
     branch: develop
     scratch: true
-    targets: rawhide
+    targets: fedora-all
 
-- job: production_build
+- job: upstream_koji_build
   trigger: pull_request
   metadata:
     scratch: true
-    targets: rawhide
+    targets: fedora-all
 
 - job: propose_downstream
   trigger: release
