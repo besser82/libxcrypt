@@ -289,7 +289,7 @@ crypt_gensalt_rn (const char *prefix, unsigned long count,
       return 0;
     }
 
-  char internal_rbytes[UCHAR_MAX];
+  char internal_rbytes[UCHAR_MAX] = "\0";
   /* typeof (internal_nrbytes) == typeof (h->nrbytes).  */
   unsigned char internal_nrbytes = 0;
 
