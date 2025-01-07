@@ -75,5 +75,5 @@ except ModuleNotFoundError:
 done
 
 set fnord; shift  # clear $@
-echo "::set-output name=autotools-ver::$autotools_ver"
+echo "autotools-ver=$autotools_ver" >> $GITHUB_OUTPUT
 exit 0

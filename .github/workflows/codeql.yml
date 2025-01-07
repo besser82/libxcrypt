@@ -9,14 +9,14 @@ on:
 jobs:
   skip_duplicates:
     continue-on-error: true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
       - id: skip_check
         # pin to unreleased SHA so we can use 'same_content_newer'
         # see https://github.com/fkirc/skip-duplicate-actions/pull/112
-        uses: fkirc/skip-duplicate-actions@98d1dc89f43a47f8e4fba8e1c1fb8d6c5fc515ee
+        uses: fkirc/skip-duplicate-actions@v5
         with:
           concurrent_skipping: 'same_content_newer'
           skip_after_successful_duplicate: 'true'
@@ -27,7 +27,7 @@ jobs:
     needs: skip_duplicates
     if: ${{ needs.skip_duplicates.outputs.should_skip != 'true' }}
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       actions: read
       contents: read
@@ -35,10 +35,13 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
+
+    - name: Install packages
+      run: sudo apt-get install libltdl-dev
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v1
+      uses: github/codeql-action/init@v2
       with:
         # CodeQL lumps C with C++.  Perl is not currently supported.
         languages: cpp, python
@@ -60,7 +63,7 @@ jobs:
 
     - name: Cache bootstrap
       id: cache
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: |
           INSTALL
@@ -90,7 +93,7 @@ jobs:
         make -j${{ env.NPROCS }} test-programs
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v1
+      uses: github/codeql-action/analyze@v2
 
     - name: Detailed error logs
       if: failure()

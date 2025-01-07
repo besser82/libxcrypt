@@ -521,16 +521,13 @@ sub parse_symver_args {
         if (/^SYMVER_MIN=(.+)$/) {
             $usage_error->() if defined $SYMVER_MIN;
             $SYMVER_MIN = $1;
-        }
-        elsif (/^SYMVER_FLOOR=(.+)$/) {
+        } elsif (/^SYMVER_FLOOR=(.+)$/) {
             $usage_error->() if defined $SYMVER_FLOOR;
             $SYMVER_FLOOR = $1;
-        }
-        elsif (/^COMPAT_ABI=(.+)$/) {
+        } elsif (/^COMPAT_ABI=(.+)$/) {
             $usage_error->() if defined $COMPAT_ABI;
             $COMPAT_ABI = $1;
-        }
-        else {
+        } else {
             $usage_error->() if defined $map_in;
             $map_in = $_;
         }

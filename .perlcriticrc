@@ -177,6 +177,7 @@ perltidyrc = .perltidyrc
 [ControlStructures::ProhibitCStyleForLoops]
 
 [ControlStructures::ProhibitCascadingIfElse]
+max_elsif = 3
 
 [ControlStructures::ProhibitDeepNests]
 

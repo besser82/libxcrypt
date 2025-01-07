@@ -1,0 +1,4 @@
+ignore:
+  - "lib/gen-des-tables.c"
+  - "test"
+  - "/usr/**/*"

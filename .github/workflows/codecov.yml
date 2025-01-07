@@ -7,14 +7,14 @@ on:
 jobs:
   skip_duplicates:
     continue-on-error: true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
       - id: skip_check
         # pin to unreleased SHA so we can use 'same_content_newer'
         # see https://github.com/fkirc/skip-duplicate-actions/pull/112
-        uses: fkirc/skip-duplicate-actions@98d1dc89f43a47f8e4fba8e1c1fb8d6c5fc515ee
+        uses: fkirc/skip-duplicate-actions@v5
         with:
           concurrent_skipping: 'same_content_newer'
           skip_after_successful_duplicate: 'true'
@@ -25,7 +25,7 @@ jobs:
     needs: skip_duplicates
     if: ${{ needs.skip_duplicates.outputs.should_skip != 'true' }}
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     strategy:
       fail-fast: false
@@ -44,6 +44,7 @@ jobs:
           - "--enable-obsolete-api --disable-failure-tokens --enable-hashes=descrypt"
 
     env:
+      ac_cv_func_arc4random_buf: "no"
       CC: ${{ matrix.compiler }}
       CONFIG_OPTS: ${{ matrix.config_opts }}
       CFLAGS: "-O0 -g -fprofile-arcs -ftest-coverage"
@@ -53,11 +54,11 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Install packages
       run: |
-        packages="lcov"
+        packages="lcov libltdl-dev"
         if [ "$CC" = clang ]; then
           # need 'llvm' for llvm-cov, as well as clang
           packages="$packages clang llvm"
@@ -73,7 +74,7 @@ jobs:
 
     - name: Cache bootstrap
       id: cache
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: |
           INSTALL
@@ -109,10 +110,12 @@ jobs:
       run: ./build-aux/ci/summarize-coverage coverage.info
 
     - name: Upload coverage data to Codecov
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v5
       with:
         fail_ci_if_error: true
         files: coverage.info
+        token: ${{ secrets.CODECOV_TOKEN }}
+        verbose: true
 
     - name: Detailed error logs
       if: failure()

@@ -39,14 +39,11 @@ sub process_config_h {
 
         if ($_ eq '#define HAVE_SYS_CDEFS_H 1') {
             $have_sys_cdefs_h = 1;
-        }
-        elsif ($_ eq '#define HAVE_SYS_CDEFS_BEGIN_END_DECLS 1') {
+        } elsif ($_ eq '#define HAVE_SYS_CDEFS_BEGIN_END_DECLS 1') {
             $have_sys_cdefs_begin_end_decls = 1;
-        }
-        elsif ($_ eq '#define HAVE_SYS_CDEFS_THROW 1') {
+        } elsif ($_ eq '#define HAVE_SYS_CDEFS_THROW 1') {
             $have_sys_cdefs_throw = 1;
-        }
-        elsif (/^#define PACKAGE_VERSION "((\d+)\.(\d+)\.\d+)"$/) {
+        } elsif (/^#define PACKAGE_VERSION "((\d+)\.(\d+)\.\d+)"$/) {
             $substs{XCRYPT_VERSION_STR}   = $1;
             $substs{XCRYPT_VERSION_MAJOR} = $2;
             $substs{XCRYPT_VERSION_MINOR} = $3;

@@ -9,7 +9,7 @@ on:
 
 jobs:
   Coverity:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     env:
       CVT_PROJECT: besser82/libxcrypt
@@ -57,7 +57,10 @@ jobs:
         fi
 
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
+
+    - name: Install packages
+      run: sudo apt-get install libltdl-dev
 
     - name: Download Coverity Build Tool
       env:
@@ -92,7 +95,7 @@ jobs:
 
     - name: Cache bootstrap
       id: cache
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: |
           INSTALL

@@ -9,14 +9,12 @@ on:
 jobs:
   skip_duplicates:
     # continue-on-error: true # Uncomment once integration is finished
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
       - id: skip_check
-        # pin to unreleased SHA so we can use 'same_content_newer'
-        # see https://github.com/fkirc/skip-duplicate-actions/pull/112
-        uses: fkirc/skip-duplicate-actions@98d1dc89f43a47f8e4fba8e1c1fb8d6c5fc515ee
+        uses: fkirc/skip-duplicate-actions@v5
         with:
           concurrent_skipping: 'same_content_newer'
           skip_after_successful_duplicate: 'true'
@@ -27,7 +25,7 @@ jobs:
     needs: skip_duplicates
     if: ${{ needs.skip_duplicates.outputs.should_skip != 'true' }}
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     strategy:
       fail-fast: false
@@ -37,7 +35,10 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
+
+    - name: Install packages
+      run: sudo apt-get install libltdl-dev
 
       # The distcheck build is run with the oldest version of perl we support,
       # in order to verify that we still support it.
@@ -67,7 +68,7 @@ jobs:
 
     - name: Cache bootstrap
       id: cache
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: |
           INSTALL

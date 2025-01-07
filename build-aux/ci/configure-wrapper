@@ -1,10 +1,13 @@
 #!/bin/bash
 
-export DEB_BUILD_MAINT_OPTIONS="${DEB_BUILD_MAINT_OPTIONS:-hardening=+all}"
+export DEB_BUILD_MAINT_OPTIONS="${DEB_BUILD_MAINT_OPTIONS:-hardening=+all optimize=-lto}"
 
 export CPPFLAGS="${CPPFLAGS} $(dpkg-buildflags --get CPPFLAGS)"
 export CFLAGS="${CFLAGS} $(dpkg-buildflags --get CFLAGS)"
 export CXXFLAGS="${CXXFLAGS} $(dpkg-buildflags --get CXXFLAGS)"
 export LDFLAGS="${LDFLAGS} $(dpkg-buildflags --get LDFLAGS)"
+
+# Pretend there is no arc4random_buf available on the system.
+export ac_cv_func_arc4random_buf=no
 
 $PWD/configure "$@"
