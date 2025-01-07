@@ -40,8 +40,9 @@
 
 #include "crypt-port.h"
 
-#ifndef USE_SWAPCONTEXT
-/* We can't do this test if we don't have the ucontext API.  */
+#if !defined USE_SWAPCONTEXT || defined XCRYPT_USE_ASAN
+/* We can't do this test if we don't have the ucontext API.
+   Also ASAN may have some problems with using swapcontext().  */
 int main(void)
 {
   return 77;
@@ -330,4 +331,4 @@ main (void)
   return test_status;
 }
 
-#endif /* have ucontext.h */
+#endif /* have ucontext.h || defined XCRYPT_USE_ASAN */
