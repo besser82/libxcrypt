@@ -12,9 +12,9 @@
 
 struct des_testcase
 {
-  unsigned char key[8];
-  unsigned char plain[8];
-  unsigned char answer[8];
+  unsigned char key[8 + 1];
+  unsigned char plain[8 + 1];
+  unsigned char answer[8 + 1];
 };
 
 static const struct des_testcase des_testcases[] =

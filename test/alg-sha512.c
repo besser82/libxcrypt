@@ -8,7 +8,7 @@
 static const struct
 {
   const char *input;
-  const char result[64];
+  const char result[64 + 1];
 } tests[] =
 {
   /* Test vectors from FIPS 180-2: appendix C.1.  */
@@ -145,7 +145,7 @@ main (void)
   for (i = 0; i < 1000; ++i)
     SHA512_Update (&ctx, buf, sizeof (buf));
   SHA512_Final (sum, &ctx);
-  static const char expected[64] =
+  static const char expected[64 + 1] =
     "\xe7\x18\x48\x3d\x0c\xe7\x69\x64\x4e\x2e\x42\xc7\xbc\x15\xb4\x63"
     "\x8e\x1f\x98\xb1\x3b\x20\x44\x28\x56\x32\xa8\x03\xaf\xa9\x73\xeb"
     "\xde\x0f\xf2\x44\x87\x7e\xa6\x0a\x4c\xb0\x43\x2c\xe5\x77\xc3\x1b"

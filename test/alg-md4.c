@@ -8,7 +8,7 @@
 static const struct
 {
   const char *input;
-  const char result[16];
+  const char result[16 + 1] ;
 } tests[] =
 {
   /* Test vectors as defined in RFC 1320, appendix A, section 5.

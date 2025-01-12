@@ -9,7 +9,7 @@
 static const struct
 {
   const char *input;
-  const char result[32];
+  const char result[32 + 1];
 } tests[] =
 {
   /* Test vectors from FIPS 180-2: appendix B.1.  */
@@ -118,7 +118,7 @@ main (void)
   for (i = 0; i < 1000; ++i)
     SHA256_Update (&ctx, buf, sizeof (buf));
   SHA256_Final (sum, &ctx);
-  static const char expected[32] =
+  static const char expected[32 + 1] =
     "\xcd\xc7\x6e\x5c\x99\x14\xfb\x92\x81\xa1\xc7\xe2\x84\xd7\x3e\x67"
     "\xf1\x80\x9a\x48\xa4\x97\x20\x0e\x04\x6d\x39\xcc\xc7\x11\x2c\xd0";
   if (memcmp (expected, sum, 32) != 0)

@@ -20,7 +20,7 @@ struct hmac_sha256_test
 {
   const char *key;
   const char *message;
-  uint8_t digest[32];
+  uint8_t digest[32 + 1];
 };
 
 /* HMAC-SHA256 test vectors from RFC 4231.  */

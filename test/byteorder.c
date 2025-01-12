@@ -23,13 +23,13 @@
 struct test_32
 {
   uint32_t val;
-  unsigned char bytes[4];
+  unsigned char bytes[4 + 1];
 };
 
 struct test_64
 {
   uint64_t val;
-  unsigned char bytes[8];
+  unsigned char bytes[8 + 1];
 };
 
 #define Z(x) ((unsigned int)(unsigned char)(x)) /* zero extend char */

@@ -8,7 +8,7 @@
 static const struct
 {
   const char *input;
-  const char result[16];
+  const char result[16 + 1];
 } tests[] =
 {
   /* "Informal" test vectors from
