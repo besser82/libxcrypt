@@ -321,6 +321,15 @@ and
 .Nm crypt_ra
 are not part of any standard.
 .Pp
+POSIX permits
+.Nm crypt
+to use a single storage area for all callers,
+even in the presence of threads.
+This library uses per-thread storage areas,
+but portable code should avoid calling
+.Nm crypt
+from multiple threads simultaneously.
+.Pp
 POSIX does not specify any hashing methods,
 and does not require hashed passphrases to be portable between systems.
 In practice, hashed passphrases are portable
@@ -392,6 +401,17 @@ uses a thread-specific static storage buffer,
 which makes it safe to call from multiple threads simultaneously,
 but does not prevent each call within a thread
 from overwriting the results of the previous one.
+If an application needs to call
+.Nm crypt
+from parallel threads independently,
+it is strongly advised to allocate thread-specific
+.Vt "struct crypt_data"
+objects from within that program itself, and to use these objects
+with one of the re-entrant interfaces provided through
+.Nm crypt_r ,
+.Nm crypt_rn ,
+or
+.Nm crypt_ra .
 .Sh BUGS
 Some implementations of
 .Nm crypt ,
@@ -433,14 +453,18 @@ l l l.
 Interface	Attribute	Value
 T{
 .Nm crypt
-T}	Thread safety	MT-Unsafe race:crypt
+T}	Thread safety	MT-Safe*
 T{
 .Nm crypt_r ,
 .Nm crypt_rn ,
 .Nm crypt_ra
 T}	Thread safety	MT-Safe
 .TE
-.sp
+.Pp
+\&* In this implementation.
+Do NOT rely on this to be portable behavior.
+See
+.Sx PORTABILITY NOTES .
 .Sh HISTORY
 A rotor-based
 .Nm crypt
