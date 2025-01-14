@@ -265,6 +265,7 @@ crypt_sha512crypt_rn (const char *phrase, size_t phr_size,
       int n = snprintf (cp,
                         SHA512_HASH_LENGTH - (sizeof (sha512_salt_prefix) - 1),
                         "%s%zu$", sha512_rounds_prefix, rounds);
+      assert (n > 0);
       cp += n;
     }
 
