@@ -81,6 +81,15 @@ static const struct testcase testcases[] =
   { "$3$", 0, 0, 0 },
 #endif
 
+  /* SM3 */
+#if INCLUDE_sm3crypt
+  { "$sm3",  0,        0, 0 },  // truncated prefix
+  { "$sm3$", 0,        2, 0 },  // inadequate rbytes
+  { "$sm3$", 0,        0, 4 },  // inadequate osize
+#else
+  { "$sm3$", 0, 0, 0 },
+#endif
+
   /* SHA1 */
 #if INCLUDE_sha1crypt
   { "$s",   0, 0, 0 },          // truncated prefix
