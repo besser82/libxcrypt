@@ -31,6 +31,9 @@
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
+#ifdef _MSC_VER
+#include <bcrypt.h>
+#endif
 
 /* If we have O_CLOEXEC, we use it, but if we don't, we don't worry
    about it.  */
@@ -52,7 +55,10 @@
    getentropy() and enforced regardless of the actual back-end in use).
 
    If we fall all the way back to /dev/urandom, we open and close it on
-   each call.  */
+   each call.
+
+   With MSVC we fall back to BCryptGenRandom(), and open and close the
+   provider on each call.  */
 
 bool
 get_random_bytes(void *buf, size_t buflen)
@@ -143,6 +149,27 @@ get_random_bytes(void *buf, size_t buflen)
 
           close(fd);
           return !dev_urandom_doesnt_work;
+        }
+    }
+#endif
+
+#ifdef _MSC_VER
+  static bool bcrypt_doesnt_work;
+  if (!bcrypt_doesnt_work)
+    {
+      BCRYPT_ALG_HANDLE algo;
+      NTSTATUS res;
+      res = BCryptOpenAlgorithmProvider(&algo, BCRYPT_RNG_ALGORITHM, NULL, 0);
+      if (!BCRYPT_SUCCESS(res))
+        bcrypt_doesnt_work = true;
+      else
+        {
+          res = BCryptGenRandom(algo, buf, (ULONG) buflen, 0);
+          if (!BCRYPT_SUCCESS(res))
+            bcrypt_doesnt_work = true;
+
+          BCryptCloseAlgorithmProvider(algo, 0);
+          return !bcrypt_doesnt_work;
         }
     }
 #endif

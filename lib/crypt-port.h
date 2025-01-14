@@ -49,6 +49,9 @@
 #ifdef HAVE_SYS_PARAM_H
 #include <sys/param.h>
 #endif
+#ifdef _MSC_VER
+#include <Windows.h>
+#endif
 
 /* unistd.h may contain declarations of crypt, crypt_r, crypt_data,
    encrypt, and setkey; if present, they may be incompatible with our
@@ -83,6 +86,8 @@
 /* Functions that should not be inlined.  */
 #if defined __GNUC__ && __GNUC__ >= 3
 # define NO_INLINE __attribute__ ((__noinline__))
+#elif defined(_MSC_VER)
+# define NO_INLINE __declspec(noinline)
 #else
 # error "Don't know how to prevent function inlining"
 #endif
@@ -97,6 +102,13 @@
 #define MIN_SIZE(x) static (x)
 #else
 #define MIN_SIZE(x) (x)
+#endif
+
+/* MSVC does not support static restrict array declarations. */
+#ifdef _MSC_VER
+#define STATIC_RESTRICT
+#else
+#define STATIC_RESTRICT static restrict
 #endif
 
 /* Detect system endianness.  */
@@ -139,6 +151,10 @@ typedef union
 } max_align_t;
 #endif
 
+#ifdef _MSC_VER
+typedef SSIZE_T ssize_t;
+#endif
+
 /* Several files expect the traditional definitions of these macros.
    (We don't trust sys/param.h to define them correctly.)  */
 #undef MIN
@@ -166,6 +182,8 @@ typedef union
 #define explicit_bzero(s, len) explicit_memset(s, 0, len)
 #elif defined HAVE_MEMSET_S
 #define explicit_bzero(s, len) memset_s(s, len, 0, len)
+#elif defined _MSC_VER
+#define explicit_bzero(s, len) SecureZeroMemory(s, len)
 #else
 /* activate our fallback implementation */
 #undef INCLUDE_explicit_bzero
@@ -240,7 +258,11 @@ extern size_t strcpy_or_abort (void *dst, size_t d_size, const void *src);
 
 /* A construct with the same syntactic role as the expansion of symver_set,
    but which does nothing.  */
+#ifdef _MSC_VER
+#define symver_nop()
+#else
 #define symver_nop() __asm__ ("")
+#endif
 
 /* The macros for versioned symbols work differently in this library
    than they do in glibc.  They are mostly auto-generated
