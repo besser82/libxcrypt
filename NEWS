@@ -4,6 +4,11 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.38
+* Fix several "-Wunterminated-string-initialization", which are seen by
+  upcoming GCC 15.x (issue #194).
+* Fix "-Wmaybe-uninitialized" in crypt.c, which is seen by GCC 13.3.0.
+* Skip test/explicit-bzero if compiling with ASAN.
+* Drop hard requirement for the pkg-config binary (issue #198).
 
 Version 4.4.37
 * Several fixes to the manpages (issue #185).
