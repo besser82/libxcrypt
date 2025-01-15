@@ -180,7 +180,9 @@ do_crypt (const char *phrase, const char *setting, struct crypt_data *data)
             (unsigned char *)data->output, sizeof data->output,
             cint->alg_specific, sizeof cint->alg_specific);
 
-  explicit_bzero (data->internal, sizeof data->internal);
+  explicit_bzero (data->internal, sizeof (data->internal));
+  explicit_bzero (data->reserved, sizeof (data->reserved));
+  data->initialized = 0;
 }
 
 #if INCLUDE_crypt_rn
@@ -210,6 +212,7 @@ crypt_ra (const char *phrase, const char *setting, void **data, int *size)
       *data = malloc (sizeof (struct crypt_data));
       if (!*data)
         return 0;
+      explicit_bzero (*data, sizeof (struct crypt_data));
       *size = sizeof (struct crypt_data);
     }
   if (*size < 0 || (size_t)*size < sizeof (struct crypt_data))
@@ -217,6 +220,7 @@ crypt_ra (const char *phrase, const char *setting, void **data, int *size)
       void *rdata = realloc (*data, sizeof (struct crypt_data));
       if (!rdata)
         return 0;
+      explicit_bzero (rdata, sizeof (struct crypt_data));
       *data = rdata;
       *size = sizeof (struct crypt_data);
     }
