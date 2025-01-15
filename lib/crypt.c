@@ -207,20 +207,23 @@ SYMVER_crypt_rn;
 char *
 crypt_ra (const char *phrase, const char *setting, void **data, int *size)
 {
-  if (!*data)
+  if (!*data || *size < 0 || (size_t) *size < sizeof (struct crypt_data))
     {
-      *data = malloc (sizeof (struct crypt_data));
-      if (!*data)
-        return 0;
-      *size = sizeof (struct crypt_data);
-    }
-  if (*size < 0 || (size_t)*size < sizeof (struct crypt_data))
-    {
+      /* realloc gives us no way to zeroize the previous data,
+         if it happens to relocate it to a new memory address.
+         So let's do it right away.  */
+      if (*data && *size > 0)
+        explicit_bzero (*data, (size_t) *size);
+
+      /* realloc called with *data == NULL is the same as a call
+         to malloc with the identical size parameter.  */
       void *rdata = realloc (*data, sizeof (struct crypt_data));
       if (!rdata)
         return 0;
+
       *data = rdata;
       *size = sizeof (struct crypt_data);
+      memset (*data, 0, (size_t) *size);
     }
 
   struct crypt_data *p = *data;
