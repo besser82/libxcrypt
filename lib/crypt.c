@@ -180,7 +180,8 @@ do_crypt (const char *phrase, const char *setting, struct crypt_data *data)
             (unsigned char *)data->output, sizeof data->output,
             cint->alg_specific, sizeof cint->alg_specific);
 
-  explicit_bzero (data->internal, sizeof data->internal);
+  explicit_bzero (data->internal, sizeof (data->internal));
+  explicit_bzero (data->reserved, sizeof (data->reserved));
   data->initialized = 0;
 }
 
