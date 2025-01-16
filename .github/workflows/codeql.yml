@@ -41,7 +41,7 @@ jobs:
       run: sudo apt-get install libltdl-dev
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
+      uses: github/codeql-action/init@v3
       with:
         # CodeQL lumps C with C++.  Perl is not currently supported.
         languages: cpp, python
@@ -93,7 +93,7 @@ jobs:
         make -j${{ env.NPROCS }} test-programs
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@v3
 
     - name: Detailed error logs
       if: failure()
