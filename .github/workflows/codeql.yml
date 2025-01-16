@@ -14,8 +14,6 @@ jobs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
       - id: skip_check
-        # pin to unreleased SHA so we can use 'same_content_newer'
-        # see https://github.com/fkirc/skip-duplicate-actions/pull/112
         uses: fkirc/skip-duplicate-actions@v5
         with:
           concurrent_skipping: 'same_content_newer'
