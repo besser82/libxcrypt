@@ -160,12 +160,16 @@ typedef union
    to whatever platform routine is available, or to our own fallback
    implementation.  */
 #define INCLUDE_explicit_bzero 0
-#if defined HAVE_EXPLICIT_BZERO
+#if defined HAVE_MEMSET_EXPLICIT
+/* Preferred over explicit_bzero, as this is part of the C23 standard.
+   See: ISO/IEC 9899:2024  */
+#define explicit_bzero(s, len) memset_explicit(s, 0, len)
+#elif defined HAVE_MEMSET_S
+#define explicit_bzero(s, len) memset_s(s, len, 0, len)
+#elif defined HAVE_EXPLICIT_BZERO
 /* nothing to do */
 #elif defined HAVE_EXPLICIT_MEMSET
 #define explicit_bzero(s, len) explicit_memset(s, 0, len)
-#elif defined HAVE_MEMSET_S
-#define explicit_bzero(s, len) memset_s(s, len, 0, len)
 #else
 /* activate our fallback implementation */
 #undef INCLUDE_explicit_bzero
