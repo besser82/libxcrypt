@@ -76,6 +76,42 @@ main (void)
       printf ("Test %zu.1: %s, expected: \"%-2s\", got: \"%-2s\"\n",
               s, result, testcases[i].exp_ra, outbuf);
 
+      j = -1;
+
+      crypt_ra ("@@", "@@", (void **) &outbuf, &j);
+
+      if (!strncmp (testcases[i].exp_ra, outbuf, strlen(outbuf)))
+        {
+          strcpy (result, "PASS");
+        }
+      else
+        {
+          strcpy (result, "FAIL");
+          ok = false;
+        }
+
+      printf ("Test %zu.2: %s, expected: \"%-2s\", got: \"%-2s\"\n",
+              s, result, testcases[i].exp_ra, outbuf);
+
+      free (outbuf);
+      outbuf = NULL;
+      j = sizeof (struct crypt_data);
+
+      crypt_ra ("@@", "@@", (void **) &outbuf, &j);
+
+      if (!strncmp (testcases[i].exp_ra, outbuf, strlen(outbuf)))
+        {
+          strcpy (result, "PASS");
+        }
+      else
+        {
+          strcpy (result, "FAIL");
+          ok = false;
+        }
+
+      printf ("Test %zu.3: %s, expected: \"%-2s\", got: \"%-2s\"\n",
+              s, result, testcases[i].exp_ra, outbuf);
+
       free (outbuf);
     }
 
