@@ -74,9 +74,10 @@ source tree.  For specific licensing terms consult the files themselves.
  * Public domain, written by Zack Weinberg et al.:
    byteorder.h, randombytes.c, test-byteorder.c
    test-alg-pbkdf-hmac-sha256.c
-   test-badsetting.c, test-crypt-badargs.c, test-getrandom-fallbacks.c,
-   test-getrandom-interface.c, test-symbols-compat.sh,
-   test-symbols-renames.sh, test-symbols-static.sh,
+   test-badsetting.c, test-crypt-badargs.c, test-crypt-multithread.c,
+   test-getrandom-fallbacks.c, test-getrandom-interface.c,
+   test-symbols-compat.sh, test-symbols-renames.sh,
+   test-symbols-static.sh,
    build-aux/scripts/gen-crypt-h,
    build-aux/scripts/gen-crypt-symbol-vers-h,
    build-aux/scripts/gen-libcrypt-map,
@@ -87,6 +88,14 @@ source tree.  For specific licensing terms consult the files themselves.
  * Copyright Zack Weinberg and Free Software Foundation, Inc;
    GPL (v3 or later), with Autoconf exception:
    build-aux/m4/zw_automodern.m4, build-aux/m4/zw_simple_warnings.m4
+
+*  Copyright Steven G. Johnson, Daniel Richard G., Marc Stevens;
+   GPL (v3 or later), with Autoconf exception:
+   build-aux/m4/ax_pthread.m4
+
+*  Copyright Alan Woodland, Diego Elio Petteno;
+   GPL (v3 or later), with Autoconf exception:
+   build-aux/m4/ax_tls.m4
 
  * Copyright <vt at altlinux.org>; 0-clause BSD:
    crypt-yescrypt.c, test-crypt-yescrypt.c

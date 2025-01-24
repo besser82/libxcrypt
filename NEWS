@@ -4,6 +4,15 @@ Please send bug reports, questions and suggestions to
 <https://github.com/besser82/libxcrypt/issues>.
 
 Version 4.4.39
+* crypt and crypt_gensalt now use per-thread storage areas for their
+  output, allocated upon the first call in each thread that uses them.
+  This makes it safe to call these functions from multiple threads
+  simultaneously (but consecutive calls will still clobber the
+  previous output).
+  This feature is a safety net against sloppy coding.  Programs are
+  still strongly encouraged to use the reentrant functions instead,
+  because this safety net is not guaranteed by any standard
+  (although we are informed that Solaris also does this).
 
 Version 4.4.38
 * Fix several "-Wunterminated-string-initialization", which are seen by
