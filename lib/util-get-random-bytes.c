@@ -146,9 +146,9 @@ get_random_bytes(void *buf, size_t buflen)
         }
     }
 #endif
-#endif /* no arc4random_buf */
 
   /* if we get here, we're just completely hosed */
   errno = ENOSYS;
   return false;
+#endif /* no arc4random_buf */
 }
