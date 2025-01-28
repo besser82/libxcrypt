@@ -300,8 +300,9 @@ gensalt_sunmd5_rn (unsigned long count,
 
   assert (count != 0);
 
-  size_t written = (size_t) snprintf ((char *)output, o_size,
-                                      "%s,rounds=%lu$", SUNMD5_PREFIX, count);
+  int written = snprintf ((char *)output, o_size,
+                          "%s,rounds=%lu$", SUNMD5_PREFIX, count);
+  assert (written > 0);
 
 
   write_itoa64_4(output + written + 0, rbytes[2], rbytes[3], rbytes[4]);
