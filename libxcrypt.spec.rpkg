@@ -106,8 +106,14 @@
 %global _configure "$(realpath ../configure)"
 
 
+# Create config.cache to speedup the run of
+# the configure script for the compat package.
+%global config_cache %(mktemp -t %{name}-XXXXXXXXXXXXXXXX-config.cache)
+
+
 # Common configure options.
 %global common_configure_options           \\\
+  --cache-file=%{config_cache}             \\\
   --disable-failure-tokens                 \\\
   --disable-silent-rules                   \\\
   --enable-shared                          \\\
