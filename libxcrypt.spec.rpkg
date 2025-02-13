@@ -108,7 +108,7 @@
 
 # Create config.cache to speedup the run of
 # the configure script for the compat package.
-%global config_cache %(mktemp -t %{name}-XXXXXXXXXXXXXXXX-config.cache)
+%global config_cache %(mktemp -tu %{name}-XXXXXXXXXXXXXXXX-config.cache)
 
 
 # Common configure options.
@@ -333,6 +333,7 @@ EOF
 
 
 %build
+touch %{config_cache}
 mkdir -p %{_vpath_builddir}
 
 # Build the default system library.
@@ -405,6 +406,7 @@ ac_cv_func_arc4random_buf=no                     \
 %make_build
 %make_build test-programs
 popd
+rm -f %{config_cache}
 
 
 %install
