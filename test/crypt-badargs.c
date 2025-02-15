@@ -43,6 +43,10 @@ static const char *settings[] =
   "$md5$BPm.fm03$$",
   "$md5$BPm.fm03$$x",
 #endif
+#if INCLUDE_sm3crypt
+  "$sm3$MJHnaAkegEVYHsFK",
+  "$sm3$rounds=10191$MJHnaAkegEVYHsFK",
+#endif
 #if INCLUDE_sha1crypt
   "$sha1$248488$ggu.H673kaZ5$",
 #endif
@@ -74,6 +78,9 @@ static const char *settings[] =
 #endif
 #if INCLUDE_gost_yescrypt
   "$gy$j9T$MJHnaAkegEVYHsFKkmfzJ1",
+#endif
+#if INCLUDE_sm3_yescrypt
+  "$sm3y$j9T$MJHnaAkegEVYHsFKkmfzJ1",
 #endif
 };
 

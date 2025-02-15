@@ -57,6 +57,8 @@ test/alg-pbkdf-hmac-sha256
 test/alg-sha1
 test/alg-sha256
 test/alg-sha512
+test/alg-sm3
+test/alg-sm3-hmac
 test/alg-yescrypt
 test/badsalt
 test/badsetting
@@ -75,6 +77,7 @@ test/crypt-pbkdf1-sha1
 test/crypt-scrypt
 test/crypt-sha256
 test/crypt-sha512
+test/crypt-sm3-yescrypt
 test/crypt-sunmd5
 test/crypt-yescrypt
 test/des-obsolete
@@ -100,6 +103,8 @@ test/ka-scrypt
 test/ka-sha1crypt
 test/ka-sha256crypt
 test/ka-sha512crypt
+test/ka-sm3crypt
+test/ka-sm3-yescrypt
 test/ka-sunmd5
 test/ka-yescrypt
 test/preferred-method

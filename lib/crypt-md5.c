@@ -225,7 +225,7 @@ gensalt_md5crypt_rn (unsigned long count,
       errno = EINVAL;
       return;
     }
-  gensalt_sha_rn ('1', 8, 1000, 1000, 1000, 1000,
+  gensalt_sha_rn ("1", 8, 1000, 1000, 1000, 1000,
                   rbytes, nrbytes, output, output_size);
 }
 

@@ -366,11 +366,13 @@ extern size_t strcpy_or_abort (void *dst, size_t d_size, const void *src);
 #define libcperciva_SHA512_Buf    _crypt_SHA512_Buf
 #endif
 
-#if INCLUDE_md5crypt || INCLUDE_sha256crypt || INCLUDE_sha512crypt
+#if INCLUDE_md5crypt || INCLUDE_sha256crypt || INCLUDE_sha512crypt || \
+    INCLUDE_sm3crypt
 #define gensalt_sha_rn           _crypt_gensalt_sha_rn
 #endif
 
-#if INCLUDE_yescrypt || INCLUDE_scrypt || INCLUDE_gost_yescrypt
+#if INCLUDE_yescrypt || INCLUDE_scrypt || INCLUDE_gost_yescrypt || \
+    INCLUDE_sm3_yescrypt
 #define PBKDF2_SHA256            _crypt_PBKDF2_SHA256
 #define crypto_scrypt            _crypt_crypto_scrypt
 #define yescrypt                 _crypt_yescrypt
@@ -394,11 +396,19 @@ extern size_t strcpy_or_abort (void *dst, size_t d_size, const void *src);
 #endif
 
 #if INCLUDE_sha256crypt || INCLUDE_scrypt || INCLUDE_yescrypt || \
-    INCLUDE_gost_yescrypt
+    INCLUDE_gost_yescrypt || INCLUDE_sm3_yescrypt
 #define libcperciva_SHA256_Init  _crypt_SHA256_Init
 #define libcperciva_SHA256_Update _crypt_SHA256_Update
 #define libcperciva_SHA256_Final _crypt_SHA256_Final
 #define libcperciva_SHA256_Buf   _crypt_SHA256_Buf
+#endif
+
+#if INCLUDE_sm3crypt || INCLUDE_sm3_yescrypt
+#define sm3_init   _crypt_sm3_init
+#define sm3_update _crypt_sm3_update
+#define sm3_final  _crypt_sm3_final
+#define sm3_hash   _crypt_sm3_hash
+#define sm3_buf    _crypt_sm3_buf
 #endif
 
 #if INCLUDE_gost_yescrypt
@@ -408,14 +418,22 @@ extern size_t strcpy_or_abort (void *dst, size_t d_size, const void *src);
 #define GOST34112012Cleanup    _crypt_GOST34112012_Cleanup
 #define gost_hash256           _crypt_gost_hash256
 #define gost_hmac256           _crypt_gost_hmac256
+#endif
 
-/* Those are not present, if gost-yescrypt is selected,
-   but yescrypt is not. */
-#if !INCLUDE_yescrypt
+#if INCLUDE_sm3_yescrypt
+#define sm3_hmac_buf      _crypt_sm3_hmac_buf
+#define sm3_hmac_final    _crypt_sm3_hmac_final
+#define sm3_hmac_init     _crypt_sm3_hmac_init
+#define sm3_hmac_update   _crypt_sm3_hmac_update
+#define sm3_hmac          _crypt_sm3_hmac
+#endif
+
+/* Those are not present, if gost-yescrypt or sm3-yescrypt
+   is selected, but yescrypt is not. */
+#if !INCLUDE_yescrypt && (INCLUDE_gost_yescrypt || INCLUDE_sm3_yescrypt)
 #define gensalt_yescrypt_rn _crypt_gensalt_yescrypt_rn
 extern void gensalt_yescrypt_rn
 (unsigned long, const uint8_t *, size_t, uint8_t *, size_t);
-#endif
 #endif
 
 /* Those are not present, if des-big is selected, but des is not. */
@@ -448,7 +466,7 @@ extern bool get_random_bytes (void *buf, size_t buflen);
 
 /* Generate a setting string in the format common to md5crypt,
    sha256crypt, and sha512crypt.  */
-extern void gensalt_sha_rn (char tag, size_t maxsalt, unsigned long defcount,
+extern void gensalt_sha_rn (const char *tag, size_t maxsalt, unsigned long defcount,
                             unsigned long mincount, unsigned long maxcount,
                             unsigned long count,
                             const uint8_t *rbytes, size_t nrbytes,

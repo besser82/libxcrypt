@@ -170,6 +170,36 @@ static const char *const sha512_expected_output_h[] =
   "$6$rounds=999999999$UqGBkVu01rurVZqg"
 };
 #endif
+#if INCLUDE_sm3crypt
+static const char *const sm3_expected_output[] =
+{
+  "$sm3$MJHnaAkegEVYHsFK",
+  "$sm3$PKXc3hCOSyMqdaEQ",
+  "$sm3$ZAFlICwYRETzIzIj",
+  "$sm3$UqGBkVu01rurVZqg"
+};
+static const char *const sm3_expected_output_r[] =
+{
+  "$sm3$rounds=10191$MJHnaAkegEVYHsFK",
+  "$sm3$rounds=10191$PKXc3hCOSyMqdaEQ",
+  "$sm3$rounds=10191$ZAFlICwYRETzIzIj",
+  "$sm3$rounds=10191$UqGBkVu01rurVZqg"
+};
+static const char *const sm3_expected_output_l[] =
+{
+  "$sm3$rounds=1000$MJHnaAkegEVYHsFK",
+  "$sm3$rounds=1000$PKXc3hCOSyMqdaEQ",
+  "$sm3$rounds=1000$ZAFlICwYRETzIzIj",
+  "$sm3$rounds=1000$UqGBkVu01rurVZqg"
+};
+static const char *const sm3_expected_output_h[] =
+{
+  "$sm3$rounds=999999999$MJHnaAkegEVYHsFK",
+  "$sm3$rounds=999999999$PKXc3hCOSyMqdaEQ",
+  "$sm3$rounds=999999999$ZAFlICwYRETzIzIj",
+  "$sm3$rounds=999999999$UqGBkVu01rurVZqg"
+};
+#endif
 #if INCLUDE_bcrypt
 static const char *const bcrypt_b_expected_output[] =
 {
@@ -280,6 +310,29 @@ static const char *gost_yescrypt_expected_output_h[] =
   "$gy$jFT$UqGBkVu01rurVZqgNchTB0"
 };
 #endif
+#if INCLUDE_sm3_yescrypt
+static const char *const sm3_yescrypt_expected_output[] =
+{
+  "$sm3y$j9T$MJHnaAkegEVYHsFKkmfzJ1",
+  "$sm3y$j9T$PKXc3hCOSyMqdaEQArI62/",
+  "$sm3y$j9T$ZAFlICwYRETzIzIjEIC86.",
+  "$sm3y$j9T$UqGBkVu01rurVZqgNchTB0"
+};
+static const char *const sm3_yescrypt_expected_output_l[] =
+{
+  "$sm3y$j75$MJHnaAkegEVYHsFKkmfzJ1",
+  "$sm3y$j75$PKXc3hCOSyMqdaEQArI62/",
+  "$sm3y$j75$ZAFlICwYRETzIzIjEIC86.",
+  "$sm3y$j75$UqGBkVu01rurVZqgNchTB0"
+};
+static const char *const sm3_yescrypt_expected_output_h[] =
+{
+  "$sm3y$jFT$MJHnaAkegEVYHsFKkmfzJ1",
+  "$sm3y$jFT$PKXc3hCOSyMqdaEQArI62/",
+  "$sm3y$jFT$ZAFlICwYRETzIzIjEIC86.",
+  "$sm3y$jFT$UqGBkVu01rurVZqgNchTB0"
+};
+#endif
 
 struct testcase
 {
@@ -291,7 +344,7 @@ struct testcase
 };
 
 // For all hashing methods with a linear cost parameter (that is,
-// DES/BSD, MD5/Sun, SHA1, SHA256, and SHA512), crypt_gensalt will
+// DES/BSD, MD5/Sun, SM3, SHA1, SHA256, and SHA512), crypt_gensalt will
 // accept any value in the range of 'unsigned long' and clip it to the
 // actual valid range.
 #define MIN_LINEAR_COST 1
@@ -325,6 +378,12 @@ static const struct testcase testcases[] =
   // MD5/Sun always emits a round count.
   { "$md5", sunmd5_expected_output_l,  27,  0, MIN_LINEAR_COST },
   { "$md5", sunmd5_expected_output_h,  32,  0, MAX_LINEAR_COST },
+#endif
+#if INCLUDE_sm3crypt
+  { "$sm3$", sm3_expected_output,      21,  0, 0 },
+  { "$sm3$", sm3_expected_output_r,    34,  0, 10191 },
+  { "$sm3$", sm3_expected_output_l,    33,  0, MIN_LINEAR_COST },
+  { "$sm3$", sm3_expected_output_h,    38,  0, MAX_LINEAR_COST },
 #endif
 #if INCLUDE_sha1crypt
   { "$sha1", sha1_expected_output,     26, 34, 0 },
@@ -375,6 +434,11 @@ static const struct testcase testcases[] =
   { "$gy$",  gost_yescrypt_expected_output,   30, 30,  0 },
   { "$gy$",  gost_yescrypt_expected_output_l, 30, 30,  1 },
   { "$gy$",  gost_yescrypt_expected_output_h, 30, 30, 11 },
+#endif
+#if INCLUDE_sm3_yescrypt
+  { "$sm3y$",  sm3_yescrypt_expected_output,   32, 32,  0 },
+  { "$sm3y$",  sm3_yescrypt_expected_output_l, 32, 32,  1 },
+  { "$sm3y$",  sm3_yescrypt_expected_output_h, 32, 32, 11 },
 #endif
   { 0, 0, 0, 0, 0 }
 };

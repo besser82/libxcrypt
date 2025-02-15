@@ -65,6 +65,8 @@ jobs:
         - "--disable-obsolete-api --enable-hashes=sha1crypt"
         - "--disable-obsolete-api --enable-hashes=sha256crypt"
         - "--disable-obsolete-api --enable-hashes=sha512crypt"
+        - "--disable-obsolete-api --enable-hashes=sm3crypt"
+        - "--disable-obsolete-api --enable-hashes=sm3-yescrypt"
         - "--disable-obsolete-api --enable-hashes=sunmd5"
         - "--disable-obsolete-api --enable-hashes=yescrypt"
 

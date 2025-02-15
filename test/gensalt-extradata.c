@@ -55,6 +55,9 @@ static const struct testcase testcases[] =
 #if INCLUDE_sunmd5
   { "$md5",  7019, 1120211 },
 #endif
+#if INCLUDE_sm3crypt
+  { "$sm3$",  7019, 1120211 },
+#endif
 #if INCLUDE_sha1crypt
   { "$sha1", 7019, 1120211 },
 #endif
@@ -81,6 +84,9 @@ static const struct testcase testcases[] =
 #endif
 #if INCLUDE_gost_yescrypt
   { "$gy$", 7, 11, },
+#endif
+#if INCLUDE_sm3_yescrypt
+  { "$sm3y$", 7, 11, },
 #endif
   { 0, 0, 0, }
 };
