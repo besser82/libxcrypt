@@ -108,7 +108,9 @@
 
 # Create config.cache to speedup the run of
 # the configure script for the compat package.
-%global config_cache %(mktemp -tu %{name}-XXXXXXXXXXXXXXXX-config.cache)
+%global nvrt_str %{name}-%{version}-%{release}.%{_target_cpu}
+%global mktemplate %{nvrt_str}-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+%global config_cache %(mktemp -tu %{mktemplate}-config.cache)
 
 
 # Common configure options.
