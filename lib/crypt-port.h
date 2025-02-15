@@ -401,6 +401,13 @@ extern size_t strcpy_or_abort (void *dst, size_t d_size, const void *src);
 #define libcperciva_SHA256_Buf   _crypt_SHA256_Buf
 #endif
 
+#if INCLUDE_sm3crypt
+#define sm3_init   _crypt_sm3_init
+#define sm3_update _crypt_sm3_update
+#define sm3_final  _crypt_sm3_final
+#define sm3_buf    _crypt_sm3_buf
+#endif
+
 #if INCLUDE_gost_yescrypt
 #define GOST34112012Init       _crypt_GOST34112012_Init
 #define GOST34112012Update     _crypt_GOST34112012_Update
