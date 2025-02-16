@@ -18,7 +18,8 @@
 #ifndef ARGON2_CORE_H
 #define ARGON2_CORE_H
 
-#include "argon2.h"
+#include "alg-argon2.h"
+#include "alg-argon2-renames.h"
 
 #define CONST_CAST(x) (x)(uintptr_t)
 

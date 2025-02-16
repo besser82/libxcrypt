@@ -50,6 +50,7 @@ AC_USE_SYSTEM_EXTENSIONS
 AC_SYS_LARGEFILE
 zw_SIMPLE_ENABLE_WARNINGS
 LT_INIT
+AC_CHECK_SIZEOF([void *])
 
 # The test scripts need to know whether C global symbols have a
 # leading underscore.

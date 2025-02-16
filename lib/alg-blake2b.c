@@ -18,6 +18,8 @@
 
 #include "crypt-port.h"
 
+#if INCLUDE_argon2
+
 #include "alg-blake2b.h"
 #include "byteorder.h"
 
@@ -255,3 +257,5 @@ fail:
 
   return ret;
 }
+
+#endif /* INCLUDE_argon2 */

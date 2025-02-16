@@ -15,9 +15,13 @@
  * software. If not, they may be obtained at the above URLs.
  */
 
+#include "crypt-port.h"
+
+#if INCLUDE_argon2
+
 #if !defined(ARGON2_NO_THREADS)
 
-#include "thread.h"
+#include "alg-argon2-thread.h"
 #if defined(_WIN32)
 #include <windows.h>
 #endif
@@ -55,3 +59,4 @@ void argon2_thread_exit(void) {
 }
 
 #endif /* ARGON2_NO_THREADS */
+#endif /* INCLUDE_argon2 */

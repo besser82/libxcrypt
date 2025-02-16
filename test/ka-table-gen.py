@@ -288,6 +288,36 @@ def h_sha512crypt(phrase, rounds, salt):
     setting = expected[:expected.rfind('$')]
     yield (phrase, setting, expected)
 
+ARGON2D = passlib.hash.argon2
+def h_argon2d(phrase, rounds, salt):
+    expected = ARGON2D.using(
+        type='D', memory_cost=32,
+        salt=str.encode(salt), rounds=rounds
+    ).hash(phrase)
+    # hash-verification requires setting == expected
+    setting = expected
+    yield (phrase, setting, expected)
+
+ARGON2I = passlib.hash.argon2
+def h_argon2i(phrase, rounds, salt):
+    expected = ARGON2I.using(
+        type='I', memory_cost=32,
+        salt=str.encode(salt), rounds=rounds
+    ).hash(phrase)
+    # hash-verification requires setting == expected
+    setting = expected
+    yield (phrase, setting, expected)
+
+ARGON2ID = passlib.hash.argon2
+def h_argon2id(phrase, rounds, salt):
+    expected = ARGON2ID.using(
+        type='ID', memory_cost=32,
+        salt=str.encode(salt), rounds=rounds
+    ).hash(phrase)
+    # hash-verification requires setting == expected
+    setting = expected
+    yield (phrase, setting, expected)
+
 # these need to do more work by hand
 
 # We need to test setting strings both with and without the suffix
@@ -581,6 +611,27 @@ def h_sm3_yescrypt(phrase, rounds, salt):
 # Methods should be in alphabetical order by their INCLUDE_macro name.
 
 SETTINGS = [
+    ('argon2d', [
+        (1, 'somesalt'),
+        (1, 'diffsalt'),
+        (2, 'somesalt'),
+        (2, 'diffsalt'),
+    ]),
+
+    ('argon2i', [
+        (1, 'somesalt'),
+        (1, 'diffsalt'),
+        (2, 'somesalt'),
+        (2, 'diffsalt'),
+    ]),
+
+    ('argon2id', [
+        (1, 'somesalt'),
+        (1, 'diffsalt'),
+        (2, 'somesalt'),
+        (2, 'diffsalt'),
+    ]),
+
     ('bcrypt', [
         (5, 'CCCCCCCCCCCCCCCCCCCCC.'),
         (5, 'abcdefghijklmnopqrstuu'),

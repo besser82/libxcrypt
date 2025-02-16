@@ -15,6 +15,10 @@
  * software. If not, they may be obtained at the above URLs.
  */
 
+#include "crypt-port.h"
+
+#if INCLUDE_argon2i || INCLUDE_argon2id
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -22,7 +26,9 @@
 #include <time.h>
 #include <assert.h>
 
-#include "argon2.h"
+#include "alg-argon2.h"
+
+/* define TEST_LARGE_RAM 1 */
 
 #define OUT_LEN 32
 #define ENCODED_LEN 108
@@ -34,14 +40,15 @@
  * argon2_verify() correctly verifies value
  */
 
-void hashtest(uint32_t version, uint32_t t, uint32_t m, uint32_t p, char *pwd,
-              char *salt, char *hexref, char *mcfref, argon2_type type) {
+static void hashtest(uint32_t version, uint32_t t, uint32_t m, uint32_t p,
+                     const char *pwd, const char *salt, const char *hexref,
+                     const char *mcfref, argon2_type type) {
     unsigned char out[OUT_LEN];
     unsigned char hex_out[OUT_LEN * 2 + 4];
     char encoded[ENCODED_LEN];
     int ret, i;
 
-    printf("Hash test: $v=%d t=%d, m=%d, p=%d, pass=%s, salt=%s: ", version,
+    printf("Hash test: $v=%u t=%u, m=%u, p=%u, pass=%s, salt=%s: ", version,
            t, m, p, pwd, salt);
 
     ret = argon2_hash(t, 1 << m, p, pwd, strlen(pwd), salt, strlen(salt), out,
@@ -64,11 +71,12 @@ void hashtest(uint32_t version, uint32_t t, uint32_t m, uint32_t p, char *pwd,
     printf("PASS\n");
 }
 
-int main() {
+int main(void) {
     int ret;
-    unsigned char out[OUT_LEN];
+    uint32_t version;
+
+#if INCLUDE_argon2i
     char const *msg;
-    int version;
 
     version = ARGON2_VERSION_10;
     printf("Test Argon2i version number: %02x\n", version);
@@ -227,6 +235,11 @@ int main() {
     assert(strcmp(msg, "Decoding failed") == 0);
     printf("Decode an error message: PASS\n\n");
 
+#endif /* INCLUDE_argon2i */
+#if INCLUDE_argon2id
+    unsigned char out[OUT_LEN];
+
+    version = ARGON2_VERSION_NUMBER;
     printf("Test Argon2id version number: %02x\n", version);
 
     /* Multiple test cases for various input values */
@@ -285,5 +298,15 @@ int main() {
     assert(ret == ARGON2_SALT_TOO_SHORT);
     printf("Fail on salt too short: PASS\n");
 
+#endif /* INCLUDE_argon2id */
+
     return 0;
 }
+
+#else
+
+int main(void) {
+    return 77; /* UNSUPPORTED */
+}
+
+#endif /* INCLUDE_argon2i || INCLUDE_argon2id */

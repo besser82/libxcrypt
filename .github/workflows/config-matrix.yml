@@ -51,6 +51,9 @@ jobs:
 
         # Configurations with only one hash enabled.  These exist to
         # detect build failures due to incorrect ifdeffage.
+        - "--disable-obsolete-api --enable-hashes=argon2d"
+        - "--disable-obsolete-api --enable-hashes=argon2i"
+        - "--disable-obsolete-api --enable-hashes=argon2id"
         - "--disable-obsolete-api --enable-hashes=bcrypt"
         - "--disable-obsolete-api --enable-hashes=bcrypt_a"
         - "--disable-obsolete-api --enable-hashes=bcrypt_x"

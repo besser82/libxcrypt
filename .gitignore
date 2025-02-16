@@ -47,6 +47,8 @@
 /libcrypt.map
 /libcrypt.map.stamp
 gen-des-tables
+test/alg-argon2
+test/alg-argon2-coverage
 test/alg-blake2b
 test/alg-des
 test/alg-gost3411-2012
@@ -90,6 +92,9 @@ test/gensalt-nthash
 test/gensalt-extradata
 test/getrandom-fallbacks
 test/getrandom-interface
+test/ka-argon2d
+test/ka-argon2i
+test/ka-argon2id
 test/ka-bcrypt
 test/ka-bcrypt-a
 test/ka-bcrypt-x

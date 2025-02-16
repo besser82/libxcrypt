@@ -15,12 +15,16 @@
  * software. If not, they may be obtained at the above URLs.
  */
 
+#include "crypt-port.h"
+
+#if INCLUDE_argon2
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
-#include "encoding.h"
-#include "core.h"
+#include "alg-argon2-encoding.h"
+#include "alg-argon2-core.h"
 
 /*
  * Example code for a decoder and encoder of "hash strings", with Argon2
@@ -83,8 +87,8 @@
 static int b64_byte_to_char(unsigned x) {
     return (LT(x, 26) & (x + 'A')) |
            (GE(x, 26) & LT(x, 52) & (x + ('a' - 26))) |
-           (GE(x, 52) & LT(x, 62) & (x + ('0' - 52))) | (EQ(x, 62) & '+') |
-           (EQ(x, 63) & '/');
+           (GE(x, 52) & LT(x, 62) & (x + (unsigned)('0' - 52))) |
+           (EQ(x, 62) & '+') | (EQ(x, 63) & '/');
 }
 
 /*
@@ -94,10 +98,10 @@ static int b64_byte_to_char(unsigned x) {
 static unsigned b64_char_to_byte(int c) {
     unsigned x;
 
-    x = (GE(c, 'A') & LE(c, 'Z') & (c - 'A')) |
-        (GE(c, 'a') & LE(c, 'z') & (c - ('a' - 26))) |
-        (GE(c, '0') & LE(c, '9') & (c - ('0' - 52))) | (EQ(c, '+') & 62) |
-        (EQ(c, '/') & 63);
+    x = (GE(c, 'A') & LE(c, 'Z') & (unsigned)(c - 'A')) |
+        (GE(c, 'a') & LE(c, 'z') & (unsigned)(c - ('a' - 26))) |
+        (GE(c, '0') & LE(c, '9') & (unsigned)(c - ('0' - 52))) |
+        (EQ(c, '+') & 62) | (EQ(c, '/') & 63);
     return x | (EQ(x, 0) & (EQ(c, 'A') ^ 0xFF));
 }
 
@@ -461,3 +465,4 @@ size_t numlen(uint32_t num) {
     return len;
 }
 
+#endif /* INCLUDE_argon2 */

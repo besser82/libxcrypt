@@ -25,7 +25,7 @@
 
 #include "crypt-port.h"
 
-#if 1
+#if INCLUDE_argon2
 
 #include "alg-blake2b.h"
 #include <stdio.h>
@@ -1471,4 +1471,4 @@ main (void)
   return 77; /* UNSUPPORTED */
 }
 
-#endif
+#endif /* INCLUDE_argon2 */

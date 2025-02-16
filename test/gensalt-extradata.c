@@ -88,6 +88,15 @@ static const struct testcase testcases[] =
 #if INCLUDE_sm3_yescrypt
   { "$sm3y$", 7, 11, },
 #endif
+#if INCLUDE_argon2d
+  { "$argon2d$", 0, 0, },
+#endif
+#if INCLUDE_argon2i
+  { "$argon2i$", 0, 0, },
+#endif
+#if INCLUDE_argon2id
+  { "$argon2id$", 0, 0, },
+#endif
   { 0, 0, 0, }
 };
 

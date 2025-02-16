@@ -27,16 +27,8 @@ extern "C" {
 #endif
 
 /* Symbols visibility control */
-#ifdef A2_VISCTL
-#define ARGON2_PUBLIC __attribute__((visibility("default")))
-#define ARGON2_LOCAL __attribute__ ((visibility ("hidden")))
-#elif defined(_MSC_VER)
-#define ARGON2_PUBLIC __declspec(dllexport)
-#define ARGON2_LOCAL
-#else
 #define ARGON2_PUBLIC
 #define ARGON2_LOCAL
-#endif
 
 /*
  * Argon2 input parameter restrictions

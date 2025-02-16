@@ -82,6 +82,15 @@ static const char *settings[] =
 #if INCLUDE_sm3_yescrypt
   "$sm3y$j9T$MJHnaAkegEVYHsFKkmfzJ1",
 #endif
+#if INCLUDE_argon2d
+  "$argon2d$v=19$m=32,t=1,p=4$c29tZXNhbHQ$"
+#endif
+#if INCLUDE_argon2i
+  "$argon2i$v=19$m=32,t=1,p=4$c29tZXNhbHQ$"
+#endif
+#if INCLUDE_argon2id
+  "$argon2id$v=19$m=32,t=1,p=4$c29tZXNhbHQ$"
+#endif
 };
 
 /* In some of the tests below, a segmentation fault is the expected result.  */

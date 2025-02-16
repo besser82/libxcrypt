@@ -68,6 +68,12 @@ nodist_noinst_HEADERS = \
 	crypt-hashes.h \
 	crypt-symbol-vers.h
 noinst_HEADERS = \
+	lib/alg-argon2.h \
+	lib/alg-argon2-blamka.h \
+	lib/alg-argon2-core.h \
+	lib/alg-argon2-encoding.h \
+	lib/alg-argon2-renames.h \
+	lib/alg-argon2-thread.h \
 	lib/alg-blake2b.h \
 	lib/alg-des.h \
 	lib/alg-gost3411-2012-const.h \
@@ -101,6 +107,11 @@ lib_LTLIBRARIES = \
 	libcrypt.la
 
 libcrypt_la_SOURCES = \
+	lib/alg-argon2.c \
+	lib/alg-argon2-core.c \
+	lib/alg-argon2-encoding.c \
+	lib/alg-argon2-ref.c \
+	lib/alg-argon2-thread.c \
 	lib/alg-blake2b.c \
 	lib/alg-des-tables.c \
 	lib/alg-des.c \
@@ -116,6 +127,7 @@ libcrypt_la_SOURCES = \
 	lib/alg-sm3-hmac.c \
 	lib/alg-yescrypt-common.c \
 	lib/alg-yescrypt-opt.c \
+	lib/crypt-argon2.c \
 	lib/crypt-bcrypt.c \
 	lib/crypt-des.c \
 	lib/crypt-gensalt-static.c \
@@ -349,6 +361,9 @@ endif
 # The list should otherwise be kept in alphabetical order.
 
 check_PROGRAMS = \
+	test/ka-argon2d \
+	test/ka-argon2i \
+	test/ka-argon2id \
 	test/ka-bcrypt \
 	test/ka-bcrypt-a \
 	test/ka-bcrypt-x \
@@ -367,6 +382,8 @@ check_PROGRAMS = \
 	test/ka-sm3-yescrypt \
 	test/ka-sunmd5 \
 	test/ka-yescrypt \
+	test/alg-argon2 \
+	test/alg-argon2-coverage \
 	test/alg-blake2b \
 	test/alg-des \
 	test/alg-gost3411-2012 \
@@ -401,6 +418,9 @@ check_PROGRAMS = \
 
 # All of the known-answer tests are compiled from the same source file,
 # with different macros defined.
+test_ka_argon2d_SOURCES		= test/ka-tester.c
+test_ka_argon2i_SOURCES		= test/ka-tester.c
+test_ka_argon2id_SOURCES	= test/ka-tester.c
 test_ka_bcrypt_SOURCES		= test/ka-tester.c
 test_ka_bcrypt_a_SOURCES	= test/ka-tester.c
 test_ka_bcrypt_x_SOURCES	= test/ka-tester.c
@@ -420,6 +440,9 @@ test_ka_sm3_yescrypt_SOURCES	= test/ka-tester.c
 test_ka_sunmd5_SOURCES		= test/ka-tester.c
 test_ka_yescrypt_SOURCES	= test/ka-tester.c
 
+test_ka_argon2d_CPPFLAGS	= $(AM_CPPFLAGS) -DTEST_argon2d
+test_ka_argon2i_CPPFLAGS	= $(AM_CPPFLAGS) -DTEST_argon2i
+test_ka_argon2id_CPPFLAGS	= $(AM_CPPFLAGS) -DTEST_argon2id
 test_ka_bcrypt_CPPFLAGS		= $(AM_CPPFLAGS) -DTEST_bcrypt
 test_ka_bcrypt_a_CPPFLAGS	= $(AM_CPPFLAGS) -DTEST_bcrypt_a
 test_ka_bcrypt_x_CPPFLAGS	= $(AM_CPPFLAGS) -DTEST_bcrypt_x
@@ -510,6 +533,9 @@ test_short_outbuf_LDADD = $(COMMON_TEST_OBJECTS)
 test_preferred_method_LDADD = $(COMMON_TEST_OBJECTS)
 test_special_char_salt_LDADD = $(COMMON_TEST_OBJECTS)
 
+test_ka_argon2d_LDADD = $(COMMON_TEST_OBJECTS)
+test_ka_argon2i_LDADD = $(COMMON_TEST_OBJECTS)
+test_ka_argon2id_LDADD = $(COMMON_TEST_OBJECTS)
 test_ka_bcrypt_LDADD = $(COMMON_TEST_OBJECTS)
 test_ka_bcrypt_a_LDADD = $(COMMON_TEST_OBJECTS)
 test_ka_bcrypt_x_LDADD = $(COMMON_TEST_OBJECTS)
@@ -536,6 +562,24 @@ test_ka_yescrypt_LDADD = $(COMMON_TEST_OBJECTS)
 # being compiled a second time.
 test_gensalt_LDADD = \
 	lib/libcrypt_la-util-xstrcpy.lo \
+	$(COMMON_TEST_OBJECTS)
+test_alg_argon2_LDADD = \
+	lib/libcrypt_la-alg-argon2.lo \
+	lib/libcrypt_la-alg-argon2-core.lo \
+	lib/libcrypt_la-alg-argon2-encoding.lo \
+	lib/libcrypt_la-alg-argon2-ref.lo \
+	lib/libcrypt_la-alg-argon2-thread.lo \
+	lib/libcrypt_la-alg-blake2b.lo \
+	lib/libcrypt_la-util-xbzero.lo \
+	$(COMMON_TEST_OBJECTS)
+test_alg_argon2_coverage_LDADD = \
+	lib/libcrypt_la-alg-argon2.lo \
+	lib/libcrypt_la-alg-argon2-core.lo \
+	lib/libcrypt_la-alg-argon2-encoding.lo \
+	lib/libcrypt_la-alg-argon2-ref.lo \
+	lib/libcrypt_la-alg-argon2-thread.lo \
+	lib/libcrypt_la-alg-blake2b.lo \
+	lib/libcrypt_la-util-xbzero.lo \
 	$(COMMON_TEST_OBJECTS)
 test_alg_blake2b_LDADD = \
 	lib/libcrypt_la-alg-blake2b.lo \

@@ -15,16 +15,18 @@
  * software. If not, they may be obtained at the above URLs.
  */
 
+#include "crypt-port.h"
+
+#if INCLUDE_argon2
+
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
 
-#include "argon2.h"
-#include "core.h"
-
-#include "blake2/blamka-round-ref.h"
-#include "blake2/blake2-impl.h"
-#include "blake2/blake2.h"
+#include "alg-argon2.h"
+#include "alg-argon2-core.h"
+#include "alg-argon2-blamka.h"
+#include "alg-blake2b.h"
 
 
 /*
@@ -192,3 +194,5 @@ void fill_segment(const argon2_instance_t *instance,
         }
     }
 }
+
+#endif /* INCLUDE_argon2 */
