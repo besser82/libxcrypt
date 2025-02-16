@@ -47,6 +47,7 @@
 /libcrypt.map
 /libcrypt.map.stamp
 gen-des-tables
+test/alg-blake2b
 test/alg-des
 test/alg-gost3411-2012
 test/alg-gost3411-2012-hmac

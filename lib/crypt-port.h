@@ -428,6 +428,14 @@ extern size_t strcpy_or_abort (void *dst, size_t d_size, const void *src);
 #define sm3_hmac          _crypt_sm3_hmac
 #endif
 
+#if 1
+#define blake2b          _crypt_blake2b
+#define blake2b_final    _crypt_blake2b_final
+#define blake2b_init     _crypt_blake2b_init
+#define blake2b_long     _crypt_blake2b_long
+#define blake2b_update   _crypt_blake2b_update
+#endif
+
 /* Those are not present, if gost-yescrypt or sm3-yescrypt
    is selected, but yescrypt is not. */
 #if !INCLUDE_yescrypt && (INCLUDE_gost_yescrypt || INCLUDE_sm3_yescrypt)

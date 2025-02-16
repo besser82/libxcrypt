@@ -68,6 +68,7 @@ nodist_noinst_HEADERS = \
 	crypt-hashes.h \
 	crypt-symbol-vers.h
 noinst_HEADERS = \
+	lib/alg-blake2b.h \
 	lib/alg-des.h \
 	lib/alg-gost3411-2012-const.h \
 	lib/alg-gost3411-2012-core.h \
@@ -100,6 +101,7 @@ lib_LTLIBRARIES = \
 	libcrypt.la
 
 libcrypt_la_SOURCES = \
+	lib/alg-blake2b.c \
 	lib/alg-des-tables.c \
 	lib/alg-des.c \
 	lib/alg-gost3411-2012-core.c \
@@ -365,6 +367,7 @@ check_PROGRAMS = \
 	test/ka-sm3-yescrypt \
 	test/ka-sunmd5 \
 	test/ka-yescrypt \
+	test/alg-blake2b \
 	test/alg-des \
 	test/alg-gost3411-2012 \
 	test/alg-gost3411-2012-hmac \
@@ -533,6 +536,10 @@ test_ka_yescrypt_LDADD = $(COMMON_TEST_OBJECTS)
 # being compiled a second time.
 test_gensalt_LDADD = \
 	lib/libcrypt_la-util-xstrcpy.lo \
+	$(COMMON_TEST_OBJECTS)
+test_alg_blake2b_LDADD = \
+	lib/libcrypt_la-alg-blake2b.lo \
+	lib/libcrypt_la-util-xbzero.lo \
 	$(COMMON_TEST_OBJECTS)
 test_alg_des_LDADD = \
 	lib/libcrypt_la-alg-des.lo \
