@@ -60,8 +60,12 @@ gensalt_sha_rn (char tag, size_t maxsalt, unsigned long defcount,
       written = 3;
     }
   else
-    written = (size_t) snprintf ((char *)output, output_size,
-                                 "$%c$rounds=%lu$", tag, count);
+    {
+      int w = snprintf ((char *)output, output_size,
+                        "$%c$rounds=%lu$", tag, count);
+      assert (w > 0);
+      written = (size_t) w;
+    }
 
   /* The length calculation above should ensure that this is always true.  */
   assert (written + 5 < output_size);
