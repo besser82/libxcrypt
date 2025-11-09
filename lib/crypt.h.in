@@ -244,6 +244,11 @@ extern const char *crypt_preferred_method (void);
 /* Version number as a string constant.  */
 #define XCRYPT_VERSION_STR "@XCRYPT_VERSION_STR@"
 
+/* List of provided by the current build hash algorithms*/
+
+#define CRYPT_GET_SUPPORTED_HASH_METHODS_AVAILABLE 1
+extern const char *crypt_get_supported_hash_methods(void);
+
 @END_DECLS@
 
 #endif /* crypt.h */
