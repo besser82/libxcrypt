@@ -384,6 +384,7 @@ check_PROGRAMS = \
 	test/checksalt \
 	test/compile-strong-alias \
 	test/crypt-badargs \
+	test/crypt-get-supported-hash-methods \
 	test/crypt-gost-yescrypt \
 	test/crypt-nested-call \
 	test/crypt-sm3-yescrypt \
@@ -509,6 +510,7 @@ test_checksalt_LDADD = $(COMMON_TEST_OBJECTS)
 test_des_obsolete_LDADD = $(COMMON_TEST_OBJECTS)
 test_des_obsolete_r_LDADD = $(COMMON_TEST_OBJECTS)
 test_crypt_badargs_LDADD = $(COMMON_TEST_OBJECTS)
+test_crypt_get_supported_hash_methods_LDADD = $(COMMON_TEST_OBJECTS)
 test_crypt_nested_call_LDADD = $(COMMON_TEST_OBJECTS)
 test_crypt_too_long_phrase_LDADD = $(COMMON_TEST_OBJECTS)
 test_preferred_method_LDADD = $(COMMON_TEST_OBJECTS)

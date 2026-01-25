@@ -419,3 +419,9 @@ crypt_preferred_method (void)
 }
 SYMVER_crypt_preferred_method;
 #endif
+
+const char *crypt_get_supported_hash_methods(void)
+{
+    return SUPPORTED_HASH_METHODS;
+}
+SYMVER_crypt_get_supported_hash_methods;

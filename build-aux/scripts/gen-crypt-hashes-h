@@ -110,6 +110,16 @@ EOT
 
 #define HASH_ALGORITHM_DEFAULT "$default_prefix"
 EOT
+
+    # List of supported hash methods
+    my @provided_hashes = ();
+    while (my ($e, $v) = each %{$hconf->hashes}){
+        if ($enabled{$e}) {
+            push @provided_hashes, "$e:@{[$v->prefix]}";
+        }
+    }
+    print "\n#define SUPPORTED_HASH_METHODS \\\n";
+    print '  "' . (join ";\" \\\n  \"", sort @provided_hashes) . '"';
     print <<'EOT';
 
 #endif /* crypt-hashes.h */
