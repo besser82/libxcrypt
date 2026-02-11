@@ -214,7 +214,8 @@ crypt_sha512crypt_rn (const char *phrase, size_t phr_size,
   /* Start computation of S byte sequence.  */
   SHA512_Init (ctx);
 
-  /* For every character in the password add the entire password.  */
+  /* Add the salt n times where n is the value of the first byte of the
+     intermediate result plus 16.  */
   for (cnt = 0; cnt < (size_t) 16 + (size_t) result[0]; ++cnt)
     SHA512_Update (ctx, salt, salt_size);
 
